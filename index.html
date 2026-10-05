@@ -1,0 +1,1569 @@
+<title>真相ガチャ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Courier+Prime:wght@400;700&family=Yomogi&display=swap">
+<style>
+/* Layout: 深夜の机に置かれた機密ファイル。アプリ型（上バー＋4タブ＋下ナビ）。紙＝資料、黒塗り＝未解放、赤い判子＝真相 */
+:root {
+  --desk: #121419;
+  --desk-2: #1b1e25;
+  --desk-3: #252932;
+  --line: #2f3440;
+  --fg: #d3d6de;
+  --muted: #868c9b;
+  --paper: #ddd5c3;
+  --paper-2: #c9bfa9;
+  --paper-ink-2: #5d5647;
+  --ink: #1b1b1f;
+  --redact: #0b0b0d;
+  --stamp: #b8352b;
+  --lamp: rgba(232, 214, 170, .07);
+  --f-display: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --f-body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", sans-serif;
+  --f-mono: "Courier Prime", "Courier New", monospace;
+  --f-hand: "Yomogi", "Klee One", "Hiragino Maru Gothic ProN", cursive;
+  --inkmask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -3.2 0 0 0 2.4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23m)'/%3E%3C/svg%3E");
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.3 0 0 0 0 0.22 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --nav-h: 64px;
+  color-scheme: dark;
+}
+@supports (word-break: auto-phrase) { body { word-break: auto-phrase; } }
+html.phrase-js body { word-break: keep-all; }
+p, .note, .hint, .odds, .cab-desc, .pad small, .ushi span { text-wrap: pretty; }
+h2, h3, .diag b, .logo, .rank, .toast { text-wrap: balance; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { background: var(--desk); color: var(--fg); }
+body {
+  line-break: strict; overflow-wrap: anywhere;
+  font-family: var(--f-body); font-size: 15px; line-height: 1.7;
+  background-image: radial-gradient(120% 60% at 50% -10%, var(--lamp), transparent 70%);
+  background-attachment: fixed;
+}
+button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
+button:focus-visible, a:focus-visible { outline: 2px solid var(--stamp); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.paper { background-color: var(--paper); background-image: var(--grain); color: var(--ink); }
+
+/* ---------- top bar ---------- */
+.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: rgba(18, 20, 25, .9); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.top-in { max-width: 640px; margin: 0 auto; padding-inline: 16px; padding-block: 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.logo { font-family: var(--f-display); font-weight: 800; font-size: 20px; letter-spacing: .06em; line-height: 1; }
+.logo .bar { background: var(--redact); color: transparent; box-shadow: 0 0 0 1px #2a2d35; }
+.logo small { display: block; font-family: var(--f-mono); font-weight: 400; font-size: 10px; letter-spacing: .16em; color: var(--muted); margin-top: 4px; }
+.wallet { display: flex; align-items: center; gap: 10px; background: var(--desk-2); border: 1px solid var(--line); padding: 6px 12px 6px 8px; border-radius: 999px; }
+.ring { width: 26px; height: 26px; border-radius: 50%; background: conic-gradient(var(--paper) calc(var(--p, 0) * 1%), var(--desk-3) 0); display: grid; place-items: center; }
+.ring::after { content: ""; width: 18px; height: 18px; border-radius: 50%; background: var(--desk-2); }
+.wallet b { font-family: var(--f-mono); font-size: 20px; font-variant-numeric: tabular-nums; min-width: 3ch; text-align: right; }
+.wallet span { font-size: 11px; color: var(--muted); }
+.wallet.pop b { color: var(--paper); }
+
+/* ---------- views ---------- */
+main { max-width: 640px; margin: 0 auto; padding-inline: 16px; padding-block: 20px calc(var(--nav-h) + 40px + env(safe-area-inset-bottom, 0px)); }
+.view { display: grid; gap: 26px; animation: viewin .3s ease-out; }
+@keyframes viewin { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.sec-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 12px; }
+.sec-h h3 { margin: 0; font-family: var(--f-display); font-size: 19px; letter-spacing: .06em; }
+.sec-h small { color: var(--muted); font-size: 12px; }
+.eyebrow { font-family: var(--f-mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; }
+
+/* today dossier */
+.today { position: relative; padding: 22px 20px 18px; box-shadow: 0 18px 40px rgba(0,0,0,.5); transform: rotate(-.6deg); }
+.today::before { content: ""; position: absolute; top: -13px; left: 24px; width: 96px; height: 26px; background: rgba(236, 228, 200, .55); transform: rotate(-5deg); box-shadow: 0 1px 2px rgba(0,0,0,.25); z-index: 1; }
+.today .eyebrow { color: var(--paper-ink-2); }
+.today h2 { margin: 6px 0 8px; font-family: var(--f-display); font-size: clamp(26px, 7vw, 34px); line-height: 1.25; text-wrap: balance; }
+.today p { margin: 0; font-size: 14px; max-width: 34em; }
+.today .foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+.clip { position: absolute; right: 18px; top: -16px; width: 18px; height: 54px; border: 3px solid #8d93a0; border-radius: 9px; border-bottom-color: transparent; }
+.stamp-sm { position: absolute; right: 16px; top: 46px; border: 2px solid var(--stamp); color: var(--stamp); font-family: var(--f-display); font-weight: 800; font-size: 12px; padding: 1px 8px; transform: rotate(-9deg); letter-spacing: .1em; opacity: .9; }
+.btn-ink { background: var(--ink); color: var(--paper); padding: 12px 18px; font-weight: 700; letter-spacing: .06em; }
+.btn-ink:disabled { opacity: .35; cursor: not-allowed; }
+.btn-paper { background: var(--paper); color: var(--ink); padding: 12px 18px; font-weight: 700; letter-spacing: .04em; }
+.btn-paper:disabled { background: var(--desk-3); color: #6f7482; cursor: not-allowed; }
+.btn-line { border: 1px solid var(--line); padding: 11px 16px; color: var(--fg); text-decoration: none; display: inline-flex; align-items: center; }
+.btn-line:hover { border-color: var(--muted); }
+
+/* sniff pad */
+.pad { position: relative; overflow: hidden; width: 100%; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; padding: 16px; background: var(--desk-2); border: 1px solid var(--line); text-align: left; user-select: none; }
+.pad:active { transform: scale(.985); background: var(--desk-3); }
+.lens { width: 46px; height: 46px; border-radius: 50%; border: 3px solid var(--paper); position: relative; }
+.lens::after { content: ""; position: absolute; width: 16px; height: 4px; background: var(--paper); right: -12px; bottom: -4px; transform: rotate(45deg); border-radius: 2px; }
+.pad b { display: block; font-family: var(--f-display); font-size: 19px; }
+.pad small { color: var(--muted); font-size: 12px; }
+.combo { font-family: var(--f-mono); font-size: 22px; color: var(--paper); min-width: 3ch; text-align: right; opacity: 0; }
+.combo.on { opacity: 1; }
+.float { position: absolute; font-family: var(--f-mono); color: var(--paper); font-weight: 700; pointer-events: none; animation: rise .8s ease-out forwards; }
+@keyframes rise { from { opacity: 1; transform: translate(-50%, 0) scale(1); } to { opacity: 0; transform: translate(-50%, -40px) scale(1.2); } }
+
+/* missions */
+.mis { display: grid; gap: 8px; }
+.mi { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; padding: 12px 14px; background: var(--desk-2); border: 1px solid var(--line); }
+.mi .t { font-size: 14px; }
+.mi .meter { grid-column: 1 / -1; height: 3px; background: var(--desk-3); }
+.mi .meter i { display: block; height: 100%; background: var(--paper); transition: width .4s; }
+.mi .r { font-family: var(--f-mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+.mi.done { opacity: .5; }
+.mi.done .t { text-decoration: line-through; }
+.mi button { background: var(--stamp); color: #fff; padding: 5px 12px; font-size: 12px; font-weight: 700; animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 6px rgba(184, 53, 43, 0); } 0% { box-shadow: 0 0 0 0 rgba(184, 53, 43, .5); } }
+
+/* ---------- gacha view ---------- */
+.seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--desk-2); border: 1px solid var(--line); padding: 4px; gap: 4px; }
+.seg button { padding: 10px; font-weight: 700; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--paper); color: var(--ink); }
+.cabinet { display: grid; justify-items: center; gap: 18px; padding-block: 10px 4px; }
+.big-env { position: relative; width: min(300px, 82vw); aspect-ratio: 1.45; background-color: #b9a37a; background-image: var(--grain); box-shadow: 0 24px 50px rgba(0,0,0,.55); transform: rotate(-2deg); animation: idleFloat 4s ease-in-out infinite; }
+.big-env::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 52%; background: #a99167; clip-path: polygon(0 0, 100% 0, 50% 100%); }
+.big-env .tie { position: absolute; left: 50%; top: 44%; width: 26px; height: 26px; border-radius: 50%; background: #7d6a48; transform: translate(-50%, 0); box-shadow: 0 0 0 3px #6b5a3c; }
+.big-env .lab { position: absolute; left: 14px; bottom: 12px; font-family: var(--f-mono); font-size: 11px; letter-spacing: .14em; color: #3f3524; }
+.big-env .seal { position: absolute; right: 14px; bottom: 12px; border: 2px solid var(--stamp); color: var(--stamp); font-family: var(--f-display); font-weight: 800; font-size: 14px; padding: 0 8px; transform: rotate(-10deg); }
+@keyframes idleFloat { 50% { transform: rotate(-1deg) translateY(-6px); } }
+.cab-desc { text-align: center; color: var(--muted); font-size: 13px; max-width: 26em; margin: 0; }
+.pulls { display: grid; grid-template-columns: 1fr 1.25fr; gap: 10px; width: 100%; }
+.pulls button { display: grid; gap: 0; padding: 14px; }
+.pulls button span { font-family: var(--f-mono); font-size: 12px; font-weight: 400; opacity: .75; }
+.pulls .five { background: var(--stamp); color: #fff; }
+.pulls .five:disabled { background: var(--desk-3); color: #6f7482; }
+.pulls .bulk { background: transparent; color: var(--paper); border: 1px solid var(--paper); }
+.pulls .bulk:disabled { color: #6f7482; border-color: var(--line); background: transparent; }
+.sum { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.sum div { background: var(--desk); padding: 10px; display: grid; }
+.sum span { font-size: 11px; color: var(--muted); }
+.sum b { font-family: var(--f-mono); font-size: 20px; }
+.tbook { display: grid; gap: 6px; }
+.tbook .tcount { display: flex; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.odds { font-size: 12px; color: var(--muted); text-align: center; }
+
+/* ---------- archive ---------- */
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chips button { border: 1px solid var(--line); padding: 6px 14px; border-radius: 999px; font-size: 13px; color: var(--muted); }
+.chips button[aria-pressed="true"] { border-color: var(--paper); color: var(--paper); }
+.progress { display: grid; gap: 6px; }
+.progress .bar { height: 6px; background: var(--desk-3); }
+.progress .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--paper), var(--stamp)); }
+.progress .row { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+.files { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 12px; padding-top: 10px; }
+.folder { position: relative; text-align: left; padding: 16px 12px 12px; display: grid; gap: 8px; min-height: 120px; align-content: start; box-shadow: 0 8px 18px rgba(0,0,0,.35); transition: transform .15s; }
+.folder:hover { transform: translateY(-2px) rotate(-.4deg); }
+.folder::before { content: ""; position: absolute; top: -9px; left: 0; width: 46%; height: 10px; background: inherit; background-image: none; background-color: var(--paper-2); }
+.folder .m { font-family: var(--f-mono); font-size: 10px; letter-spacing: .12em; color: var(--paper-ink-2); }
+.folder .n { font-family: var(--f-display); font-size: 16px; line-height: 1.35; font-weight: 600; }
+.folder.locked { opacity: .5; box-shadow: none; cursor: default; }
+.folder.locked:hover { transform: none; }
+.rd { display: inline-flex; flex-wrap: wrap; gap: 3px; vertical-align: middle; }
+.rd i { display: block; width: .95em; height: 1.05em; background: var(--redact); }
+.folder.truth::after { content: "真相"; position: absolute; right: 8px; top: 8px; border: 2px solid var(--stamp); color: var(--stamp); font-family: var(--f-display); font-weight: 800; font-size: 11px; padding: 0 5px; transform: rotate(-12deg); }
+.pips { display: flex; gap: 3px; }
+.pips i { flex: 1; height: 5px; background: rgba(0,0,0,.14); }
+.pips i.on { background: var(--ink); }
+.pips i.on5 { background: var(--stamp); }
+
+/* ---------- report ---------- */
+.grid-card { padding: 18px; display: grid; gap: 12px; border: 1px solid var(--line); background: var(--desk-2); }
+.sq { display: grid; grid-template-columns: 4.5em repeat(var(--n, 5), 1fr); gap: 6px; align-items: center; font-size: 12px; color: var(--muted); }
+.sq i { aspect-ratio: 1; background: var(--desk-3); border-radius: 3px; }
+.sq i.l1 { background: #7a6a4f; } .sq i.l3 { background: #c98b47; } .sq i.l5 { background: var(--stamp); }
+.diag { position: relative; padding: 22px 20px; display: grid; gap: 6px; box-shadow: 0 14px 30px rgba(0,0,0,.45); }
+.diag .eyebrow { color: var(--paper-ink-2); }
+.diag b { font-family: var(--f-display); font-size: clamp(24px, 6.5vw, 30px); line-height: 1.3; text-wrap: balance; }
+.diag p { margin: 0; font-size: 14px; }
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.stats div { background: var(--desk); padding: 10px 12px; display: grid; }
+.stats span { font-size: 11px; color: var(--muted); }
+.stats b { font-family: var(--f-mono); font-size: 20px; font-variant-numeric: tabular-nums; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* ---------- bottom nav ---------- */
+.nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: rgba(18, 20, 25, .94); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.nav-in { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); height: var(--nav-h); }
+.nav button { display: grid; place-items: center; align-content: center; gap: 3px; font-size: 11px; color: var(--muted); position: relative; }
+.nav svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.nav button[aria-current="page"] { color: var(--paper); }
+.nav button[aria-current="page"]::before { content: ""; position: absolute; top: 0; left: 30%; right: 30%; height: 2px; background: var(--stamp); }
+.nav .dot { position: absolute; top: 10px; right: calc(50% - 18px); width: 8px; height: 8px; border-radius: 50%; background: var(--stamp); }
+
+/* ---------- pull stage ---------- */
+.stage { position: fixed; inset: 0; z-index: 20; background: radial-gradient(80% 60% at 50% 40%, #23262e, #07080a 75%); display: grid; place-items: center; padding: 16px; overflow: hidden; }
+.stage.flash::after { content: ""; position: absolute; inset: 0; background: var(--stamp); animation: flash .5s ease-out forwards; pointer-events: none; }
+@keyframes flash { from { opacity: .55; } to { opacity: 0; } }
+.stage.shake .st-card { animation: hit .4s ease-out; }
+@keyframes hit { 20% { transform: translate(-6px, 3px); } 40% { transform: translate(5px, -4px); } 60% { transform: translate(-3px, 2px); } 100% { transform: none; } }
+.st-wrap { width: min(420px, 100%); display: grid; gap: 18px; justify-items: center; }
+.st-top { width: 100%; display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 12px; }
+.st-scene { position: relative; width: 100%; aspect-ratio: .78; max-height: 62vh; display: grid; place-items: center; }
+.st-env { position: absolute; width: 78%; aspect-ratio: 1.45; background-color: #b9a37a; background-image: var(--grain); box-shadow: 0 30px 60px rgba(0,0,0,.6); transition: transform .5s cubic-bezier(.5,0,.7,.4), opacity .4s; z-index: 2; }
+.st-env::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 52%; background: #a99167; clip-path: polygon(0 0, 100% 0, 50% 100%); transform-origin: top; transition: transform .35s; }
+.st-env .seal { position: absolute; right: 14px; bottom: 12px; border: 2px solid var(--stamp); color: var(--stamp); font-family: var(--f-display); font-weight: 800; font-size: 14px; padding: 0 8px; transform: rotate(-10deg); }
+.st-env .lab { position: absolute; left: 14px; bottom: 12px; font-family: var(--f-mono); font-size: 11px; letter-spacing: .14em; color: #3f3524; }
+.st-env.shake { animation: rattle .6s ease-in-out; }
+@keyframes rattle { 15%, 45%, 75% { transform: rotate(-4deg) scale(1.02); } 30%, 60%, 90% { transform: rotate(4deg) scale(1.02); } }
+.st-env.open::before { transform: scaleY(-1); }
+.st-env.gone { transform: translateY(70%) scale(.9); opacity: 0; }
+.st-card { position: absolute; inset: 0; padding: 22px 20px; display: grid; align-content: start; gap: 10px; box-shadow: 0 30px 60px rgba(0,0,0,.6); opacity: 0; transform: translateY(30%) scale(.8); transition: transform .55s cubic-bezier(.2,.9,.3,1.2), opacity .3s; overflow: hidden; }
+.st-card.up { opacity: 1; transform: none; }
+.st-card .eyebrow { color: var(--paper-ink-2); display: flex; justify-content: space-between; gap: 8px; }
+.badge { font-family: var(--f-body); font-weight: 700; letter-spacing: .04em; text-transform: none; font-size: 12px; padding: 1px 8px; background: var(--ink); color: var(--paper); }
+.badge.red { background: var(--stamp); color: #fff; }
+.badge.grey { background: var(--paper-2); color: var(--paper-ink-2); }
+.st-card h2 { margin: 6px 0 2px; font-family: var(--f-display); font-size: clamp(28px, 8vw, 38px); line-height: 1.2; text-wrap: balance; }
+.lyr { display: grid; gap: 3px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,.15); }
+.lyr .lab { font-family: var(--f-mono); font-size: 11px; letter-spacing: .1em; color: var(--paper-ink-2); }
+.lyr p { margin: 0; position: relative; font-size: 15px; line-height: 1.75; }
+.wipe { position: absolute; inset: -2px -4px; background: var(--redact); transform-origin: right; transition: transform .7s cubic-bezier(.7,0,.3,1); }
+.st-card.reveal .wipe, .lyr.fresh .wipe { transform: scaleX(0); }
+.lyr.fresh .wipe { animation: peel .8s .25s cubic-bezier(.7,0,.3,1) both; }
+@keyframes peel { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+.st-card .pips { margin-top: 4px; }
+.truth { position: absolute; right: 18px; bottom: 26px; border: 4px solid var(--stamp); color: var(--stamp); font-family: var(--f-display); font-weight: 800; font-size: 30px; padding: 2px 14px; letter-spacing: .1em; transform: rotate(-12deg) scale(2.4); opacity: 0; transition: transform .25s cubic-bezier(.3,1.6,.6,1), opacity .15s; }
+.st-card.truthy .truth { opacity: .92; transform: rotate(-12deg) scale(1); }
+.st-tip { min-height: 1.5em; color: var(--muted); font-size: 13px; text-align: center; }
+.st-btns { display: flex; gap: 10px; }
+
+/* ---------- sheet ---------- */
+.sheet-bg { position: fixed; inset: 0; z-index: 15; background: rgba(5,6,8,.72); display: grid; align-items: end; justify-items: center; }
+.sheet { width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto; background: var(--desk); border: 1px solid var(--line); border-bottom: 0; padding: 10px 18px calc(22px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 14px; animation: slideup .32s cubic-bezier(.2,.9,.3,1); }
+@keyframes slideup { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+.grab { width: 40px; height: 4px; background: var(--line); border-radius: 2px; justify-self: center; }
+.sheet-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.sheet-h .eyebrow { color: var(--muted); }
+.x { border: 1px solid var(--line); width: 34px; height: 34px; }
+.doc { position: relative; padding: 20px 18px 16px; }
+.doc .eyebrow { color: var(--paper-ink-2); }
+.doc h2 { margin: 4px 0 6px; font-family: var(--f-display); font-size: 28px; line-height: 1.3; }
+.doc .verdict { position: absolute; right: 14px; top: 16px; border: 2px solid var(--stamp); color: var(--stamp); font-family: var(--f-display); font-weight: 800; font-size: 12px; padding: 1px 7px; transform: rotate(-8deg); max-width: 9em; text-align: center; line-height: 1.4; }
+.doc .lyr { padding: 10px 0; }
+.sealed p { display: grid; gap: 6px; padding-top: 4px; }
+.sealed p i { display: block; height: 13px; background: var(--redact); }
+.hint { font-size: 12px; color: var(--muted); text-align: center; margin: 0; }
+pre.st { margin: 0; white-space: pre-wrap; word-break: break-all; background: var(--desk-2); border: 1px solid var(--line); padding: 12px; font-family: var(--f-mono); font-size: 13px; line-height: 1.6; user-select: all; }
+.card-img { width: 100%; display: block; border: 1px solid var(--line); }
+.res { display: grid; gap: 8px; }
+.res button { text-align: left; padding: 12px 14px; display: grid; grid-template-columns: 1fr 72px; gap: 10px; align-items: center; animation: deal .35s ease-out both; }
+.res b { font-family: var(--f-display); font-size: 16px; }
+.res .s { display: block; font-size: 12px; color: var(--paper-ink-2); }
+.res .s.new { color: var(--stamp); font-weight: 700; }
+@keyframes deal { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: none; } }
+
+.toast { position: fixed; left: 50%; bottom: calc(var(--nav-h) + 16px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--paper); color: var(--ink); padding: 8px 16px; font-size: 13px; font-weight: 700; z-index: 30; max-width: calc(100% - 32px); box-shadow: 0 8px 20px rgba(0,0,0,.4); }
+
+/* ---------- 紙もの ---------- */
+.aged { box-shadow: inset 0 0 50px rgba(105, 80, 35, .22), 0 18px 40px rgba(0,0,0,.5); }
+.aged.urban { background-color: #e0d4b4; background-image: var(--grain),
+  radial-gradient(circle at var(--sx, 84%) var(--sy, 16%), transparent 36px, rgba(125,85,35,.17) 38px, rgba(125,85,35,.05) 43px, transparent 46px),
+  radial-gradient(ellipse at 6% 100%, rgba(110,78,35,.24), transparent 45%),
+  radial-gradient(ellipse at 100% 0%, rgba(110,78,35,.12), transparent 30%),
+  linear-gradient(90deg, transparent 12px, rgba(184,53,43,.32) 12px 13px, transparent 13px),
+  repeating-linear-gradient(180deg, transparent 0 27px, rgba(60,90,135,.15) 27px 28px); }
+.aged.con { background-color: #e3dfd5; padding-left: 36px; background-image: var(--grain),
+  radial-gradient(circle at 15px 24%, #0e1014 5px, rgba(0,0,0,.28) 6px, transparent 7.5px),
+  radial-gradient(circle at 15px 76%, #0e1014 5px, rgba(0,0,0,.28) 6px, transparent 7.5px),
+  radial-gradient(circle at var(--sx, 84%) var(--sy, 16%), transparent 36px, rgba(125,85,35,.14) 38px, rgba(125,85,35,.04) 43px, transparent 46px),
+  radial-gradient(ellipse at 100% 100%, rgba(90,80,60,.2), transparent 40%),
+  linear-gradient(180deg, transparent 49.6%, rgba(0,0,0,.06) 50%, rgba(255,255,255,.3) 50.5%, transparent 51%); }
+.folder.urban { background-color: #dccfac; background-image: var(--grain), repeating-linear-gradient(180deg, transparent 0 21px, rgba(60,90,135,.14) 21px 22px); }
+.folder.con { background-color: #dedad0; border-top: 3px double rgba(184,53,43,.55); }
+.folder.secret { grid-column: 1 / -1; min-height: 0; background-color: #1f1414; background-image: var(--grain), repeating-linear-gradient(-45deg, transparent 0 14px, rgba(184,53,43,.12) 14px 16px); color: #f0d9d5; border: 1px solid rgba(184,53,43,.6); border-top-width: 1px; }
+.folder.secret::before { background-color: #3a1d1b; }
+.folder.secret .m { color: #e07b72; }
+.folder.secret .rd i { background: #000; box-shadow: 0 0 0 1px rgba(184,53,43,.5); }
+.folder.secret .pips i { background: rgba(255,255,255,.12); }
+.folder.secret .pips i.on, .folder.secret .pips i.on5 { background: var(--stamp); }
+.folder.secret.locked { opacity: .85; }
+.folder .cond { font-size: 12px; color: #c9a7a2; }
+.formhead { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid rgba(0,0,0,.5); font-family: var(--f-mono); font-size: 10px; letter-spacing: .04em; color: var(--ink); }
+.formhead span { padding: 3px 6px; border-left: 1px solid rgba(0,0,0,.5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.formhead span:first-child { border-left: 0; color: var(--stamp); font-weight: 700; }
+.memohead { display: flex; justify-content: space-between; gap: 8px; font-family: var(--f-hand); font-size: 15px; color: #34466b; border-bottom: 1px solid rgba(52,70,107,.35); padding-bottom: 2px; }
+.note { display: block; font-family: var(--f-hand); font-size: 15px; line-height: 1.35; color: var(--stamp); text-align: right; transform: rotate(-2.5deg); margin-top: 4px; }
+.note:empty { display: none; }
+.urban .lyr p, .urban.today p { font-family: var(--f-hand); font-size: 16px; color: #26314a; }
+.con .lyr p { font-family: var(--f-body); letter-spacing: .02em; text-shadow: 0 0 .6px rgba(0,0,0,.35); }
+.stamp-sm, .verdict, .truth, .seal, .folder.truth::after { -webkit-mask-image: var(--inkmask); mask-image: var(--inkmask); }
+.stamp-sm, .verdict, .truth { mix-blend-mode: multiply; }
+.sealed p i { border-radius: 2px 7px 3px 6px; }
+.sealed p i:nth-child(2) { transform: rotate(-.7deg) translateX(4px); }
+.rd i { border-radius: 1px 3px 2px 3px; }
+.rd i:nth-child(odd) { transform: rotate(-3deg) scaleY(1.08); }
+.rd i:nth-child(3n) { transform: rotate(2.5deg); }
+.wipe { border-radius: 3px 9px 4px 7px; }
+.doc .verdict { top: 52px; }
+.doc .memohead + .verdict { top: 44px; }
+.doc h2 { padding-right: 104px; }
+
+/* ---------- 怪異レイヤー ---------- */
+body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 40; background: repeating-linear-gradient(0deg, rgba(0,0,0,.35) 0 1px, transparent 1px 3px); opacity: .18; }
+.logo { animation: glitch 9s infinite steps(1); }
+@keyframes glitch { 0%, 95%, 100% { text-shadow: none; transform: none; } 96% { text-shadow: 2px 0 var(--stamp), -2px 0 #3d8792; transform: translateX(1px) skewX(-4deg); } 97.5% { text-shadow: -3px 0 var(--stamp), 2px 0 #3d8792; transform: translateX(-2px); } }
+body.night { --lamp: rgba(160, 35, 28, .1); }
+body.night .top-in, body.night .today { animation: flicker 6s infinite; }
+@keyframes flicker { 0%, 90%, 100% { filter: none; } 91% { filter: brightness(.45); } 92% { filter: none; } 94% { filter: brightness(.6); } 95% { filter: none; } }
+.toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); cursor: pointer; }
+.toggle input { width: 18px; height: 18px; accent-color: var(--stamp); }
+.crowd { width: 100%; font-family: var(--f-hand); font-size: 15px; color: var(--stamp); }
+.rank { margin: 0; padding: 12px 14px; border: 1px solid var(--stamp); color: #f0c9c4; font-family: var(--f-display); font-size: 16px; }
+.series { display: grid; gap: 8px; }
+.sr { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; background: var(--desk-2); border: 1px solid var(--line); }
+.sr div { display: grid; min-width: 0; }
+.sr b { font-family: var(--f-display); font-size: 16px; }
+.sr span { font-size: 12px; color: var(--muted); }
+.sr em { font-style: normal; font-size: 12px; color: var(--muted); white-space: nowrap; }
+.sr.earned em { color: var(--ink); background: var(--paper); padding: 2px 8px; font-weight: 700; -webkit-mask-image: var(--inkmask); mask-image: var(--inkmask); }
+.sr.gold { border-color: var(--stamp); }
+.sr.gold em { background: var(--stamp); color: #fff; }
+.rankcard { display: grid; gap: 8px; padding: 14px; background: var(--desk-2); border: 1px solid var(--line); }
+.rk-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.rk-top .eyebrow { color: var(--muted); }
+.rk-top b { font-family: var(--f-display); font-size: 20px; color: var(--paper); }
+.rk-bar { height: 5px; background: var(--desk-3); }
+.rk-bar i { display: block; height: 100%; background: var(--paper); transition: width .4s; }
+.rk-row { font-size: 12px; color: var(--muted); }
+.perks { display: flex; flex-wrap: wrap; gap: 6px; }
+.perks span { font-family: var(--f-mono); font-size: 11px; border: 1px solid var(--line); padding: 1px 8px; color: var(--fg); }
+.pity { display: flex; justify-content: space-between; align-items: center; gap: 10px; border-top: 1px dashed var(--line); padding-top: 8px; font-size: 12px; color: var(--muted); }
+.pity b { color: #e6b3ad; font-family: var(--f-mono); font-size: 14px; white-space: nowrap; }
+.rar { display: inline-block; font-family: var(--f-display); font-weight: 800; font-size: 11px; letter-spacing: 0; padding: 0 5px; border: 1.5px solid currentColor; line-height: 1.4; vertical-align: 1px; }
+.rar-n { color: #6d6656; }
+.rar-r { color: #a7682a; }
+.rar-x { color: var(--stamp); background: rgba(184,53,43,.1); }
+.oddslist { display: grid; }
+.oddslist div { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 14px; align-items: center; }
+.oddslist b { font-family: var(--f-mono); }
+.oddslist .rar-n { color: var(--muted); }
+.badges { display: inline-flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+.st-env.glow-r { box-shadow: 0 0 0 2px rgba(201,139,71,.6), 0 0 50px rgba(201,139,71,.55), 0 30px 60px rgba(0,0,0,.6); }
+.st-env.glow-x { box-shadow: 0 0 0 2px rgba(184,53,43,.8), 0 0 70px rgba(184,53,43,.75), 0 30px 60px rgba(0,0,0,.6); animation: throb 1.2s ease-in-out infinite; }
+.st-env.glow-x.shake { animation: rattle .6s ease-in-out; }
+@keyframes throb { 50% { box-shadow: 0 0 0 2px rgba(184,53,43,.8), 0 0 110px rgba(184,53,43,.95), 0 30px 60px rgba(0,0,0,.6); } }
+.testis, #tb-list { display: grid; gap: 6px; }
+.testi { margin: 0; padding: 8px 10px; background: var(--desk-2); border-left: 3px solid var(--line); font-size: 13px; }
+.testi.t-r { border-left-color: #a7682a; }
+.testi.t-x { border-left-color: var(--stamp); color: #e6b3ad; }
+.folder.deep { background-color: #1c1717; background-image: none; color: #c9a7a2; border: 1px dashed rgba(184,53,43,.5); opacity: .8; }
+.folder.deep .m { color: #e07b72; }
+.folder.deep .rd i { background: #000; box-shadow: 0 0 0 1px rgba(184,53,43,.4); }
+.cap { display: grid; gap: 4px; font-size: 12px; color: var(--muted); margin-top: -16px; }
+.streak { margin: 0 0 -10px; font-size: 12px; color: var(--muted); font-family: var(--f-mono); letter-spacing: .04em; }
+.streak:empty { display: none; }
+.labhead { display: grid; gap: 6px; }
+.labhead div { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.labhead .eyebrow { color: var(--muted); }
+.labhead b { font-family: var(--f-display); font-size: 22px; color: var(--paper); }
+.labhead p { margin: 0; font-size: 13px; color: var(--muted); }
+.ups { display: grid; gap: 14px; }
+.up { position: relative; padding: 16px 16px 14px 36px; display: grid; gap: 8px; }
+.up-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.up-h b { font-family: var(--f-display); font-size: 19px; }
+.up-h .mono { font-size: 12px; color: var(--paper-ink-2); }
+.up-pips i { height: 4px; }
+.up-eff { margin: 0; font-size: 14px; font-weight: 700; }
+.up-eff span { font-weight: 400; color: var(--paper-ink-2); }
+.up .note { text-align: left; transform: rotate(-1deg); font-size: 14px; }
+.up .btn-ink { justify-self: start; }
+.ushi { border: 1px solid var(--stamp); color: #e6b3ad; background: rgba(184, 53, 43, .12); padding: 10px 14px; font-size: 13px; display: flex; gap: 10px; align-items: center; }
+.ushi b { font-family: var(--f-display); font-size: 16px; color: #f0c9c4; }
+
+.bbs { background: #0d0f13; border: 1px solid var(--line); font-family: var(--f-mono); }
+.bbs-h { display: flex; justify-content: space-between; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted); font-family: var(--f-body); }
+.bbs-h b { color: var(--fg); font-weight: 700; }
+.live { color: var(--stamp); animation: blink 1.4s steps(2) infinite; white-space: nowrap; }
+@keyframes blink { 50% { opacity: .3; } }
+.bbs-body { padding: 4px 12px 10px; display: grid; min-height: 228px; align-content: end; }
+.post { padding-top: 8px; animation: postin .5s ease-out both; }
+.post .ph { font-size: 11px; color: #6f7686; }
+.post .ph em { font-style: normal; color: #5f8f5a; }
+.post p { margin: 0; font-family: var(--f-body); font-size: 13px; line-height: 1.6; color: var(--fg); }
+.post.haunt .ph em { color: var(--stamp); }
+.post.haunt p { color: #e07b72; font-family: var(--f-display); letter-spacing: .3em; }
+@keyframes postin { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.big-env.old, .st-env.old { background-color: #c8bb98; filter: sepia(.25); }
+.big-env.old::before, .st-env.old::before { background: #b8a983; }
+.big-env.old .seal, .st-env.old .seal { border-radius: 2px; font-size: 22px; padding: 0 6px; writing-mode: vertical-rl; transform: rotate(4deg); bottom: 10px; }
+.big-env.old .lab, .st-env.old .lab { font-family: var(--f-display); font-size: 15px; letter-spacing: .3em; color: #5a2a24; }
+.ghost { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; pointer-events: none; font-family: var(--f-display); font-weight: 800; font-size: clamp(44px, 14vw, 72px); color: var(--stamp); letter-spacing: .2em; text-shadow: 0 0 18px rgba(184,53,43,.6); animation: ghost .9s steps(6) forwards; }
+@keyframes ghost { 0% { opacity: 0; transform: scale(1.1) skewX(8deg); } 20% { opacity: .95; } 40% { opacity: .2; transform: translateX(-6px); } 60% { opacity: .9; transform: translateX(4px) skewX(-6deg); } 100% { opacity: 0; transform: scale(.96); } }
+.pad small.eerie { color: #e07b72; }
+
+@media (min-width: 600px) {
+  .sheet-bg { align-items: center; padding: 16px; }
+  .sheet { border-bottom: 1px solid var(--line); }
+  .files { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+
+<header class="top">
+  <div class="top-in">
+    <div class="logo">真相<span class="bar">ガチ</span>ャ<small id="issue">UNVERIFIED ARCHIVE #001</small></div>
+    <div class="wallet" id="wallet" title="5秒ごとに+1pt">
+      <span class="ring" id="ring" aria-hidden="true"></span>
+      <b id="pt">0</b><span>疑念pt</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- HOME -->
+  <section class="view" data-view="home">
+    <p class="streak" id="streak"></p>
+    <div class="ushi" id="ushi" hidden><b>丑三つ時</b><span>放置で貯まる疑念が2倍。封筒の中身も少し騒がしい。</span></div>
+    <article class="today paper aged urban" id="today-card">
+      <span class="clip" aria-hidden="true"></span>
+      <span class="stamp-sm">本日限定</span>
+      <div class="eyebrow" id="today-no">本日の噂 #001</div>
+      <h2 id="today-h">今日は全員が同じ噂を追っている</h2>
+      <p id="today-line"></p>
+      <span class="note" id="today-note"></span>
+      <div class="foot">
+        <button class="btn-ink" id="free">本日の1回を引く（無料）</button>
+        <span class="eyebrow" id="today-lv">LV.0/5</span>
+        <span class="crowd" id="today-crowd" hidden></span>
+      </div>
+    </article>
+
+    <button class="pad" id="sniff">
+      <span class="lens" aria-hidden="true"></span>
+      <span><b>真相を嗅ぎ回る</b><small id="sniff-sub">タップで疑念ptが貯まる ／ 近づく保証はない</small></span>
+      <span class="combo" id="combo">×1</span>
+    </button>
+    <div class="cap"><span id="cap-text"></span><div class="rk-bar"><i id="cap-bar" style="width:0%"></i></div></div>
+
+    <div class="bbs">
+      <div class="bbs-h"><span><b>【怪】真相調査スレ Part<span id="bbs-part">666</span></b></span><span class="live">● 実況中</span></div>
+      <div class="bbs-body" id="bbs" aria-live="off"></div>
+    </div>
+
+    <div>
+      <div class="sec-h"><h3>本日の任務</h3><small>0時にリセット</small></div>
+      <div class="mis" id="missions"></div>
+    </div>
+  </section>
+
+  <!-- GACHA -->
+  <section class="view" data-view="gacha" hidden>
+    <div class="rankcard">
+      <div class="rk-top"><span class="eyebrow" id="rk-lv">RANK 1 / 20</span><b id="rk-name">見習い調査員</b></div>
+      <div class="rk-bar"><i id="rk-bar" style="width:0%"></i></div>
+      <div class="rk-row"><span id="rk-next"></span></div>
+      <div class="perks" id="rk-perks"></div>
+      <div class="rk-row" id="rk-deep"></div>
+      <div class="pity"><span>このボックスで未発見の資料が確定するまで</span><b id="pity-left">あと30回</b></div>
+    </div>
+    <div class="seg" role="group" aria-label="ボックスを選ぶ">
+      <button data-seg="urban" aria-pressed="true">都市伝説</button>
+      <button data-seg="conspiracy" aria-pressed="false">陰謀論</button>
+    </div>
+    <div class="cabinet">
+      <div class="big-env" id="big-env" aria-hidden="true"><span class="tie"></span><span class="lab" id="env-lab">CASE FILE / URBAN</span><span class="seal" id="env-seal">極秘</span></div>
+      <p class="cab-desc" id="cab-desc"></p>
+      <div class="pulls">
+        <button class="btn-paper" data-pull="1">1回引く<span>10pt</span></button>
+        <button class="btn-paper five" data-pull="5">5連で引く<span>45pt（1回分お得）</span></button>
+        <button class="btn-paper bulk" data-pull="10">10連で引く<span id="lbl-10">90pt</span></button>
+        <button class="btn-paper bulk" data-pull="100">100連で引く<span id="lbl-100">850pt</span></button>
+      </div>
+      <label class="toggle"><input type="checkbox" id="fast"> 演出を高速にする（封筒を自動で開封）</label>
+      <p class="odds">出やすさは 並 ＞ 稀 ＞ 禁。ランクが上がると稀と禁が出やすくなる。調査中のネタは出やすく、真相到達済みは出にくい。5連は必ず1段以上剥がれる。</p>
+      <button class="btn-line" data-act="odds">提供割合を見る</button>
+    </div>
+  </section>
+
+  <!-- ARCHIVE -->
+  <section class="view" data-view="archive" hidden>
+    <div class="progress">
+      <div class="row"><span>アーカイブ解読率</span><span class="mono" id="rate">0%</span></div>
+      <div class="bar"><i id="rate-bar" style="width:0%"></i></div>
+      <div class="row"><span id="got-line">収集 0/10</span><span id="lv5-line">真相到達 0/10</span></div>
+    </div>
+    <div class="chips" role="group" aria-label="絞り込み">
+      <button data-chip="all" aria-pressed="true">すべて</button>
+      <button data-chip="urban" aria-pressed="false">都市伝説</button>
+      <button data-chip="conspiracy" aria-pressed="false">陰謀論</button>
+    </div>
+    <div class="files" id="files"></div>
+    <div class="tbook">
+      <div class="sec-h" style="margin:0"><h3>証言帳</h3><small id="tb-total">0件</small></div>
+      <div class="tcount" id="tb-stat"></div>
+      <div id="tb-list"></div>
+    </div>
+  </section>
+
+  <!-- LAB -->
+  <section class="view" data-view="lab" hidden>
+    <div class="labhead">
+      <div><span class="eyebrow">調査室</span><b>証拠 <span class="mono" id="evi">0</span></b></div>
+      <p>証拠はガチャで手に入る。新規ファイルは3、黒塗り解除は1、目撃証言は2〜15。</p>
+    </div>
+    <div class="ups" id="ups"></div>
+  </section>
+
+  <!-- REPORT -->
+  <section class="view" data-view="report" hidden>
+    <article class="diag paper aged con" style="--sx:88%;--sy:78%">
+      <span class="stamp-sm" style="top:18px">診断</span>
+      <span class="eyebrow">あなたの信者度</span>
+      <b id="diag-name"></b>
+      <p id="diag-desc"></p>
+    </article>
+    <div class="grid-card">
+      <div class="sec-h" style="margin:0"><h3>今日の調査報告</h3><small id="rep-no">#001</small></div>
+      <div id="sq"></div>
+      <p class="hint" style="text-align:left">Lv.5の中身は共有されない。剥がれ具合だけが伝わる。</p>
+      <div class="actions">
+        <button class="btn-paper" id="share-report">調査報告をシェア</button>
+        <button class="btn-line" id="share-diag">診断をシェア</button>
+      </div>
+    </div>
+    <p class="rank" id="rank" hidden></p>
+    <div>
+      <div class="sec-h"><h3>シリーズと称号</h3><small>シリーズの全ネタを集めると称号</small></div>
+      <div class="series" id="series"></div>
+    </div>
+    <div class="stats">
+      <div><span>ガチャ回数</span><b id="s-pulls">0</b></div>
+      <div><span>嗅ぎ回った回数</span><b id="s-clicks">0</b></div>
+      <div><span>集めた証言</span><b id="s-testi">0</b></div>
+      <div><span>剥がした黒塗り</span><b id="s-layers">0</b></div>
+    </div>
+    <p class="hint" id="sync" style="text-align:left">記録：この端末のみに保存</p>
+  </section>
+</main>
+
+<nav class="nav" aria-label="メニュー">
+  <div class="nav-in">
+    <button data-nav="home" aria-current="page"><svg viewBox="0 0 24 24"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg>ホーム<span class="dot" id="dot-home" hidden></span></button>
+    <button data-nav="gacha"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="1"/><path d="M3 7l9 6 9-6"/></svg>ガチャ</button>
+    <button data-nav="archive"><svg viewBox="0 0 24 24"><path d="M3 7a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/></svg>ファイル</button>
+    <button data-nav="lab"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v5l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3M7.5 14h9"/></svg>調査室<span class="dot" id="dot-lab" hidden></span></button>
+    <button data-nav="report"><svg viewBox="0 0 24 24"><path d="M5 19V11M10 19V5M15 19v-6M20 19V8"/></svg>報告</button>
+  </div>
+</nav>
+
+<div class="stage" id="stage" hidden>
+  <div class="st-wrap">
+    <div class="st-top"><span class="eyebrow" id="st-count">1 / 1</span><button class="eyebrow" id="st-skip" style="color:var(--muted)">スキップ</button></div>
+    <div class="st-scene" id="st-scene">
+      <div class="st-card paper" id="st-card"></div>
+      <div class="st-env" id="st-env"><span class="lab" id="st-lab">CASE FILE</span><span class="seal" id="st-seal">極秘</span></div>
+    </div>
+    <p class="st-tip" id="st-tip">タップして封を切る</p>
+    <div class="st-btns" id="st-btns"></div>
+  </div>
+</div>
+
+<div class="sheet-bg" id="sheet-bg" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/* ---------- 日本語の改行（文節で折り返す） ---------- */
+document.documentElement.lang = "ja";
+const KANA_H = /[\u3041-\u309F]/, PART = /[をにがはでとへものやてばかねよらいうるたなず]/, CLOSE = /[、。，．！？!?）」』】]/, OPEN = /[「『（【]/;
+function phrases(t) {
+  if (budoux) { try { return budoux.parse(t); } catch (e) {} }
+  const out = []; let cur = "";
+  const chars = [...t];
+  chars.forEach((c, i) => {
+    const prev = chars[i - 1];
+    const cut = prev !== undefined && cur && (
+      (CLOSE.test(prev) && !CLOSE.test(c)) ||
+      (OPEN.test(c) && !OPEN.test(prev)) ||
+      (PART.test(prev) && !KANA_H.test(c) && !CLOSE.test(c) && !/[ー〜…\s]/.test(c))
+    );
+    if (cut) { out.push(cur); cur = ""; }
+    cur += c;
+  });
+  if (cur) out.push(cur);
+  return out;
+}
+const NATIVE_PHRASE = window.CSS && CSS.supports && CSS.supports("word-break", "auto-phrase");
+function wbrize(root) {
+  if (NATIVE_PHRASE || !root) return;
+  const SKIP = "script,style,pre,textarea,svg,.rd,.mono,.wallet,.ph";
+  const nodes = [];
+  if (root.nodeType === 3) nodes.push(root);
+  else if (root.nodeType === 1) {
+    if (root.closest && root.closest(SKIP)) return;
+    const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    while (w.nextNode()) nodes.push(w.currentNode);
+  }
+  nodes.forEach(n => {
+    const par = n.parentElement;
+    if (!par || par.closest(SKIP) || n.data.length < 7) return;
+    const seg = phrases(n.data);
+    if (seg.length < 2) return;
+    const f = document.createDocumentFragment();
+    seg.forEach((x, i) => { if (i) f.appendChild(document.createElement("wbr")); f.appendChild(document.createTextNode(x)); });
+    par.replaceChild(f, n);
+  });
+}
+let budoux = null;
+if (!NATIVE_PHRASE) {
+  import("https://cdn.jsdelivr.net/npm/budoux@0.9.3/+esm").then(m => {
+    budoux = m.loadDefaultJapaneseParser();
+    document.querySelectorAll("wbr").forEach(w => w.remove());
+    document.body.normalize();
+    wbrize(document.body);
+  }).catch(() => {});
+}
+if (!NATIVE_PHRASE) {
+  document.documentElement.classList.add("phrase-js");
+  const mo = new MutationObserver(list => {
+    mo.disconnect();
+    list.forEach(m => m.addedNodes.forEach(wbrize));
+    mo.observe(document.body, { childList: true, subtree: true });
+  });
+  addEventListener("DOMContentLoaded", () => wbrize(document.body));
+  wbrize(document.body);
+  mo.observe(document.body, { childList: true, subtree: true });
+}
+
+const ITEMS = [
+  { id:"u1", box:"urban", name:"8番出口の老人", verdict:"創作・ミーム", layers:[
+    ["噂","地下通路で同じ道を歩いていると、ある老人が必ずすれ違うらしい。"],
+    ["発生時期","2020年代前半、SNSとインディーゲームを震源として急速に拡散。"],
+    ["詳細","目撃情報の8割は、なぜか同じ服装の同じ老人。すれ違った瞬間に振り返ると、もういない。"],
+    ["信じてる人の特徴","深夜に考察動画を倍速で見るタイプ。ループの構造そのものに快感を覚えている。"],
+    ["真相","「同じ毎日の繰り返し」への軽い恐怖を、老人の姿に外部化したミーム。ループしているのは老人ではなく、こちら側。"]]},
+  { id:"u2", box:"urban", name:"きさらぎ駅", verdict:"創作", layers:[
+    ["噂","電車に乗っていたら、聞いたことのない駅に着いた、という書き込みがある。"],
+    ["発生時期","2004年、ネット掲示板に投稿された実況スレが発端。"],
+    ["詳細","投稿者は無人駅で降り、線路沿いを歩き、スレの終わりと共に消息を絶ったとされる。"],
+    ["信じてる人の特徴","「異界」に居場所を求めている。日常への帰還をあまり望んでいない。"],
+    ["真相","おそらく創作。ただ、終電後の見知らぬ駅で感じる「ここはどこだ」という感覚は本物で、それが共有されたから残った。"]]},
+  { id:"u3", box:"urban", name:"ひとりかくれんぼ", verdict:"降霊遊び・伝承", layers:[
+    ["噂","ぬいぐるみを使って、深夜に一人で行う儀式があるらしい。"],
+    ["発生時期","2000年代後半、動画サイトの実況文化と共に流行。"],
+    ["詳細","ぬいぐるみに名前を与え、水に沈め、塩水で終わらせるという手順が伝わる。"],
+    ["信じてる人の特徴","「やってみた」動画を最後まで見る。信じてはいないが、信じてる人を見るのが好き。"],
+    ["真相","深夜に「誰かといる」感覚を作るための装置。怖いのはぬいぐるみより、深夜に一人でこれをやろうと思う精神状態。"]]},
+  { id:"u4", box:"urban", name:"口裂け女", verdict:"噂・社会現象", layers:[
+    ["噂","マスクをした女性に「私、きれい?」と聞かれたら逃げろという。"],
+    ["発生時期","1979年頃、岐阜県を発端に全国の小学生の間で流行。"],
+    ["詳細","撃退法は地域ごとに違う。集団下校を指示した学校まであった。"],
+    ["信じてる人の特徴","当時小学生だった世代。今でも夕方の通学路の記憶と結びついている。"],
+    ["真相","社会の不安が一人の女性像に押し付けられた、という説が有力。怖いのは彼女ではなく、彼女を作り出した噂の速さ。"]]},
+  { id:"u5", box:"urban", name:"メリーさんの電話", verdict:"怪談", layers:[
+    ["噂","捨てた人形から電話がかかってきて、徐々に近づいてくるという。"],
+    ["発生時期","1980年代、子ども向け怪談集を経由して定着。"],
+    ["詳細","「今、〇〇にいるの」と電話のたびに距離が縮まり、最後は「今、あなたの後ろにいるの」。"],
+    ["信じてる人の特徴","固定電話のある家で育った世代。スマホ世代には伝わりにくい怖さ。"],
+    ["真相","「捨てたものが追ってくる」という罪悪感の物語。追ってくるのは人形ではなく、切り捨てたことを覚えている自分。"]]},
+  { id:"u6", box:"urban", name:"トイレの花子さん", verdict:"学校の怪談", layers:[
+    ["噂","校舎3階の女子トイレ、奥から3番目の扉を3回ノックすると、返事があるらしい。"],
+    ["発生時期","戦後間もない頃から学校で語られ、1990年代に映画や書籍で全国的なブームに。"],
+    ["詳細","呼び方や現れる階は学校ごとに違う。共通しているのは「3」という数字と、誰も確かめに行かないこと。"],
+    ["信じてる人の特徴","今でも古い校舎のトイレは少し急いで出る。大人になっても、それは変わっていない。"],
+    ["真相","子どもが一人になる数少ない場所に、誰かがいてほしかった。怖さと一緒に、ひとりじゃない感覚も配っていた怪談。"]]},
+  { id:"u7", box:"urban", name:"くねくね", verdict:"ネット発の怪談", layers:[
+    ["噂","夏の田んぼの向こうで、白い何かがくねくね動いているのを見てはいけないらしい。"],
+    ["発生時期","2000年代初頭、ネット掲示板の怖い話スレで広まった。"],
+    ["詳細","遠くから見る分には平気だが、それが「何か」を理解した瞬間に正気を失うとされる。正体は語られない。"],
+    ["信じてる人の特徴","帰省の田舎道でつい遠くを見てしまう。見えなかったことに、少しほっとしている。"],
+    ["真相","陽炎やかかしの見間違い説が有力。本当に怖いのは「理解したら終わる」という設定で、考察を止める装置として優秀すぎた。"]]},
+  { id:"u8", box:"urban", name:"赤い部屋", verdict:"ネット発の怪談", layers:[
+    ["噂","「あなたは赤い部屋が好きですか？」という広告が出たら、閉じても閉じても出てくるらしい。"],
+    ["発生時期","1990年代末〜2000年代、Flash作品とチェーンメール的な話で拡散。"],
+    ["詳細","最後まで閉じられなかった人は、部屋を赤く染めて見つかる、という結末で語られる。"],
+    ["信じてる人の特徴","ポップアップの×ボタンを今でも慎重に押す。広告ブロッカーは最初に入れる派。"],
+    ["真相","閉じても出てくるポップアップ広告への苛立ちが、そのまま怪談になった。怪異の正体は、当時のインターネットそのもの。"]]},
+  { id:"c1", box:"conspiracy", name:"月面着陸捏造説", verdict:"根拠なし・反証済み", layers:[
+    ["噂","1969年の月面着陸はスタジオで撮影された、という主張がある。"],
+    ["発生時期","1970年代半ば、自費出版本を起点に拡散。"],
+    ["詳細","「旗がはためいている」「影の向きがおかしい」など写真分析が主な根拠。いずれも物理的に説明されている。"],
+    ["信じてる人の特徴","「公式発表」全般を疑うことを思考の独立性だと考えている。"],
+    ["真相","反証は出尽くしているが、信じる人は減らない。論点は月ではなく権威への不信で、月はその器でしかない。"]]},
+  { id:"c2", box:"conspiracy", name:"地球平面説", verdict:"根拠なし・反証済み", layers:[
+    ["噂","地球は平らで、球体だというのは教育による刷り込みだ、と主張する人々がいる。"],
+    ["発生時期","現代の運動は2010年代、動画サイトのおすすめ機能に乗って拡大。"],
+    ["詳細","「南極は氷の壁」「衛星写真はCG」など独自の宇宙論を持ち、国際会議まで開かれている。"],
+    ["信じてる人の特徴","「自分の目で確かめる」を最上位に置く。水平線の写真は撮るが、地球を一周はしない。"],
+    ["真相","学校・科学・メディアをまとめて否定できる、コスパの良い反逆。中身ではなく構造に魅力がある。"]]},
+  { id:"c3", box:"conspiracy", name:"ケムトレイル", verdict:"根拠なし", layers:[
+    ["噂","飛行機雲には、政府が秘密裏に散布している化学物質が含まれているらしい。"],
+    ["発生時期","1990年代後半、米国のラジオ番組を発端に拡散。"],
+    ["詳細","人口削減、気象操作など目的の説は多い。共通点は「上空からやられている」。飛行機雲は水蒸気の凝結で説明できる。"],
+    ["信じてる人の特徴","空をよく見る。自分の体に何かが入ることを強く警戒する。"],
+    ["真相","見えないものへの制御不能感の象徴。恐れているのは雲ではなく、体に何が入っているか分からないこと全般。"]]},
+  { id:"c4", box:"conspiracy", name:"5G人体影響説", verdict:"根拠なし", layers:[
+    ["噂","5Gの電波が人体や感染症と関係している、という説がある時期に大流行した。"],
+    ["発生時期","2020年、パンデミック初期にSNS経由で拡散。"],
+    ["詳細","英国では基地局の放火事件まで起きた。物理学的な裏付けはない。"],
+    ["信じてる人の特徴","目に見えない技術全般に不安を持つ。Wi-Fiも少し気にしている。"],
+    ["真相","新技術の普及に、社会の理解と感情が追いつかないときに必ず生まれる物語。電波の問題ではなく、テンポの問題。"]]},
+  { id:"c5", box:"conspiracy", name:"影の支配者組織", verdict:"根拠なし", layers:[
+    ["噂","世界の重要な決定は、少数の秘密組織が裏で行っているとされる。"],
+    ["発生時期","起源は18世紀。名前を変えながら現代まで語り継がれている。"],
+    ["詳細","名指しされる団体は時代で変わるが、「頂点に少数の支配者がいる」構造だけは変わらない。"],
+    ["信じてる人の特徴","現実の複雑さに耐えられない。誰かが全部やっていると思う方が楽。"],
+    ["真相","世界は意外と誰にもコントロールされていない。それが一番怖いので、秘密組織がいてくれた方が安心する。"]]},
+  { id:"c6", box:"conspiracy", name:"エリア51", verdict:"基地は実在・宇宙人は根拠なし", layers:[
+    ["噂","米国ネバダ州の砂漠に、墜落したUFOと宇宙人を隠している秘密基地があるらしい。"],
+    ["発生時期","1950年代から未確認飛行物体の目撃が相次ぎ、1980年代末の「元職員の証言」で一気に有名に。"],
+    ["詳細","基地の存在は長く公式に認められなかった。2013年、機密解除された文書で偵察機の試験場だったことが確認された。"],
+    ["信じてる人の特徴","「存在を否定していた」こと自体を、何かを隠している証拠だと考える。半分は正しい。"],
+    ["真相","隠していたのは宇宙人ではなく、高高度を飛ぶ偵察機。当時の目撃談の一部は、それを見た民間人の報告だったとされる。"]]},
+  { id:"c7", box:"conspiracy", name:"電球の寿命カルテル", verdict:"事実", layers:[
+    ["噂","電球はわざと早く切れるように作られている、という話がある。"],
+    ["発生時期","1920年代の欧州。主要メーカーが集まった協定が出どころ。"],
+    ["詳細","1925年、大手メーカーが協定を結び、2500時間ほど持つものもあった電球の寿命を1000時間に揃えた。長持ちしすぎた会社には罰金が科された。協定は1939年、戦争で崩壊した。"],
+    ["信じてる人の特徴","家電が保証期間の直後に壊れるたび、この話を思い出す。"],
+    ["真相","陰謀論ではなく、記録に残る実話。陰謀の中には本当にあったものも混ざっている。だから全部を笑い飛ばすのも、全部を信じるのも危ない。"]]},
+  { id:"c8", box:"conspiracy", name:"MKウルトラ計画", verdict:"事実（公文書で確認）", layers:[
+    ["噂","米国の情報機関が、市民に薬物を使った洗脳実験をしていたらしい。"],
+    ["発生時期","計画は1950年代に始まり、1970年代の議会調査で存在が明らかになった。"],
+    ["詳細","本人の同意なく薬物を投与する実験も行われた。関係文書の多くは廃棄されたが、残った記録から全容の一部が判明した。"],
+    ["信じてる人の特徴","この話を根拠に、他の陰謀論も全部本当だと考え始める。そこが一番の落とし穴。"],
+    ["真相","事実。ただし「一つが本当だったから他も本当」ではない。本物の陰謀は、議会と記録によって暴かれた。動画のおすすめ欄ではなく。"]]},
+  { id:"u9", box:"urban", name:"人面犬", verdict:"噂・社会現象", layers:[
+    ["噂","高速道路で車を追い抜いていく犬の顔が、人間の顔だったらしい。"],
+    ["発生時期","1989年頃から小中学生の間で広まり、1990年前後に雑誌やテレビで大ブームに。"],
+    ["詳細","話しかけると「ほっといてくれ」と言い返すという。怖いのか面白いのか、語る側も決めきれていなかった。"],
+    ["信じてる人の特徴","当時の子ども。今でも高速道路で犬を見ると、一応顔を確認する。"],
+    ["真相","雑誌やラジオが面白がって広げた、メディア主導の噂の代表例。怪異より先に、拡散の仕組みが完成していた。"]]},
+  { id:"u10", box:"urban", name:"テケテケ", verdict:"学校の怪談", layers:[
+    ["噂","夕方の校舎で、腕だけを使ってものすごい速さで追いかけてくる何かがいるらしい。"],
+    ["発生時期","1990年代、学校の怪談ブームとともに全国の子どもの間で定着。"],
+    ["詳細","名前は移動するときの音から。話を聞いた人のところに数日以内に来る、という「聞いたら終わり」型の怪談。"],
+    ["信じてる人の特徴","この話を聞いた夜、廊下の電気を消すのが少し遅くなった。"],
+    ["真相","「聞いた人に来る」形式は、話を次の人に回させるための仕組み。怪談そのものが、拡散するように設計されている。"]]},
+  { id:"u11", box:"urban", name:"ベッドの下の男", verdict:"海外由来の都市伝説", layers:[
+    ["噂","一人暮らしの部屋のベッドの下に、知らない男が潜んでいたという話がある。"],
+    ["発生時期","米国発の都市伝説。日本でも1990年代以降、友人の友人の話として広まった。"],
+    ["詳細","泊まりに来た友人だけがそれに気づき、理由をつけて外へ連れ出す。部屋を出てから、初めて事情を打ち明ける。"],
+    ["信じてる人の特徴","引っ越すと最初にベッドの下を確認する。確認した後も、なんとなく足をはみ出さずに寝る。"],
+    ["真相","一人暮らしの防犯を伝える寓話。怖さの中身は霊ではなく、生きている人間だった。"]]},
+  { id:"u12", box:"urban", name:"猿夢", verdict:"ネット発の怪談", layers:[
+    ["噂","夢の中で、猿が運転する電車に乗ってしまう話がある。"],
+    ["発生時期","2000年頃、ネット掲示板に投稿された夢の体験談が発端。"],
+    ["詳細","車内アナウンスが流れるたびに、後ろの乗客から順番に何かが起きていく。逃げるには、夢の中で「これは夢だ」と気づくしかない。"],
+    ["信じてる人の特徴","寝る前にこの話を読んで後悔したことがある。次の夜も、なぜか読み返している。"],
+    ["真相","誰でも見る悪夢の構造を、一本の話にまとめた傑作。「夢だと気づけば逃げられる」は、現実の不安にもそのまま効く。"]]},
+  { id:"c9", box:"conspiracy", name:"バミューダ・トライアングル", verdict:"根拠なし", layers:[
+    ["噂","大西洋のある三角形の海域では、船や飛行機が謎の消失を遂げるという。"],
+    ["発生時期","1960年代、雑誌記事が「魔の三角地帯」と名付けて広まった。"],
+    ["詳細","宇宙人、磁場の異常、海底文明など説は多い。ただ、交通量の多い海域で、事故の発生率は他の海域と比べて特に高くない。"],
+    ["信じてる人の特徴","地図に引かれた三角形を見ると、それだけで何かあると感じてしまう。"],
+    ["真相","名前が先にあって、事故が後から当てはめられた。三角形を引けば、どこの海でも少しは怖くなる。"]]},
+  { id:"c10", box:"conspiracy", name:"トンキン湾事件", verdict:"事実（一部）", layers:[
+    ["噂","ベトナム戦争の拡大のきっかけになった攻撃は、実際には起きていなかったという話がある。"],
+    ["発生時期","1964年8月。米駆逐艦が北ベトナム艦艇から攻撃を受けたとされ、米議会が武力行使を認める決議を可決した。"],
+    ["詳細","報告された2回の攻撃のうち、2回目は実際には起きていなかった。2005年に公開された米国家安全保障局の内部研究は、情報が攻撃があったように歪められていたと結論づけた。"],
+    ["信じてる人の特徴","戦争の始まり方に関するニュースを、一度は疑ってから読む。それ自体は健全な習慣。"],
+    ["真相","政府の誤った報告が、戦争の拡大につながった記録の残る例。暴いたのは匿名の書き込みではなく、公開された内部文書だった。"]]},
+  { id:"c11", box:"conspiracy", name:"タバコ業界の研究隠し", verdict:"事実", layers:[
+    ["噂","タバコ会社は、喫煙の害を知りながら隠していたらしい。"],
+    ["発生時期","1950年代、喫煙と肺がんの関係を示す研究が相次いだ頃から。"],
+    ["詳細","業界は害を示す研究が積み上がる中、「まだ結論は出ていない」と疑問を広める広報を続けた。1998年、米国の46州と大手4社が和解し、内部文書の公開が義務づけられた。"],
+    ["信じてる人の特徴","「専門家の間でも意見が分かれている」という言い回しを見ると、まず誰がお金を出しているかを調べる。"],
+    ["真相","本物の陰謀は、真実を隠すより「疑いを広める」形をとった。疑う力そのものが、利用されることもある。"]]},
+  { id:"c12", box:"conspiracy", name:"鳥は実在しない", verdict:"ジョーク（自称陰謀論）", layers:[
+    ["噂","空を飛んでいる鳥は、すべて政府の監視ドローンにすり替わっているという主張がある。"],
+    ["発生時期","2017年、米国の若者が始めた運動。各地で集会まで開かれた。"],
+    ["詳細","電線に止まるのは充電のため、などの「証拠」を真顔で並べる。創始者は2021年、陰謀論を風刺するための冗談だったと公言した。"],
+    ["信じてる人の特徴","信じていない。信じているふりを、全力で楽しんでいる。"],
+    ["真相","陰謀論の作法をそのまま真似ると、どんな主張もそれらしく見える。それを笑いで証明した、陰謀論への陰謀論。"]]},
+  { id:"d1", box:"urban", minRank:5, name:"不幸の手紙", verdict:"実在した流行", layers:[
+    ["噂","「同じ文面を何日以内に何人に送らないと不幸になる」という手紙が届くらしい。"],
+    ["発生時期","1970年代、日本で大流行。手書きの手紙から、のちにチェーンメールへ姿を変えた。"],
+    ["詳細","文面は少しずつ書き換えられながら全国を回った。送り主は分からず、受け取った人が次の送り主になる。"],
+    ["信じてる人の特徴","「念のため」転送したことがある。不幸を信じたのではなく、不幸が起きたときに後悔したくなかった。"],
+    ["真相","恐怖を燃料にした拡散の仕組みは、今のSNSの「拡散希望」とほとんど変わらない。形を変えて、今も届き続けている。"]]},
+  { id:"d2", box:"conspiracy", minRank:8, name:"サブリミナル広告", verdict:"実験は捏造", layers:[
+    ["噂","映画の途中に一瞬だけ「ポップコーンを食べろ」と映すと、売上が急増したらしい。"],
+    ["発生時期","1957年、米国の広告業者が実験結果として発表した。"],
+    ["詳細","一瞬の映像で購買を操れるという話は社会問題になった。ただし発表した本人が、のちに実験データは作り話だったと認めた。"],
+    ["信じてる人の特徴","広告が自分の無意識をいじっているのでは、と時々不安になる。その感覚自体は間違っていない。"],
+    ["真相","実験は捏造だった。それでも「見えない操作」への恐怖は残り、規制の議論まで生んだ。嘘の実験が、本物の警戒心を作った。"]]},
+  { id:"d3", box:"urban", minRank:11, name:"マンデラ効果", verdict:"集団的な記憶違い", layers:[
+    ["噂","大勢が同じように覚えているのに、記録上は存在しない出来事やロゴがあるらしい。"],
+    ["発生時期","2009年頃、ある作家が自身の記憶違いに名前を付け、ネットで広まった。"],
+    ["詳細","「別の世界線から来た記憶だ」とする説まである。多くは、似たものの記憶が混ざった思い違いで説明される。"],
+    ["信じてる人の特徴","子どもの頃の記憶に、少しだけ自信がなくなった。"],
+    ["真相","記憶は録画ではなく、思い出すたびに作り直される。噂も同じで、語られるたびに書き換わる。このアーカイブの資料も、例外ではない。"]]},
+  { id:"d4", box:"conspiracy", minRank:14, name:"おすすめ欄の黒幕", verdict:"一部事実・黒幕説は根拠なし", layers:[
+    ["噂","見ているニュースや意見は、誰かが裏で選んで見せているらしい。"],
+    ["発生時期","2010年代、SNSと動画サイトのおすすめ機能が生活の中心になった頃から。"],
+    ["詳細","おすすめ欄が人ごとに違うのは事実。一方で「特定の誰かが全員の考えを操っている」という主張は、確かな証拠に乏しい。"],
+    ["信じてる人の特徴","自分のタイムラインが世界のすべてではないと、頭では分かっている。"],
+    ["真相","黒幕がいなくても、見たいものを見せ続ける仕組みだけで、考えは十分に偏る。陰謀より、仕組みの方が手強い。"]]},
+  { id:"d5", box:"urban", minRank:17, name:"深淵の閲覧者", verdict:"判定不能", layers:[
+    ["噂","このアーカイブの最深部まで潜った調査員がいる、という噂がある。"],
+    ["発生時期","時期は不明。調査スレに、名前もIDもない書き込みが現れ始めた頃から。"],
+    ["詳細","その調査員は、集めた真相を一度も誰にも話さなかった。話す相手がいなくなったからだ、と書かれている。"],
+    ["信じてる人の特徴","ここまで来たあなた。ランクを上げるために、何万回も封筒を開けてきた。"],
+    ["真相","次に噂されるのは、あなたかもしれない。都市伝説は、誰かが続きを語ったときに生まれる。"]]},
+];
+const SECRET = { id:"x0", box:"secret", name:"真相ガチャ", verdict:"判定保留", layers:[
+  ["噂","引けば引くほど、世界の真相に近づいた気になるアプリがあるらしい。"],
+  ["発生時期","2026年秋。最初の利用者は、毎朝決まった時間に封筒を開けていたという。"],
+  ["詳細","集めた資料は黒塗りが剥がれていくが、なぜか最後の1段だけは誰にも共有できない仕組みになっている。"],
+  ["信じてる人の特徴","今この文章を読んでいる。ここまで黒塗りを剥がした自分に、少し満足している。"],
+  ["真相","集めていたのは真相ではなく「知った気になる感覚」だった。それに気づけたなら、このファイルを開いた意味はある。"]]};
+const SECRET_AT = [35, 65, 95, 120, 145];
+const SERIES = [
+  { name:"放課後の怪談", title:"放課後の目撃者", ids:["u4","u6","u10"] },
+  { name:"掲示板の夜", title:"掲示板の住人", ids:["u2","u3","u7","u12"] },
+  { name:"友だちの友だちの話", title:"体験談の聞き手", ids:["u1","u5","u8","u9","u11"] },
+  { name:"空と海と宇宙", title:"空を見上げる人", ids:["c1","c2","c3","c6","c9"] },
+  { name:"見えない支配", title:"電波を気にする人", ids:["c4","c5","c12"] },
+  { name:"本当にあった陰謀", title:"公文書を読む人", ids:["c7","c8","c10","c11"] },
+  { name:"深層ファイル", title:"深淵の住人", ids:["d1","d2","d3","d4","d5"] },
+];
+const seriesState = sr => { const got = sr.ids.filter(id => lv(id) > 0).length, five = sr.ids.filter(id => lv(id) === 5).length; return { got, five, n: sr.ids.length, title: got === sr.ids.length, gold: five === sr.ids.length }; };
+const titles = () => SERIES.filter(sr => seriesState(sr).title);
+const BOX = { urban:"都市伝説", conspiracy:"陰謀論", secret:"機密区分外" };
+const BOX_DESC = {
+  urban:"夜の駅、地下通路、捨てた人形。誰かが見たらしい何かが、この封筒に入っている。",
+  conspiracy:"月、電波、空の白い線。誰かが隠したいらしい何かが、この封筒に入っている。"
+};
+const KEY = "shinso_gacha_state_v1";
+const LAUNCH = new Date(2026, 9, 1);
+const MISSIONS = [
+  { id:"click10", text:"真相を10回嗅ぎ回る", target:10, reward:15, type:"click" },
+  { id:"pull3", text:"ガチャを3回引く", target:3, reward:20, type:"pull" },
+  { id:"layer2", text:"黒塗りを2段剥がす", target:2, reward:25, type:"layer" },
+  { id:"share1", text:"調査報告を1回シェアする", target:1, reward:15, type:"share" },
+];
+const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const $ = id => document.getElementById(id);
+const dayKey = (d = new Date()) => d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+const fresh = () => ({ currency:30, pulls:0, clicks:0, levels:{}, lastTick:Date.now(), missionDate:"", missions:{}, freeDate:"" });
+let S = load();
+function load() { try { const r = localStorage.getItem(KEY); if (r) return Object.assign(fresh(), JSON.parse(r)); } catch (e) {} return fresh(); }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function dayNo() { const t = new Date(); t.setHours(0,0,0,0); return Math.max(1, Math.floor((t - LAUNCH) / 864e5) + 1); }
+const pad = n => String(n).padStart(3, "0");
+const todayItem = () => { const base = ITEMS.filter(i => !i.minRank); return base[((dayNo() * 2654435761) >>> 0) % base.length]; };
+const totalLv = () => ITEMS.reduce((a, i) => a + (S.levels[i.id] || 0), 0);
+const secretLv = () => SECRET_AT.filter(n => totalLv() >= n).length;
+const lv = id => id === SECRET.id ? secretLv() : (S.levels[id] || 0);
+const byId = id => id === SECRET.id ? SECRET : ITEMS.find(i => i.id === id);
+const buzz = ms => { try { navigator.vibrate && navigator.vibrate(ms); } catch (e) {} };
+let box = "urban", chip = "all";
+
+function ensureMissions() {
+  if (S.missionDate !== dayKey()) { S.missionDate = dayKey(); S.missions = {}; }
+  MISSIONS.forEach(m => { if (!S.missions[m.id]) S.missions[m.id] = { p:0, claimed:false }; });
+}
+function bump(type, n = 1) { MISSIONS.forEach(m => { if (m.type === type) { const s = S.missions[m.id]; s.p = Math.min(m.target, s.p + n); } }); }
+
+/* ---------- gacha ---------- */
+/* ---------- レアリティ・ランク・天井 ---------- */
+const RAR = { n:{ label:"並", w:1 }, r:{ label:"稀", w:.5 }, x:{ label:"禁", w:.22 } };
+const RAR_OF = { d1:"x", d2:"x", d3:"x", d4:"x", d5:"x", u1:"r", u2:"r", u3:"r", u8:"r", u7:"x", u12:"x", c5:"r", c6:"r", c7:"r", c8:"x", c10:"x", c11:"x" };
+ITEMS.forEach(i => i.rar = RAR_OF[i.id] || "n");
+// 20段階。必要回数は1段ごとに約1.46倍（上ほど上がりにくい）。最大は累計3万回
+const RANK_NAMES = ["見習い調査員","新米調査員","調査員","聞き込み担当","資料係","主任調査員","現地調査員","夜間調査員","記録管理官","特別調査員","特別調査官","機密取扱者","文書解析官","主席調査官","機密管理官","黒塗り審査官","封印管理官","禁書閲覧者","深淵の調査官","深淵の閲覧者"];
+const RANK_NEED = [0, 10, 25, 45, 75, 120, 190, 290, 430, 640, 950, 1400, 2100, 3000, 4400, 6500, 9600, 14000, 20500, 30000];
+const RANKS = RANK_NAMES.map((name, k) => { const t = k / 19; return { name, need: RANK_NEED[k], r: 1 + .8 * t, x: 1 + 1.8 * t, crit: .2 * t, pity: Math.round(30 - 15 * t) }; });
+const rankIdx = () => { let k = 0; RANKS.forEach((r, i) => { if (S.pulls >= r.need) k = i; }); return k; };
+const rank = () => RANKS[rankIdx()];
+/* ---------- 調査室（育成）：証拠を使って設備を強化 ---------- */
+const UPS = [
+  { id:"radio", name:"盗聴ラジオ", max:20, base:12, grow:1.32, flavor:"深夜のAM放送の隙間に、ときどき知らない声が混ざる。", eff: L => `放置効率 +${L * 10}%` },
+  { id:"phone", name:"留守番電話", max:10, base:20, grow:1.45, flavor:"録音は毎晩1件ずつ増えている。誰も掛けていないのに。", eff: L => `留守中に貯まる上限 ${2 + L}時間` },
+  { id:"lens",  name:"古い虫眼鏡", max:10, base:15, grow:1.40, flavor:"覗くたびに、見える範囲が少しずつ広がる。", eff: L => `嗅ぎ回りの1日上限 ${800 + L * 200}pt` },
+  { id:"map",   name:"書き込みだらけの地図", max:5, base:40, grow:1.80, flavor:"前の持ち主が赤丸をつけた場所は、だいたい当たっている。", eff: L => `天井 −${L}回` },
+  { id:"fluid", name:"黒塗り除去液", max:10, base:30, grow:1.50, flavor:"匂いがきつい。使ったあとは窓を開けること。", eff: L => `二重解除 +${L}%` },
+  { id:"card",  name:"情報屋の名刺", max:10, base:35, grow:1.55, flavor:"電話番号の最後の一桁だけ、毎回違って見える。", eff: L => `稀 +${L * 3}% ・ 禁 +${L * 5}%` },
+];
+const upLv = id => (S.ups || {})[id] || 0;
+const upCost = u => Math.round(u.base * Math.pow(u.grow, upLv(u.id)));
+const pityMax = () => Math.max(5, rank().pity - upLv("map"));
+const critRate = () => rank().crit + .01 * upLv("fluid");
+const sniffFull = () => 400 + 100 * upLv("lens"), sniffHalf = () => 800 + 200 * upLv("lens");
+const rarMult = rar => rar === "r" ? rank().r * (1 + .03 * upLv("card")) : rar === "x" ? rank().x * (1 + .05 * upLv("card")) : 1;
+const unlocked = i => (i.minRank || 0) <= rankIdx();
+const TS = {
+  time: ["深夜2時","終電のあと","放課後","雨の夜","夏休みの最終日","午前4時","帰省した夜","誰もいない昼休み","停電の夜","大晦日の夜","台風が過ぎた朝","残業中の22時","修学旅行の夜","引っ越した初日"],
+  place: ["地下通路","無人駅","旧校舎","団地の階段","コンビニの裏","高速道路のサービスエリア","田んぼ道","病院の待合室","社内の会議室","タクシーの中","ネットカフェ","実家の和室","閉店後のスーパー","山道のトンネル","マンションのエレベーター","廃校の体育館","深夜のファミレス","踏切の前","古い神社の裏","空港の手荷物受取所"],
+  who: ["会社員（34）","大学生（20）","タクシー運転手（58）","警備員（61）","小学生（10）","主婦（42）","配達員（29）","匿名希望","看護師（37）","元教員（70）","システムエンジニア（31）","住職（66）","高校生（16）","清掃員（53）"],
+  n: ["見間違いだと思う。たぶん","友だちの友だちから聞いた話です","写真を撮ったはずが、何も写っていなかった","それ以来、その道は通っていない","誰に話しても信じてもらえない","気づいたら、30分経っていた","後から聞いたら、みんな同じ時刻を覚えていた","スマホの時計だけ、5分ずれていた","においだけは、今でも覚えている","同僚は何も見ていないと言い張った","次の日、その場所には何もなかった","正直、半分は作り話です"],
+  r: ["同じ話を、まったく別の人からも聞いた","記録を探したら、日付だけが黒塗りだった","あのとき、名前を呼ばれた気がする","撮った写真に、知らない人が一人増えていた","問い合わせたら、そんな部署はないと言われた","祖母も子どもの頃に同じものを見たそうです"],
+  x: ["あなたのことも、話していた","この証言は、まだ誰にも見せていない","次は、あなたの番だと言われた","このアプリの名前を、向こうが先に口にした","封筒は、まだ一枚残っていると言っていた","今これを読んでいる人に、よろしくと"],
+};
+const pick = a => a[Math.floor(Math.random() * a.length)];
+function testimony(item) {
+  const roll = Math.random(), rar = roll < .04 * rank().x ? "x" : roll < .04 * rank().x + .18 * rank().r ? "r" : "n";
+  S.tcount = (S.tcount || 0) + 1;
+  S.tby = S.tby || {}; S.tby[item.id] = (S.tby[item.id] || 0) + 1;
+  const t = { id: item.id, no: S.tcount, rar, text: `${pick(TS.time)}、${pick(TS.place)}にて。${pick(TS.who)}「${pick(TS[rar])}」` };
+  S.tlog = (S.tlog || []).concat(t).slice(-60);
+  S.tstat = S.tstat || { n: 0, r: 0, x: 0 }; S.tstat[rar]++;
+  return t;
+}
+function levelUp(item, crit = false) {
+  const before = lv(item.id), after = Math.min(5, before + (crit ? 2 : 1)), opened = after > before;
+  S.levels[item.id] = after;
+  let testi = null;
+  if (!opened) { S.currency += 3; testi = testimony(item); }
+  const evi = opened ? (before === 0 ? 3 : 1) + (crit ? 1 : 0) : testi.rar === "x" ? 15 : testi.rar === "r" ? 5 : 2;
+  S.evi = (S.evi || 0) + evi;
+  return { item, before, after, opened, crit: crit && opened, testi, evi };
+}
+const COST = { 1: 10, 5: 45, 10: 90, 100: 850 };
+const BULK_RANK = { 10: 4, 100: 10 };
+const bulkOpen = n => !BULK_RANK[n] || rankIdx() >= BULK_RANK[n];
+function pull(n) {
+  const cost = COST[n];
+  if (!bulkOpen(n)) return toast(`${n}連は RANK ${BULK_RANK[n] + 1}「${RANKS[BULK_RANK[n]].name}」で解放`);
+  if (S.currency < cost) return toast("疑念ptが足りません。ホームで嗅ぎ回ってください");
+  S.currency -= cost;
+  const pool = ITEMS.filter(i => i.box === box && unlocked(i));
+  S.pity = S.pity || {};
+  const res = [];
+  for (let k = 0; k < n; k++) {
+    const unowned = pool.filter(i => lv(i.id) === 0);
+    const count = (S.pity[box] || 0) + 1;
+    let item, forced = false;
+    if (unowned.length && count >= pityMax()) { item = draw(unowned); forced = true; }
+    else item = draw(pool);
+    if (n >= 5 && k === n - 1 && !res.some(r => r.opened) && lv(item.id) === 5) {
+      const open = pool.filter(i => lv(i.id) < 5);
+      if (open.length) item = draw(open);
+    }
+    const isNew = lv(item.id) === 0;
+    S.pity[box] = isNew || !unowned.length ? 0 : count;
+    const crit = !isNew && lv(item.id) < 5 && Math.random() < critRate();
+    res.push(Object.assign(levelUp(item, crit), { forced }));
+  }
+  commit(res);
+}
+// 調査中(Lv1〜4)のネタを出やすく、真相到達済み(Lv5)を出にくくする
+const WEIGHT = L => L === 0 ? 1 : L === 5 ? .35 : 1.6;
+const itemWeight = i => RAR[i.rar].w * rarMult(i.rar) * WEIGHT(lv(i.id));
+function draw(pool) {
+  const ws = pool.map(itemWeight), sum = ws.reduce((a, b) => a + b, 0);
+  let r = Math.random() * sum;
+  for (let k = 0; k < pool.length; k++) { r -= ws[k]; if (r <= 0) return pool[k]; }
+  return pool[pool.length - 1];
+}
+function freePull() {
+  if (S.freeDate === dayKey() || lv(todayItem().id) === 5) return;
+  S.freeDate = dayKey();
+  commit([levelUp(todayItem())]);
+}
+let secretNews = false, titleNews = null;
+let rankNews = null;
+function commit(res) {
+  const r0 = rankIdx();
+  if (secretLv() > (S.secretSeen || 0)) { S.secretSeen = secretLv(); secretNews = true; }
+  const seen = S.titlesSeen || [];
+  const newT = titles().map(sr => sr.title).filter(t => !seen.includes(t));
+  if (newT.length) { S.titlesSeen = seen.concat(newT); titleNews = newT; }
+  S.pulls += res.length;
+  if (rankIdx() > r0) rankNews = rank().name + (ITEMS.some(i => i.minRank && i.minRank > r0 && i.minRank <= rankIdx()) ? "。深層ファイルが解禁された" : "");
+  bump("pull", res.length);
+  bump("layer", res.filter(r => r.opened).length);
+  markDirty(); render();
+  if (res.length > 5) { openBatch(res); notify(); } else runStage(res);
+}
+function openBatch(res) {
+  const by = f => res.filter(f).length;
+  const tes = res.filter(r => r.testi).map(r => r.testi);
+  const notable = res.filter(r => r.forced || (r.opened && (r.before === 0 || r.after === 5)) || (r.testi && r.testi.rar === "x"));
+  const seenIds = new Set();
+  const lines = notable.filter(r => { const k = r.item.id + (r.testi ? r.testi.no : ""); if (seenIds.has(k)) return false; seenIds.add(k); return true; }).slice(0, 12);
+  sheet(res.length + "連の結果", `
+    <div class="sum">
+      <div><span>新規ファイル</span><b>${by(r => r.opened && r.before === 0)}</b></div>
+      <div><span>剥がした黒塗り</span><b>${res.reduce((a, r) => a + (r.after - r.before), 0)}</b></div>
+      <div><span>真相到達</span><b>${by(r => r.opened && r.after === 5)}</b></div>
+      <div><span>二重解除</span><b>${by(r => r.crit)}</b></div>
+      <div><span>天井確定</span><b>${by(r => r.forced)}</b></div>
+      <div><span>集めた証拠</span><b>+${res.reduce((a, r) => a + (r.evi || 0), 0)}</b></div>
+      <div><span>証言（稀/禁）</span><b>${tes.length}<small style="font-size:12px"> (${tes.filter(t => t.rar === "r").length}/${tes.filter(t => t.rar === "x").length})</small></b></div>
+    </div>
+    ${lines.length ? `<div class="res">${lines.map((r, i) => `<button class="paper" data-act="dossier" data-id="${r.item.id}" style="animation-delay:${i * 50}ms">
+      <span><b>${r.item.name}</b><span class="s new">${r.testi ? "禁証言 #" + r.testi.no : r.forced ? "天井確定・新規ファイル" : r.before === 0 ? "新規ファイル" : "真相到達"}</span></span>
+      <span class="pips">${pips(lv(r.item.id))}</span></button>`).join("")}</div>` : `<p class="hint">目立った結果はありませんでした。</p>`}
+    <p class="hint">主な結果のみ表示。タップで資料を開く</p>`);
+}
+
+/* ---------- pull stage ---------- */
+let Q = [], qi = 0, phase = "idle", timers = [];
+const later = (fn, ms) => timers.push(setTimeout(fn, REDUCED ? 0 : ms * (S.fast ? .35 : 1)));
+function runStage(res) { Q = res; qi = 0; $("stage").hidden = false; document.body.style.overflow = "hidden"; prepare(); }
+function prepare() {
+  timers.forEach(clearTimeout); timers = [];
+  const r = Q[qi], env = $("st-env"), card = $("st-card");
+  phase = "sealed";
+  $("stage").classList.remove("flash", "shake");
+  env.className = "st-env"; card.className = "st-card paper aged " + kind(r.item.box);
+  const urb = r.item.box === "urban";
+  env.classList.toggle("old", urb);
+  env.classList.add("glow-" + r.item.rar);
+  $("st-lab").textContent = urb ? "開封厳禁" : "CASE FILE / CONSPIRACY";
+  $("st-seal").textContent = urb ? "封" : "極秘";
+  $("st-count").textContent = (qi + 1) + " / " + Q.length;
+  $("st-skip").hidden = Q.length === 1;
+  $("st-tip").textContent = "タップして封を切る";
+  $("st-btns").innerHTML = "";
+  card.innerHTML = cardHTML(r);
+  if (S.fast) setTimeout(advance, 60);
+}
+function cardHTML(r) {
+  const it = r.item, L = r.after, show = Math.min(L, 5) - 1;
+  if (r.testi) {
+    const t = r.testi;
+    return `${docHead(it)}<div class="eyebrow"><span><span class="rar rar-${it.rar}">${RAR[it.rar].label}</span> FILE ${it.id.toUpperCase()}</span><span class="badges"><span class="badge ${t.rar === "x" ? "red" : t.rar === "r" ? "" : "grey"}">${t.rar === "x" ? "禁" : t.rar === "r" ? "稀" : ""}証言 #${t.no}</span></span></div>
+      <h2>${it.name}</h2>
+      <div class="pips">${pips(5)}</div>
+      <div class="lyr"><div class="lab">追加の目撃証言 ／ +3pt</div><p>${t.text}<span class="wipe"></span></p>${t.rar === "x" ? `<span class="note">※ この証言は保管庫へ</span>` : ""}</div>`;
+  }
+  const badge = !r.opened ? `<span class="badge grey">重複 +3pt還元</span>`
+    : L === 1 ? `<span class="badge">新規ファイル</span>`
+    : L === 5 ? `<span class="badge red">真相到達</span>` : `<span class="badge">LV.${L} 解除</span>`;
+  const extra = (r.forced ? `<span class="badge red">天井確定</span>` : "") + (r.crit ? `<span class="badge red">二重解除</span>` : "") + (r.evi ? `<span class="badge grey">証拠+${r.evi}</span>` : "");
+  const [lab, txt] = it.layers[show];
+  return `${docHead(it)}<div class="eyebrow"><span><span class="rar rar-${it.rar}">${RAR[it.rar].label}</span> FILE ${it.id.toUpperCase()}</span><span class="badges">${extra}${badge}</span></div>
+    <h2>${it.name}</h2>
+    <div class="pips">${pips(L)}</div>
+    <div class="lyr"><div class="lab">LEVEL ${show + 1} ／ ${lab}</div><p>${txt}<span class="wipe"></span></p>${note(it, show)}</div>
+    ${L < 5 ? `<p class="hint" style="text-align:left;margin-top:4px">あと${5 - L}回で、最後の黒塗りが剥がれる。</p>` : ""}
+    <span class="truth">真相</span>`;
+}
+function advance() {
+  const r = Q[qi], env = $("st-env"), card = $("st-card");
+  if (phase === "sealed") {
+    phase = "opening"; $("st-tip").textContent = "";
+    env.classList.add("shake"); buzz(30);
+    later(() => env.classList.add("open"), 550);
+    later(() => { env.classList.add("gone"); card.classList.add("up"); }, 800);
+    later(() => { card.classList.add("reveal"); buzz(15); }, 1350);
+    if (r.item.box === "urban" && Math.random() < (hour() === 2 ? .5 : .2)) later(haunt, 1150);
+    if (r.after === 5 && r.opened) later(() => { card.classList.add("truthy"); $("stage").classList.add("flash", "shake"); buzz([40, 30, 80]); }, 2050);
+    later(() => { phase = "shown"; finishButtons(); }, r.after === 5 && r.opened ? 2400 : 1700);
+  } else if (phase === "shown") next();
+}
+function finishButtons() {
+  const last = qi === Q.length - 1, r = Q[qi];
+  $("st-tip").textContent = last ? "" : "タップで次の封筒へ";
+  $("st-btns").innerHTML = last
+    ? `<button class="btn-paper" data-act="stage-done">${Q.length > 1 ? "結果一覧へ" : "閉じる"}</button><button class="btn-line" data-act="stage-file" data-id="${r.item.id}">資料を開く</button>`
+    : "";
+}
+function next() { if (qi < Q.length - 1) { qi++; prepare(); } else closeStage(); }
+function closeStage() {
+  timers.forEach(clearTimeout); timers = [];
+  $("stage").hidden = true; document.body.style.overflow = "";
+  phase = "idle";
+  if (Q.length > 1) openResults(Q);
+  notify();
+}
+function notify() {
+  if (rankNews) { const n = rankNews; rankNews = null; setTimeout(() => toast("ランクアップ：" + n + "（稀・禁が出やすくなった）"), 450); buzz([30, 30, 60]); }
+  if (titleNews) { const t = titleNews; titleNews = null; setTimeout(() => toast("称号「" + t.join("」「") + "」を獲得しました（報告画面）"), 150); buzz([20, 40, 20]); }
+  if (secretNews) { secretNews = false; setTimeout(() => toast("機密区分外のファイルに動きがありました（ファイル画面）"), 300); }
+}
+$("stage").addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (b && b.id === "st-skip") { e.stopPropagation(); return closeStage(); }
+  if (b && b.dataset.act === "stage-done") return closeStage();
+  if (b && b.dataset.act === "stage-file") { const id = b.dataset.id; Q = []; closeStage(); return openDossier(id); }
+  if (!b) advance();
+});
+
+/* ---------- sheets ---------- */
+function sheet(title, html) { $("sheet").innerHTML = `<span class="grab"></span><div class="sheet-h"><span class="eyebrow">${title}</span><button class="x" data-act="close" aria-label="閉じる">×</button></div>` + html; $("sheet-bg").hidden = false; $("sheet").scrollTop = 0; }
+function hideSheet() { $("sheet-bg").hidden = true; }
+const redact = name => `<span class="rd" role="img" aria-label="黒塗り（${[...name].length}文字）">${[...name].map(() => "<i></i>").join("")}</span>`;
+const kind = b => b === "urban" ? "urban" : "con";
+const NOTES = { urban: { 1:"裏取りできず", 3:"← これ、自分では？", 4:"※ 誰にも言うな" }, con: { 1:"出典：不明", 3:"← 心当たりあり", 4:"※ 口外禁止" } };
+const note = (it, i) => NOTES[kind(it.box)][i] ? `<span class="note">${NOTES[kind(it.box)][i]}</span>` : "";
+const docHead = it => it.box === "urban"
+  ? `<div class="memohead"><span>聞き取りメモ</span><span>No.${it.id.slice(1).padStart(3, "0")}</span></div>`
+  : `<div class="formhead"><span>機密区分 極秘</span><span>文書番号 ${it.id.toUpperCase()}-${pad(dayNo())}</span><span>配布 限定</span></div>`;
+const pips = L => [1,2,3,4,5].map(i => `<i class="${i <= L ? (L === 5 ? "on5" : "on") : ""}"></i>`).join("");
+function openDossier(id, freshLv = 0) {
+  const it = byId(id), L = lv(id);
+  const w = [[92, 64], [80, 88], [70, 45], [95, 58], [86, 72]];
+  const body = it.layers.map(([lab, txt], i) => i < L
+    ? `<div class="lyr ${i + 1 === freshLv ? "fresh" : ""}"><div class="lab">LEVEL ${i + 1} ／ ${lab}</div><p>${txt}<span class="wipe" style="transform:scaleX(0)"></span></p>${note(it, i)}</div>`
+    : `<div class="lyr sealed"><div class="lab">LEVEL ${i + 1} ／ 黒塗り</div><p><i style="width:${w[i][0]}%"></i><i style="width:${w[i][1]}%"></i></p></div>`).join("");
+  sheet(L === 5 ? "真相到達" : "調査中 ・ LV." + L + "/5", `
+    <article class="doc paper aged ${kind(it.box)}" style="--sx:${70 + (id.charCodeAt(1) * 7) % 22}%;--sy:${10 + (id.charCodeAt(1) * 13) % 70}%">
+      ${docHead(it)}
+      <span class="verdict">判定<br>${it.verdict}</span>
+      <div class="eyebrow"><span class="rar rar-${it.rar || "x"}">${it.rar ? RAR[it.rar].label : "外"}</span> FILE ${it.id.toUpperCase()} ・ ${BOX[it.box]}</div>
+      <h2>${it.name}</h2>
+      <div class="pips" style="margin-bottom:6px">${pips(L)}</div>
+      ${body}
+    </article>
+    ${L === 5 ? (() => { const ts = (S.tlog || []).filter(t => t.id === id).slice(-3).reverse(); return `<div class="testis"><div class="sec-h" style="margin:0"><h3>目撃証言</h3><small>${(S.tby || {})[id] || 0}件</small></div>${ts.length ? ts.map(t => `<p class="testi t-${t.rar}"><span class="mono">#${t.no}</span> ${t.text}</p>`).join("") : `<p class="hint" style="text-align:left">真相到達後にこのネタを引くと、目撃証言が集まる。</p>`}</div>`; })() : ""}
+    <p class="hint">${L < 5 ? `あと${5 - L}回引けば、最後の黒塗りが剥がれる。` : "真相に到達。ただし中身は共有できない。"}</p>
+    <div class="actions"><button class="btn-paper" data-act="card" data-id="${id}">黒塗りカードを作る</button><button class="btn-line" data-act="close">閉じる</button></div>`);
+}
+function openResults(res) {
+  sheet("5連の結果", `<div class="res">${res.map((r, i) => `
+    <button class="paper" data-act="dossier" data-id="${r.item.id}" style="animation-delay:${i * 70}ms">
+      <span><b>${r.item.name}</b><span class="s ${r.opened ? "new" : ""}">${r.opened ? (r.after === 1 ? "新規ファイル" : r.after === 5 ? "真相到達" : "LV." + r.after + " 解除") : (r.testi ? "証言 #" + r.testi.no + " を入手" : "重複 +3pt還元")}</span></span>
+      <span class="pips">${pips(r.after)}</span>
+    </button>`).join("")}</div><p class="hint">タップで資料を開く</p>`);
+}
+
+/* ---------- share ---------- */
+const cellEmoji = L => L === 0 ? "⬛" : L === 5 ? "🟥" : L >= 3 ? "🟧" : "🟫";
+const cellCls = L => L === 0 ? "" : L === 5 ? "l5" : L >= 3 ? "l3" : "l1";
+function diagnosis() {
+  const sum = b => ITEMS.filter(i => i.box === b).reduce((a, i) => a + lv(i.id), 0);
+  const u = sum("urban"), c = sum("conspiracy"), five = ITEMS.filter(i => lv(i.id) === 5).length;
+  if (S.pulls === 0) return ["まだ何も疑っていない人", "平和です。今のうちに1回引いておくと、明日の話題についていけます。"];
+  if (five >= 5) return ["黒塗りを剥がしすぎた人", "真相を5つ以上知っているのに誰にも言えない。一番危ない立場です。"];
+  if (S.clicks > S.pulls * 8) return ["嗅ぎ回るだけで引かない人", "調べることが目的になっている。結論を出すのが怖いタイプ。"];
+  if (c > u * 1.5) return ["公式発表を一度は疑う会社員", "会議の資料も、まず出典から確認する。周りからは少し面倒がられている。"];
+  if (u > c * 1.5) return ["深夜2時の考察班", "怖い話は信じていないが、寝る前に読むのはやめられない。"];
+  return ["どっちつかずの懐疑主義者", "全部を少しずつ疑っている。一番バランスが良く、一番決められない。"];
+}
+function reportText() {
+  const row = b => ITEMS.filter(i => i.box === b).map(i => cellEmoji(lv(i.id))).join("");
+  const five = ITEMS.filter(i => lv(i.id) === 5).length;
+  return `真相ガチャ #${pad(dayNo())}\n都市伝説 ${row("urban")}\n陰謀論　 ${row("conspiracy")}\nランク「${rank().name}」\n真相到達 ${five}/${ITEMS.length}・称号 ${titles().length}/${SERIES.length}・証言 ${S.tcount || 0}件\n診断「${diagnosis()[0]}」\nLv.5の中身は言えない。\n#真相ガチャ`;
+}
+function shareBlock(text) {
+  const x = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text);
+  return `<pre class="st" id="share-text">${text}</pre>
+    <div class="actions"><button class="btn-paper" data-act="copy">テキストをコピー</button>
+    <a class="btn-line" href="${x}" target="_blank" rel="noopener" data-act="x">Xで投稿画面を開く</a></div>`;
+}
+function wrapText(g, text, x, y, maxW, lh, maxLines) {
+  let line = "", lines = [];
+  for (const seg of phrases(text)) {
+    if (g.measureText(line + seg).width <= maxW) { line += seg; continue; }
+    if (line) { lines.push(line); line = ""; }
+    if (g.measureText(seg).width <= maxW) { line = seg; continue; }
+    for (const ch of seg) { if (g.measureText(line + ch).width > maxW) { lines.push(line); line = ch; } else line += ch; }
+  }
+  if (line) lines.push(line);
+  if (lines.length > maxLines) { lines = lines.slice(0, maxLines); lines[maxLines - 1] = lines[maxLines - 1].slice(0, -1) + "…"; }
+  lines.forEach((l, i) => g.fillText(l, x, y + i * lh));
+  return y + lines.length * lh;
+}
+async function makeCard(it) {
+  try { await document.fonts.ready; } catch (e) {}
+  const W = 1200, H = 675, c = document.createElement("canvas"); c.width = W; c.height = H;
+  const g = c.getContext("2d"), L = lv(it.id);
+  g.fillStyle = "#121419"; g.fillRect(0, 0, W, H);
+  g.fillStyle = "#c9bfa9"; g.fillRect(90, 34, 180, 22);
+  const urb = it.box === "urban";
+  g.fillStyle = urb ? "#e0d4b4" : "#e3dfd5"; g.fillRect(60, 50, W - 120, H - 100);
+  if (urb) {
+    g.fillStyle = "rgba(60,90,135,.15)"; for (let ly = 78; ly < H - 50; ly += 34) g.fillRect(60, ly, W - 120, 1.5);
+    g.fillStyle = "rgba(184,53,43,.35)"; g.fillRect(84, 50, 2, H - 100);
+  } else {
+    g.fillStyle = "#121419"; [0.3, 0.7].forEach(k => { g.beginPath(); g.arc(80, 50 + (H - 100) * k, 9, 0, Math.PI * 2); g.fill(); });
+  }
+  g.strokeStyle = "rgba(125,85,35,.22)"; g.lineWidth = 6; g.beginPath(); g.arc(1010, 520, 62, 0.4, Math.PI * 1.85); g.stroke();
+  const vg = g.createRadialGradient(W / 2, H / 2, 200, W / 2, H / 2, 700); vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(105,80,35,.28)");
+  g.fillStyle = vg; g.fillRect(60, 50, W - 120, H - 100);
+  g.fillStyle = "#5d5647"; g.font = "700 22px 'Courier Prime', monospace";
+  g.fillText(`UNVERIFIED ARCHIVE ・ FILE ${it.id.toUpperCase()} ・ #${pad(dayNo())}`, 100, 102);
+  g.fillStyle = "#1b1b1f"; g.font = "800 60px 'Shippori Mincho', serif"; g.fillText(it.name, 100, 182);
+  g.font = "400 22px 'Zen Kaku Gothic New', sans-serif"; g.fillStyle = "#5d5647";
+  g.fillText(`${BOX[it.box]} ・ 解除 Lv.${L}/5`, 100, 222);
+  let y = 278;
+  const row = i => {
+    const open = i < L && i < 4;
+    g.fillStyle = "#5d5647"; g.font = "700 18px 'Courier Prime', monospace";
+    g.fillText(`LEVEL ${i + 1} / ${open ? it.layers[i][0] : "黒塗り"}`, 100, y); y += 34;
+    if (open) { g.fillStyle = "#1b1b1f"; g.font = "400 26px 'Zen Kaku Gothic New', sans-serif"; y = wrapText(g, it.layers[i][1], 100, y, 760, 38, 2) + 16; }
+    else { g.fillStyle = "#0b0b0d"; g.fillRect(100, y - 22, 700, 22); g.fillRect(100, y + 12, 460, 22); y += 64; }
+  };
+  row(0);
+  const mid = Math.min(Math.max(L, 2), 4) - 1;
+  if (mid > 0) row(mid);
+  row(4);
+  g.save(); g.translate(990, 300); g.rotate(-0.14);
+  g.strokeStyle = "#b8352b"; g.lineWidth = 5; g.strokeRect(-130, -56, 260, 112);
+  g.fillStyle = "#b8352b"; g.textAlign = "center";
+  g.font = "700 18px 'Courier Prime', monospace"; g.fillText("判定", 0, -20);
+  g.font = "800 30px 'Shippori Mincho', serif"; g.fillText(it.verdict, 0, 24, 236);
+  g.restore();
+  g.fillStyle = "#1b1b1f"; g.font = "700 24px 'Zen Kaku Gothic New', sans-serif"; g.textAlign = "right";
+  g.fillText("真相は黒塗りの下。　#真相ガチャ", W - 100, H - 82);
+  return c.toDataURL("image/png");
+}
+async function openCard(id) {
+  const it = byId(id);
+  sheet("黒塗りカード", `<p class="hint">作成中…</p>`);
+  const url = await makeCard(it);
+  const text = `【黒塗り資料】${it.name}（Lv.${lv(id)}/5）\n${it.layers[0][1]}\n判定：${it.verdict}\n真相は言えない。\n#真相ガチャ`;
+  sheet("黒塗りカード", `<img class="card-img" src="${url}" alt="${it.name}の黒塗りカード"><p class="hint">画像を長押し（PCは右クリック）で保存して、投稿に添付してください。</p>` + shareBlock(text));
+}
+function shared() { bump("share"); markDirty(); renderMissions(); }
+
+/* ---------- render ---------- */
+let shownPt = 0;
+function animatePt() {
+  const target = Math.floor(S.currency);
+  if (shownPt === target) return;
+  const from = shownPt, t0 = performance.now(), dur = REDUCED ? 0 : 350;
+  $("wallet").classList.add("pop");
+  const step = now => {
+    const k = dur ? Math.min(1, (now - t0) / dur) : 1;
+    shownPt = Math.round(from + (target - from) * k);
+    $("pt").textContent = shownPt;
+    if (k < 1) requestAnimationFrame(step); else $("wallet").classList.remove("pop");
+  };
+  requestAnimationFrame(step);
+}
+function render() {
+  animatePt();
+  const n = dayNo(), t = todayItem(), tl = lv(t.id), used = S.freeDate === dayKey();
+  $("issue").textContent = "UNVERIFIED ARCHIVE #" + pad(n);
+  $("today-no").textContent = "本日の噂 #" + pad(n);
+  $("today-h").innerHTML = tl ? t.name : redact(t.name);
+  $("today-line").textContent = t.layers[0][1];
+  $("today-card").className = "today paper aged " + kind(t.box);
+  $("today-note").textContent = t.box === "urban" ? "← 聞いた人ごとに話が違う" : "← 出典不明。要確認";
+  $("today-lv").textContent = "LV." + tl + "/5";
+  $("free").disabled = used || tl === 5;
+  $("free").textContent = used ? "本日分は引きました（0時に更新）" : tl === 5 ? "この噂は真相到達済み" : "本日の1回を引く（無料）";
+  document.querySelectorAll("[data-pull]").forEach(b => { const n = +b.dataset.pull; b.disabled = !bulkOpen(n) || S.currency < COST[n]; });
+  [10, 100].forEach(n => { $("lbl-" + n).textContent = bulkOpen(n) ? `${COST[n]}pt（演出なし）` : `RANK ${BULK_RANK[n] + 1}で解放`; });
+  $("cab-desc").textContent = BOX_DESC[box];
+  const ri = rankIdx(), rk = RANKS[ri], nx = RANKS[ri + 1];
+  $("rk-name").textContent = rk.name;
+  $("rk-lv").textContent = `RANK ${ri + 1} / ${RANKS.length}`;
+  $("rk-bar").style.width = (nx ? (S.pulls - rk.need) / (nx.need - rk.need) * 100 : 100) + "%";
+  $("rk-next").textContent = nx ? `次の「${nx.name}」まで あと${nx.need - S.pulls}回` : "最高ランク";
+  $("rk-perks").innerHTML = [`放置 ×${idleMult().toFixed(2)}`, `稀 ×${rarMult("r").toFixed(2)}`, `禁 ×${rarMult("x").toFixed(2)}`, `二重解除 ${(critRate() * 100).toFixed(1).replace(/\.0$/, "")}%`, `天井 ${pityMax()}回`].map(t => `<span>${t}</span>`).join("");
+  const unownedN = ITEMS.filter(i => i.box === box && unlocked(i) && lv(i.id) === 0).length;
+  const nextDeep = ITEMS.find(i => i.minRank && !unlocked(i));
+  $("rk-deep").textContent = nextDeep ? `RANK ${nextDeep.minRank + 1} で深層ファイルが1件解禁` : "深層ファイルはすべて解禁済み";
+  $("pity-left").textContent = unownedN ? `あと${Math.max(1, pityMax() - ((S.pity || {})[box] || 0))}回` : "全資料発見済み";
+  $("env-lab").textContent = box === "urban" ? "開封厳禁" : "CASE FILE / CONSPIRACY";
+  $("env-seal").textContent = box === "urban" ? "封" : "極秘";
+  $("big-env").classList.toggle("old", box === "urban");
+  document.querySelectorAll("[data-seg]").forEach(b => b.setAttribute("aria-pressed", b.dataset.seg === box));
+  renderMissions(); renderArchive(); renderReport(); renderLab();
+  const st = S.streak || { n: 0 };
+  $("streak").textContent = st.n ? `連続調査 ${st.n}日目 ・ 明日の出勤ボーナス +${20 + 10 * Math.min(st.n + 1, 7)}pt` : "";
+}
+function renderMissions() {
+  let claimable = false;
+  $("missions").innerHTML = MISSIONS.map(m => {
+    const s = S.missions[m.id], full = s.p >= m.target;
+    if (full && !s.claimed) claimable = true;
+    const right = s.claimed ? `<span class="r">受領済</span>` : full ? `<button data-act="claim" data-id="${m.id}">受領 +${m.reward}</button>` : `<span class="r">${s.p}/${m.target} ・ +${m.reward}pt</span>`;
+    return `<div class="mi ${s.claimed ? "done" : ""}"><span class="t">${m.text}</span>${right}<span class="meter"><i style="width:${s.p / m.target * 100}%"></i></span></div>`;
+  }).join("");
+  $("dot-home").hidden = !claimable && !(S.freeDate !== dayKey() && lv(todayItem().id) < 5);
+}
+function renderArchive() {
+  const got = ITEMS.filter(i => lv(i.id) > 0).length, five = ITEMS.filter(i => lv(i.id) === 5).length;
+  const layers = ITEMS.reduce((a, i) => a + lv(i.id), 0), rate = Math.round(layers / (ITEMS.length * 5) * 100);
+  $("rate").textContent = rate + "%"; $("rate-bar").style.width = rate + "%";
+  $("got-line").textContent = `収集 ${got}/${ITEMS.length}`; $("lv5-line").textContent = `真相到達 ${five}/${ITEMS.length}`;
+  document.querySelectorAll("[data-chip]").forEach(b => b.setAttribute("aria-pressed", b.dataset.chip === chip));
+  const sL = secretLv(), next = SECRET_AT[sL];
+  const secretHTML = chip !== "all" ? "" : `<button class="folder paper con secret ${sL ? "" : "locked"} ${sL === 5 ? "truth" : ""}" ${sL ? `data-act="dossier" data-id="${SECRET.id}"` : "disabled"}>
+      <span class="m">機密区分外 ・ ${sL === 0 ? "封印中" : sL === 5 ? "真相到達" : "開示中"}</span>
+      <span class="n">${sL ? SECRET.name : redact(SECRET.name)}</span>
+      <span class="pips">${pips(sL)}</span>
+      <span class="cond">${sL === 5 ? "全ファイルの真相に到達" : `剥がした黒塗りの合計 ${totalLv()} / ${next} で次の段が開示`}</span></button>`;
+  const ts = S.tstat || { n: 0, r: 0, x: 0 };
+  $("tb-total").textContent = (S.tcount || 0) + "件";
+  $("tb-stat").innerHTML = `<span><span class="rar rar-n">並</span> ${ts.n}</span><span><span class="rar rar-r">稀</span> ${ts.r}</span><span><span class="rar rar-x">禁</span> ${ts.x}</span>`;
+  const recent = (S.tlog || []).slice(-15).reverse();
+  $("tb-list").innerHTML = recent.length
+    ? recent.map(t => `<p class="testi t-${t.rar}"><span class="mono">#${t.no}</span> ${byId(t.id).name}：${t.text}</p>`).join("")
+    : `<p class="hint" style="text-align:left">真相に到達したネタをもう一度引くと、目撃証言が集まる。</p>`;
+  $("files").innerHTML = secretHTML + ITEMS.filter(i => chip === "all" || i.box === chip).map((i, k) => {
+    const L = lv(i.id);
+    if (!unlocked(i)) return `<button class="folder paper ${kind(i.box)} locked deep" disabled>
+      <span class="m"><span class="rar rar-x">禁</span> 深層ファイル</span>
+      <span class="n">${redact(i.name)}</span>
+      <span class="cond">RANK ${i.minRank + 1}「${RANKS[i.minRank].name}」で解禁</span></button>`;
+    return `<button class="folder paper ${kind(i.box)} ${L ? "" : "locked"} ${L === 5 ? "truth" : ""}" ${L ? `data-act="dossier" data-id="${i.id}"` : "disabled"} style="transform:rotate(${(k % 3 - 1) * .5}deg)">
+      <span class="m"><span class="rar rar-${i.rar}">${RAR[i.rar].label}</span> ${BOX[i.box]} ・ ${L === 0 ? "未発見 ・ " + [...i.name].length + "文字" : L === 5 ? "真相到達" : "調査中"}</span>
+      <span class="n">${L ? i.name : redact(i.name)}</span>
+      <span class="pips">${pips(L)}</span></button>`;
+  }).join("");
+}
+function renderLab() {
+  $("evi").textContent = S.evi || 0;
+  let any = false;
+  $("ups").innerHTML = UPS.map(u => {
+    const L = upLv(u.id), maxed = L >= u.max, cost = upCost(u), ok = !maxed && (S.evi || 0) >= cost;
+    if (ok) any = true;
+    return `<article class="up paper aged con">
+      <div class="up-h"><b>${u.name}</b><span class="mono">LV ${L}/${u.max}</span></div>
+      <div class="pips up-pips">${Array.from({ length: u.max }, (_, i) => `<i class="${i < L ? "on" : ""}"></i>`).join("")}</div>
+      <p class="up-eff">${u.eff(L)}${maxed ? "" : `<span> → ${u.eff(L + 1)}</span>`}</p>
+      <span class="note">${u.flavor}</span>
+      <button class="btn-ink" data-act="upgrade" data-id="${u.id}" ${ok ? "" : "disabled"}>${maxed ? "これ以上は強化できない" : `強化する（証拠 ${cost}）`}</button>
+    </article>`;
+  }).join("");
+  $("dot-lab").hidden = !any;
+}
+function renderReport() {
+  const [n, d] = diagnosis();
+  $("diag-name").textContent = n; $("diag-desc").textContent = d;
+  $("rep-no").textContent = "#" + pad(dayNo());
+  const row = b => `<div class="sq" style="--n:${ITEMS.filter(i => i.box === b).length}"><span>${BOX[b]}</span>${ITEMS.filter(i => i.box === b).map(i => `<i class="${cellCls(lv(i.id))}"></i>`).join("")}</div>`;
+  $("sq").innerHTML = row("urban") + `<div style="height:6px"></div>` + row("conspiracy");
+  $("s-pulls").textContent = S.pulls; $("s-clicks").textContent = S.clicks;
+  $("s-layers").textContent = ITEMS.reduce((a, i) => a + lv(i.id), 0);
+  $("s-testi").textContent = S.tcount || 0;
+  $("series").innerHTML = SERIES.map(sr => {
+    const st = seriesState(sr);
+    return `<div class="sr ${st.title ? "earned" : ""} ${st.gold ? "gold" : ""}">
+      <div><b>${sr.name}</b><span>収集 ${st.got}/${st.n} ・ 真相 ${st.five}/${st.n}</span></div>
+      <em>${st.title ? sr.title + (st.gold ? "（真）" : "") : "称号 未獲得"}</em></div>`;
+  }).join("");
+}
+let toastTimer;
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, 2000); }
+
+/* ---------- navigation ---------- */
+function go(view) {
+  document.querySelectorAll("[data-view]").forEach(v => v.hidden = v.dataset.view !== view);
+  document.querySelectorAll("[data-nav]").forEach(b => { if (b.dataset.nav === view) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
+  window.scrollTo(0, 0);
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-act],[data-nav],[data-seg],[data-chip],[data-pull]");
+  if (!el) { if (e.target.id === "sheet-bg") hideSheet(); return; }
+  if (el.closest("#stage")) return;
+  if (el.dataset.nav) return go(el.dataset.nav);
+  if (el.dataset.seg) { box = el.dataset.seg; return render(); }
+  if (el.dataset.chip) { chip = el.dataset.chip; return renderArchive(); }
+  if (el.dataset.pull) return pull(+el.dataset.pull);
+  const a = el.dataset.act, id = el.dataset.id;
+  if (a === "close") hideSheet();
+  if (a === "dossier") openDossier(id);
+  if (a === "card") openCard(id);
+  if (a === "x") shared();
+  if (a === "copy") {
+    const txt = $("share-text").textContent;
+    const ok = () => { toast("コピーしました"); shared(); };
+    const fallback = () => { const r = document.createRange(); r.selectNodeContents($("share-text")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast("選択しました。コピーしてください"); shared(); };
+    try { navigator.clipboard.writeText(txt).then(ok, fallback); } catch (err) { fallback(); }
+  }
+  if (a === "odds") {
+    const pool = ITEMS.filter(i => i.box === box && unlocked(i)), ws = pool.map(itemWeight), sum = ws.reduce((x, y) => x + y, 0);
+    sheet("提供割合 ・ " + BOX[box], `<p class="hint" style="text-align:left">あなたの現在のランク（${rank().name}）と進み具合で計算した、1回あたりの出現率です。</p>
+      <div class="oddslist">${pool.map((i, k) => `<div><span><span class="rar rar-${i.rar}">${RAR[i.rar].label}</span> ${lv(i.id) ? i.name : redact(i.name)}</span><b>${(ws[k] / sum * 100).toFixed(1)}%</b></div>`).join("")}</div>`);
+  }
+  if (a === "upgrade") {
+    const u = UPS.find(x => x.id === id), cost = upCost(u);
+    if (upLv(id) >= u.max || (S.evi || 0) < cost) return;
+    S.evi -= cost; S.ups = S.ups || {}; S.ups[id] = upLv(id) + 1;
+    markDirty(); render(); renderSniffCap(); toast(`${u.name}を強化した：${u.eff(upLv(id))}`); buzz(20);
+  }
+  if (a === "onboard") { S.onboarded = true; markDirty(); hideSheet(); toast("まずはホームの「本日の1回」を引いてください"); }
+  if (a === "claim") {
+    const m = MISSIONS.find(x => x.id === id); S.missions[id].claimed = true; S.currency += m.reward;
+    markDirty(); render(); toast("任務完了 +" + m.reward + "pt"); buzz(20);
+  }
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") { if (!$("stage").hidden) closeStage(); else hideSheet(); }
+  if ((e.key === " " || e.key === "Enter") && !$("stage").hidden && !e.target.closest("button")) { e.preventDefault(); advance(); }
+});
+$("free").addEventListener("click", freePull);
+$("share-report").addEventListener("click", () => sheet("今日の調査報告", `<p class="hint" style="text-align:left">⬛未発見 🟫Lv1-2 🟧Lv3-4 🟥真相到達</p>` + shareBlock(reportText())));
+$("share-diag").addEventListener("click", () => { const [n, d] = diagnosis(); sheet("信者度診断", shareBlock(`真相ガチャの信者度診断\n私は「${n}」でした。\n${d}\n#真相ガチャ`)); });
+
+let combo = 0, comboTimer;
+// 1日の嗅ぎ回り獲得：400ptまで+2、800ptまで+1、それ以降は0。1秒12回を超える連打は無視
+let tapTimes = [];
+function sniffGain() {
+  if (!S.sniffDay || S.sniffDay.d !== dayKey()) S.sniffDay = { d: dayKey(), pts: 0 };
+  return S.sniffDay.pts < sniffFull() ? 2 : S.sniffDay.pts < sniffHalf() ? 1 : 0;
+}
+function renderSniffCap() {
+  sniffGain();
+  const p = S.sniffDay.pts, el = $("cap-text");
+  const F = sniffFull(), H = sniffHalf();
+  $("cap-bar").style.width = Math.min(100, p / H * 100) + "%";
+  el.textContent = p < F ? `今日の嗅ぎ回り ${p}/${H}pt（${F}ptまでは1タップ+2）`
+    : p < H ? `今日の嗅ぎ回り ${p}/${H}pt（ここからは1タップ+1）`
+    : "今日はもう十分嗅ぎ回った。これ以上は、こちらが噂になる";
+}
+$("sniff").addEventListener("click", e => {
+  const now = Date.now();
+  tapTimes = tapTimes.filter(t => now - t < 1000); tapTimes.push(now);
+  if (tapTimes.length > 12) return;
+  const gain = sniffGain();
+  S.currency += gain; S.sniffDay.pts += gain; S.clicks++; bump("click"); markDirty(); render(); renderSniffCap();
+  combo++; clearTimeout(comboTimer);
+  const c = $("combo"); c.textContent = "×" + combo; c.classList.toggle("on", combo > 1);
+  comboTimer = setTimeout(() => { combo = 0; c.classList.remove("on"); }, 700);
+  const btn = $("sniff"), r = btn.getBoundingClientRect(), f = document.createElement("span");
+  f.className = "float"; f.textContent = gain ? "+" + gain : "…";
+  f.style.left = ((e.clientX || r.left + r.width / 2) - r.left) + "px"; f.style.top = ((e.clientY || r.top + r.height / 2) - r.top - 10) + "px";
+  btn.appendChild(f); setTimeout(() => f.remove(), 800);
+  buzz(8);
+  if (Math.random() < 1 / 15) {
+    const sub = $("sniff-sub");
+    sub.textContent = EERIE[Math.floor(Math.random() * EERIE.length)]; sub.classList.add("eerie");
+    clearTimeout(sub._t); sub._t = setTimeout(() => { sub.textContent = "タップで疑念ptが貯まる ／ 近づく保証はない"; sub.classList.remove("eerie"); }, 2200);
+  }
+});
+
+/* ---------- 怪異 ---------- */
+const hour = () => new Date().getHours();
+const EERIE = ["誰かも同じ場所を嗅いでいる", "さっきより近い", "今、後ろで音がしなかった？", "嗅ぎ回っているのは、本当にあなた？", "そこはもう調べた。3回目だ"];
+function haunt() {
+  const words = ["みつけた", "うしろ", "みてるよ", "あけたね"];
+  const g = document.createElement("div"); g.className = "ghost"; g.textContent = words[Math.floor(Math.random() * words.length)];
+  $("st-scene").appendChild(g); buzz([10, 40, 10]);
+  setTimeout(() => g.remove(), 950);
+}
+const POSTS = [
+  "きさらぎ駅の話してたら、本当に電車が遅延した",
+  "8番出口の老人、今日すれ違った気がする。毎日すれ違ってる気もする",
+  "黒塗りの下、見えたやつおる？",
+  "Lv5まで行ったけど誰にも言えないのつらい",
+  "うちの会社の会議資料もだいたい黒塗りなんだが",
+  "後ろを振り返るな。いいな、絶対だぞ",
+  "さっきから同じIDのやつが一人いる",
+  "陰謀論の封筒開けるたびに、部屋のWi-Fiが一本減る",
+  "嗅ぎ回るボタン押しすぎて指がくねくねしてきた",
+  "このスレ、誰も書いてないのにレスが増えてる",
+  "花子さん3回呼んだら疑念が3増えた。仕様？",
+  "赤い部屋の広告、閉じても閉じても出てくる",
+  "今日の噂、全員同じなの逆に怖くない？",
+  "丑三つ時に引くと、封筒の中から声がするって聞いた",
+  "≫1 お前の後ろにいるの誰？",
+  "メリーさんから電話きた。今、駅前にいるらしい",
+  "くねくねの正体わかったかもしれない。いや、やっぱりわからない",
+];
+let postNo = 120 + Math.floor(Math.random() * 300);
+const rid = () => Array.from({ length: 8 }, () => "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 54)]).join("");
+function addPost() {
+  const box = $("bbs"); if (!box) return;
+  const now = new Date(), hh = String(now.getHours()).padStart(2, "0"), mm = String(now.getMinutes()).padStart(2, "0"), ss = String(now.getSeconds()).padStart(2, "0");
+  const haunted = Math.random() < (hour() === 2 ? .3 : .08);
+  let body;
+  if (haunted) body = ["みつけた", "うしろ", "そこにいるの", "あと3回"][Math.floor(Math.random() * 4)];
+  else if (crowd && crowd.length > 1 && Math.random() < .15) body = `今日はもう${crowd.length}人がこの噂を追ってるらしい`;
+  else if (Math.random() < .2) { const t = todayItem(); body = lv(t.id) ? `今日の噂「${t.name}」、もうLv${lv(t.id)}まで行ったやついる？` : `今日の噂、${[...t.name].length}文字らしい。誰か引いた？`; }
+  else body = POSTS[Math.floor(Math.random() * POSTS.length)];
+  const p = document.createElement("div"); p.className = "post" + (haunted ? " haunt" : "");
+  p.innerHTML = `<div class="ph">${++postNo} 名前：<em>${haunted ? "　　　　" : "名無しさん@調査中"}</em> ${hh}:${mm}:${ss} ID:${haunted ? "????????" : rid()}</div><p></p>`;
+  p.querySelector("p").textContent = body;
+  box.appendChild(p);
+  while (box.children.length > 3) box.firstElementChild.remove();
+}
+function applyTime() {
+  const h = hour();
+  document.body.classList.toggle("night", h >= 22 || h < 5);
+  $("ushi").hidden = h !== 2;
+}
+
+/* ---------- アカウント保存と、今日の調査員 ---------- */
+let cloud = null, crowd = null, lastScout = "", flushT = null, flushing = false, again = false;
+function setSync(t) { $("sync").textContent = "記録：" + t; }
+function markDirty() {
+  S.updatedAt = Date.now(); save();
+  if (!cloud || !cloud.canWrite) return;
+  clearTimeout(flushT); flushT = setTimeout(flush, 3000);
+}
+async function flush() {
+  if (!cloud || !cloud.canWrite) return;
+  if (flushing) { again = true; return; }
+  flushing = true;
+  try {
+    await cloud.saveRef.set({ state: JSON.parse(JSON.stringify(S)) });
+    const t = todayItem();
+    const scout = { day: dayKey(), todayLv: lv(t.id), total: totalLv(), lv5: ITEMS.filter(i => lv(i.id) === 5).length };
+    const key = JSON.stringify(scout);
+    if (key !== lastScout) { await cloud.scoutRef.set(scout); lastScout = key; }
+    setSync("アカウントに保存済み（別の端末でも続きから遊べます）");
+  } catch (e) {
+    if (e && (e.code === "invalid_argument" || e.code === "not_granted" || e.code === "revoked")) { cloud.canWrite = false; setSync("この端末のみに保存"); }
+  }
+  flushing = false;
+  if (again) { again = false; flush(); }
+}
+function renderCrowd() {
+  if (!crowd) return;
+  const n = crowd.length, truth = crowd.filter(c => c.todayLv === 5).length;
+  const el = $("today-crowd");
+  el.hidden = n === 0;
+  el.textContent = `本日 ${n}人が追跡中${truth ? ` ・ ${truth}人が真相到達` : ""}`;
+  const me = totalLv(), others = crowd.length;
+  const r = $("rank");
+  if (others >= 2 && me > 0) {
+    const below = crowd.filter(c => (c.total || 0) < me).length;
+    const top = Math.max(1, Math.round((1 - below / others) * 100));
+    r.hidden = false; r.textContent = `今日の調査員 ${n}人の中で、あなたの解読量は上位 ${top}%`;
+  } else r.hidden = true;
+}
+async function initCloud() {
+  if (!window.claude || typeof window.claude.use !== "function") return;
+  try {
+    const [db, user] = await Promise.all([claude.use("db"), claude.use("user")]);
+    if (!db) return;
+    db.collection("scouts").where("day", "==", dayKey()).onSnapshot(snap => { crowd = snap.docs.map(d => d.data()); renderCrowd(); }, () => {});
+    const uid = user ? await user.id() : null;
+    if (!uid) return;
+    cloud = { db, uid, canWrite: true, saveRef: db.doc("data/users/" + uid + "/save"), scoutRef: db.doc("scouts/" + uid) };
+    const snap = await cloud.saveRef.get();
+    const remote = snap.exists ? (snap.data() || {}).state : null;
+    if (remote && (remote.updatedAt || 0) > (S.updatedAt || 0)) {
+      S = Object.assign(fresh(), remote); ensureMissions(); save();
+      shownPt = Math.floor(S.currency); $("pt").textContent = shownPt; $("fast").checked = !!S.fast;
+      render(); toast("アカウントの記録から続きを読み込みました");
+    }
+    markDirty(); flush();
+  } catch (e) {}
+}
+
+/* ---------- idle ---------- */
+const idleMult = () => (1 + .05 * rankIdx()) * (1 + .1 * upLv("radio"));
+function tick() {
+  const step = (hour() === 2 ? 2500 : 5000) / idleMult(), el = Date.now() - S.lastTick;
+  if (el >= step) { const g = Math.floor(el / step); S.currency += g; S.lastTick += g * step; save(); render(); }
+  $("ring").style.setProperty("--p", Math.min(100, (Date.now() - S.lastTick) / step * 100));
+}
+ensureMissions();
+(function streak() {
+  const today = dayKey(), y = new Date(); y.setDate(y.getDate() - 1);
+  const st = S.streak || { last: "", n: 0 };
+  if (st.last === today) return;
+  st.n = st.last === dayKey(y) ? st.n + 1 : 1; st.last = today; S.streak = st;
+  const bonus = 20 + 10 * Math.min(st.n, 7);
+  S.currency += bonus; save();
+  setTimeout(() => toast(`連続調査 ${st.n}日目 ・ 出勤ボーナス +${bonus}pt`), 1200);
+})();
+const away = Date.now() - S.lastTick;
+if (away > 60000) {
+  const g = Math.floor(Math.min(120 + 60 * upLv("phone"), away / 60000) * idleMult());
+  S.currency += g; S.lastTick = Date.now(); save();
+  setTimeout(() => toast("留守中に疑念が " + g + "pt 貯まりました"), 500);
+}
+shownPt = Math.floor(S.currency); $("pt").textContent = shownPt;
+render();
+renderSniffCap();
+applyTime();
+$("fast").checked = !!S.fast;
+initCloud();
+$("fast").addEventListener("change", e => { S.fast = e.target.checked; markDirty(); });
+if (!S.onboarded) setTimeout(() => sheet("調査員の皆さまへ", `
+  <article class="doc paper aged con" style="--sx:86%;--sy:80%">
+    <div class="formhead"><span>機密区分 極秘</span><span>着任通知</span><span>配布 本人のみ</span></div>
+    <h2 style="margin-top:10px">真相ガチャ 調査手順</h2>
+    <div class="lyr"><div class="lab">手順 1 ／ 封筒を引く</div><p>疑念ptを使って封筒を開けると、都市伝説や陰謀論の資料が手に入る。ptは放置と「嗅ぎ回る」で貯まる。</p></div>
+    <div class="lyr"><div class="lab">手順 2 ／ 黒塗りを剥がす</div><p>同じネタを引くたびに黒塗りが1段剥がれる。5段目が「真相」。</p></div>
+    <div class="lyr"><div class="lab">手順 3 ／ 真相は言わない</div><p>共有できるのは剥がれ具合だけ。真相の中身は、自分の目で確かめてもらうこと。</p><span class="note">※ 本日の噂は毎日1回無料</span></div>
+  </article>
+  <div class="actions"><button class="btn-paper" data-act="onboard">調査を始める</button></div>`), 300);
+addPost(); addPost(); addPost();
+setInterval(addPost, 4500);
+setInterval(applyTime, 60000);
+const startView = (location.hash || "").slice(1);
+if (["home", "gacha", "archive", "lab", "report"].includes(startView)) go(startView);
+setInterval(() => { if (S.missionDate !== dayKey()) { ensureMissions(); render(); } tick(); }, 250);
+</script>
