@@ -428,6 +428,37 @@ body.night .top-in, body.night .today { animation: flicker 6s infinite; }
 .btn-paper:disabled, .pulls .five:disabled { color: #8d93a2; }
 .nav button { color: #a4abb9; }
 .nav button[aria-current="page"] { color: var(--paper); }
+
+/* ---------- 一般人モード（入門版） ---------- */
+body.lite .nav, body.lite #wallet { display: none !important; }
+body.lite main { padding-bottom: 40px; }
+.lite-bar { display: grid; gap: 6px; }
+.lite-bar .row { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
+.lite-bar .bar { height: 6px; background: #3b414d; }
+.lite-bar .bar i { display: block; height: 100%; background: var(--paper); transition: width .4s; }
+.lite-pull { width: 100%; padding: 18px; font-size: 18px; letter-spacing: .12em; background: var(--paper); color: var(--ink); font-weight: 800; }
+.lite-pull:active { transform: scale(.985); }
+.lite-pull:disabled { background: #3b414d; color: #8d93a2; }
+.lite-last { min-height: 0; }
+.lite-last .doc { animation: viewin .35s ease-out; }
+.lite-notes { display: grid; gap: 8px; }
+.lite-notes p { margin: 0; padding: 10px 12px; border-left: 3px solid var(--stamp); background: var(--desk-2); font-size: 14px; line-height: 1.7; }
+.lite-notes p.sealed { border-left-color: #4a5060; color: var(--muted); }
+.lite-notes p.sealed .rd i { background: var(--mask-dark); box-shadow: inset 0 0 0 1px var(--mask-edge); }
+.lite-join { display: grid; gap: 8px; text-align: center; padding: 16px; border: 1px dashed #5a6070; }
+.lite-join p { margin: 0; font-size: 13px; color: var(--muted); }
+.lite-join .btn-ink { background: var(--stamp); color: #fff; padding: 14px; font-weight: 800; letter-spacing: .1em; }
+.lite-join.hot .btn-ink { animation: pulse 1.6s ease-in-out infinite; }
+.lock-teaser { opacity: .9; }
+/* 面接 */
+.chat { display: grid; gap: 10px; }
+.chat .b { max-width: 88%; padding: 10px 13px; font-size: 15px; line-height: 1.75; animation: viewin .3s ease-out; }
+.chat .b.them { background: var(--paper); color: var(--ink); justify-self: start; }
+.chat .b.them small { display: block; font-family: var(--f-mono); font-size: 11px; letter-spacing: .1em; color: var(--paper-ink-2); margin-bottom: 2px; }
+.chat .b.me { background: var(--desk-3); color: var(--fg); justify-self: end; border: 1px solid #4a5060; }
+.choices { display: grid; gap: 8px; }
+.choices button { text-align: left; padding: 12px 14px; border: 1px solid #5a6070; color: var(--fg); font-size: 15px; line-height: 1.6; }
+.choices button:active { background: var(--desk-3); }
 </style>
 
 <header class="top">
@@ -441,6 +472,29 @@ body.night .top-in, body.night .today { animation: flicker 6s infinite; }
 </header>
 
 <main>
+  <!-- LITE -->
+  <section class="view" data-view="lite" hidden>
+    <article class="today paper aged urban" style="--sx:80%;--sy:40%">
+      <span class="clip" aria-hidden="true"></span>
+      <div class="eyebrow">一般人モード ・ 通りすがり</div>
+      <h2>郵便受けに、封筒が入っていた</h2>
+      <p>差出人は書かれていない。開けるかどうかは、自由だ。<br>拾い集めると、中身が少しずつ読めるようになる。</p>
+    </article>
+    <div class="lite-bar">
+      <div class="row"><span>読めた断片</span><span class="mono" id="lite-n">0 / 24</span></div>
+      <div class="bar"><i id="lite-bar" style="width:0%"></i></div>
+    </div>
+    <button class="lite-pull" id="lite-pull">封筒を拾う</button>
+    <div class="lite-last" id="lite-last"></div>
+    <div><div class="sec-h"><h3>拾った封筒</h3><small id="lite-sum">0 / 8</small></div><div class="files" id="lite-files"></div></div>
+    <div><div class="sec-h"><h3>同封されていたメモ</h3><small>拾うほど増える</small></div><div class="lite-notes" id="lite-notes"></div></div>
+    <div class="actions"><button class="btn-paper" id="lite-share">拾った封筒をシェア</button></div>
+    <div class="lite-join" id="lite-join">
+      <button class="btn-ink" id="lite-apply">調査員になる</button>
+      <p id="lite-join-note">※ 応募すると面接があります。先は、まだ黒塗りです。</p>
+    </div>
+  </section>
+
   <!-- HOME -->
   <section class="view" data-view="home">
     <p class="streak" id="streak"></p>
@@ -869,6 +923,8 @@ const $ = id => document.getElementById(id);
 const dayKey = (d = new Date()) => d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
 const fresh = () => ({ currency:30, pulls:0, clicks:0, levels:{}, lastTick:Date.now(), missionDate:"", missions:{}, freeDate:"" });
 let S = load();
+if (!S.role && (S.pulls > 0 || S.onboarded)) S.role = "agent";
+const isLite = () => !S.role;
 function load() { try { const r = localStorage.getItem(KEY); if (r) return Object.assign(fresh(), JSON.parse(r)); } catch (e) {} return fresh(); }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 function dayNo() { const t = new Date(); t.setHours(0,0,0,0); return Math.max(1, Math.floor((t - LAUNCH) / 864e5) + 1); }
@@ -1374,6 +1430,7 @@ function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = fals
 
 /* ---------- navigation ---------- */
 function go(view) {
+  if (isLite()) view = "lite";
   document.querySelectorAll("[data-view]").forEach(v => v.hidden = v.dataset.view !== view);
   document.querySelectorAll("[data-nav]").forEach(b => { if (b.dataset.nav === view) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
   window.scrollTo(0, 0);
@@ -1530,7 +1587,7 @@ async function flush() {
     const t = todayItem();
     const scout = { day: dayKey(), todayLv: lv(t.id), total: totalLv(), lv5: ITEMS.filter(i => lv(i.id) === 5).length };
     const key = JSON.stringify(scout);
-    if (key !== lastScout) { await cloud.setDoc(cloud.scoutRef, scout); lastScout = key; }
+    if (!isLite() && key !== lastScout) { await cloud.setDoc(cloud.scoutRef, scout); lastScout = key; }
     setSync("アカウントに保存済み（別の端末でも続きから遊べます）");
   } catch (e) {
     if (e && (e.code === "permission-denied" || e.code === "invalid-argument")) { cloud.canWrite = false; setSync("この端末のみに保存"); } else setSync("保存に失敗（あとで再試行します）");
@@ -1601,9 +1658,148 @@ async function linkGoogle() {
   }
 }
 
+/* ---------- 一般人モード（入門版）と面接 ---------- */
+const LITE_IDS = ["u1", "u2", "u4", "u7", "c1", "c3", "c6", "c12"], LITE_MAX = 3, LITE_ALL = LITE_IDS.length * LITE_MAX;
+const liteItems = () => LITE_IDS.map(id => ITEMS.find(i => i.id === id));
+const liteLv = id => (S.lite && S.lite.lv && S.lite.lv[id]) || 0;
+const liteTotal = () => LITE_IDS.reduce((a, id) => a + liteLv(id), 0);
+const LITE_NOTES = [
+  [3, "封筒の裏に、小さな印字がある。「第六文書課」。聞いたことのない部署だ。"],
+  [6, "宛名はあなたの住所だった。ただ、名前の欄だけが空白になっている。"],
+  [10, "同じ封筒を拾っている人間が、この街に他にもいるらしい。"],
+  [15, "内側に、鉛筆の走り書きがある。「続きを読みたいなら、こちらへ」"],
+  [20, "「あなたの拾い方には癖がある」と、誰かが書き添えていた。見られている。"],
+  [24, "「十分だ。面接に来なさい」。それ以上、何も書かれていなかった。"],
+];
+const LITE_CELL = ["⬛", "🟫", "🟧", "🟥"];
+function litePull() {
+  const pool = liteItems().filter(i => liteLv(i.id) < LITE_MAX);
+  if (!pool.length) return;
+  S.lite = S.lite || { lv: {}, pulls: 0 };
+  const ws = pool.map(i => liteLv(i.id) === 0 ? 1.6 : 1), sum = ws.reduce((a, b) => a + b, 0);
+  let r = Math.random() * sum, it = pool[pool.length - 1];
+  for (let k = 0; k < pool.length; k++) { r -= ws[k]; if (r <= 0) { it = pool[k]; break; } }
+  const L = liteLv(it.id) + 1;
+  S.lite.lv[it.id] = L; S.lite.pulls++;
+  markDirty(); renderLite(it, L); buzz(15);
+}
+function renderLite(freshIt, freshL) {
+  const n = liteTotal();
+  $("lite-n").textContent = n + " / " + LITE_ALL;
+  $("lite-bar").style.width = (n / LITE_ALL * 100) + "%";
+  $("lite-pull").disabled = n >= LITE_ALL;
+  $("lite-pull").textContent = n >= LITE_ALL ? "封筒は、すべて拾い終えた" : n === 0 ? "封筒を拾う" : "もう1通、拾う";
+  $("lite-sum").textContent = LITE_IDS.filter(id => liteLv(id) > 0).length + " / " + LITE_IDS.length;
+  if (freshIt) {
+    const [lab, txt] = freshIt.layers[freshL - 1];
+    $("lite-last").innerHTML = `<article class="doc paper aged ${kind(freshIt.box)}" style="--sx:${70 + (freshIt.id.charCodeAt(1) * 7) % 22}%;--sy:${10 + (freshIt.id.charCodeAt(1) * 13) % 70}%">
+      ${docHead(freshIt)}
+      <div class="eyebrow">${freshL === 1 ? "新しい封筒" : "封筒の続き"} ・ ${BOX[freshIt.box]}</div>
+      <h2>${freshIt.name}</h2>
+      <div class="pips" style="margin-bottom:6px">${pips(freshL)}</div>
+      <div class="lyr fresh"><div class="lab">LEVEL ${freshL} ／ ${lab}</div><p>${txt}</p>${note(freshIt, freshL - 1)}</div>
+      <p class="hint" style="text-align:left">${freshL < LITE_MAX ? "同じ封筒を、もう一度拾えば続きが読める。" : "ここまでが、通りすがりに読める範囲だ。この先は、黒塗りのまま。"}</p>
+    </article>`;
+  }
+  $("lite-files").innerHTML = liteItems().map((i, k) => {
+    const L = liteLv(i.id);
+    return `<button class="folder paper ${kind(i.box)} ${L ? "" : "locked"}" ${L ? `data-la="open" data-id="${i.id}"` : "disabled"} style="transform:rotate(${(k % 3 - 1) * .5}deg)">
+      <span class="m">${BOX[i.box]} ・ ${L === 0 ? "未開封" : L >= LITE_MAX ? "ここまで" : "読み途中"}</span>
+      <span class="n">${L ? i.name : redact(i.name)}</span>
+      <span class="pips">${pips(L)}</span></button>`;
+  }).join("");
+  $("lite-notes").innerHTML = LITE_NOTES.map(([th, t]) => n >= th ? `<p>${t}</p>` : `<p class="sealed">${redact("●●●●●●●●●●●●●●")} <small>あと${th - n}通</small></p>`).join("");
+  const done = n >= LITE_ALL;
+  $("lite-join").classList.toggle("hot", done || n >= 12);
+  $("lite-join-note").textContent = done ? "※ 面接の案内が同封されていた。" : n >= 8 ? "※ 応募は、いつでもできる。" : "※ 応募すると面接があります。先は、まだ黒塗りです。";
+}
+function liteOpen(id) {
+  const it = byId(id), L = liteLv(id);
+  const body = it.layers.map(([lab, txt], i) => i < L
+    ? `<div class="lyr"><div class="lab">LEVEL ${i + 1} ／ ${lab}</div><p>${txt}</p>${note(it, i)}</div>`
+    : i < LITE_MAX ? `<div class="lyr sealed"><div class="lab">LEVEL ${i + 1} ／ 黒塗り</div><p><i style="width:80%"></i><i style="width:60%"></i></p></div>`
+    : `<div class="lyr sealed"><div class="lab">LEVEL ${i + 1} ／ ${lab}</div><p><i style="width:${i === 3 ? 88 : 70}%"></i><i style="width:52%"></i></p><span class="note">調査員にならないと読めない</span></div>`).join("");
+  sheet("拾った封筒 ・ LV." + L, `<article class="doc paper aged ${kind(it.box)}" style="--sx:80%;--sy:30%">
+    ${docHead(it)}
+    <div class="eyebrow">FILE ${it.id.toUpperCase()} ・ ${BOX[it.box]}</div>
+    <h2>${it.name}</h2><div class="pips" style="margin-bottom:6px">${pips(L)}</div>${body}</article>
+    <div class="actions"><button class="btn-paper" data-la="apply">調査員になる</button><button class="btn-line" data-act="close">閉じる</button></div>`);
+}
+function liteShare() {
+  const row = b => liteItems().filter(i => i.box === b).map(i => LITE_CELL[liteLv(i.id)]).join("");
+  const n = liteTotal(), url = /^https?:/.test(location.protocol) ? "\n" + location.origin + location.pathname : "";
+  const text = `【真相ガチャ・一般人編】\n封筒を${(S.lite && S.lite.pulls) || 0}通拾った\n都市伝説 ${row("urban")}\n陰謀論　 ${row("conspiracy")}\n読めた断片 ${n}/${LITE_ALL}${n >= LITE_ALL ? "\n「面接に来なさい」と書かれていた" : ""}\n#真相ガチャ${url}`;
+  sheet("拾った封筒をシェア", `<p class="hint" style="text-align:left">⬛未開封 🟫Lv1 🟧Lv2 🟥Lv3（通りすがりの範囲）</p>` + shareBlock(text));
+}
+/* 面接 */
+const SIDE_NAME = { 0: "都市伝説班", 1: "陰謀論班", 2: "両班の兼任" };
+const INTERVIEW = [
+  { q: () => `第六文書課です。応募、ありがとうございます。<br>あなたが拾った封筒は${(S.lite && S.lite.pulls) || 0}通。数は、こちらでも把握しています。<br>では、志望動機を。`,
+    ch: [["気になって、つい開けてしまった", "好奇心は、この仕事で一番の資格です。同時に、一番の欠点でもあります。"], ["暇つぶしです", "正直で結構。この仕事の大半は、暇つぶしの延長です。"], ["…誰かに、そうするよう言われた気がして", "そうですか。誰に、とは訊きません。こちらも、知らないほうがいい。"]] },
+  { q: () => "次に、守秘義務について。ここで読んだ真相は、他人に話さないでください。守れますか。",
+    ch: [["はい、守ります", "結構。もっとも、みなさんそう答えます。"], ["たぶん、話してしまいます", "正直ですね。大丈夫です。話しても、伝わりませんから。共有できるのは、剥がれ具合だけです。"]] },
+  { q: () => "最後に。あなたは、話を信じる側ですか。疑う側ですか。",
+    ch: [["信じる側", "都市伝説班に配属します。怖がりのほうが、よく見えるものです。"], ["疑う側", "陰謀論班に配属します。疑う人ほど、最初に騙されます。"], ["どちらでもない", "では、両方を担当してもらいます。一番人手が足りない席です。"]] },
+];
+let iv = null;
+function startInterview() {
+  iv = { step: 0, log: [], side: 2 };
+  iv.log.push(["them", INTERVIEW[0].q()]);
+  renderInterview(true);
+}
+function renderInterview(choices) {
+  const done = iv.step >= INTERVIEW.length;
+  const chat = iv.log.map(([w, t]) => `<div class="b ${w}">${w === "them" ? "<small>面接官</small>" : ""}${t}</div>`).join("");
+  const tail = done ? `<div class="actions"><button class="btn-paper" data-la="start">調査を始める</button></div>`
+    : choices ? `<div class="choices">${INTERVIEW[iv.step].ch.map((c, i) => `<button data-la="ans" data-i="${i}">${c[0]}</button>`).join("")}</div>` : "";
+  sheet("面接室", `<div class="chat">${chat}</div>${tail}`);
+  const sh = $("sheet"); sh.scrollTop = sh.scrollHeight;
+}
+function answerInterview(i) {
+  const st = INTERVIEW[iv.step], c = st.ch[i];
+  iv.log.push(["me", c[0]], ["them", c[1]]);
+  if (iv.step === INTERVIEW.length - 1) iv.side = i;
+  iv.step++;
+  if (iv.step >= INTERVIEW.length) {
+    if (!S.agentNo) S.agentNo = String(1000 + Math.floor(Math.random() * 9000));
+    renderInterview(false);
+    setTimeout(() => { iv.log.push(["them", `採用です。調査員番号は No.${S.agentNo}。配属は${SIDE_NAME[iv.side]}。<br>なお、辞退の手続きは、用意していません。`]); renderInterview(false); }, 900);
+  } else {
+    renderInterview(false);
+    setTimeout(() => { iv.log.push(["them", INTERVIEW[iv.step].q()]); renderInterview(true); }, 900);
+  }
+}
+function becomeAgent() {
+  if (!S.role) {
+    S.role = "agent"; S.assign = SIDE_NAME[iv ? iv.side : 2]; S.onboarded = true;
+    S.levels = S.levels || {};
+    LITE_IDS.forEach(id => { S.levels[id] = Math.max(S.levels[id] || 0, liteLv(id)); });
+    S.currency += 30; S.lastTick = Date.now();
+    markDirty();
+  }
+  hideSheet(); applyMode(); go("home"); render();
+  toast("調査員 No." + S.agentNo + " として登録された。まずは「本日のウワサ」を");
+}
+function applyMode() {
+  document.body.classList.toggle("lite", isLite());
+  if (isLite()) { $("issue").textContent = "UNVERIFIED ARCHIVE ・ 一般人"; go("lite"); renderLite(); }
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-la]"); if (!b) return;
+  const a = b.dataset.la;
+  if (a === "open") liteOpen(b.dataset.id);
+  else if (a === "apply") startInterview();
+  else if (a === "ans") answerInterview(+b.dataset.i);
+  else if (a === "start") becomeAgent();
+});
+$("lite-pull").addEventListener("click", litePull);
+$("lite-share").addEventListener("click", liteShare);
+$("lite-apply").addEventListener("click", startInterview);
+
 /* ---------- idle ---------- */
 const idleMult = () => (1 + .05 * rankIdx()) * (1 + .1 * upLv("radio"));
 function tick() {
+  if (isLite()) { S.lastTick = Date.now(); return; }
   const step = (hour() === 2 ? 2500 : 5000) / idleMult(), el = Date.now() - S.lastTick;
   if (el >= step) { const g = Math.floor(el / step); S.currency += g; S.lastTick += g * step; save(); render(); }
   $("ring").style.setProperty("--p", Math.min(100, (Date.now() - S.lastTick) / step * 100));
@@ -1612,14 +1808,14 @@ ensureMissions();
 (function streak() {
   const today = dayKey(), y = new Date(); y.setDate(y.getDate() - 1);
   const st = S.streak || { last: "", n: 0 };
-  if (st.last === today) return;
+  if (isLite() || st.last === today) return;
   st.n = st.last === dayKey(y) ? st.n + 1 : 1; st.last = today; S.streak = st;
   const bonus = 20 + 10 * Math.min(st.n, 7);
   S.currency += bonus; save();
   setTimeout(() => toast(`連続調査 ${st.n}日目 ・ 出勤ボーナス +${bonus}pt`), 1200);
 })();
 const away = Date.now() - S.lastTick;
-if (away > 60000) {
+if (isLite()) { S.lastTick = Date.now(); } else if (away > 60000) {
   const g = Math.floor(Math.min(120 + 60 * upLv("phone"), away / 60000) * idleMult());
   S.currency += g; S.lastTick = Date.now(); save();
   setTimeout(() => toast("留守中に疑念が " + g + "pt 貯まりました"), 500);
@@ -1631,7 +1827,7 @@ applyTime();
 $("fast").checked = !!S.fast;
 initCloud();
 $("fast").addEventListener("change", e => { S.fast = e.target.checked; markDirty(); });
-if (!S.onboarded) setTimeout(() => sheet("調査員の皆さまへ", `
+if (!isLite() && !S.onboarded) setTimeout(() => sheet("調査員の皆さまへ", `
   <article class="doc paper aged con" style="--sx:86%;--sy:80%">
     <div class="formhead"><span>機密区分 極秘</span><span>着任通知</span><span>配布 本人のみ</span></div>
     <h2 style="margin-top:10px">真相ガチャ 調査手順</h2>
@@ -1643,6 +1839,7 @@ if (!S.onboarded) setTimeout(() => sheet("調査員の皆さまへ", `
 for (let i = 0; i < 5; i++) addPost();
 setInterval(addPost, 4500);
 setInterval(applyTime, 60000);
+applyMode();
 const startView = (location.hash || "").slice(1);
 if (["home", "gacha", "archive", "lab", "report"].includes(startView)) go(startView);
 setInterval(() => { if (S.missionDate !== dayKey()) { ensureMissions(); render(); } tick(); }, 250);
