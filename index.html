@@ -467,6 +467,13 @@ body.night .top-in, body.night .today { animation: flicker 6s infinite; }
 /* ---------- 一般人モード（入門版） ---------- */
 body.lite .nav, body.lite #wallet { display: none !important; }
 body.lite main { padding-bottom: 40px; }
+.lite-tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:4px; padding:4px; background:var(--desk-2); border:1px solid var(--line); position:sticky; top:58px; z-index:4; }
+.lite-tabs button { min-height:44px; color:var(--muted); font-weight:700; }
+.lite-tabs button[aria-pressed="true"] { background:var(--paper); color:var(--ink); }
+.lite-pane { display:grid; gap:22px; }
+.lite-filter { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.lite-filter button { min-height:42px; border:1px solid var(--line); color:var(--muted); }
+.lite-filter button[aria-pressed="true"] { border-color:var(--paper); color:var(--paper); background:var(--desk-2); }
 .lite-bar { display: grid; gap: 6px; }
 .lite-bar .row { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
 .lite-bar .bar { height: 6px; background: #3b414d; }
@@ -524,25 +531,44 @@ body.agent-reveal::after { content:"ACCESS GRANTED"; position:fixed; inset:0; z-
 <main>
   <!-- LITE -->
   <section class="view" data-view="lite" hidden>
-    <article class="today paper aged urban" style="--sx:80%;--sy:40%">
-      <span class="clip" aria-hidden="true"></span>
-      <div class="eyebrow">取扱注意 ・ 宛先不明</div>
-      <h2>郵便受けに、見覚えのない封筒があった</h2>
-      <p>差出人も、宛名もない。中には、途中まで黒く塗りつぶされた記録が入っている。<br>開封するなら、少し慎重に扱った方がよさそうだ。</p>
-    </article>
-    <div class="lite-bar">
-      <div class="row"><span>確認した断片</span><span class="mono" id="lite-n">0 / 36</span></div>
-      <div class="bar"><i id="lite-bar" style="width:0%"></i></div>
+    <div class="lite-tabs" role="group" aria-label="一般人編の表示切替">
+      <button data-ltab="open" aria-pressed="true">開封</button>
+      <button data-ltab="files" aria-pressed="false">資料</button>
+      <button data-ltab="notes" aria-pressed="false">記録</button>
     </div>
-    <button class="lite-pull" id="lite-pull">封を切る</button>
-    <div class="lite-last" id="lite-last"></div>
-    <div><div class="sec-h"><h3>届いた封筒</h3><small id="lite-sum">0 / 12</small></div><div class="files" id="lite-files"></div></div>
-    <div><div class="sec-h"><h3>封筒に残されていたメモ</h3><small>確認するほど増える</small></div><div class="lite-notes" id="lite-notes"></div></div>
-    <div class="actions"><button class="btn-paper" id="lite-result" hidden>観察記録を見る</button></div>
-    <div class="lite-join" id="lite-join">
-      <div class="lite-sealed-join" id="lite-sealed-join">████████　応募資格を確認中</div>
-      <button class="btn-ink" id="lite-apply" hidden>調査員になる</button>
-      <p id="lite-join-note">封筒を拾い続けると、差出人から案内が届くらしい。</p>
+
+    <div class="lite-pane" data-lpane="open">
+      <article class="today paper aged urban" style="--sx:80%;--sy:40%">
+        <span class="clip" aria-hidden="true"></span>
+        <div class="eyebrow">取扱注意 ・ 宛先不明</div>
+        <h2>郵便受けに、見覚えのない封筒があった</h2>
+        <p>差出人も、宛名もない。中には、途中まで黒く塗りつぶされた記録が入っている。<br>開封するなら、少し慎重に扱った方がよさそうだ。</p>
+      </article>
+      <div class="lite-bar">
+        <div class="row"><span>確認した断片</span><span class="mono" id="lite-n">0 / 36</span></div>
+        <div class="bar"><i id="lite-bar" style="width:0%"></i></div>
+      </div>
+      <button class="lite-pull" id="lite-pull">封を切る</button>
+      <div class="lite-last" id="lite-last"></div>
+      <div class="lite-join" id="lite-join">
+        <div class="lite-sealed-join" id="lite-sealed-join">████████　応募資格を確認中</div>
+        <button class="btn-ink" id="lite-apply" hidden>調査員になる</button>
+        <p id="lite-join-note">封筒を開き続けると、差出人から案内が届くらしい。</p>
+      </div>
+    </div>
+
+    <div class="lite-pane" data-lpane="files" hidden>
+      <div class="sec-h"><h3>届いた封筒</h3><small id="lite-sum">0 / 12</small></div>
+      <div class="lite-filter" role="group" aria-label="資料の種類">
+        <button data-lfilter="urban" aria-pressed="true">都市伝説</button>
+        <button data-lfilter="conspiracy" aria-pressed="false">陰謀論</button>
+      </div>
+      <div class="files" id="lite-files"></div>
+    </div>
+
+    <div class="lite-pane" data-lpane="notes" hidden>
+      <div><div class="sec-h"><h3>封筒に残されていたメモ</h3><small>確認するほど増える</small></div><div class="lite-notes" id="lite-notes"></div></div>
+      <div class="actions"><button class="btn-paper" id="lite-result" hidden>観察記録を見る</button></div>
     </div>
   </section>
 
@@ -1887,6 +1913,28 @@ function litePull() {
   if ([3, 10, 18, 24, 36].includes(n)) setTimeout(() => liteMilestone(n), 220);
   else setTimeout(() => maybeLiteAnomaly(n), 220);
 }
+let liteTab = "open", liteFilter = "urban";
+function setLiteTab(tab) {
+  liteTab = tab;
+  document.querySelectorAll("[data-ltab]").forEach(b => b.setAttribute("aria-pressed", b.dataset.ltab === tab));
+  document.querySelectorAll("[data-lpane]").forEach(p => p.hidden = p.dataset.lpane !== tab);
+  window.scrollTo({ top: 0, behavior: REDUCED ? "auto" : "smooth" });
+}
+function setLiteFilter(filter) {
+  liteFilter = filter;
+  document.querySelectorAll("[data-lfilter]").forEach(b => b.setAttribute("aria-pressed", b.dataset.lfilter === filter));
+  renderLiteFiles();
+}
+function renderLiteFiles() {
+  const items = liteItems().filter(i => i.box === liteFilter);
+  $("lite-files").innerHTML = items.map((i, k) => {
+    const L = liteLv(i.id);
+    return `<button class="folder paper ${kind(i.box)} ${L ? "" : "locked"}" ${L ? `data-la="open" data-id="${i.id}"` : "disabled"} style="transform:rotate(${(k % 3 - 1) * .5}deg)">
+      <span class="m">${BOX[i.box]} ・ ${L === 0 ? "未開封" : L >= LITE_MAX ? "ここまで" : "読み途中"}</span>
+      <span class="n">${L ? i.name : redact(i.name)}</span>
+      <span class="pips">${pips(L)}</span></button>`;
+  }).join("");
+}
 function renderLite(freshIt, freshL) {
   const n = liteTotal();
   $("lite-n").textContent = n + " / " + LITE_ALL;
@@ -1905,13 +1953,7 @@ function renderLite(freshIt, freshL) {
       <p class="hint" style="text-align:left">${freshL < LITE_MAX ? "同じ封筒を、もう一度拾えば続きが読める。" : "ここまでが、通りすがりに読める範囲だ。この先は、黒塗りのまま。"}</p>
     </article>`;
   }
-  $("lite-files").innerHTML = liteItems().map((i, k) => {
-    const L = liteLv(i.id);
-    return `<button class="folder paper ${kind(i.box)} ${L ? "" : "locked"}" ${L ? `data-la="open" data-id="${i.id}"` : "disabled"} style="transform:rotate(${(k % 3 - 1) * .5}deg)">
-      <span class="m">${BOX[i.box]} ・ ${L === 0 ? "未開封" : L >= LITE_MAX ? "ここまで" : "読み途中"}</span>
-      <span class="n">${L ? i.name : redact(i.name)}</span>
-      <span class="pips">${pips(L)}</span></button>`;
-  }).join("");
+  renderLiteFiles();
   $("lite-notes").innerHTML = LITE_NOTES.map(([th, t]) => n >= th ? `<p>${t}</p>` : `<p class="sealed">${redact("●●●●●●●●●●●●●●")} <small>あと${th - n}断片</small></p>`).join("");
   const done = n >= LITE_ALL, eligible = n >= 24, prof = n >= 10;
   $("lite-result").hidden = !prof;
@@ -2018,7 +2060,7 @@ function becomeAgent() {
 }
 function applyMode() {
   document.body.classList.toggle("lite", isLite());
-  if (isLite()) { $("issue").textContent = "UNVERIFIED ARCHIVE ・ 一般人"; go("lite"); renderLite(); }
+  if (isLite()) { $("issue").textContent = "UNVERIFIED ARCHIVE ・ 一般人"; go("lite"); setLiteTab("open"); setLiteFilter("urban"); renderLite(); }
 }
 document.addEventListener("click", e => {
   const b = e.target.closest("[data-la]"); if (!b) return;
@@ -2030,6 +2072,12 @@ document.addEventListener("click", e => {
   else if (a === "enter") { hideSheet(); toast("まずは「本日のウワサ」を確認してください"); }
 });
 $("lite-pull").addEventListener("click", litePull);
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-ltab],[data-lfilter]");
+  if (!t) return;
+  if (t.dataset.ltab) setLiteTab(t.dataset.ltab);
+  if (t.dataset.lfilter) setLiteFilter(t.dataset.lfilter);
+});
 $("lite-result").addEventListener("click", liteResult);
 $("lite-apply").addEventListener("click", startInterview);
 
