@@ -113,6 +113,23 @@ main { max-width: 640px; margin: 0 auto; padding-inline: 16px; padding-block: 20
 .mi button { background: var(--stamp); color: #fff; padding: 5px 12px; font-size: 12px; font-weight: 700; animation: pulse 1.6s ease-in-out infinite; }
 @keyframes pulse { 50% { box-shadow: 0 0 0 6px rgba(184, 53, 43, 0); } 0% { box-shadow: 0 0 0 0 rgba(184, 53, 43, .5); } }
 
+/* ---------- section tabs ---------- */
+.section-tabs { display:grid; grid-template-columns:repeat(2,1fr); gap:4px; padding:4px; background:var(--desk-2); border:1px solid var(--line); position:sticky; top:58px; z-index:4; }
+.section-tabs.three { grid-template-columns:repeat(3,1fr); }
+.section-tabs button { min-height:44px; color:var(--muted); font-weight:700; }
+.section-tabs button[aria-pressed="true"] { background:var(--paper); color:var(--ink); }
+.section-pane { display:grid; gap:18px; }
+.research-card { padding:16px; border:1px solid var(--line); background:var(--desk-2); display:grid; gap:8px; }
+.research-card.ready { border-color:var(--paper); }
+.research-card b { font-family:var(--f-display); font-size:18px; }
+.research-card small { color:var(--muted); }
+.research-levels { display:grid; gap:6px; }
+.research-level { padding:10px 12px; border-left:3px solid var(--line); background:var(--desk); }
+.research-level.on { border-left-color:var(--stamp); }
+.research-level strong { display:block; font-size:13px; }
+.research-level span { font-size:13px; color:var(--muted); }
+.weekly-card { padding:16px; border:1px solid var(--stamp); background:rgba(184,53,43,.08); display:grid; gap:8px; }
+
 /* ---------- gacha view ---------- */
 .seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--desk-2); border: 1px solid var(--line); padding: 4px; gap: 4px; }
 .seg button { padding: 10px; font-weight: 700; color: var(--muted); }
@@ -649,6 +666,11 @@ body.agent-reveal::after { content:"ACCESS GRANTED"; position:fixed; inset:0; z-
 
   <!-- GACHA -->
   <section class="view" data-view="gacha" hidden>
+    <div class="section-tabs" role="group" aria-label="ガチャ画面切替">
+      <button data-stab="gacha:pull" aria-pressed="true">引く</button>
+      <button data-stab="gacha:rank" aria-pressed="false">ランク</button>
+    </div>
+    <div class="section-pane" data-spane="gacha:rank" hidden>
     <div class="rankcard">
       <div class="rk-top"><span class="eyebrow" id="rk-lv">RANK 1 / 20</span><b id="rk-name">見習い調査員</b></div>
       <div class="rk-bar"><i id="rk-bar" style="width:0%"></i></div>
@@ -657,6 +679,8 @@ body.agent-reveal::after { content:"ACCESS GRANTED"; position:fixed; inset:0; z-
       <div class="rk-row" id="rk-deep"></div>
       <div class="pity"><span>このボックスで未発見の資料が確定するまで</span><b id="pity-left">あと30回</b></div>
     </div>
+    </div>
+    <div class="section-pane" data-spane="gacha:pull">
     <div class="seg" role="group" aria-label="ボックスを選ぶ">
       <button data-seg="urban" aria-pressed="true">都市伝説</button>
       <button data-seg="conspiracy" aria-pressed="false">陰謀論</button>
@@ -674,10 +698,16 @@ body.agent-reveal::after { content:"ACCESS GRANTED"; position:fixed; inset:0; z-
       <p class="odds">出やすさは 並 ＞ 稀 ＞ 禁。ランクが上がると稀と禁が出やすくなる。調査中のネタは出やすく、真相到達済みは出にくい。5連は必ず1段以上剥がれる。</p>
       <button class="btn-line" data-act="odds">提供割合を見る</button>
     </div>
+    </div>
   </section>
 
   <!-- ARCHIVE -->
   <section class="view" data-view="archive" hidden>
+    <div class="section-tabs" role="group" aria-label="ファイル画面切替">
+      <button data-stab="archive:files" aria-pressed="true">資料</button>
+      <button data-stab="archive:testimony" aria-pressed="false">証言</button>
+    </div>
+    <div class="section-pane" data-spane="archive:files">
     <div class="progress">
       <div class="row"><span>アーカイブ解読率</span><span class="mono" id="rate">0%</span></div>
       <div class="bar"><i id="rate-bar" style="width:0%"></i></div>
@@ -689,24 +719,43 @@ body.agent-reveal::after { content:"ACCESS GRANTED"; position:fixed; inset:0; z-
       <button data-chip="conspiracy" aria-pressed="false">陰謀論</button>
     </div>
     <div class="files" id="files"></div>
+    </div>
+    <div class="section-pane" data-spane="archive:testimony" hidden>
     <div class="tbook">
       <div class="sec-h" style="margin:0"><h3>証言帳</h3><small id="tb-total">0件</small></div>
       <div class="tcount" id="tb-stat"></div>
       <div id="tb-list"></div>
     </div>
+    </div>
   </section>
 
   <!-- LAB -->
   <section class="view" data-view="lab" hidden>
+    <div class="section-tabs" role="group" aria-label="調査室切替">
+      <button data-stab="lab:upgrade" aria-pressed="true">強化</button>
+      <button data-stab="lab:research" aria-pressed="false">再調査</button>
+    </div>
+    <div class="section-pane" data-spane="lab:upgrade">
     <div class="labhead">
       <div><span class="eyebrow">調査室</span><b>証拠 <span class="mono" id="evi">0</span></b></div>
       <p>証拠はガチャで手に入る。新規ファイルは3、黒塗り解除は1、目撃証言は2〜15。</p>
     </div>
     <div class="ups" id="ups"></div>
+    </div>
+    <div class="section-pane" data-spane="lab:research" hidden>
+      <div class="labhead"><div><span class="eyebrow">再調査</span><b>真相のあと</b></div><p>Lv.5到達済みの資料を、証拠を使ってさらに3段階調べられる。</p></div>
+      <div id="research-list" class="ups"></div>
+    </div>
   </section>
 
   <!-- REPORT -->
   <section class="view" data-view="report" hidden>
+    <div class="section-tabs three" role="group" aria-label="報告画面切替">
+      <button data-stab="report:diag" aria-pressed="true">診断</button>
+      <button data-stab="report:achieve" aria-pressed="false">実績</button>
+      <button data-stab="report:settings" aria-pressed="false">設定</button>
+    </div>
+    <div class="section-pane" data-spane="report:diag">
     <div class="agent-id" id="agent-id" hidden></div>
     <article class="diag paper aged con" style="--sx:88%;--sy:78%">
       <span class="stamp-sm" style="top:18px">診断</span>
@@ -724,6 +773,8 @@ body.agent-reveal::after { content:"ACCESS GRANTED"; position:fixed; inset:0; z-
       </div>
     </div>
     <p class="rank" id="rank" hidden></p>
+    </div>
+    <div class="section-pane" data-spane="report:achieve" hidden>
     <div>
       <div class="sec-h"><h3>シリーズと称号</h3><small>シリーズの全ネタを集めると称号</small></div>
       <div class="series" id="series"></div>
@@ -734,8 +785,11 @@ body.agent-reveal::after { content:"ACCESS GRANTED"; position:fixed; inset:0; z-
       <div><span>集めた証言</span><b id="s-testi">0</b></div>
       <div><span>剥がした黒塗り</span><b id="s-layers">0</b></div>
     </div>
+    </div>
+    <div class="section-pane" data-spane="report:settings" hidden>
     <p class="hint" id="sync" style="text-align:left">記録：この端末のみに保存</p>
     <button class="btn-paper" id="glink" hidden onclick="linkGoogle()">Googleで記録を引き継ぐ</button>
+    </div>
   </section>
 </main>
 
