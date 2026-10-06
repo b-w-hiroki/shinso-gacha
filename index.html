@@ -1661,7 +1661,14 @@ function renderLab() {
     </article>`;
   }).join("");
   const targets = ITEMS.filter(i => lv(i.id) === 5);
-  $("research-list").innerHTML = targets.length ? targets.map(it => {
+  const doneResearch = targets.filter(it => researchLv(it.id) >= 3);
+  const cross = doneResearch.length >= 3 ? `<article class="research-card ready">
+    <div class="up-h"><b>第六文書課・照合資料</b><span class="mono">CROSS FILE</span></div>
+    <p class="up-eff">単独では見えなかった共通点がある。</p>
+    <span class="note">${doneResearch.slice(0,3).map(i => i.name).join(" / ")}</span>
+    <button class="btn-paper" data-act="cross-file">照合資料を開く</button>
+  </article>` : "";
+  $("research-list").innerHTML = (targets.length ? targets.map(it => {
     const L = researchLv(it.id), next = L < 3 ? RESEARCH_COST[L + 1] : 0, ok = L < 3 && (S.evi || 0) >= next;
     const levels = [1,2,3].map(n => {
       const [lab, txt] = researchText(it,n);
@@ -1672,7 +1679,7 @@ function renderLab() {
       <div class="research-levels">${levels}</div>
       <button class="btn-ink" data-act="research" data-id="${it.id}" ${L >= 3 || !ok ? "disabled" : ""}>${L >= 3 ? "再調査完了" : "再調査する（証拠 " + next + "）"}</button>
     </article>`;
-  }).join("") : '<p class="hint" style="text-align:left">Lv.5「真相到達」の資料ができると、ここで再調査できる。</p>';
+  }).join("") : '<p class="hint" style="text-align:left">Lv.5「真相到達」の資料ができると、ここで再調査できる。</p>') + cross;
   $("dot-lab").hidden = !any && !targets.some(it => researchLv(it.id) < 3 && (S.evi || 0) >= RESEARCH_COST[researchLv(it.id)+1]);
 }
 function renderReport() {
@@ -1767,6 +1774,10 @@ document.addEventListener("click", e => {
     markDirty(); render(); renderSniffCap(); toast(`${u.name}を強化した：${u.eff(upLv(id))}`); buzz(20);
   }
   if (a === "research") researchOne(id);
+  if (a === "cross-file") {
+    const done = ITEMS.filter(i => lv(i.id) === 5 && researchLv(i.id) >= 3).slice(0,3);
+    sheet("第六文書課・照合資料", `<article class="doc paper aged con"><div class="formhead"><span>照合資料</span><span>CROSS FILE</span><span>閲覧制限</span></div><h2>一致しない真相</h2><div class="lyr"><div class="lab">対象資料</div><p>${done.map(i => i.name).join(" / ")}</p></div><div class="lyr"><div class="lab">照合結果</div><p>三つの資料はいずれも、事実そのものより「語られ方」が変化している。第六文書課は、真相到達を終点ではなく、噂が作られる過程を追うための入口として扱っている。</p></div><span class="note">※ 単独資料では開示されない</span></article>`);
+  }
   if (a === "post-open") { hideSheet(); freePull(); }
   if (a === "onboard") { S.onboarded = true; markDirty(); hideSheet(); toast("まずはホームの「本日のウワサ」を読んでください"); }
   if (a === "claim") {
