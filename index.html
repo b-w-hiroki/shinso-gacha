@@ -529,9 +529,10 @@ body.agent-reveal::after { content:"ACCESS GRANTED"; position:fixed; inset:0; z-
       <div class="eyebrow">取扱注意 ・ 宛先不明</div>
       <h2>郵便受けに、見覚えのない封筒があった</h2>
       <p>差出人も、宛名もない。中には、途中まで黒く塗りつぶされた記録が入っている。<br>開封するなら、少し慎重に扱った方がよさそうだ。</p>
+      <p class="hint" id="lite-ref" style="text-align:left" hidden></p>
     </article>
     <div class="lite-bar">
-      <div class="row"><span>確認した断片</span><span class="mono" id="lite-n">0 / 24</span></div>
+      <div class="row"><span>確認した断片</span><span class="mono" id="lite-n">0 / 36</span></div>
       <div class="bar"><i id="lite-bar" style="width:0%"></i></div>
     </div>
     <button class="lite-pull" id="lite-pull">封を切る</button>
@@ -1713,17 +1714,61 @@ async function linkGoogle() {
 }
 
 /* ---------- 一般人モード（入門版）と面接 ---------- */
-const LITE_IDS = ["u1", "u2", "u4", "u7", "c1", "c3", "c6", "c12"], LITE_MAX = 3, LITE_ALL = LITE_IDS.length * LITE_MAX;
+const LITE_IDS = ["u1", "u2", "u4", "u5", "u6", "u7", "c1", "c3", "c6", "c7", "c8", "c12"], LITE_MAX = 3, LITE_ALL = LITE_IDS.length * LITE_MAX;
 const liteItems = () => LITE_IDS.map(id => ITEMS.find(i => i.id === id));
 const liteLv = id => (S.lite && S.lite.lv && S.lite.lv[id]) || 0;
 const liteTotal = () => LITE_IDS.reduce((a, id) => a + liteLv(id), 0);
+function liteCode() {
+  S.lite = S.lite || { lv:{}, pulls:0 };
+  if (!S.lite.code) {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    S.lite.code = Array.from({length:6}, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+    save();
+  }
+  return S.lite.code;
+}
+function liteShareUrl() {
+  if (!/^https?:/.test(location.protocol)) return "";
+  return location.origin + location.pathname + "?ref=" + encodeURIComponent(liteCode());
+}
+function initLiteReferral() {
+  if (!isLite()) return;
+  const ref = new URLSearchParams(location.search).get("ref");
+  if (ref && /^[A-Z0-9]{4,12}$/i.test(ref)) {
+    S.lite = S.lite || { lv:{}, pulls:0 };
+    if (!S.lite.ref) { S.lite.ref = ref.toUpperCase(); save(); }
+  }
+}
+const LITE_ANOMALIES = [
+  ["逆向きの消印","消印の日付が、明日になっている。"],
+  ["二重の宛名","黒塗りの下に、もう一つ別の宛名が透けて見える。"],
+  ["濡れた指紋","紙の内側に、乾いていない指紋が一つだけ残っている。"],
+  ["欠番","文書番号が一つ飛んでいる。飛んだ番号だけ、一覧には存在しない。"],
+  ["読後追記","閉じたはずの封筒を開き直すと、さっき無かった一文が増えている。"],
+  ["同じ筆跡","別の封筒なのに、メモの筆跡があなたの字に少し似ている。"]
+];
+function maybeLiteAnomaly(n) {
+  if (n < 12 || n >= LITE_ALL || Math.random() >= .11) return false;
+  S.lite = S.lite || { lv:{}, pulls:0 };
+  S.lite.anom = S.lite.anom || [];
+  const pool = LITE_ANOMALIES.map((x,i)=>i).filter(i => !S.lite.anom.includes(i));
+  if (!pool.length) return false;
+  const id = pool[Math.floor(Math.random() * pool.length)], [name, body] = LITE_ANOMALIES[id];
+  S.lite.anom.push(id); markDirty();
+  const url = liteShareUrl();
+  const text = `【真相ガチャ・異常記録】\n「${name}」\n${body}\n観察番号 ${liteCode()}\n確認した断片 ${n}/${LITE_ALL}${url ? "\n" + url : ""}\n#真相ガチャ`;
+  sheet("異常記録", `<div class="lite-milestone"><b>${name}</b><p>${body}</p><p class="mono">OBSERVATION ${liteCode()}</p></div>` + shareBlock(text));
+  return true;
+}
 const LITE_NOTES = [
   [3, "封筒の裏に、小さな印字がある。「第六文書課」。聞いたことのない部署だ。"],
   [6, "宛名はあなたの住所だった。ただ、名前の欄だけが空白になっている。"],
-  [10, "同じ封筒を拾っている人間が、この街に他にもいるらしい。"],
-  [15, "内側に、鉛筆の走り書きがある。「続きを読みたいなら、こちらへ」"],
-  [20, "「あなたの拾い方には癖がある」と、誰かが書き添えていた。見られている。"],
-  [24, "「十分だ。面接に来なさい」。それ以上、何も書かれていなかった。"],
+  [10, "同じ封筒を開いている人間が、この街に他にもいるらしい。"],
+  [15, "内側に、鉛筆の走り書きがある。「まだ、半分も見ていない」"],
+  [18, "一枚だけ、開封した覚えのない資料が混ざっていた。紙の端が少し濡れている。"],
+  [24, "「必要なら、こちらへ」。地図にも検索にも出ない住所が書かれている。"],
+  [30, "「まだ一般人でいるのか」。筆跡は、これまでのメモと違う。"],
+  [36, "最後の封筒には、あなたの名前だけが書かれていた。差出人欄は、空白のままだ。"],
 ];
 const LITE_CELL = ["⬛", "🟫", "🟧", "🟥"];
 function liteProfile() {
@@ -1742,7 +1787,7 @@ async function makeLiteResultCard(p, n, topName) {
   g.fillStyle = "#ddd5c3"; g.fillRect(70, 55, W - 140, H - 110);
   g.fillStyle = "#b8352b"; g.fillRect(70, 55, 14, H - 110);
   g.fillStyle = "#5d5647"; g.font = "700 22px 'Courier Prime', monospace";
-  g.fillText("第六文書課 / 暫定観察記録", 110, 112);
+  g.fillText("第六文書課 / 閲覧傾向記録", 110, 112);
   g.fillStyle = "#1b1b1f"; g.font = "800 58px 'Shippori Mincho', serif";
   g.fillText(p.name, 110, 205);
   g.font = "400 28px 'Zen Kaku Gothic New', sans-serif";
@@ -1753,7 +1798,7 @@ async function makeLiteResultCard(p, n, topName) {
   g.fillText(topName, 110, 428);
   const cells = liteItems().map(i => liteLv(i.id));
   cells.forEach((L, i) => {
-    const x = 112 + (i % 4) * 88, y = 500 + Math.floor(i / 4) * 70;
+    const x = 112 + (i % 4) * 88, y = 485 + Math.floor(i / 4) * 55;
     g.fillStyle = L === 0 ? "#252932" : L === 1 ? "#75685a" : L === 2 ? "#a66f3f" : "#b8352b";
     g.fillRect(x, y, 58, 42);
   });
@@ -1767,16 +1812,36 @@ async function liteResult() {
   const n = liteTotal(), p = liteProfile();
   if (n < 10) return;
   const topName = p.top && liteLv(p.top.id) ? p.top.name : "まだ特定できない";
-  const text = `【真相ガチャ・拾い方診断】\n私は「${p.name}」\n${p.desc}\n最も引き寄せた資料：${topName}\n読めた断片 ${n}/${LITE_ALL}\n#真相ガチャ${/^https?:/.test(location.protocol) ? "\n" + location.origin + location.pathname : ""}`;
-  sheet("あなたの拾い方", '<p class="hint">観察記録を作成中…</p>');
+  const su = liteShareUrl();
+  const text = `【真相ガチャ・閲覧傾向診断】\n私は「${p.name}」\n${p.desc}\n最も引き寄せた資料：${topName}\n観察番号 ${liteCode()}\n確認した断片 ${n}/${LITE_ALL}${su ? "\n" + su : ""}\n#真相ガチャ`;
+  sheet("あなたの閲覧傾向", '<p class="hint">観察記録を作成中…</p>');
   const img = await makeLiteResultCard(p, n, topName);
-  sheet("あなたの拾い方", `<img class="card-img" src="${img}" alt="拾い方診断 ${p.name}"><div class="lite-result"><small>第六文書課・暫定観察記録</small><b>${p.name}</b><span>${p.desc}</span><span>最も引き寄せた資料：${topName}</span></div>` + shareBlock(text));
+  sheet("あなたの閲覧傾向", `<img class="card-img" src="${img}" alt="閲覧傾向診断 ${p.name}"><div class="lite-result"><small>第六文書課・閲覧傾向記録</small><b>${p.name}</b><span>${p.desc}</span><span>最も引き寄せた資料：${topName}</span><span class="mono">OBSERVATION ${liteCode()}</span></div>` + shareBlock(text));
+}
+async function liteComplete() {
+  const p = liteProfile(), n = liteTotal(), topName = p.top && liteLv(p.top.id) ? p.top.name : "不明";
+  const img = await makeLiteResultCard(p, n, topName);
+  const url = liteShareUrl();
+  const anomalies = (S.lite && S.lite.anom ? S.lite.anom.length : 0);
+  const text = `【真相ガチャ・一般人編 完全記録】\n36/36断片を確認\n閲覧傾向「${p.name}」\n異常遭遇 ${anomalies}件\n観察番号 ${liteCode()}\n最後の封筒には、自分の名前だけが書かれていた。${url ? "\n" + url : ""}\n#真相ガチャ`;
+  sheet("一般人編・完全記録", `<img class="card-img" src="${img}" alt="一般人編完全記録"><div class="lite-result"><small>第六文書課・完全記録</small><b>36 / 36</b><span>閲覧傾向：${p.name}</span><span>異常遭遇：${anomalies}件</span><span class="mono">OBSERVATION ${liteCode()}</span></div>` + shareBlock(text));
 }
 function liteMilestone(n) {
   if (n === 3) return sheet("差出人不明", '<div class="lite-milestone"><b>封筒の裏に印字がある。</b><p>「第六文書課」。そんな部署名は、検索しても出てこない。</p></div><div class="actions"><button class="btn-paper" data-act="close">続きを読む</button></div>');
-  if (n === 6) return sheet("宛名", '<div class="lite-milestone"><b>住所は、合っている。</b><p>ただし名前だけが空欄だ。偶然にしては、少し正確すぎる。</p></div><div class="actions"><button class="btn-paper" data-act="close">もう1通拾う</button></div>');
+  if (n === 6) return sheet("宛名", '<div class="lite-milestone"><b>住所は、合っている。</b><p>ただし名前だけが空欄だ。偶然にしては、少し正確すぎる。</p></div><div class="actions"><button class="btn-paper" data-act="close">次の封筒を確認する</button></div>');
   if (n === 10) return liteResult();
-  if (n === 12) return sheet("第六文書課からの案内", '<article class="recruit-card"><div class="eyebrow">CONFIDENTIAL / RECRUITMENT</div><h2>あなたを観察していました。</h2><p>拾い方、読む順番、止まった場所。応募資格は満たしています。</p><p><b>調査員採用面接を受けますか。</b></p></article><div class="actions"><button class="btn-paper" data-la="apply">面接を受ける</button><button class="btn-line" data-act="close">まだ一般人でいる</button></div>');
+  if (n === 18) {
+    const su = liteShareUrl(), url = su ? "\n" + su : "";
+    const t = "【真相ガチャ・異常記録】\n開封した覚えのない資料が1枚混ざっていた。\n紙の端が濡れている。\n確認した断片 18/" + LITE_ALL + "\n#真相ガチャ" + url;
+    return sheet("異常記録", '<div class="lite-milestone"><b>これは、開けた覚えがない。</b><p>一枚だけ封筒の順番が違う。紙の端が濡れている。誰かが途中で差し込んだように見える。</p></div>' + shareBlock(t));
+  }
+  if (n === 24) return sheet("第六文書課からの案内", '<article class="recruit-card"><div class="eyebrow">CONFIDENTIAL / RECRUITMENT</div><h2>あなたを観察していました。</h2><p>開封した順番、読み返した資料、止まった箇所。こちらでは記録しています。</p><p><b>調査員採用面接を受けますか。</b></p></article><div class="actions"><button class="btn-paper" data-la="apply">面接を受ける</button><button class="btn-line" data-act="close">まだ一般人でいる</button></div>');
+  if (n === 30) {
+    const su = liteShareUrl(), url = su ? "\n" + su : "";
+    const t = "【真相ガチャ・観察継続中】\n面接の案内が来たあとも、まだ一般人として封筒を開けている。\n確認した断片 30/" + LITE_ALL + "\n#真相ガチャ" + url;
+    return sheet("観察継続", '<div class="lite-milestone"><b>「まだ一般人でいるのか」</b><p>新しいメモには、それだけ書かれていた。筆跡は今までと違う。</p></div>' + shareBlock(t));
+  }
+  if (n === 36) return liteComplete();
 }
 function litePull() {
   const pool = liteItems().filter(i => liteLv(i.id) < LITE_MAX);
@@ -1789,10 +1854,13 @@ function litePull() {
   S.lite.lv[it.id] = L; S.lite.pulls++;
   markDirty(); renderLite(it, L); buzz(15);
   const n = liteTotal();
-  if ([3, 6, 10, 12].includes(n)) setTimeout(() => liteMilestone(n), 220);
+  if ([3, 6, 10, 18, 24, 30, 36].includes(n)) setTimeout(() => liteMilestone(n), 220);
+  else setTimeout(() => maybeLiteAnomaly(n), 220);
 }
 function renderLite(freshIt, freshL) {
   const n = liteTotal();
+  const ref = $("lite-ref");
+  if (S.lite && S.lite.ref) { ref.hidden = false; ref.textContent = "この封筒は、観察番号 " + S.lite.ref + " の記録から転送された形跡がある。"; } else ref.hidden = true;
   $("lite-n").textContent = n + " / " + LITE_ALL;
   $("lite-bar").style.width = (n / LITE_ALL * 100) + "%";
   $("lite-pull").disabled = n >= LITE_ALL;
@@ -1817,16 +1885,17 @@ function renderLite(freshIt, freshL) {
       <span class="pips">${pips(L)}</span></button>`;
   }).join("");
   $("lite-notes").innerHTML = LITE_NOTES.map(([th, t]) => n >= th ? `<p>${t}</p>` : `<p class="sealed">${redact("●●●●●●●●●●●●●●")} <small>あと${th - n}断片</small></p>`).join("");
-  const done = n >= LITE_ALL, eligible = n >= 12, prof = n >= 10;
+  const done = n >= LITE_ALL, eligible = n >= 24, prof = n >= 10;
   $("lite-share").hidden = n < 6;
   $("lite-share").textContent = done ? "一般人編コンプをシェア" : prof ? "観察記録をシェア" : "途中経過をシェア";
   $("lite-result").hidden = !prof;
   $("lite-apply").hidden = !eligible;
   $("lite-sealed-join").hidden = eligible;
   $("lite-join").classList.toggle("hot", eligible);
-  $("lite-join-note").textContent = done ? "※ 一般人として読める資料は、すべて回収した。面接の案内が同封されている。"
-    : eligible ? "※ 面接は任意。一般人のまま24断片まで集め続けてもよい。"
-    : prof ? "あなたの拾い方を観察している者がいる。あと" + (12 - n) + "断片で何か届くらしい。"
+  $("lite-join-note").textContent = done ? "※ 観察番号 " + liteCode() + "。一般人として確認できる記録は、すべて開いた。"
+    : eligible ? "※ 面接は任意。一般人のまま36断片まで確認を続けてもよい。"
+    : n >= 18 ? "差出人はこちらの閲覧を把握している。あと" + (24 - n) + "断片で、次の案内が届くらしい。"
+    : prof ? "閲覧傾向を観察している者がいる。次の異常まで、あと" + (18 - n) + "断片。"
     : n >= 6 ? "封筒の差出人は、こちらの動きを把握しているらしい。あと" + (10 - n) + "断片。"
     : n >= 3 ? "第六文書課という印字だけが残っている。もう少し拾えば何か分かるかもしれない。"
     : "封筒を拾い続けると、差出人から案内が届くらしい。";
@@ -1841,12 +1910,12 @@ function liteOpen(id) {
     ${docHead(it)}
     <div class="eyebrow">FILE ${it.id.toUpperCase()} ・ ${BOX[it.box]}</div>
     <h2>${it.name}</h2><div class="pips" style="margin-bottom:6px">${pips(L)}</div>${body}</article>
-    <div class="actions">${liteTotal() >= 12 ? `<button class="btn-paper" data-la="apply">調査員になる</button>` : ""}<button class="btn-line" data-act="close">閉じる</button></div>`);
+    <div class="actions">${liteTotal() >= 24 ? `<button class="btn-paper" data-la="apply">調査員になる</button>` : ""}<button class="btn-line" data-act="close">閉じる</button></div>`);
 }
 function liteShare() {
   const row = b => liteItems().filter(i => i.box === b).map(i => LITE_CELL[liteLv(i.id)]).join("");
-  const n = liteTotal(), url = /^https?:/.test(location.protocol) ? "\n" + location.origin + location.pathname : "";
-  const text = `【真相ガチャ・一般人編】\n封筒を${(S.lite && S.lite.pulls) || 0}通拾った\n都市伝説 ${row("urban")}\n陰謀論　 ${row("conspiracy")}\n読めた断片 ${n}/${LITE_ALL}${n >= LITE_ALL ? "\n「面接に来なさい」と書かれていた" : ""}\n#真相ガチャ${url}`;
+  const n = liteTotal(), su = liteShareUrl(), url = su ? "\n" + su : "";
+  const text = `【真相ガチャ・一般人編】\n封筒を${(S.lite && S.lite.pulls) || 0}通開封\n都市伝説 ${row("urban")}\n陰謀論　 ${row("conspiracy")}\n観察番号 ${liteCode()}\n確認した断片 ${n}/${LITE_ALL}${n >= LITE_ALL ? "\n最後の封筒には、自分の名前だけが書かれていた" : n >= 24 ? "\n第六文書課から面接の案内が届いた" : ""}\n#真相ガチャ${url}`;
   sheet("拾った封筒をシェア", `<p class="hint" style="text-align:left">⬛未開封 🟫Lv1 🟧Lv2 🟥Lv3（通りすがりの範囲）</p>` + shareBlock(text));
 }
 /* 面接 */
@@ -1878,7 +1947,7 @@ function interviewSide(score, last) {
 }
 let iv = null;
 function startInterview() {
-  if (liteTotal() < 12) { toast("まだ応募資格が確認できていない"); return; }
+  if (liteTotal() < 24) { toast("まだ応募資格が確認できていない"); return; }
   iv = { step: 0, log: [], side: 2, score:[0,0,0], answers:[] };
   iv.log.push(["them", INTERVIEW[0].q()]);
   renderInterview(true);
@@ -1983,6 +2052,7 @@ if (!isLite() && !S.onboarded) setTimeout(() => sheet("調査員の皆さまへ"
 for (let i = 0; i < 5; i++) addPost();
 setInterval(addPost, 4500);
 setInterval(applyTime, 60000);
+initLiteReferral();
 applyMode();
 const startView = (location.hash || "").slice(1);
 if (["home", "gacha", "archive", "lab", "report"].includes(startView)) go(startView);
