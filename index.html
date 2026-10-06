@@ -440,8 +440,14 @@ body.night .top-in, body.night .today { animation: flicker 6s infinite; }
   .folder .m { font-size: 11px; line-height: 1.35; }
   .folder .n { font-size: 17px; line-height: 1.35; }
   .folder .pips i { height: 6px; }
-  .lite-pull { min-height: 54px; padding: 15px; font-size: 18px; }
-  .lite-bar .row { font-size: 14px; }
+  .lite-pull { min-height: 58px; padding: 16px 52px 16px 18px; font-size: 18px; }
+  .lite-bar .row { font-size: 15px; }
+  .lite-event { padding:22px 18px 20px; }
+  .lite-event h2 { font-size:clamp(29px,8vw,36px); line-height:1.22; }
+  .lite-event p { font-size:16px; line-height:1.82; }
+  .lite-last .doc { padding:20px 16px; }
+  .lite-last .doc h2 { font-size:clamp(28px,8vw,36px); }
+  .lite-last .lyr p { font-size:16px; line-height:1.85; }
   .lite-notes p { padding: 12px; font-size: 15px; line-height: 1.65; }
   .lite-join { padding: 16px 14px; }
   .lite-join p { font-size: 14px; line-height: 1.6; }
@@ -508,12 +514,33 @@ body.lite.phase-crisis::before { content:""; position:fixed; inset:0; z-index:39
 @keyframes crisisNoise { 50% { transform:translateY(2px); opacity:.6; } }
 body.lite.phase-rescue .lite-event { border-color:#7a7468; box-shadow:0 18px 40px rgba(0,0,0,.5),0 0 0 1px rgba(221,213,195,.08); }
 body.lite.phase-rescue .lite-event .eyebrow { color:#716b5f; }
-body.lite main { padding-bottom: 40px; }
-.lite-tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:4px; padding:4px; background:var(--desk-2); border:1px solid var(--line); position:sticky; top:58px; z-index:4; }
-.lite-tabs button { min-height:44px; color:var(--muted); font-weight:700; }
-.lite-tabs button[aria-pressed="true"] { background:var(--paper); color:var(--ink); }
+body.lite main { padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px)); }
+.lite-tabs {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:1px; padding:4px;
+  position:fixed; left:50%; bottom:calc(10px + env(safe-area-inset-bottom, 0px)); z-index:9;
+  width:min(612px, calc(100% - 28px)); transform:translateX(-50%);
+  background:rgba(20,23,29,.94); border:1px solid #465061; border-radius:12px;
+  box-shadow:0 10px 30px rgba(0,0,0,.45);
+  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+}
+.lite-tabs button {
+  min-height:58px; font-weight:700; font-size:15px; letter-spacing:.04em;
+  border-radius:8px; border:1px solid transparent; transition:background .18s,border-color .18s,color .18s;
+}
+.lite-tabs button[data-ltab="open"] { color:#c7b98e; }
+.lite-tabs button[data-ltab="files"] { color:#8faeae; }
+.lite-tabs button[data-ltab="notes"] { color:#aaa0b7; }
+.lite-tabs button[data-ltab="open"][aria-pressed="true"] {
+  background:#b9aa83; color:#17181b; border-color:#d4c69d;
+}
+.lite-tabs button[data-ltab="files"][aria-pressed="true"] {
+  background:#26383b; color:#d8e8e7; border-color:#55787b;
+}
+.lite-tabs button[data-ltab="notes"][aria-pressed="true"] {
+  background:#332e3c; color:#e1dce7; border-color:#645b70;
+}
 .lite-pane { display:grid; gap:22px; }
-.lite-event { position:relative; min-height:210px; padding:22px 18px 18px; display:grid; align-content:start; gap:10px; box-shadow:0 18px 40px rgba(0,0,0,.5); }
+.lite-event { position:relative; min-height:210px; padding:22px 18px 18px; display:grid; align-content:start; gap:10px; box-shadow:0 14px 30px rgba(0,0,0,.42); border:1px solid rgba(90,78,58,.18); }
 .lite-event .eyebrow { color:var(--paper-ink-2); }
 .lite-event h2 { margin:0; font-family:var(--f-display); font-size:clamp(26px,7vw,34px); line-height:1.28; }
 .lite-event p { margin:0; font-size:15px; line-height:1.75; }
@@ -525,11 +552,19 @@ body.lite main { padding-bottom: 40px; }
 .lite-filter button[aria-pressed="true"] { border-color:var(--paper); color:var(--paper); background:var(--desk-2); }
 .lite-bar { display: grid; gap: 6px; }
 .lite-bar .row { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
-.lite-bar .bar { height: 6px; background: #3b414d; }
-.lite-bar .bar i { display: block; height: 100%; background: var(--paper); transition: width .4s; }
-.lite-pull { width: 100%; padding: 18px; font-size: 18px; letter-spacing: .12em; background: var(--paper); color: var(--ink); font-weight: 800; }
-.lite-pull:active { transform: scale(.985); }
-.lite-pull:disabled { background: #3b414d; color: #8d93a2; }
+.lite-bar .bar { height: 7px; background:#343a46; border-radius:999px; overflow:hidden; }
+.lite-bar .bar i { display:block; height:100%; background:#9ab9c1; transition:width .4s; border-radius:999px; }
+.lite-bar .row { color:#c6ccd6; }
+.lite-bar .row .mono { color:#dbe3e8; font-size:15px; }
+.lite-pull {
+  width:100%; min-height:58px; padding:16px 52px 16px 18px; position:relative;
+  font-size:18px; letter-spacing:.1em; background:#cec1a2; color:#281f1d; font-weight:800;
+  border:1px solid #aa9a78; box-shadow:inset 0 0 0 1px rgba(255,255,255,.25),0 7px 18px rgba(0,0,0,.24);
+}
+.lite-pull::after { content:"›"; position:absolute; right:20px; top:50%; transform:translateY(-52%); font-size:30px; font-weight:400; color:#5d3029; }
+.lite-pull:active { transform:scale(.985); background:#c5b795; }
+.lite-pull:disabled { background:#3b414d; color:#8d93a2; border-color:#4b5360; box-shadow:none; }
+.lite-pull:disabled::after { color:#737b89; }
 .lite-last { min-height: 0; }
 .lite-last .doc { animation: viewin .35s ease-out; }
 .lite-notes { display: grid; gap: 8px; }
@@ -601,9 +636,9 @@ body.agent-reveal::after { content:"ACCESS GRANTED"; position:fixed; inset:0; z-
       <button class="lite-pull" id="lite-pull">封を切る</button>
       <div class="lite-last" id="lite-last"></div>
       <div class="lite-join" id="lite-join">
-        <div class="lite-sealed-join" id="lite-sealed-join">████████　応募資格を確認中</div>
-        <button class="btn-ink" id="lite-apply" hidden>調査員になる</button>
-        <p id="lite-join-note">封筒を開き続けると、差出人から案内が届くらしい。</p>
+        <div class="lite-sealed-join" id="lite-sealed-join">████████　接続状態を確認中</div>
+        <button class="btn-ink" id="lite-apply" hidden>事情聴取を受ける</button>
+        <p id="lite-join-note">異常な接続を検出しています。</p>
       </div>
     </div>
 
@@ -2255,8 +2290,10 @@ function renderLite(freshIt, freshL) {
   $("lite-notes").innerHTML = LITE_NOTES.map(([th, t]) => n >= th ? `<p>${t}</p>` : `<p class="sealed">${redact("●●●●●●●●●●●●●●")} <small>あと${th - n}断片</small></p>`).join("");
   const done = n >= LITE_ALL, eligible = n >= 36, prof = n >= 10;
   $("lite-result").hidden = !prof;
+  $("lite-join").hidden = n < 28;
   $("lite-apply").hidden = !eligible;
   $("lite-sealed-join").hidden = eligible;
+  $("lite-sealed-join").textContent = n >= 33 ? "第六文書課　保護接続中" : "████████　接続状態を確認中";
   $("lite-join").classList.toggle("hot", eligible);
   $("lite-join-note").textContent = done ? "※ 第六文書課から保護通信が届いている。"
     : n >= 33 ? "※ 接続は遮断された。第六文書課がこちらを保護している。"
