@@ -539,7 +539,7 @@ body.agent-reveal::after { content:"ACCESS GRANTED"; position:fixed; inset:0; z-
     <div class="lite-last" id="lite-last"></div>
     <div><div class="sec-h"><h3>届いた封筒</h3><small id="lite-sum">0 / 8</small></div><div class="files" id="lite-files"></div></div>
     <div><div class="sec-h"><h3>封筒に残されていたメモ</h3><small>確認するほど増える</small></div><div class="lite-notes" id="lite-notes"></div></div>
-    <div class="actions"><button class="btn-paper" id="lite-share" hidden>途中経過をシェア</button><button class="btn-line" id="lite-result" hidden>あなたの拾い方を見る</button></div>
+    <div class="actions"><button class="btn-paper" id="lite-share" hidden>途中経過をシェア</button><button class="btn-line" id="lite-result" hidden>あなたの拾い方を見る</button><button class="btn-line" id="lite-compare" hidden>転送元と照合する</button><button class="btn-line" id="lite-daily" hidden>本日の異常記録</button></div>
     <div class="lite-join" id="lite-join">
       <div class="lite-sealed-join" id="lite-sealed-join">████████　応募資格を確認中</div>
       <button class="btn-ink" id="lite-apply" hidden>調査員になる</button>
@@ -1739,6 +1739,42 @@ function initLiteReferral() {
     if (!S.lite.ref) { S.lite.ref = ref.toUpperCase(); save(); }
   }
 }
+function liteHash(s) {
+  let h = 2166136261;
+  for (const ch of String(s)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+function liteCompare() {
+  if (!S.lite || !S.lite.ref) return;
+  const mine = liteCode(), other = S.lite.ref, h = liteHash([mine, other].sort().join(":"));
+  const score = 41 + (h % 59);
+  const labels = [
+    ["低共鳴","拾っている資料の偏りが大きく違う。むしろ一緒に見ると穴が埋まる。"],
+    ["相互補完","似ている部分と違う部分が半々。比較すると未確認箇所が見つかりやすい。"],
+    ["高共鳴","開く順番まで似ている。第六文書課では同一班候補として扱われる。"],
+    ["過剰共鳴","一致しすぎている。どちらかが、もう片方の記録を見ている可能性がある。"]
+  ];
+  const idx = score >= 90 ? 3 : score >= 75 ? 2 : score >= 58 ? 1 : 0;
+  const [name, desc] = labels[idx];
+  const url = liteShareUrl();
+  const text = `【真相ガチャ・観察番号照合】\n${mine} × ${other}\n共鳴率 ${score}%「${name}」\n${desc}${url ? "\n" + url : ""}\n#真相ガチャ`;
+  sheet("観察番号照合", `<div class="lite-result"><small>第六文書課・照合結果</small><b>${score}% ／ ${name}</b><span>${mine} × ${other}</span><span>${desc}</span></div>` + shareBlock(text));
+}
+const LITE_DAILY = [
+  ["午前2時14分","同じ文書番号の封筒が、別の県でも同時刻に開封されている。"],
+  ["差出人の訂正","差出人欄に一度だけ文字が浮かび、その直後に黒塗りへ戻った。"],
+  ["逆再生の記録","最後の一文から読むと、別の意味になる資料が一つ混ざっている。"],
+  ["未登録の閲覧者","今日の記録には、存在しない観察番号が1件だけ含まれている。"],
+  ["封筒の温度","一通だけ、室温より明らかに温かい。"],
+  ["共有後の追記","共有された記録だけに、元データには無い一文が加わっている。"],
+  ["消えた一行","昨日まで読めた文章が、今日は一行だけ黒塗りに戻っている。"]
+];
+function liteDaily() {
+  const idx = liteHash(dayKey()) % LITE_DAILY.length, [name, body] = LITE_DAILY[idx];
+  const url = liteShareUrl();
+  const text = `【真相ガチャ・本日の異常】\n「${name}」\n${body}\n観察番号 ${liteCode()}${url ? "\n" + url : ""}\n#真相ガチャ`;
+  sheet("本日の異常記録", `<div class="lite-milestone"><small class="mono">${dayKey()}</small><b>${name}</b><p>${body}</p></div>` + shareBlock(text));
+}
 const LITE_ANOMALIES = [
   ["逆向きの消印","消印の日付が、明日になっている。"],
   ["二重の宛名","黒塗りの下に、もう一つ別の宛名が透けて見える。"],
@@ -1889,6 +1925,8 @@ function renderLite(freshIt, freshL) {
   $("lite-share").hidden = n < 6;
   $("lite-share").textContent = done ? "一般人編コンプをシェア" : prof ? "観察記録をシェア" : "途中経過をシェア";
   $("lite-result").hidden = !prof;
+  $("lite-compare").hidden = !(prof && S.lite && S.lite.ref);
+  $("lite-daily").hidden = n < 6;
   $("lite-apply").hidden = !eligible;
   $("lite-sealed-join").hidden = eligible;
   $("lite-join").classList.toggle("hot", eligible);
@@ -2007,6 +2045,8 @@ document.addEventListener("click", e => {
 $("lite-pull").addEventListener("click", litePull);
 $("lite-share").addEventListener("click", liteShare);
 $("lite-result").addEventListener("click", liteResult);
+$("lite-compare").addEventListener("click", liteCompare);
+$("lite-daily").addEventListener("click", liteDaily);
 $("lite-apply").addEventListener("click", startInterview);
 
 /* ---------- idle ---------- */
