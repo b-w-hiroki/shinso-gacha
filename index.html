@@ -636,9 +636,9 @@ body.agent-reveal::after { content:"ACCESS GRANTED"; position:fixed; inset:0; z-
       <button class="lite-pull" id="lite-pull">封を切る</button>
       <div class="lite-last" id="lite-last"></div>
       <div class="lite-join" id="lite-join">
-        <div class="lite-sealed-join" id="lite-sealed-join">████████　応募資格を確認中</div>
-        <button class="btn-ink" id="lite-apply" hidden>調査員になる</button>
-        <p id="lite-join-note">封筒を開き続けると、差出人から案内が届くらしい。</p>
+        <div class="lite-sealed-join" id="lite-sealed-join">████████　接続状態を確認中</div>
+        <button class="btn-ink" id="lite-apply" hidden>事情聴取を受ける</button>
+        <p id="lite-join-note">異常な接続を検出しています。</p>
       </div>
     </div>
 
@@ -2290,8 +2290,10 @@ function renderLite(freshIt, freshL) {
   $("lite-notes").innerHTML = LITE_NOTES.map(([th, t]) => n >= th ? `<p>${t}</p>` : `<p class="sealed">${redact("●●●●●●●●●●●●●●")} <small>あと${th - n}断片</small></p>`).join("");
   const done = n >= LITE_ALL, eligible = n >= 36, prof = n >= 10;
   $("lite-result").hidden = !prof;
+  $("lite-join").hidden = n < 28;
   $("lite-apply").hidden = !eligible;
   $("lite-sealed-join").hidden = eligible;
+  $("lite-sealed-join").textContent = n >= 33 ? "第六文書課　保護接続中" : "████████　接続状態を確認中";
   $("lite-join").classList.toggle("hot", eligible);
   $("lite-join-note").textContent = done ? "※ 第六文書課から保護通信が届いている。"
     : n >= 33 ? "※ 接続は遮断された。第六文書課がこちらを保護している。"
