@@ -1,0 +1,16 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+    // 進捗の保存。本人のみ
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+    // 「今日の調査員」の集計用。全員が読め、書けるのは本人だけ。自己申告値のため上限のみ検証する
+    match /scouts/{uid} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['day','todayLv','total','lv5'])
+        && request.resource.data.total <= 200;
+    }
+  }
+}
