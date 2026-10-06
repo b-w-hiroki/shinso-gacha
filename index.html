@@ -451,6 +451,9 @@ body.lite main { padding-bottom: 40px; }
 .lite-join.hot .btn-ink { animation: pulse 1.6s ease-in-out infinite; }
 .lock-teaser { opacity: .9; }
 .lite-result { display:grid; gap:8px; padding:14px; border:1px solid #5a6070; background:var(--desk-2); }
+.agent-id { padding:14px 16px; border:1px solid var(--line); background:var(--desk-2); display:grid; gap:4px; }
+.agent-id b { font-family:var(--f-display); font-size:19px; }
+.agent-id span { color:var(--muted); font-size:13px; }
 .lite-result b { font-family:var(--f-display); font-size:18px; }
 .lite-result small { color:var(--muted); }
 .lite-sealed-join { text-align:center; color:var(--muted); font-family:var(--f-mono); letter-spacing:.08em; }
@@ -500,7 +503,7 @@ body.agent-reveal::after { content:"ACCESS GRANTED"; position:fixed; inset:0; z-
     <div class="lite-last" id="lite-last"></div>
     <div><div class="sec-h"><h3>拾った封筒</h3><small id="lite-sum">0 / 8</small></div><div class="files" id="lite-files"></div></div>
     <div><div class="sec-h"><h3>同封されていたメモ</h3><small>拾うほど増える</small></div><div class="lite-notes" id="lite-notes"></div></div>
-    <div class="actions"><button class="btn-paper" id="lite-share">拾った封筒をシェア</button><button class="btn-line" id="lite-result" hidden>あなたの拾い方を見る</button></div>
+    <div class="actions"><button class="btn-paper" id="lite-share" hidden>途中経過をシェア</button><button class="btn-line" id="lite-result" hidden>あなたの拾い方を見る</button></div>
     <div class="lite-join" id="lite-join">
       <div class="lite-sealed-join" id="lite-sealed-join">████████　応募資格を確認中</div>
       <button class="btn-ink" id="lite-apply" hidden>調査員になる</button>
@@ -604,6 +607,7 @@ body.agent-reveal::after { content:"ACCESS GRANTED"; position:fixed; inset:0; z-
 
   <!-- REPORT -->
   <section class="view" data-view="report" hidden>
+    <div class="agent-id" id="agent-id" hidden></div>
     <article class="diag paper aged con" style="--sx:88%;--sy:78%">
       <span class="stamp-sm" style="top:18px">診断</span>
       <span class="eyebrow">あなたの信者度</span>
@@ -1423,6 +1427,8 @@ function renderLab() {
   $("dot-lab").hidden = !any;
 }
 function renderReport() {
+  const aid = $("agent-id");
+  if (S.agentNo) { aid.hidden = false; aid.innerHTML = `<span>第六文書課・調査員登録</span><b>No.${S.agentNo} ／ ${S.agentType || "境界観測型"}</b><span>${S.assign || "両班の兼任"}</span>`; } else aid.hidden = true;
   const [n, d] = diagnosis();
   $("diag-name").textContent = n; $("diag-desc").textContent = d;
   $("rep-no").textContent = "#" + pad(dayNo());
@@ -1777,13 +1783,17 @@ function renderLite(freshIt, freshL) {
   }).join("");
   $("lite-notes").innerHTML = LITE_NOTES.map(([th, t]) => n >= th ? `<p>${t}</p>` : `<p class="sealed">${redact("●●●●●●●●●●●●●●")} <small>あと${th - n}通</small></p>`).join("");
   const done = n >= LITE_ALL, eligible = n >= 12, prof = n >= 10;
+  $("lite-share").hidden = n < 6;
+  $("lite-share").textContent = done ? "一般人編コンプをシェア" : prof ? "観察記録をシェア" : "途中経過をシェア";
   $("lite-result").hidden = !prof;
   $("lite-apply").hidden = !eligible;
   $("lite-sealed-join").hidden = eligible;
   $("lite-join").classList.toggle("hot", eligible);
   $("lite-join-note").textContent = done ? "※ 一般人として読める資料は、すべて回収した。面接の案内が同封されている。"
-    : eligible ? "※ 第六文書課から、正式な面接案内が届いている。"
-    : prof ? "あなたの拾い方を観察している者がいる。あと" + (12 - n) + "断片。"
+    : eligible ? "※ 面接は任意。一般人のまま24断片まで集め続けてもよい。"
+    : prof ? "あなたの拾い方を観察している者がいる。あと" + (12 - n) + "断片で何か届くらしい。"
+    : n >= 6 ? "封筒の差出人は、こちらの動きを把握しているらしい。あと" + (10 - n) + "断片。"
+    : n >= 3 ? "第六文書課という印字だけが残っている。もう少し拾えば何か分かるかもしれない。"
     : "封筒を拾い続けると、差出人から案内が届くらしい。";
 }
 function liteOpen(id) {
