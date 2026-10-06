@@ -6,6 +6,7 @@
 - 本体：`index.html`（HTML / CSS / JS をすべて含む単一ファイル）
 - 遊び方：`index.html` をブラウザで直接開く（サーバー不要）
 - 管理：このリポジトリに一本化（claude.ai の公開ページは廃止済み）
+- 仕様・設計：[docs/SPEC.md](docs/SPEC.md)
 
 ## コアループ
 
