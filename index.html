@@ -113,6 +113,23 @@ main { max-width: 640px; margin: 0 auto; padding-inline: 16px; padding-block: 20
 .mi button { background: var(--stamp); color: #fff; padding: 5px 12px; font-size: 12px; font-weight: 700; animation: pulse 1.6s ease-in-out infinite; }
 @keyframes pulse { 50% { box-shadow: 0 0 0 6px rgba(184, 53, 43, 0); } 0% { box-shadow: 0 0 0 0 rgba(184, 53, 43, .5); } }
 
+/* ---------- section tabs ---------- */
+.section-tabs { display:grid; grid-template-columns:repeat(2,1fr); gap:4px; padding:4px; background:var(--desk-2); border:1px solid var(--line); position:sticky; top:58px; z-index:4; }
+.section-tabs.three { grid-template-columns:repeat(3,1fr); }
+.section-tabs button { min-height:44px; color:var(--muted); font-weight:700; }
+.section-tabs button[aria-pressed="true"] { background:var(--paper); color:var(--ink); }
+.section-pane { display:grid; gap:18px; }
+.research-card { padding:16px; border:1px solid var(--line); background:var(--desk-2); display:grid; gap:8px; }
+.research-card.ready { border-color:var(--paper); }
+.research-card b { font-family:var(--f-display); font-size:18px; }
+.research-card small { color:var(--muted); }
+.research-levels { display:grid; gap:6px; }
+.research-level { padding:10px 12px; border-left:3px solid var(--line); background:var(--desk); }
+.research-level.on { border-left-color:var(--stamp); }
+.research-level strong { display:block; font-size:13px; }
+.research-level span { font-size:13px; color:var(--muted); }
+.weekly-card { padding:16px; border:1px solid var(--stamp); background:rgba(184,53,43,.08); display:grid; gap:8px; }
+
 /* ---------- gacha view ---------- */
 .seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--desk-2); border: 1px solid var(--line); padding: 4px; gap: 4px; }
 .seg button { padding: 10px; font-weight: 700; color: var(--muted); }
@@ -649,6 +666,11 @@ body.agent-reveal::after { content:"ACCESS GRANTED"; position:fixed; inset:0; z-
 
   <!-- GACHA -->
   <section class="view" data-view="gacha" hidden>
+    <div class="section-tabs" role="group" aria-label="ガチャ画面切替">
+      <button data-stab="gacha:pull" aria-pressed="true">引く</button>
+      <button data-stab="gacha:rank" aria-pressed="false">ランク</button>
+    </div>
+    <div class="section-pane" data-spane="gacha:rank" hidden>
     <div class="rankcard">
       <div class="rk-top"><span class="eyebrow" id="rk-lv">RANK 1 / 20</span><b id="rk-name">見習い調査員</b></div>
       <div class="rk-bar"><i id="rk-bar" style="width:0%"></i></div>
@@ -657,6 +679,8 @@ body.agent-reveal::after { content:"ACCESS GRANTED"; position:fixed; inset:0; z-
       <div class="rk-row" id="rk-deep"></div>
       <div class="pity"><span>このボックスで未発見の資料が確定するまで</span><b id="pity-left">あと30回</b></div>
     </div>
+    </div>
+    <div class="section-pane" data-spane="gacha:pull">
     <div class="seg" role="group" aria-label="ボックスを選ぶ">
       <button data-seg="urban" aria-pressed="true">都市伝説</button>
       <button data-seg="conspiracy" aria-pressed="false">陰謀論</button>
@@ -674,10 +698,16 @@ body.agent-reveal::after { content:"ACCESS GRANTED"; position:fixed; inset:0; z-
       <p class="odds">出やすさは 並 ＞ 稀 ＞ 禁。ランクが上がると稀と禁が出やすくなる。調査中のネタは出やすく、真相到達済みは出にくい。5連は必ず1段以上剥がれる。</p>
       <button class="btn-line" data-act="odds">提供割合を見る</button>
     </div>
+    </div>
   </section>
 
   <!-- ARCHIVE -->
   <section class="view" data-view="archive" hidden>
+    <div class="section-tabs" role="group" aria-label="ファイル画面切替">
+      <button data-stab="archive:files" aria-pressed="true">資料</button>
+      <button data-stab="archive:testimony" aria-pressed="false">証言</button>
+    </div>
+    <div class="section-pane" data-spane="archive:files">
     <div class="progress">
       <div class="row"><span>アーカイブ解読率</span><span class="mono" id="rate">0%</span></div>
       <div class="bar"><i id="rate-bar" style="width:0%"></i></div>
@@ -689,24 +719,43 @@ body.agent-reveal::after { content:"ACCESS GRANTED"; position:fixed; inset:0; z-
       <button data-chip="conspiracy" aria-pressed="false">陰謀論</button>
     </div>
     <div class="files" id="files"></div>
+    </div>
+    <div class="section-pane" data-spane="archive:testimony" hidden>
     <div class="tbook">
       <div class="sec-h" style="margin:0"><h3>証言帳</h3><small id="tb-total">0件</small></div>
       <div class="tcount" id="tb-stat"></div>
       <div id="tb-list"></div>
     </div>
+    </div>
   </section>
 
   <!-- LAB -->
   <section class="view" data-view="lab" hidden>
+    <div class="section-tabs" role="group" aria-label="調査室切替">
+      <button data-stab="lab:upgrade" aria-pressed="true">強化</button>
+      <button data-stab="lab:research" aria-pressed="false">再調査</button>
+    </div>
+    <div class="section-pane" data-spane="lab:upgrade">
     <div class="labhead">
       <div><span class="eyebrow">調査室</span><b>証拠 <span class="mono" id="evi">0</span></b></div>
       <p>証拠はガチャで手に入る。新規ファイルは3、黒塗り解除は1、目撃証言は2〜15。</p>
     </div>
     <div class="ups" id="ups"></div>
+    </div>
+    <div class="section-pane" data-spane="lab:research" hidden>
+      <div class="labhead"><div><span class="eyebrow">再調査</span><b>真相のあと</b></div><p>Lv.5到達済みの資料を、証拠を使ってさらに3段階調べられる。</p></div>
+      <div id="research-list" class="ups"></div>
+    </div>
   </section>
 
   <!-- REPORT -->
   <section class="view" data-view="report" hidden>
+    <div class="section-tabs three" role="group" aria-label="報告画面切替">
+      <button data-stab="report:diag" aria-pressed="true">診断</button>
+      <button data-stab="report:achieve" aria-pressed="false">実績</button>
+      <button data-stab="report:settings" aria-pressed="false">設定</button>
+    </div>
+    <div class="section-pane" data-spane="report:diag">
     <div class="agent-id" id="agent-id" hidden></div>
     <article class="diag paper aged con" style="--sx:88%;--sy:78%">
       <span class="stamp-sm" style="top:18px">診断</span>
@@ -724,6 +773,8 @@ body.agent-reveal::after { content:"ACCESS GRANTED"; position:fixed; inset:0; z-
       </div>
     </div>
     <p class="rank" id="rank" hidden></p>
+    </div>
+    <div class="section-pane" data-spane="report:achieve" hidden>
     <div>
       <div class="sec-h"><h3>シリーズと称号</h3><small>シリーズの全ネタを集めると称号</small></div>
       <div class="series" id="series"></div>
@@ -734,8 +785,11 @@ body.agent-reveal::after { content:"ACCESS GRANTED"; position:fixed; inset:0; z-
       <div><span>集めた証言</span><b id="s-testi">0</b></div>
       <div><span>剥がした黒塗り</span><b id="s-layers">0</b></div>
     </div>
+    </div>
+    <div class="section-pane" data-spane="report:settings" hidden>
     <p class="hint" id="sync" style="text-align:left">記録：この端末のみに保存</p>
     <button class="btn-paper" id="glink" hidden onclick="linkGoogle()">Googleで記録を引き継ぐ</button>
+    </div>
   </section>
 </main>
 
@@ -1082,6 +1136,21 @@ const UPS = [
 ];
 const upLv = id => (S.ups || {})[id] || 0;
 const upCost = u => Math.round(u.base * Math.pow(u.grow, upLv(u.id)));
+const RESEARCH_COST = [0, 8, 14, 22];
+const researchLv = id => (S.research || {})[id] || 0;
+function researchText(item, L) {
+  if (L === 1) return ["異説", "この資料には、結論とは別の読み方が残っている。噂が広がった理由と、事実かどうかは別問題として扱う必要がある。"];
+  if (L === 2) return ["矛盾", "証言と記録の一部が噛み合っていない。誰かが嘘をついたのか、途中で話が書き換わったのかは判定できない。"];
+  return ["裏資料", "真相に到達したあとも、資料は終わっていなかった。第六文書課は『真相そのものより、真相がどう作られたかを追え』と追記している。"];
+}
+function researchOne(id) {
+  const it = byId(id), cur = researchLv(id);
+  if (!it || lv(id) < 5 || cur >= 3) return;
+  const cost = RESEARCH_COST[cur + 1];
+  if ((S.evi || 0) < cost) return toast("証拠が足りません");
+  S.evi -= cost; S.research = S.research || {}; S.research[id] = cur + 1;
+  markDirty(); render(); toast(it.name + "：再調査 " + (cur + 1) + "/3"); buzz(20);
+}
 const pityMax = () => Math.max(5, rank().pity - upLv("map"));
 const critRate = () => rank().crit + .01 * upLv("fluid");
 const sniffFull = () => 400 + 100 * upLv("lens"), sniffHalf = () => 800 + 200 * upLv("lens");
@@ -1434,6 +1503,21 @@ function claimableMission() {
     return s && s.p >= m.target && !s.claimed;
   });
 }
+function weekKey() {
+  const d = new Date(), y = d.getFullYear(), start = new Date(y,0,1), days = Math.floor((d - start) / 864e5);
+  return y + "-W" + String(Math.floor((days + start.getDay()) / 7) + 1).padStart(2,"0");
+}
+const WEEKLY_EVENTS = [
+  ["消えた文書番号","今週だけ、存在しない文書番号への参照が複数の記録に現れている。"],
+  ["同時投函","離れた地域の調査員から、同じ時刻に同じ封筒が届いたという報告が上がっている。"],
+  ["逆向きの追記","真相到達済みの資料に、過去の日付で新しい追記が増えている。"],
+  ["未登録の証言者","証言帳に、誰も追加していない1件が混ざっている。"],
+  ["机上の湿り","第六文書課の複数の机で、同じ形の水染みが見つかった。"]
+];
+function weeklyData() {
+  const k = weekKey(), i = Math.abs([...k].reduce((a,c)=>((a*31)+c.charCodeAt(0))|0,7)) % WEEKLY_EVENTS.length;
+  return { key:k, title:WEEKLY_EVENTS[i][0], body:WEEKLY_EVENTS[i][1] };
+}
 function deskEventData() {
   const t = todayItem(), L = lv(t.id), used = S.freeDate === dayKey();
   const claim = claimableMission();
@@ -1451,6 +1535,11 @@ function deskEventData() {
     eye:"調査室", title:upgrade.name + "を強化できます",
     body:"証拠が必要数まで集まりました。調査効率を上げられます。",
     stamp:"更新", alert:false, action:"lab", label:"調査室へ"
+  };
+  const w = weeklyData();
+  if (S.weekSeen !== w.key && S.pulls >= 20) return {
+    eye:"週次異常", title:w.title, body:w.body,
+    stamp:"今週", alert:true, action:"weekly", label:"記録を確認する"
   };
   return {
     eye:"調査デスク", title:L ? t.name : "本日の資料はまだ黒塗りです",
@@ -1571,7 +1660,27 @@ function renderLab() {
       <button class="btn-ink" data-act="upgrade" data-id="${u.id}" ${ok ? "" : "disabled"}>${maxed ? "これ以上は強化できない" : `強化する（証拠 ${cost}）`}</button>
     </article>`;
   }).join("");
-  $("dot-lab").hidden = !any;
+  const targets = ITEMS.filter(i => lv(i.id) === 5);
+  const doneResearch = targets.filter(it => researchLv(it.id) >= 3);
+  const cross = doneResearch.length >= 3 ? `<article class="research-card ready">
+    <div class="up-h"><b>第六文書課・照合資料</b><span class="mono">CROSS FILE</span></div>
+    <p class="up-eff">単独では見えなかった共通点がある。</p>
+    <span class="note">${doneResearch.slice(0,3).map(i => i.name).join(" / ")}</span>
+    <button class="btn-paper" data-act="cross-file">照合資料を開く</button>
+  </article>` : "";
+  $("research-list").innerHTML = (targets.length ? targets.map(it => {
+    const L = researchLv(it.id), next = L < 3 ? RESEARCH_COST[L + 1] : 0, ok = L < 3 && (S.evi || 0) >= next;
+    const levels = [1,2,3].map(n => {
+      const [lab, txt] = researchText(it,n);
+      return `<div class="research-level ${n <= L ? "on" : ""}"><strong>${lab}</strong><span>${n <= L ? txt : "未調査"}</span></div>`;
+    }).join("");
+    return `<article class="research-card ${ok ? "ready" : ""}">
+      <div class="up-h"><b>${it.name}</b><span class="mono">${L}/3</span></div>
+      <div class="research-levels">${levels}</div>
+      <button class="btn-ink" data-act="research" data-id="${it.id}" ${L >= 3 || !ok ? "disabled" : ""}>${L >= 3 ? "再調査完了" : "再調査する（証拠 " + next + "）"}</button>
+    </article>`;
+  }).join("") : '<p class="hint" style="text-align:left">Lv.5「真相到達」の資料ができると、ここで再調査できる。</p>') + cross;
+  $("dot-lab").hidden = !any && !targets.some(it => researchLv(it.id) < 3 && (S.evi || 0) >= RESEARCH_COST[researchLv(it.id)+1]);
 }
 function renderReport() {
   const aid = $("agent-id");
@@ -1595,9 +1704,24 @@ let toastTimer;
 function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, 2000); }
 
 /* ---------- navigation ---------- */
+function setSectionTab(key) {
+  const [view] = key.split(":");
+  document.querySelectorAll("[data-stab]").forEach(b => {
+    if (b.dataset.stab.startsWith(view + ":")) b.setAttribute("aria-pressed", b.dataset.stab === key);
+  });
+  document.querySelectorAll("[data-spane]").forEach(p => {
+    if (p.dataset.spane.startsWith(view + ":")) p.hidden = p.dataset.spane !== key;
+  });
+  window.scrollTo({top:0, behavior:REDUCED ? "auto" : "smooth"});
+}
+function defaultSectionTab(view) {
+  const map = {gacha:"gacha:pull", archive:"archive:files", lab:"lab:upgrade", report:"report:diag"};
+  if (map[view]) setSectionTab(map[view]);
+}
 function go(view) {
   if (isLite()) view = "lite";
   if (view === "home" && !isLite()) setHomeTab("desk");
+  if (!isLite()) defaultSectionTab(view);
   document.querySelectorAll("[data-view]").forEach(v => v.hidden = v.dataset.view !== view);
   document.querySelectorAll("[data-nav]").forEach(b => { if (b.dataset.nav === view) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
   window.scrollTo(0, 0);
@@ -1605,14 +1729,19 @@ function go(view) {
 
 /* ---------- events ---------- */
 document.addEventListener("click", e => {
-  const t = e.target.closest("[data-htab],[data-desk]");
+  const t = e.target.closest("[data-htab],[data-desk],[data-stab]");
   if (!t) return;
   if (t.dataset.htab) return setHomeTab(t.dataset.htab);
+  if (t.dataset.stab) return setSectionTab(t.dataset.stab);
   if (t.dataset.desk === "today") return postScene();
   if (t.dataset.desk === "tasks") return setHomeTab("tasks");
   if (t.dataset.desk === "lab") return go("lab");
   if (t.dataset.desk === "gacha") return go("gacha");
   if (t.dataset.desk === "archive") return go("archive");
+  if (t.dataset.desk === "weekly") {
+    const w = weeklyData(); S.weekSeen = w.key; markDirty(); render();
+    return sheet("週次異常記録", `<div class="weekly-card"><span class="eyebrow">${w.key}</span><h3>${w.title}</h3><p>${w.body}</p><p class="hint" style="text-align:left">この異常は今週中、全調査員に共通して記録される。</p></div>`);
+  }
 });
 document.addEventListener("click", e => {
   const el = e.target.closest("[data-act],[data-nav],[data-seg],[data-chip],[data-pull]");
@@ -1643,6 +1772,11 @@ document.addEventListener("click", e => {
     if (upLv(id) >= u.max || (S.evi || 0) < cost) return;
     S.evi -= cost; S.ups = S.ups || {}; S.ups[id] = upLv(id) + 1;
     markDirty(); render(); renderSniffCap(); toast(`${u.name}を強化した：${u.eff(upLv(id))}`); buzz(20);
+  }
+  if (a === "research") researchOne(id);
+  if (a === "cross-file") {
+    const done = ITEMS.filter(i => lv(i.id) === 5 && researchLv(i.id) >= 3).slice(0,3);
+    sheet("第六文書課・照合資料", `<article class="doc paper aged con"><div class="formhead"><span>照合資料</span><span>CROSS FILE</span><span>閲覧制限</span></div><h2>一致しない真相</h2><div class="lyr"><div class="lab">対象資料</div><p>${done.map(i => i.name).join(" / ")}</p></div><div class="lyr"><div class="lab">照合結果</div><p>三つの資料はいずれも、事実そのものより「語られ方」が変化している。第六文書課は、真相到達を終点ではなく、噂が作られる過程を追うための入口として扱っている。</p></div><span class="note">※ 単独資料では開示されない</span></article>`);
   }
   if (a === "post-open") { hideSheet(); freePull(); }
   if (a === "onboard") { S.onboarded = true; markDirty(); hideSheet(); toast("まずはホームの「本日のウワサ」を読んでください"); }
