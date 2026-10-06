@@ -396,6 +396,38 @@ body.night .top-in, body.night .today { animation: flicker 6s infinite; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ---------- 視認性の調整（暗い面の上の黒塗り・薄い罫線・小さい文字） ---------- */
+:root { --muted: #9aa1b0; --line: #3a4050; --desk-3: #31363f; --mask-dark: #4a5060; --mask-edge: #8a91a3; }
+/* 暗い背景に載る黒塗りは、明るい縁取りと灰色の塗りで見えるようにする */
+.logo .bar { background: #000; box-shadow: 0 0 0 1px var(--mask-edge); }
+.sheet .rd i { background: var(--mask-dark); box-shadow: inset 0 0 0 1px var(--mask-edge); }
+.sheet .paper .rd i, .sheet .doc .rd i { background: var(--redact); box-shadow: none; }
+.folder.secret .rd i, .folder.deep .rd i { background: #000; box-shadow: 0 0 0 1px rgba(255,140,128,.75); }
+/* 薄い目盛り・マスを明るく */
+.sq i { background: #3b414d; }
+.mi .meter, .progress .bar, .rk-bar { background: #3b414d; }
+.folder.secret .pips i { background: rgba(255,255,255,.25); }
+.pips i { background: rgba(0,0,0,.24); }
+.up-pips i { background: rgba(0,0,0,.22); }
+/* 封鎖中のファイル・深層ファイルを読める濃さに */
+.folder.locked { opacity: .78; }
+.folder.deep { opacity: 1; color: #e3c9c4; }
+.folder.secret .m, .folder.deep .m { color: #ff9e94; }
+.folder .cond { color: #e3c9c4; }
+/* 小さすぎる文字を引き上げる */
+.logo small { font-size: 10px; white-space: nowrap; color: #aab0be; }
+.eyebrow { font-size: 12px; }
+.folder .m { font-size: 11px; letter-spacing: .04em; color: #4b4538; }
+.formhead { font-size: 11px; }
+.wallet span { font-size: 11px; white-space: nowrap; }
+.sum span, .stats span, .perks span, .nav button, .big-env .lab, .st-env .lab, .lyr .lab, .rar { font-size: 12px; }
+.sheet { background: var(--desk-2); border-color: #4a5060; }
+.sheet-bg { background: rgba(5,6,8,.82); }
+.oddslist div { font-size: 15px; border-bottom-color: #444a5a; }
+.btn-paper:disabled, .pulls .five:disabled { color: #8d93a2; }
+.nav button { color: #a4abb9; }
+.nav button[aria-current="page"] { color: var(--paper); }
 </style>
 
 <header class="top">
