@@ -531,6 +531,7 @@ body.night .top-in, body.night .today { animation: flicker 6s infinite; }
       <div><span>剥がした黒塗り</span><b id="s-layers">0</b></div>
     </div>
     <p class="hint" id="sync" style="text-align:left">記録：この端末のみに保存</p>
+    <button class="btn-paper" id="glink" hidden onclick="linkGoogle()">Googleで記録を引き継ぐ</button>
   </section>
 </main>
 
@@ -1475,14 +1476,14 @@ async function flush() {
   if (flushing) { again = true; return; }
   flushing = true;
   try {
-    await cloud.saveRef.set({ state: JSON.parse(JSON.stringify(S)) });
+    await cloud.setDoc(cloud.saveRef, { state: JSON.parse(JSON.stringify(S)) });
     const t = todayItem();
     const scout = { day: dayKey(), todayLv: lv(t.id), total: totalLv(), lv5: ITEMS.filter(i => lv(i.id) === 5).length };
     const key = JSON.stringify(scout);
-    if (key !== lastScout) { await cloud.scoutRef.set(scout); lastScout = key; }
+    if (key !== lastScout) { await cloud.setDoc(cloud.scoutRef, scout); lastScout = key; }
     setSync("アカウントに保存済み（別の端末でも続きから遊べます）");
   } catch (e) {
-    if (e && (e.code === "invalid_argument" || e.code === "not_granted" || e.code === "revoked")) { cloud.canWrite = false; setSync("この端末のみに保存"); }
+    if (e && (e.code === "permission-denied" || e.code === "invalid-argument")) { cloud.canWrite = false; setSync("この端末のみに保存"); } else setSync("保存に失敗（あとで再試行します）");
   }
   flushing = false;
   if (again) { again = false; flush(); }
@@ -1501,24 +1502,53 @@ function renderCrowd() {
     r.hidden = false; r.textContent = `今日の調査員 ${n}人の中で、あなたの解読量は上位 ${top}%`;
   } else r.hidden = true;
 }
+const FB_CONFIG = { apiKey:"AIzaSyAMn8f4sbyKIuAIZKdQVGhgmAzSPOErgA0", authDomain:"shinso-gacha.firebaseapp.com", projectId:"shinso-gacha", storageBucket:"shinso-gacha.firebasestorage.app", messagingSenderId:"1035473896096", appId:"1:1035473896096:web:19a89c0b71de6c3d8d3fc5" };
+const FB_V = "10.14.1";
+let FB = null;
+async function pullRemote() {
+  const snap = await FB.getDoc(cloud.saveRef);
+  const remote = snap.exists() ? (snap.data() || {}).state : null;
+  if (remote && (remote.updatedAt || 0) > (S.updatedAt || 0)) {
+    S = Object.assign(fresh(), remote); ensureMissions(); save();
+    shownPt = Math.floor(S.currency); $("pt").textContent = shownPt; $("fast").checked = !!S.fast;
+    render(); toast("アカウントの記録から続きを読み込みました");
+  }
+}
+function bindCloud(user) {
+  const { db, doc } = FB;
+  cloud = { uid: user.uid, canWrite: true, setDoc: FB.setDoc, saveRef: doc(db, "users", user.uid), scoutRef: doc(db, "scouts", user.uid) };
+  lastScout = "";
+  $("glink").hidden = !user.isAnonymous;
+}
 async function initCloud() {
-  if (!window.claude || typeof window.claude.use !== "function") return;
+  if (location.protocol === "file:") return;
   try {
-    const [db, user] = await Promise.all([claude.use("db"), claude.use("user")]);
-    if (!db) return;
-    db.collection("scouts").where("day", "==", dayKey()).onSnapshot(snap => { crowd = snap.docs.map(d => d.data()); renderCrowd(); }, () => {});
-    const uid = user ? await user.id() : null;
-    if (!uid) return;
-    cloud = { db, uid, canWrite: true, saveRef: db.doc("data/users/" + uid + "/save"), scoutRef: db.doc("scouts/" + uid) };
-    const snap = await cloud.saveRef.get();
-    const remote = snap.exists ? (snap.data() || {}).state : null;
-    if (remote && (remote.updatedAt || 0) > (S.updatedAt || 0)) {
-      S = Object.assign(fresh(), remote); ensureMissions(); save();
-      shownPt = Math.floor(S.currency); $("pt").textContent = shownPt; $("fast").checked = !!S.fast;
-      render(); toast("アカウントの記録から続きを読み込みました");
-    }
+    const base = "https://www.gstatic.com/firebasejs/" + FB_V + "/";
+    const [A, Au, F] = await Promise.all([import(base + "firebase-app.js"), import(base + "firebase-auth.js"), import(base + "firebase-firestore.js")]);
+    const app = A.initializeApp(FB_CONFIG), auth = Au.getAuth(app), db = F.getFirestore(app);
+    FB = { db, auth, doc: F.doc, getDoc: F.getDoc, setDoc: F.setDoc, Au };
+    F.onSnapshot(F.query(F.collection(db, "scouts"), F.where("day", "==", dayKey())), snap => { crowd = snap.docs.map(d => d.data()); renderCrowd(); }, () => {});
+    await auth.authStateReady();
+    if (!auth.currentUser) await Au.signInAnonymously(auth);
+    bindCloud(auth.currentUser);
+    await pullRemote();
     markDirty(); flush();
-  } catch (e) {}
+  } catch (e) { setSync("この端末のみに保存"); }
+}
+async function linkGoogle() {
+  if (!FB) return;
+  const { auth, Au } = FB, prov = new Au.GoogleAuthProvider();
+  try {
+    await Au.linkWithPopup(auth.currentUser, prov);
+    bindCloud(auth.currentUser); toast("Googleアカウントに紐付けました"); markDirty(); flush();
+  } catch (e) {
+    if (e && e.code === "auth/credential-already-in-use") {
+      const cred = Au.GoogleAuthProvider.credentialFromError(e);
+      if (cred && confirm("このGoogleアカウントには既に記録があります。そちらに切り替えますか？（この端末の未同期の進捗は、記録の方が古い場合のみ上書きされます）")) {
+        await Au.signInWithCredential(auth, cred); bindCloud(auth.currentUser); await pullRemote(); markDirty(); flush();
+      }
+    } else if (!e || (e.code !== "auth/popup-closed-by-user" && e.code !== "auth/cancelled-popup-request")) toast("Google連携に失敗しました");
+  }
 }
 
 /* ---------- idle ---------- */
