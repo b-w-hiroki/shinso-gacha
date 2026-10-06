@@ -371,7 +371,7 @@ body.night .top-in, body.night .today { animation: flicker 6s infinite; }
 .bbs-h b { color: var(--fg); font-weight: 700; }
 .live { color: var(--stamp); animation: blink 1.4s steps(2) infinite; white-space: nowrap; }
 @keyframes blink { 50% { opacity: .3; } }
-.bbs-body { padding: 4px 12px 10px; display: grid; min-height: 228px; align-content: end; }
+.bbs-body { padding: 4px 12px 10px; display: grid; min-height: 300px; align-content: end; }
 .post { padding-top: 8px; animation: postin .5s ease-out both; }
 .post .ph { font-size: 11px; color: #6f7686; }
 .post .ph em { font-style: normal; color: #5f8f5a; }
@@ -415,13 +415,13 @@ body.night .top-in, body.night .today { animation: flicker 6s infinite; }
     <div class="ushi" id="ushi" hidden><b>丑三つ時</b><span>放置で貯まる疑念が2倍。封筒の中身も少し騒がしい。</span></div>
     <article class="today paper aged urban" id="today-card">
       <span class="clip" aria-hidden="true"></span>
-      <span class="stamp-sm">本日限定</span>
+      <span class="stamp-sm">投函済</span>
       <div class="eyebrow" id="today-no">本日の噂 #001</div>
       <h2 id="today-h">今日は全員が同じ噂を追っている</h2>
       <p id="today-line"></p>
       <span class="note" id="today-note"></span>
       <div class="foot">
-        <button class="btn-ink" id="free">本日の1回を引く（無料）</button>
+        <button class="btn-ink" id="free">本日のウワサを読む</button>
         <span class="eyebrow" id="today-lv">LV.0/5</span>
         <span class="crowd" id="today-crowd" hidden></span>
       </div>
@@ -464,7 +464,7 @@ body.night .top-in, body.night .today { animation: flicker 6s infinite; }
       <p class="cab-desc" id="cab-desc"></p>
       <div class="pulls">
         <button class="btn-paper" data-pull="1">1回引く<span>10pt</span></button>
-        <button class="btn-paper five" data-pull="5">5連で引く<span>45pt（1回分お得）</span></button>
+        <button class="btn-paper five" data-pull="5">5連で引く<span>45pt（必ず1段は剥がれる）</span></button>
         <button class="btn-paper bulk" data-pull="10">10連で引く<span id="lbl-10">90pt</span></button>
         <button class="btn-paper bulk" data-pull="100">100連で引く<span id="lbl-100">850pt</span></button>
       </div>
@@ -946,6 +946,21 @@ function draw(pool) {
   for (let k = 0; k < pool.length; k++) { r -= ws[k]; if (r <= 0) return pool[k]; }
   return pool[pool.length - 1];
 }
+const POST_AFTER = ["差出人は、今日も書かれていない", "明日も、入っているのだろうか", "筆跡は、昨日と同じだった", "誰が入れているのか、まだ分からない", "封筒は、元の場所にもう無い", "見ていたのは、こちらだけではない"];
+const POST_DAY = ["投函の音は、聞こえなかった。", "管理人に聞いたが、誰も見ていないという。", "防犯カメラには、何も映っていなかった。", "封筒は、まだ少し温かい。", "宛名はあなたの名前ではない。住所だけが合っている。", "近所の誰かが、毎日やっているのだろうか。それとも。", "手書きの文字が、少し震えている。", "封は、一度開けられた跡がある。", "昨日の封筒は、確かに捨てたはずなのに。", "郵便局に問い合わせたが、取り扱っていないと言われた。", "一体だれが、毎日これを投函しているのだろう。"];
+function postScene() {
+  if (S.freeDate === dayKey() || lv(todayItem().id) === 5) return;
+  const n = (S.streak || { n: 1 }).n, h = hour();
+  const first = n <= 1 ? "切手も消印もない。差出人の欄は、空白だ。" : n === 2 ? "昨日も、入っていた。同じ封筒だ。" : n < 7 ? `${n}日続けて、同じ封筒が入っている。筆跡も同じだ。` : `${n}日目。毎日、決まった時刻に入っている。誰かが、こちらを見ている。`;
+  const second = (h >= 22 || h < 5) ? "投函されたのは、たぶん夜中だ。足音は、聞いていない。" : POST_DAY[dayNo() % POST_DAY.length];
+  sheet("郵便受け", `<article class="doc paper aged urban" style="--sx:30%;--sy:20%">
+    <div class="memohead"><span>今朝の郵便物</span><span>差出人 不明</span></div>
+    <p style="margin-top:12px">郵便受けに、茶色い封筒が入っていた。</p>
+    <p>${first}</p><p>${second}</p>
+    <span class="note">※ 開けるかどうかは、自由だ</span>
+  </article>
+  <div class="actions"><button class="btn-paper" data-act="post-open">封を開ける</button></div>`);
+}
 function freePull() {
   if (S.freeDate === dayKey() || lv(todayItem().id) === 5) return;
   S.freeDate = dayKey();
@@ -1226,7 +1241,8 @@ function render() {
   $("today-note").textContent = t.box === "urban" ? "← 聞いた人ごとに話が違う" : "← 出典不明。要確認";
   $("today-lv").textContent = "LV." + tl + "/5";
   $("free").disabled = used || tl === 5;
-  $("free").textContent = used ? "本日分は引きました（0時に更新）" : tl === 5 ? "この噂は真相到達済み" : "本日の1回を引く（無料）";
+  $("free").textContent = used ? "本日分は読みました（明日また入っている）" : tl === 5 ? "この噂は読み尽くした" : "本日のウワサを読む";
+  if (used) $("today-note").textContent = POST_AFTER[dayNo() % POST_AFTER.length];
   document.querySelectorAll("[data-pull]").forEach(b => { const n = +b.dataset.pull; b.disabled = !bulkOpen(n) || S.currency < COST[n]; });
   [10, 100].forEach(n => { $("lbl-" + n).textContent = bulkOpen(n) ? `${COST[n]}pt（演出なし）` : `RANK ${BULK_RANK[n] + 1}で解放`; });
   $("cab-desc").textContent = BOX_DESC[box];
@@ -1362,7 +1378,8 @@ document.addEventListener("click", e => {
     S.evi -= cost; S.ups = S.ups || {}; S.ups[id] = upLv(id) + 1;
     markDirty(); render(); renderSniffCap(); toast(`${u.name}を強化した：${u.eff(upLv(id))}`); buzz(20);
   }
-  if (a === "onboard") { S.onboarded = true; markDirty(); hideSheet(); toast("まずはホームの「本日の1回」を引いてください"); }
+  if (a === "post-open") { hideSheet(); freePull(); }
+  if (a === "onboard") { S.onboarded = true; markDirty(); hideSheet(); toast("まずはホームの「本日のウワサ」を読んでください"); }
   if (a === "claim") {
     const m = MISSIONS.find(x => x.id === id); S.missions[id].claimed = true; S.currency += m.reward;
     markDirty(); render(); toast("任務完了 +" + m.reward + "pt"); buzz(20);
@@ -1372,7 +1389,7 @@ document.addEventListener("keydown", e => {
   if (e.key === "Escape") { if (!$("stage").hidden) closeStage(); else hideSheet(); }
   if ((e.key === " " || e.key === "Enter") && !$("stage").hidden && !e.target.closest("button")) { e.preventDefault(); advance(); }
 });
-$("free").addEventListener("click", freePull);
+$("free").addEventListener("click", postScene);
 $("share-report").addEventListener("click", () => sheet("今日の調査報告", `<p class="hint" style="text-align:left">⬛未発見 🟫Lv1-2 🟧Lv3-4 🟥真相到達</p>` + shareBlock(reportText())));
 $("share-diag").addEventListener("click", () => { const [n, d] = diagnosis(); sheet("信者度診断", shareBlock(`真相ガチャの信者度診断\n私は「${n}」でした。\n${d}\n#真相ガチャ`)); });
 
@@ -1456,7 +1473,7 @@ function addPost() {
   p.innerHTML = `<div class="ph">${++postNo} 名前：<em>${haunted ? "　　　　" : "名無しさん@調査中"}</em> ${hh}:${mm}:${ss} ID:${haunted ? "????????" : rid()}</div><p></p>`;
   p.querySelector("p").textContent = body;
   box.appendChild(p);
-  while (box.children.length > 3) box.firstElementChild.remove();
+  while (box.children.length > 5) box.firstElementChild.remove();
 }
 function applyTime() {
   const h = hour();
@@ -1588,10 +1605,10 @@ if (!S.onboarded) setTimeout(() => sheet("調査員の皆さまへ", `
     <h2 style="margin-top:10px">真相ガチャ 調査手順</h2>
     <div class="lyr"><div class="lab">手順 1 ／ 封筒を引く</div><p>疑念ptを使って封筒を開けると、都市伝説や陰謀論の資料が手に入る。ptは放置と「嗅ぎ回る」で貯まる。</p></div>
     <div class="lyr"><div class="lab">手順 2 ／ 黒塗りを剥がす</div><p>同じネタを引くたびに黒塗りが1段剥がれる。5段目が「真相」。</p></div>
-    <div class="lyr"><div class="lab">手順 3 ／ 真相は言わない</div><p>共有できるのは剥がれ具合だけ。真相の中身は、自分の目で確かめてもらうこと。</p><span class="note">※ 本日の噂は毎日1回無料</span></div>
+    <div class="lyr"><div class="lab">手順 3 ／ 真相は言わない</div><p>共有できるのは剥がれ具合だけ。真相の中身は、自分の目で確かめてもらうこと。</p><span class="note">※ 本日の噂は、毎朝どこからか届く</span></div>
   </article>
   <div class="actions"><button class="btn-paper" data-act="onboard">調査を始める</button></div>`), 300);
-addPost(); addPost(); addPost();
+for (let i = 0; i < 5; i++) addPost();
 setInterval(addPost, 4500);
 setInterval(applyTime, 60000);
 const startView = (location.hash || "").slice(1);
