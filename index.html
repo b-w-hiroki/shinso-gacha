@@ -450,6 +450,10 @@ body.lite main { padding-bottom: 40px; }
 .lite-join .btn-ink { background: var(--stamp); color: #fff; padding: 14px; font-weight: 800; letter-spacing: .1em; }
 .lite-join.hot .btn-ink { animation: pulse 1.6s ease-in-out infinite; }
 .lock-teaser { opacity: .9; }
+.lite-result { display:grid; gap:8px; padding:14px; border:1px solid #5a6070; background:var(--desk-2); }
+.lite-result b { font-family:var(--f-display); font-size:18px; }
+.lite-result small { color:var(--muted); }
+.lite-sealed-join { text-align:center; color:var(--muted); font-family:var(--f-mono); letter-spacing:.08em; }
 /* 面接 */
 .chat { display: grid; gap: 10px; }
 .chat .b { max-width: 88%; padding: 10px 13px; font-size: 15px; line-height: 1.75; animation: viewin .3s ease-out; }
@@ -488,10 +492,11 @@ body.lite main { padding-bottom: 40px; }
     <div class="lite-last" id="lite-last"></div>
     <div><div class="sec-h"><h3>拾った封筒</h3><small id="lite-sum">0 / 8</small></div><div class="files" id="lite-files"></div></div>
     <div><div class="sec-h"><h3>同封されていたメモ</h3><small>拾うほど増える</small></div><div class="lite-notes" id="lite-notes"></div></div>
-    <div class="actions"><button class="btn-paper" id="lite-share">拾った封筒をシェア</button></div>
+    <div class="actions"><button class="btn-paper" id="lite-share">拾った封筒をシェア</button><button class="btn-line" id="lite-result" hidden>あなたの拾い方を見る</button></div>
     <div class="lite-join" id="lite-join">
-      <button class="btn-ink" id="lite-apply">調査員になる</button>
-      <p id="lite-join-note">※ 応募すると面接があります。先は、まだ黒塗りです。</p>
+      <div class="lite-sealed-join" id="lite-sealed-join">████████　応募資格を確認中</div>
+      <button class="btn-ink" id="lite-apply" hidden>調査員になる</button>
+      <p id="lite-join-note">封筒を拾い続けると、差出人から案内が届くらしい。</p>
     </div>
   </section>
 
@@ -1672,6 +1677,21 @@ const LITE_NOTES = [
   [24, "「十分だ。面接に来なさい」。それ以上、何も書かれていなかった。"],
 ];
 const LITE_CELL = ["⬛", "🟫", "🟧", "🟥"];
+function liteProfile() {
+  const us = liteItems().filter(i => i.box === "urban").reduce((a, i) => a + liteLv(i.id), 0);
+  const cs = liteItems().filter(i => i.box === "conspiracy").reduce((a, i) => a + liteLv(i.id), 0);
+  const top = liteItems().slice().sort((a,b) => liteLv(b.id) - liteLv(a.id) || a.id.localeCompare(b.id))[0];
+  if (us >= cs + 3) return { name:"怪異収集型", desc:"説明のつかない話ほど、手を伸ばす。", top };
+  if (cs >= us + 3) return { name:"疑念追跡型", desc:"違和感を見つけると、根拠まで追いたくなる。", top };
+  return { name:"境界観測型", desc:"信じ切らず、切り捨てもせず、両方を拾っている。", top };
+}
+function liteResult() {
+  const n = liteTotal(), p = liteProfile();
+  if (n < 10) return;
+  const topName = p.top && liteLv(p.top.id) ? p.top.name : "まだ特定できない";
+  const text = `【真相ガチャ・拾い方診断】\n私は「${p.name}」\n${p.desc}\n最も引き寄せた資料：${topName}\n読めた断片 ${n}/${LITE_ALL}\n#真相ガチャ${/^https?:/.test(location.protocol) ? "\n" + location.origin + location.pathname : ""}`;
+  sheet("あなたの拾い方", `<div class="lite-result"><small>第六文書課・暫定観察記録</small><b>${p.name}</b><span>${p.desc}</span><span>最も引き寄せた資料：${topName}</span></div>` + shareBlock(text));
+}
 function litePull() {
   const pool = liteItems().filter(i => liteLv(i.id) < LITE_MAX);
   if (!pool.length) return;
@@ -1709,9 +1729,15 @@ function renderLite(freshIt, freshL) {
       <span class="pips">${pips(L)}</span></button>`;
   }).join("");
   $("lite-notes").innerHTML = LITE_NOTES.map(([th, t]) => n >= th ? `<p>${t}</p>` : `<p class="sealed">${redact("●●●●●●●●●●●●●●")} <small>あと${th - n}通</small></p>`).join("");
-  const done = n >= LITE_ALL;
-  $("lite-join").classList.toggle("hot", done || n >= 12);
-  $("lite-join-note").textContent = done ? "※ 面接の案内が同封されていた。" : n >= 8 ? "※ 応募は、いつでもできる。" : "※ 応募すると面接があります。先は、まだ黒塗りです。";
+  const done = n >= LITE_ALL, eligible = n >= 12, prof = n >= 10;
+  $("lite-result").hidden = !prof;
+  $("lite-apply").hidden = !eligible;
+  $("lite-sealed-join").hidden = eligible;
+  $("lite-join").classList.toggle("hot", eligible);
+  $("lite-join-note").textContent = done ? "※ 一般人として読める資料は、すべて回収した。面接の案内が同封されている。"
+    : eligible ? "※ 第六文書課から、正式な面接案内が届いている。"
+    : prof ? "あなたの拾い方を観察している者がいる。あと" + (12 - n) + "断片。"
+    : "封筒を拾い続けると、差出人から案内が届くらしい。";
 }
 function liteOpen(id) {
   const it = byId(id), L = liteLv(id);
@@ -1741,9 +1767,27 @@ const INTERVIEW = [
   { q: () => "最後に。あなたは、話を信じる側ですか。疑う側ですか。",
     ch: [["信じる側", "都市伝説班に配属します。怖がりのほうが、よく見えるものです。"], ["疑う側", "陰謀論班に配属します。疑う人ほど、最初に騙されます。"], ["どちらでもない", "では、両方を担当してもらいます。一番人手が足りない席です。"]] },
 ];
+const INTERVIEW_SCORE = [
+  [[2,0,1],[0,1,0],[2,0,2]],
+  [[0,2,0],[1,0,1]],
+  [[0,0,2],[0,2,0],[1,1,1]],
+];
+function interviewType(score) {
+  const [cur, cau, bel] = score;
+  if (cur >= cau + 2) return "好奇心過剰型";
+  if (cau >= cur + 2) return "慎重な懐疑派";
+  if (bel >= 3) return "感応観測型";
+  return "境界観測型";
+}
+function interviewSide(score, last) {
+  if (last === 0 || score[2] >= 4) return 0;
+  if (last === 1 || score[1] >= 4) return 1;
+  return 2;
+}
 let iv = null;
 function startInterview() {
-  iv = { step: 0, log: [], side: 2 };
+  if (liteTotal() < 12) { toast("まだ応募資格が確認できていない"); return; }
+  iv = { step: 0, log: [], side: 2, score:[0,0,0], answers:[] };
   iv.log.push(["them", INTERVIEW[0].q()]);
   renderInterview(true);
 }
@@ -1756,14 +1800,18 @@ function renderInterview(choices) {
   const sh = $("sheet"); sh.scrollTop = sh.scrollHeight;
 }
 function answerInterview(i) {
-  const st = INTERVIEW[iv.step], c = st.ch[i];
+  const st = INTERVIEW[iv.step], c = st.ch[i], v = INTERVIEW_SCORE[iv.step][i] || [0,0,0];
   iv.log.push(["me", c[0]], ["them", c[1]]);
-  if (iv.step === INTERVIEW.length - 1) iv.side = i;
+  iv.answers.push(i);
+  iv.score = iv.score.map((x,k) => x + v[k]);
+  const last = iv.step === INTERVIEW.length - 1 ? i : null;
   iv.step++;
   if (iv.step >= INTERVIEW.length) {
+    iv.side = interviewSide(iv.score, last);
+    iv.type = interviewType(iv.score);
     if (!S.agentNo) S.agentNo = String(1000 + Math.floor(Math.random() * 9000));
     renderInterview(false);
-    setTimeout(() => { iv.log.push(["them", `採用です。調査員番号は No.${S.agentNo}。配属は${SIDE_NAME[iv.side]}。<br>なお、辞退の手続きは、用意していません。`]); renderInterview(false); }, 900);
+    setTimeout(() => { iv.log.push(["them", `採用です。調査員番号は No.${S.agentNo}。判定は「${iv.type}」、配属は${SIDE_NAME[iv.side]}。<br>なお、辞退の手続きは、用意していません。`]); renderInterview(false); }, 900);
   } else {
     renderInterview(false);
     setTimeout(() => { iv.log.push(["them", INTERVIEW[iv.step].q()]); renderInterview(true); }, 900);
@@ -1771,7 +1819,7 @@ function answerInterview(i) {
 }
 function becomeAgent() {
   if (!S.role) {
-    S.role = "agent"; S.assign = SIDE_NAME[iv ? iv.side : 2]; S.onboarded = true;
+    S.role = "agent"; S.assign = SIDE_NAME[iv ? iv.side : 2]; S.agentType = iv && iv.type ? iv.type : "境界観測型"; S.onboarded = true;
     S.levels = S.levels || {};
     LITE_IDS.forEach(id => { S.levels[id] = Math.max(S.levels[id] || 0, liteLv(id)); });
     S.currency += 30; S.lastTick = Date.now();
@@ -1794,6 +1842,7 @@ document.addEventListener("click", e => {
 });
 $("lite-pull").addEventListener("click", litePull);
 $("lite-share").addEventListener("click", liteShare);
+$("lite-result").addEventListener("click", liteResult);
 $("lite-apply").addEventListener("click", startInterview);
 
 /* ---------- idle ---------- */
