@@ -433,7 +433,7 @@ body.night .top-in, body.night .today { animation: flicker 6s infinite; }
 }
 
 /* ---------- 視認性の調整（暗い面の上の黒塗り・薄い罫線・小さい文字） ---------- */
-:root { --muted: #9aa1b0; --line: #3a4050; --desk-3: #31363f; --mask-dark: #4a5060; --mask-edge: #8a91a3; }
+:root { --fg: #eef1f6; --muted: #bcc3cf; --line: #50596a; --desk-3: #353b47; --paper-ink-2: #494438; --ink: #15171a; --mask-dark: #596171; --mask-edge: #a4adbd; }
 /* 暗い背景に載る黒塗りは、明るい縁取りと灰色の塗りで見えるようにする */
 .logo .bar { background: #000; box-shadow: 0 0 0 1px var(--mask-edge); }
 .sheet .rd i { background: var(--mask-dark); box-shadow: inset 0 0 0 1px var(--mask-edge); }
@@ -446,14 +446,14 @@ body.night .top-in, body.night .today { animation: flicker 6s infinite; }
 .pips i { background: rgba(0,0,0,.24); }
 .up-pips i { background: rgba(0,0,0,.22); }
 /* 封鎖中のファイル・深層ファイルを読める濃さに */
-.folder.locked { opacity: .78; }
+.folder.locked { opacity: .94; }
 .folder.deep { opacity: 1; color: #e3c9c4; }
 .folder.secret .m, .folder.deep .m { color: #ff9e94; }
 .folder .cond { color: #e3c9c4; }
 /* 小さすぎる文字を引き上げる */
 .logo small { font-size: 10px; white-space: nowrap; color: #aab0be; }
 .eyebrow { font-size: 12px; }
-.folder .m { font-size: 11px; letter-spacing: .04em; color: #4b4538; }
+.folder .m { font-size: 11px; letter-spacing: .04em; color: #403b31; }
 .formhead { font-size: 11px; }
 .wallet span { font-size: 11px; white-space: nowrap; }
 .sum span, .stats span, .perks span, .nav button, .big-env .lab, .st-env .lab, .lyr .lab, .rar { font-size: 12px; }
@@ -461,7 +461,7 @@ body.night .top-in, body.night .today { animation: flicker 6s infinite; }
 .sheet-bg { background: rgba(5,6,8,.82); }
 .oddslist div { font-size: 15px; border-bottom-color: #444a5a; }
 .btn-paper:disabled, .pulls .five:disabled { color: #8d93a2; }
-.nav button { color: #a4abb9; }
+.nav button { color: #bdc4d0; }
 .nav button[aria-current="page"] { color: var(--paper); }
 
 /* ---------- 一般人モード（入門版） ---------- */
@@ -478,7 +478,7 @@ body.lite main { padding-bottom: 40px; }
 .lite-last .doc { animation: viewin .35s ease-out; }
 .lite-notes { display: grid; gap: 8px; }
 .lite-notes p { margin: 0; padding: 10px 12px; border-left: 3px solid var(--stamp); background: var(--desk-2); font-size: 14px; line-height: 1.7; }
-.lite-notes p.sealed { border-left-color: #4a5060; color: var(--muted); }
+.lite-notes p.sealed { border-left-color: #687184; color: #c6ccd6; }
 .lite-notes p.sealed .rd i { background: var(--mask-dark); box-shadow: inset 0 0 0 1px var(--mask-edge); }
 .lite-join { display: grid; gap: 8px; text-align: center; padding: 16px; border: 1px dashed #5a6070; }
 .lite-join p { margin: 0; font-size: 13px; color: var(--muted); }
@@ -491,7 +491,7 @@ body.lite main { padding-bottom: 40px; }
 .agent-id span { color:var(--muted); font-size:13px; }
 .lite-result b { font-family:var(--f-display); font-size:18px; }
 .lite-result small { color:var(--muted); }
-.lite-sealed-join { text-align:center; color:var(--muted); font-family:var(--f-mono); letter-spacing:.08em; }
+.lite-sealed-join { text-align:center; color:#cbd1da; font-family:var(--f-mono); letter-spacing:.08em; }
 .lite-milestone { padding:16px; border:1px solid #5a6070; background:var(--desk-2); }
 .lite-milestone b { display:block; font-family:var(--f-display); font-size:21px; margin-bottom:6px; }
 .lite-milestone p { margin:0; color:var(--fg); }
@@ -526,18 +526,18 @@ body.agent-reveal::after { content:"ACCESS GRANTED"; position:fixed; inset:0; z-
   <section class="view" data-view="lite" hidden>
     <article class="today paper aged urban" style="--sx:80%;--sy:40%">
       <span class="clip" aria-hidden="true"></span>
-      <div class="eyebrow">一般人モード ・ 通りすがり</div>
-      <h2>郵便受けに、封筒が入っていた</h2>
-      <p>差出人は書かれていない。開けるかどうかは、自由だ。<br>拾い集めると、中身が少しずつ読めるようになる。</p>
+      <div class="eyebrow">取扱注意 ・ 宛先不明</div>
+      <h2>郵便受けに、見覚えのない封筒があった</h2>
+      <p>差出人も、宛名もない。中には、途中まで黒く塗りつぶされた記録が入っている。<br>開封するなら、少し慎重に扱った方がよさそうだ。</p>
     </article>
     <div class="lite-bar">
-      <div class="row"><span>読めた断片</span><span class="mono" id="lite-n">0 / 24</span></div>
+      <div class="row"><span>確認した断片</span><span class="mono" id="lite-n">0 / 24</span></div>
       <div class="bar"><i id="lite-bar" style="width:0%"></i></div>
     </div>
-    <button class="lite-pull" id="lite-pull">封筒を拾う</button>
+    <button class="lite-pull" id="lite-pull">封を切る</button>
     <div class="lite-last" id="lite-last"></div>
-    <div><div class="sec-h"><h3>拾った封筒</h3><small id="lite-sum">0 / 8</small></div><div class="files" id="lite-files"></div></div>
-    <div><div class="sec-h"><h3>同封されていたメモ</h3><small>拾うほど増える</small></div><div class="lite-notes" id="lite-notes"></div></div>
+    <div><div class="sec-h"><h3>届いた封筒</h3><small id="lite-sum">0 / 8</small></div><div class="files" id="lite-files"></div></div>
+    <div><div class="sec-h"><h3>封筒に残されていたメモ</h3><small>確認するほど増える</small></div><div class="lite-notes" id="lite-notes"></div></div>
     <div class="actions"><button class="btn-paper" id="lite-share" hidden>途中経過をシェア</button><button class="btn-line" id="lite-result" hidden>あなたの拾い方を見る</button></div>
     <div class="lite-join" id="lite-join">
       <div class="lite-sealed-join" id="lite-sealed-join">████████　応募資格を確認中</div>
@@ -1796,7 +1796,7 @@ function renderLite(freshIt, freshL) {
   $("lite-n").textContent = n + " / " + LITE_ALL;
   $("lite-bar").style.width = (n / LITE_ALL * 100) + "%";
   $("lite-pull").disabled = n >= LITE_ALL;
-  $("lite-pull").textContent = n >= LITE_ALL ? "封筒は、すべて拾い終えた" : n === 0 ? "封筒を拾う" : "もう1通、拾う";
+  $("lite-pull").textContent = n >= LITE_ALL ? "確認できる封筒は、すべて開封した" : n === 0 ? "封を切る" : "次の封筒を開く";
   $("lite-sum").textContent = LITE_IDS.filter(id => liteLv(id) > 0).length + " / " + LITE_IDS.length;
   if (freshIt) {
     const [lab, txt] = freshIt.layers[freshL - 1];
@@ -1816,7 +1816,7 @@ function renderLite(freshIt, freshL) {
       <span class="n">${L ? i.name : redact(i.name)}</span>
       <span class="pips">${pips(L)}</span></button>`;
   }).join("");
-  $("lite-notes").innerHTML = LITE_NOTES.map(([th, t]) => n >= th ? `<p>${t}</p>` : `<p class="sealed">${redact("●●●●●●●●●●●●●●")} <small>あと${th - n}通</small></p>`).join("");
+  $("lite-notes").innerHTML = LITE_NOTES.map(([th, t]) => n >= th ? `<p>${t}</p>` : `<p class="sealed">${redact("●●●●●●●●●●●●●●")} <small>あと${th - n}断片</small></p>`).join("");
   const done = n >= LITE_ALL, eligible = n >= 12, prof = n >= 10;
   $("lite-share").hidden = n < 6;
   $("lite-share").textContent = done ? "一般人編コンプをシェア" : prof ? "観察記録をシェア" : "途中経過をシェア";
