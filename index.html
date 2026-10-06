@@ -471,6 +471,13 @@ body.lite main { padding-bottom: 40px; }
 .lite-tabs button { min-height:44px; color:var(--muted); font-weight:700; }
 .lite-tabs button[aria-pressed="true"] { background:var(--paper); color:var(--ink); }
 .lite-pane { display:grid; gap:22px; }
+.lite-event { position:relative; min-height:210px; padding:22px 18px 18px; display:grid; align-content:start; gap:10px; box-shadow:0 18px 40px rgba(0,0,0,.5); }
+.lite-event .eyebrow { color:var(--paper-ink-2); }
+.lite-event h2 { margin:0; font-family:var(--f-display); font-size:clamp(26px,7vw,34px); line-height:1.28; }
+.lite-event p { margin:0; font-size:15px; line-height:1.75; }
+.lite-event .actions { margin-top:4px; }
+.lite-event.alert { border:2px solid var(--stamp); }
+.lite-event.alert .eyebrow { color:var(--stamp); }
 .lite-filter { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
 .lite-filter button { min-height:42px; border:1px solid var(--line); color:var(--muted); }
 .lite-filter button[aria-pressed="true"] { border-color:var(--paper); color:var(--paper); background:var(--desk-2); }
@@ -538,11 +545,12 @@ body.agent-reveal::after { content:"ACCESS GRANTED"; position:fixed; inset:0; z-
     </div>
 
     <div class="lite-pane" data-lpane="open">
-      <article class="today paper aged urban" style="--sx:80%;--sy:40%">
+      <article class="lite-event paper aged urban" id="lite-event">
         <span class="clip" aria-hidden="true"></span>
-        <div class="eyebrow">取扱注意 ・ 宛先不明</div>
-        <h2>郵便受けに、見覚えのない封筒があった</h2>
-        <p>差出人も、宛名もない。中には、途中まで黒く塗りつぶされた記録が入っている。<br>開封するなら、少し慎重に扱った方がよさそうだ。</p>
+        <div class="eyebrow" id="lite-event-eye">取扱注意 ・ 宛先不明</div>
+        <h2 id="lite-event-title">郵便受けに、見覚えのない封筒があった</h2>
+        <p id="lite-event-body">差出人も、宛名もない。中には、途中まで黒く塗りつぶされた記録が入っている。開封するなら、少し慎重に扱った方がよさそうだ。</p>
+        <div class="actions" id="lite-event-actions"></div>
       </article>
       <div class="lite-bar">
         <div class="row"><span>確認した断片</span><span class="mono" id="lite-n">0 / 36</span></div>
@@ -1800,6 +1808,49 @@ function liteDaily() {
   const text = `【真相ガチャ・本日の異常】\n「${name}」\n${body}\n観察番号 ${liteCode()}${url ? "\n" + url : ""}\n#真相ガチャ`;
   sheet("本日の異常記録", `<div class="lite-milestone"><small class="mono">${dayKey()}</small><b>${name}</b><p>${body}</p></div>` + shareBlock(text));
 }
+function defaultLiteEvent() {
+  const n = liteTotal();
+  if (n === 0) return { eye:"取扱注意 ・ 宛先不明", title:"郵便受けに、見覚えのない封筒があった", body:"差出人も、宛名もない。中には、途中まで黒く塗りつぶされた記録が入っている。開封するなら、少し慎重に扱った方がよさそうだ。", alert:false };
+  if (n < 10) return { eye:"未確認資料", title:"次の封筒が届いている", body:"前の封筒と同じ紙質だ。差出人は、まだ分からない。", alert:false };
+  if (n < 24) return { eye:"観察継続中", title:"まだ、こちらを見ている", body:"封筒は途切れない。開くほど、こちらの行動を記録されている気がする。", alert:false };
+  return { eye:"第六文書課", title:"面接案内は、まだ有効だ", body:"一般人のまま資料を確認し続けてもよい。応募するなら、ここから先は戻れない。", alert:true, action:"apply", label:"面接を受ける" };
+}
+function setLiteEvent(evt) {
+  S.lite = S.lite || { lv:{}, pulls:0 };
+  S.lite.event = evt; markDirty(); renderLiteEvent();
+  setLiteTab("open");
+}
+function clearLiteEvent() {
+  if (S.lite) delete S.lite.event;
+  markDirty(); renderLiteEvent();
+}
+function renderLiteEvent() {
+  const evt = (S.lite && S.lite.event) || defaultLiteEvent();
+  const card = $("lite-event"); if (!card) return;
+  card.classList.toggle("alert", !!evt.alert);
+  $("lite-event-eye").textContent = evt.eye || "記録";
+  $("lite-event-title").textContent = evt.title || "";
+  $("lite-event-body").textContent = evt.body || "";
+  const action = evt.action ? `<button class="btn-ink" data-levt="${evt.action}">${evt.label || "確認する"}</button>` : "";
+  const dismiss = S.lite && S.lite.event ? '<button class="btn-line" data-levt="dismiss">確認した</button>' : "";
+  $("lite-event-actions").innerHTML = action + dismiss;
+}
+function openLiteEventDetail(evt) {
+  if (!evt) return;
+  if (evt.action === "result") return liteResult();
+  if (evt.action === "apply") return startInterview();
+  if (evt.action === "complete") return liteComplete();
+  if (evt.action === "share18") {
+    const su = liteShareUrl(), url = su ? "\n" + su : "";
+    const t = "【真相ガチャ・異常記録】\n開封した覚えのない資料が1枚混ざっていた。\n紙の端が濡れている。\n確認した断片 18/" + LITE_ALL + url + "\n#真相ガチャ";
+    return sheet("異常記録", '<div class="lite-milestone"><b>これは、開けた覚えがない。</b><p>一枚だけ封筒の順番が違う。紙の端が濡れている。誰かが途中で差し込んだように見える。</p></div>' + shareBlock(t));
+  }
+  if (evt.action === "anomaly" && Number.isInteger(evt.anomalyId)) {
+    const [name, body] = LITE_ANOMALIES[evt.anomalyId], url = liteShareUrl();
+    const text = `【真相ガチャ・異常記録】\n「${name}」\n${body}\n観察番号 ${liteCode()}\n確認した断片 ${evt.n}/${LITE_ALL}${url ? "\n" + url : ""}\n#真相ガチャ`;
+    return sheet("異常記録", `<div class="lite-milestone"><b>${name}</b><p>${body}</p></div>` + shareBlock(text));
+  }
+}
 const LITE_ANOMALIES = [
   ["逆向きの消印","消印の日付が、明日になっている。"],
   ["二重の宛名","黒塗りの下に、もう一つ別の宛名が透けて見える。"],
@@ -1815,10 +1866,8 @@ function maybeLiteAnomaly(n) {
   const pool = LITE_ANOMALIES.map((x,i)=>i).filter(i => !S.lite.anom.includes(i));
   if (!pool.length) return false;
   const id = pool[Math.floor(Math.random() * pool.length)], [name, body] = LITE_ANOMALIES[id];
-  S.lite.anom.push(id); markDirty();
-  const url = liteShareUrl();
-  const text = `【真相ガチャ・異常記録】\n「${name}」\n${body}\n観察番号 ${liteCode()}\n確認した断片 ${n}/${LITE_ALL}${url ? "\n" + url : ""}\n#真相ガチャ`;
-  sheet("異常記録", `<div class="lite-milestone"><b>${name}</b><p>${body}</p><p class="mono">OBSERVATION ${liteCode()}</p></div>` + shareBlock(text));
+  S.lite.anom.push(id);
+  setLiteEvent({ eye:"異常記録", title:name, body, alert:true, action:"anomaly", label:"記録を開く", anomalyId:id, n });
   return true;
 }
 const LITE_NOTES = [
@@ -1889,15 +1938,11 @@ async function liteComplete() {
   sheet("一般人編・完全記録", `<img class="card-img" src="${img}" alt="一般人編完全記録"><div class="lite-result"><small>第六文書課・完全記録</small><b>36 / 36</b><span>閲覧傾向：${p.name}</span><span>異常遭遇：${anomalies}件</span><span class="mono">OBSERVATION ${liteCode()}</span></div>` + shareBlock(text));
 }
 function liteMilestone(n) {
-  if (n === 3) return sheet("差出人不明", '<div class="lite-milestone"><b>封筒の裏に印字がある。</b><p>「第六文書課」。そんな部署名は、検索しても出てこない。</p></div><div class="actions"><button class="btn-paper" data-act="close">続きを読む</button></div>');
-  if (n === 10) return liteResult();
-  if (n === 18) {
-    const su = liteShareUrl(), url = su ? "\n" + su : "";
-    const t = "【真相ガチャ・異常記録】\n開封した覚えのない資料が1枚混ざっていた。\n紙の端が濡れている。\n確認した断片 18/" + LITE_ALL + url + "\n#真相ガチャ";
-    return sheet("異常記録", '<div class="lite-milestone"><b>これは、開けた覚えがない。</b><p>一枚だけ封筒の順番が違う。紙の端が濡れている。誰かが途中で差し込んだように見える。</p></div>' + shareBlock(t));
-  }
-  if (n === 24) return sheet("第六文書課からの案内", '<article class="recruit-card"><div class="eyebrow">CONFIDENTIAL / RECRUITMENT</div><h2>あなたを観察していました。</h2><p>開封した順番、読み返した資料、止まった箇所。こちらでは記録しています。</p><p><b>調査員採用面接を受けますか。</b></p></article><div class="actions"><button class="btn-paper" data-la="apply">面接を受ける</button><button class="btn-line" data-act="close">まだ一般人でいる</button></div>');
-  if (n === 36) return liteComplete();
+  if (n === 3) return setLiteEvent({ eye:"差出人不明", title:"封筒の裏に印字がある", body:"「第六文書課」。そんな部署名は、検索しても出てこない。", alert:false });
+  if (n === 10) return setLiteEvent({ eye:"観察記録", title:"あなたの閲覧傾向が記録された", body:"開いた順番と資料の偏りから、暫定的な傾向が出ている。", alert:false, action:"result", label:"観察記録を見る" });
+  if (n === 18) return setLiteEvent({ eye:"異常記録", title:"これは、開けた覚えがない", body:"一枚だけ封筒の順番が違う。紙の端が濡れている。", alert:true, action:"share18", label:"記録を開く" });
+  if (n === 24) return setLiteEvent({ eye:"CONFIDENTIAL / RECRUITMENT", title:"あなたを観察していました", body:"開封した順番、読み返した資料、止まった箇所。応募資格は満たしています。", alert:true, action:"apply", label:"面接を受ける" });
+  if (n === 36) return setLiteEvent({ eye:"完全記録", title:"一般人として確認できる資料は、すべて開いた", body:"最後の封筒には、あなたの名前だけが書かれている。", alert:true, action:"complete", label:"完全記録を見る" });
 }
 function litePull() {
   const pool = liteItems().filter(i => liteLv(i.id) < LITE_MAX);
@@ -1937,6 +1982,7 @@ function renderLiteFiles() {
 }
 function renderLite(freshIt, freshL) {
   const n = liteTotal();
+  renderLiteEvent();
   $("lite-n").textContent = n + " / " + LITE_ALL;
   $("lite-bar").style.width = (n / LITE_ALL * 100) + "%";
   $("lite-pull").disabled = n >= LITE_ALL;
@@ -2073,10 +2119,12 @@ document.addEventListener("click", e => {
 });
 $("lite-pull").addEventListener("click", litePull);
 document.addEventListener("click", e => {
-  const t = e.target.closest("[data-ltab],[data-lfilter]");
+  const t = e.target.closest("[data-ltab],[data-lfilter],[data-levt]");
   if (!t) return;
   if (t.dataset.ltab) setLiteTab(t.dataset.ltab);
   if (t.dataset.lfilter) setLiteFilter(t.dataset.lfilter);
+  if (t.dataset.levt === "dismiss") clearLiteEvent();
+  else if (t.dataset.levt) openLiteEventDetail((S.lite && S.lite.event) || null);
 });
 $("lite-result").addEventListener("click", liteResult);
 $("lite-apply").addEventListener("click", startInterview);
