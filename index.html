@@ -498,6 +498,16 @@ body.night .top-in, body.night .today { animation: flicker 6s infinite; }
 
 /* ---------- 一般人モード（入門版） ---------- */
 body.lite .nav, body.lite #wallet { display: none !important; }
+body.lite.phase-uneasy { --lamp: rgba(184,53,43,.05); }
+body.lite.phase-danger { --lamp: rgba(184,53,43,.10); }
+body.lite.phase-crisis { --lamp: rgba(184,53,43,.16); }
+body.lite.phase-rescue { --lamp: rgba(221,213,195,.06); }
+body.lite.phase-danger .lite-event,
+body.lite.phase-crisis .lite-event { border-color: rgba(184,53,43,.7); }
+body.lite.phase-crisis::before { content:""; position:fixed; inset:0; z-index:39; pointer-events:none; background:repeating-linear-gradient(0deg,transparent 0 4px,rgba(184,53,43,.035) 4px 5px); animation:crisisNoise 2.8s steps(2) infinite; }
+@keyframes crisisNoise { 50% { transform:translateY(2px); opacity:.6; } }
+body.lite.phase-rescue .lite-event { border-color:#7a7468; box-shadow:0 18px 40px rgba(0,0,0,.5),0 0 0 1px rgba(221,213,195,.08); }
+body.lite.phase-rescue .lite-event .eyebrow { color:#716b5f; }
 body.lite main { padding-bottom: 40px; }
 .lite-tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:4px; padding:4px; background:var(--desk-2); border:1px solid var(--line); position:sticky; top:58px; z-index:4; }
 .lite-tabs button { min-height:44px; color:var(--muted); font-weight:700; }
@@ -2031,12 +2041,25 @@ function liteDaily() {
   const text = `【真相ガチャ・本日の異常】\n「${name}」\n${body}\n観察番号 ${liteCode()}${url ? "\n" + url : ""}\n#真相ガチャ`;
   sheet("本日の異常記録", `<div class="lite-milestone"><small class="mono">${dayKey()}</small><b>${name}</b><p>${body}</p></div>` + shareBlock(text));
 }
+function litePhase(n = liteTotal()) {
+  if (n <= 10) return "calm";
+  if (n <= 18) return "uneasy";
+  if (n <= 27) return "danger";
+  if (n <= 32) return "crisis";
+  return "rescue";
+}
+function applyLitePhase() {
+  const p = litePhase();
+  ["calm","uneasy","danger","crisis","rescue"].forEach(x => document.body.classList.toggle("phase-" + x, p === x));
+}
 function defaultLiteEvent() {
-  const n = liteTotal();
+  const n = liteTotal(), phase = litePhase(n);
   if (n === 0) return { eye:"取扱注意 ・ 宛先不明", title:"郵便受けに、見覚えのない封筒があった", body:"差出人も、宛名もない。中には、途中まで黒く塗りつぶされた記録が入っている。開封するなら、少し慎重に扱った方がよさそうだ。", alert:false };
-  if (n < 10) return { eye:"未確認資料", title:"次の封筒が届いている", body:"前の封筒と同じ紙質だ。差出人は、まだ分からない。", alert:false };
-  if (n < 24) return { eye:"観察継続中", title:"まだ、こちらを見ている", body:"封筒は途切れない。開くほど、こちらの行動を記録されている気がする。", alert:false };
-  return { eye:"第六文書課", title:"面接案内は、まだ有効だ", body:"一般人のまま資料を確認し続けてもよい。応募するなら、ここから先は戻れない。", alert:true, action:"apply", label:"面接を受ける" };
+  if (phase === "calm") return { eye:"未確認資料", title:"次の封筒が届いている", body:"前の封筒と同じ紙質だ。差出人は、まだ分からない。", alert:false };
+  if (phase === "uneasy") return { eye:"観察継続中", title:"まだ、こちらを見ている", body:"封筒は途切れない。開くほど、こちらの行動を記録されている気がする。", alert:false };
+  if (phase === "danger") return { eye:"警告", title:"こちらを見ているのは、差出人だけではない", body:"資料の一部に、あなたの閲覧時刻と同じ数字が繰り返し現れている。", alert:true };
+  if (phase === "crisis") return { eye:"接続異常", title:"閲覧を中止してください", body:"封筒の外側から、こちらへ何かが接続しようとしている。閉じても記録が増えている。", alert:true };
+  return { eye:"第六文書課・保護通信", title:"こちらで接続を遮断しました", body:"今は安全です。見てしまった内容について、確認させてください。", alert:false, action:n >= 36 ? "apply" : "", label:"事情聴取を受ける" };
 }
 function setLiteEvent(evt) {
   S.lite = S.lite || { lv:{}, pulls:0 };
@@ -2163,9 +2186,14 @@ async function liteComplete() {
 function liteMilestone(n) {
   if (n === 3) return setLiteEvent({ eye:"差出人不明", title:"封筒の裏に印字がある", body:"「第六文書課」。そんな部署名は、検索しても出てこない。", alert:false });
   if (n === 10) return setLiteEvent({ eye:"観察記録", title:"あなたの閲覧傾向が記録された", body:"開いた順番と資料の偏りから、暫定的な傾向が出ている。", alert:false, action:"result", label:"観察記録を見る" });
-  if (n === 18) return setLiteEvent({ eye:"異常記録", title:"これは、開けた覚えがない", body:"一枚だけ封筒の順番が違う。紙の端が濡れている。", alert:true, action:"share18", label:"記録を開く" });
-  if (n === 24) return setLiteEvent({ eye:"CONFIDENTIAL / RECRUITMENT", title:"あなたを観察していました", body:"開封した順番、読み返した資料、止まった箇所。応募資格は満たしています。", alert:true, action:"apply", label:"面接を受ける" });
-  if (n === 36) return setLiteEvent({ eye:"完全記録", title:"一般人として確認できる資料は、すべて開いた", body:"最後の封筒には、あなたの名前だけが書かれている。", alert:true, action:"complete", label:"完全記録を見る" });
+  if (n === 18) return setLiteEvent({ eye:"異常記録", title:"これは、開けた覚えがない", body:"一枚だけ封筒の順番が違う。紙の端が濡れている。誰かが途中で差し込んだように見える。", alert:true, action:"share18", label:"記録を開く" });
+  if (n === 24) return setLiteEvent({ eye:"警告", title:"あなたの観察番号が、別の資料に書かれている", body:"まだ開いていないはずの資料に、あなたの観察番号が先に印字されている。", alert:true });
+  if (n === 28) return setLiteEvent({ eye:"閲覧権限外", title:"これ以上、開かないでください", body:"画面の外側から、あなたの端末を参照するような記録が混ざり始めている。", alert:true });
+  if (n === 30) return setLiteEvent({ eye:"接続元特定中", title:"こちらの位置を探している", body:"差出人ではない何かが、閲覧記録を辿っている。第六文書課の印字だけが赤く滲んでいる。", alert:true });
+  if (n === 32) return setLiteEvent({ eye:"緊急警告", title:"封筒を閉じてください", body:"閲覧を続けると、観測対象がこちら側へ固定されます。画面を閉じても構いません。", alert:true });
+  if (n === 33) return setLiteEvent({ eye:"第六文書課・緊急介入", title:"接続を遮断しました", body:"聞こえますか。こちらは第六文書課です。今から先は、こちらの指示だけを見てください。", alert:false });
+  if (n === 35) return setLiteEvent({ eye:"保護通信", title:"あなたは、見てはいけないところまで来た", body:"責任はこちらにもあります。保護のため、最後に確認事項があります。", alert:false });
+  if (n === 36) return setLiteEvent({ eye:"第六文書課・保護手続き", title:"一般人のまま放置することはできません", body:"見てしまった内容について事情を確認し、そのまま第六文書課の管理下へ移します。", alert:false, action:"apply", label:"事情聴取を受ける" });
 }
 function litePull() {
   const pool = liteItems().filter(i => liteLv(i.id) < LITE_MAX);
@@ -2178,7 +2206,7 @@ function litePull() {
   S.lite.lv[it.id] = L; S.lite.pulls++;
   markDirty(); renderLite(it, L); buzz(15);
   const n = liteTotal();
-  if ([3, 10, 18, 24, 36].includes(n)) setTimeout(() => liteMilestone(n), 220);
+  if ([3, 10, 18, 24, 28, 30, 32, 33, 35, 36].includes(n)) setTimeout(() => liteMilestone(n), 220);
   else setTimeout(() => maybeLiteAnomaly(n), 220);
 }
 let liteTab = "open", liteFilter = "urban";
@@ -2205,6 +2233,7 @@ function renderLiteFiles() {
 }
 function renderLite(freshIt, freshL) {
   const n = liteTotal();
+  applyLitePhase();
   renderLiteEvent();
   $("lite-n").textContent = n + " / " + LITE_ALL;
   $("lite-bar").style.width = (n / LITE_ALL * 100) + "%";
@@ -2224,17 +2253,18 @@ function renderLite(freshIt, freshL) {
   }
   renderLiteFiles();
   $("lite-notes").innerHTML = LITE_NOTES.map(([th, t]) => n >= th ? `<p>${t}</p>` : `<p class="sealed">${redact("●●●●●●●●●●●●●●")} <small>あと${th - n}断片</small></p>`).join("");
-  const done = n >= LITE_ALL, eligible = n >= 24, prof = n >= 10;
+  const done = n >= LITE_ALL, eligible = n >= 36, prof = n >= 10;
   $("lite-result").hidden = !prof;
   $("lite-apply").hidden = !eligible;
   $("lite-sealed-join").hidden = eligible;
   $("lite-join").classList.toggle("hot", eligible);
-  $("lite-join-note").textContent = done ? "※ 観察番号 " + liteCode() + "。一般人として確認できる記録は、すべて開いた。"
-    : eligible ? "※ 面接は任意。一般人のまま36断片まで確認を続けてもよい。"
-    : n >= 18 ? "差出人はこちらの閲覧を把握している。あと" + (24 - n) + "断片で、次の案内が届くらしい。"
-    : prof ? "閲覧傾向を観察している者がいる。次の異常まで、あと" + (18 - n) + "断片。"
-    : n >= 3 ? "第六文書課という印字だけが残っている。もう少し拾えば何か分かるかもしれない。"
-    : "封筒を拾い続けると、差出人から案内が届くらしい。";
+  $("lite-join-note").textContent = done ? "※ 第六文書課から保護通信が届いている。"
+    : n >= 33 ? "※ 接続は遮断された。第六文書課がこちらを保護している。"
+    : n >= 28 ? "※ 閲覧を続けるほど危険度が上がっている。"
+    : n >= 18 ? "差出人ではない何かが、こちらの閲覧を把握している。"
+    : prof ? "閲覧傾向を観察している者がいる。"
+    : n >= 3 ? "第六文書課という印字だけが残っている。もう少し確認すれば何か分かるかもしれない。"
+    : "封筒を開き続けると、差出人の痕跡が見えてくるかもしれない。";
 }
 function liteOpen(id) {
   const it = byId(id), L = liteLv(id);
@@ -2246,23 +2276,23 @@ function liteOpen(id) {
     ${docHead(it)}
     <div class="eyebrow">FILE ${it.id.toUpperCase()} ・ ${BOX[it.box]}</div>
     <h2>${it.name}</h2><div class="pips" style="margin-bottom:6px">${pips(L)}</div>${body}</article>
-    <div class="actions">${liteTotal() >= 24 ? `<button class="btn-paper" data-la="apply">調査員になる</button>` : ""}<button class="btn-line" data-act="close">閉じる</button></div>`);
+    <div class="actions">${liteTotal() >= 36 ? `<button class="btn-paper" data-la="apply">事情聴取を受ける</button>` : ""}<button class="btn-line" data-act="close">閉じる</button></div>`);
 }
 function liteShare() {
   const row = b => liteItems().filter(i => i.box === b).map(i => LITE_CELL[liteLv(i.id)]).join("");
   const n = liteTotal(), su = liteShareUrl(), url = su ? "\n" + su : "";
-  const text = `【真相ガチャ・一般人編】\n封筒を${(S.lite && S.lite.pulls) || 0}通開封\n都市伝説 ${row("urban")}\n陰謀論　 ${row("conspiracy")}\n観察番号 ${liteCode()}\n確認した断片 ${n}/${LITE_ALL}${n >= LITE_ALL ? "\n最後の封筒には、自分の名前だけが書かれていた" : n >= 24 ? "\n第六文書課から面接の案内が届いた" : ""}\n#真相ガチャ${url}`;
+  const text = `【真相ガチャ・一般人編】\n封筒を${(S.lite && S.lite.pulls) || 0}通開封\n都市伝説 ${row("urban")}\n陰謀論　 ${row("conspiracy")}\n観察番号 ${liteCode()}\n確認した断片 ${n}/${LITE_ALL}${n >= LITE_ALL ? "\n危険に巻き込まれ、第六文書課に救出された" : n >= 28 ? "\n閲覧を中止するよう警告が出ている" : ""}\n#真相ガチャ${url}`;
   sheet("拾った封筒をシェア", `<p class="hint" style="text-align:left">⬛未開封 🟫Lv1 🟧Lv2 🟥Lv3（通りすがりの範囲）</p>` + shareBlock(text));
 }
 /* 面接 */
 const SIDE_NAME = { 0: "都市伝説班", 1: "陰謀論班", 2: "両班の兼任" };
 const INTERVIEW = [
-  { q: () => `第六文書課です。応募、ありがとうございます。<br>あなたが拾った封筒は${(S.lite && S.lite.pulls) || 0}通。数は、こちらでも把握しています。<br>では、志望動機を。`,
-    ch: [["気になって、つい開けてしまった", "好奇心は、この仕事で一番の資格です。同時に、一番の欠点でもあります。"], ["暇つぶしです", "正直で結構。この仕事の大半は、暇つぶしの延長です。"], ["…誰かに、そうするよう言われた気がして", "そうですか。誰に、とは訊きません。こちらも、知らないほうがいい。"]] },
-  { q: () => "次に、守秘義務について。ここで読んだ真相は、他人に話さないでください。守れますか。",
-    ch: [["はい、守ります", "結構。もっとも、みなさんそう答えます。"], ["たぶん、話してしまいます", "正直ですね。大丈夫です。話しても、伝わりませんから。共有できるのは、剥がれ具合だけです。"]] },
-  { q: () => "最後に。あなたは、話を信じる側ですか。疑う側ですか。",
-    ch: [["信じる側", "都市伝説班に配属します。怖がりのほうが、よく見えるものです。"], ["疑う側", "陰謀論班に配属します。疑う人ほど、最初に騙されます。"], ["どちらでもない", "では、両方を担当してもらいます。一番人手が足りない席です。"]] },
+  { q: () => `第六文書課です。接続は切りました。<br>まず確認します。あの封筒を開き続けた理由は？`,
+    ch: [["気になって、止められなかった", "好奇心は、危険ですが役にも立ちます。"], ["ただの作り話だと思っていた", "その判断自体は正常です。途中までは。"], ["向こうから呼ばれている気がした", "……その感覚は、記録しておきます。"]] },
+  { q: () => "次に。見た内容を外へ話さないでください。あなた自身を守るためです。できますか。",
+    ch: [["はい", "結構。保護手続きを続けます。"], ["保証できません", "正直で助かります。共有できる情報はこちらで制限します。"]] },
+  { q: () => "最後に。今後も、こうした資料を自分の意思で調べますか。",
+    ch: [["調べる", "都市伝説班に向いています。危険を感じ取れる人が必要です。"], ["疑いながらなら", "陰謀論班に向いています。疑う姿勢は残してください。"], ["まだ分からない", "では兼任扱いにします。最初はそれで十分です。"]] },
 ];
 const INTERVIEW_SCORE = [
   [[2,0,1],[0,1,0],[2,0,2]],
@@ -2283,7 +2313,7 @@ function interviewSide(score, last) {
 }
 let iv = null;
 function startInterview() {
-  if (liteTotal() < 24) { toast("まだ応募資格が確認できていない"); return; }
+  if (liteTotal() < 36) { toast("まだ第六文書課から保護通信が届いていない"); return; }
   iv = { step: 0, log: [], side: 2, score:[0,0,0], answers:[] };
   iv.log.push(["them", INTERVIEW[0].q()]);
   renderInterview(true);
@@ -2291,9 +2321,9 @@ function startInterview() {
 function renderInterview(choices) {
   const done = iv.step >= INTERVIEW.length;
   const chat = iv.log.map(([w, t]) => `<div class="b ${w}">${w === "them" ? "<small>面接官</small>" : ""}${t}</div>`).join("");
-  const tail = done ? `<div class="actions"><button class="btn-paper" data-la="start">調査を始める</button></div>`
+  const tail = done ? `<div class="actions"><button class="btn-paper" data-la="start">第六文書課に入る</button></div>`
     : choices ? `<div class="choices">${INTERVIEW[iv.step].ch.map((c, i) => `<button data-la="ans" data-i="${i}">${c[0]}</button>`).join("")}</div>` : "";
-  sheet("面接室", `<div class="chat">${chat}</div>${tail}`);
+  sheet("保護通信 / 事情聴取", `<div class="chat">${chat}</div>${tail}`);
   const sh = $("sheet"); sh.scrollTop = sh.scrollHeight;
 }
 function answerInterview(i) {
@@ -2308,7 +2338,7 @@ function answerInterview(i) {
     iv.type = interviewType(iv.score);
     if (!S.agentNo) S.agentNo = String(1000 + Math.floor(Math.random() * 9000));
     renderInterview(false);
-    setTimeout(() => { iv.log.push(["them", `採用です。調査員番号は No.${S.agentNo}。判定は「${iv.type}」、配属は${SIDE_NAME[iv.side]}。<br>なお、辞退の手続きは、用意していません。`]); renderInterview(false); }, 900);
+    setTimeout(() => { iv.log.push(["them", `確認できました。一般人として放置する方が危険です。<br>調査員番号 No.${S.agentNo} を発行します。判定は「${iv.type}」、配属は${SIDE_NAME[iv.side]}。<br>以後はこちらの管理下で資料を扱ってください。`]); renderInterview(false); }, 900);
   } else {
     renderInterview(false);
     setTimeout(() => { iv.log.push(["them", INTERVIEW[iv.step].q()]); renderInterview(true); }, 900);
