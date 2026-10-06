@@ -454,6 +454,14 @@ body.lite main { padding-bottom: 40px; }
 .lite-result b { font-family:var(--f-display); font-size:18px; }
 .lite-result small { color:var(--muted); }
 .lite-sealed-join { text-align:center; color:var(--muted); font-family:var(--f-mono); letter-spacing:.08em; }
+.lite-milestone { padding:16px; border:1px solid #5a6070; background:var(--desk-2); }
+.lite-milestone b { display:block; font-family:var(--f-display); font-size:21px; margin-bottom:6px; }
+.lite-milestone p { margin:0; color:var(--fg); }
+.recruit-card { padding:18px; border:2px solid var(--stamp); background:var(--paper); color:var(--ink); transform:rotate(-.4deg); }
+.recruit-card .eyebrow { color:var(--stamp); }
+.recruit-card h2 { font-family:var(--f-display); font-size:28px; margin:6px 0 10px; }
+body.agent-reveal::after { content:"ACCESS GRANTED"; position:fixed; inset:0; z-index:40; display:grid; place-items:center; background:#121419; color:var(--paper); font:800 clamp(32px,10vw,72px) var(--f-display); letter-spacing:.12em; animation:agentReveal .9s ease both; pointer-events:none; }
+@keyframes agentReveal { 0%{opacity:0} 18%,70%{opacity:1} 100%{opacity:0} }
 /* 面接 */
 .chat { display: grid; gap: 10px; }
 .chat .b { max-width: 88%; padding: 10px 13px; font-size: 15px; line-height: 1.75; animation: viewin .3s ease-out; }
@@ -1685,12 +1693,49 @@ function liteProfile() {
   if (cs >= us + 3) return { name:"疑念追跡型", desc:"違和感を見つけると、根拠まで追いたくなる。", top };
   return { name:"境界観測型", desc:"信じ切らず、切り捨てもせず、両方を拾っている。", top };
 }
-function liteResult() {
+async function makeLiteResultCard(p, n, topName) {
+  try { await document.fonts.ready; } catch (e) {}
+  const W = 1200, H = 675, c = document.createElement("canvas"); c.width = W; c.height = H;
+  const g = c.getContext("2d");
+  g.fillStyle = "#121419"; g.fillRect(0, 0, W, H);
+  g.fillStyle = "#ddd5c3"; g.fillRect(70, 55, W - 140, H - 110);
+  g.fillStyle = "#b8352b"; g.fillRect(70, 55, 14, H - 110);
+  g.fillStyle = "#5d5647"; g.font = "700 22px 'Courier Prime', monospace";
+  g.fillText("第六文書課 / 暫定観察記録", 110, 112);
+  g.fillStyle = "#1b1b1f"; g.font = "800 58px 'Shippori Mincho', serif";
+  g.fillText(p.name, 110, 205);
+  g.font = "400 28px 'Zen Kaku Gothic New', sans-serif";
+  wrapText(g, p.desc, 110, 260, 760, 42, 2);
+  g.fillStyle = "#5d5647"; g.font = "700 20px 'Zen Kaku Gothic New', sans-serif";
+  g.fillText("最も引き寄せた資料", 110, 382);
+  g.fillStyle = "#1b1b1f"; g.font = "800 34px 'Shippori Mincho', serif";
+  g.fillText(topName, 110, 428);
+  const cells = liteItems().map(i => liteLv(i.id));
+  cells.forEach((L, i) => {
+    const x = 112 + (i % 4) * 88, y = 500 + Math.floor(i / 4) * 70;
+    g.fillStyle = L === 0 ? "#252932" : L === 1 ? "#75685a" : L === 2 ? "#a66f3f" : "#b8352b";
+    g.fillRect(x, y, 58, 42);
+  });
+  g.fillStyle = "#5d5647"; g.font = "700 22px 'Courier Prime', monospace";
+  g.fillText("FRAGMENTS " + n + "/" + LITE_ALL, 500, 535);
+  g.fillStyle = "#b8352b"; g.font = "800 30px 'Shippori Mincho', serif";
+  g.textAlign = "right"; g.fillText("#真相ガチャ", W - 110, H - 92);
+  return c.toDataURL("image/png");
+}
+async function liteResult() {
   const n = liteTotal(), p = liteProfile();
   if (n < 10) return;
   const topName = p.top && liteLv(p.top.id) ? p.top.name : "まだ特定できない";
   const text = `【真相ガチャ・拾い方診断】\n私は「${p.name}」\n${p.desc}\n最も引き寄せた資料：${topName}\n読めた断片 ${n}/${LITE_ALL}\n#真相ガチャ${/^https?:/.test(location.protocol) ? "\n" + location.origin + location.pathname : ""}`;
-  sheet("あなたの拾い方", `<div class="lite-result"><small>第六文書課・暫定観察記録</small><b>${p.name}</b><span>${p.desc}</span><span>最も引き寄せた資料：${topName}</span></div>` + shareBlock(text));
+  sheet("あなたの拾い方", '<p class="hint">観察記録を作成中…</p>');
+  const img = await makeLiteResultCard(p, n, topName);
+  sheet("あなたの拾い方", `<img class="card-img" src="${img}" alt="拾い方診断 ${p.name}"><div class="lite-result"><small>第六文書課・暫定観察記録</small><b>${p.name}</b><span>${p.desc}</span><span>最も引き寄せた資料：${topName}</span></div>` + shareBlock(text));
+}
+function liteMilestone(n) {
+  if (n === 3) return sheet("差出人不明", '<div class="lite-milestone"><b>封筒の裏に印字がある。</b><p>「第六文書課」。そんな部署名は、検索しても出てこない。</p></div><div class="actions"><button class="btn-paper" data-act="close">続きを読む</button></div>');
+  if (n === 6) return sheet("宛名", '<div class="lite-milestone"><b>住所は、合っている。</b><p>ただし名前だけが空欄だ。偶然にしては、少し正確すぎる。</p></div><div class="actions"><button class="btn-paper" data-act="close">もう1通拾う</button></div>');
+  if (n === 10) return liteResult();
+  if (n === 12) return sheet("第六文書課からの案内", '<article class="recruit-card"><div class="eyebrow">CONFIDENTIAL / RECRUITMENT</div><h2>あなたを観察していました。</h2><p>拾い方、読む順番、止まった場所。応募資格は満たしています。</p><p><b>調査員採用面接を受けますか。</b></p></article><div class="actions"><button class="btn-paper" data-la="apply">面接を受ける</button><button class="btn-line" data-act="close">まだ一般人でいる</button></div>');
 }
 function litePull() {
   const pool = liteItems().filter(i => liteLv(i.id) < LITE_MAX);
@@ -1702,6 +1747,8 @@ function litePull() {
   const L = liteLv(it.id) + 1;
   S.lite.lv[it.id] = L; S.lite.pulls++;
   markDirty(); renderLite(it, L); buzz(15);
+  const n = liteTotal();
+  if ([3, 6, 10, 12].includes(n)) setTimeout(() => liteMilestone(n), 220);
 }
 function renderLite(freshIt, freshL) {
   const n = liteTotal();
@@ -1749,7 +1796,7 @@ function liteOpen(id) {
     ${docHead(it)}
     <div class="eyebrow">FILE ${it.id.toUpperCase()} ・ ${BOX[it.box]}</div>
     <h2>${it.name}</h2><div class="pips" style="margin-bottom:6px">${pips(L)}</div>${body}</article>
-    <div class="actions"><button class="btn-paper" data-la="apply">調査員になる</button><button class="btn-line" data-act="close">閉じる</button></div>`);
+    <div class="actions">${liteTotal() >= 12 ? `<button class="btn-paper" data-la="apply">調査員になる</button>` : ""}<button class="btn-line" data-act="close">閉じる</button></div>`);
 }
 function liteShare() {
   const row = b => liteItems().filter(i => i.box === b).map(i => LITE_CELL[liteLv(i.id)]).join("");
@@ -1826,7 +1873,9 @@ function becomeAgent() {
     markDirty();
   }
   hideSheet(); applyMode(); go("home"); render();
-  toast("調査員 No." + S.agentNo + " として登録された。まずは「本日のウワサ」を");
+  document.body.classList.add("agent-reveal");
+  setTimeout(() => document.body.classList.remove("agent-reveal"), 1000);
+  setTimeout(() => sheet("着任通知", `<article class="doc paper aged con"><div class="formhead"><span>第六文書課</span><span>採用通知</span><span>本人限り</span></div><h2>調査員 No.${S.agentNo}</h2><div class="lyr"><div class="lab">判定</div><p>${S.agentType}</p></div><div class="lyr"><div class="lab">配属</div><p>${S.assign}</p></div><div class="lyr"><div class="lab">閲覧権限</div><p>一般人には黒塗りだった LEVEL 4 / 5、および調査室へのアクセスを許可する。</p></div></article><div class="actions"><button class="btn-paper" data-la="enter">調査を開始する</button></div>`), 720);
 }
 function applyMode() {
   document.body.classList.toggle("lite", isLite());
@@ -1839,6 +1888,7 @@ document.addEventListener("click", e => {
   else if (a === "apply") startInterview();
   else if (a === "ans") answerInterview(+b.dataset.i);
   else if (a === "start") becomeAgent();
+  else if (a === "enter") { hideSheet(); toast("まずは「本日のウワサ」を確認してください"); }
 });
 $("lite-pull").addEventListener("click", litePull);
 $("lite-share").addEventListener("click", liteShare);
