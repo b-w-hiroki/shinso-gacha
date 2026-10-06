@@ -179,6 +179,21 @@ main { max-width: 640px; margin: 0 auto; padding-inline: 16px; padding-block: 20
 .stats b { font-family: var(--f-mono); font-size: 20px; font-variant-numeric: tabular-nums; }
 .actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
+/* ---------- agent home / event desk ---------- */
+.home-tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:4px; padding:4px; background:var(--desk-2); border:1px solid var(--line); position:sticky; top:58px; z-index:4; }
+.home-tabs button { min-height:44px; color:var(--muted); font-weight:700; }
+.home-tabs button[aria-pressed="true"] { background:var(--paper); color:var(--ink); }
+.home-pane { display:grid; gap:20px; }
+.desk-event { position:relative; min-height:230px; padding:22px 18px 18px; display:grid; align-content:start; gap:10px; box-shadow:0 18px 40px rgba(0,0,0,.5); }
+.desk-event .eyebrow { color:var(--paper-ink-2); }
+.desk-event h2 { margin:0; font-family:var(--f-display); font-size:clamp(27px,7vw,35px); line-height:1.25; }
+.desk-event p { margin:0; font-size:15px; line-height:1.75; }
+.desk-event.alert { border:2px solid var(--stamp); }
+.desk-event.alert .eyebrow { color:var(--stamp); }
+.desk-quick { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.desk-quick button { min-height:46px; }
+@media (max-width: 380px) { .desk-quick { grid-template-columns:1fr; } }
+
 /* ---------- bottom nav ---------- */
 .nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: rgba(18, 20, 25, .94); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); }
 .nav-in { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); height: var(--nav-h); }
@@ -582,38 +597,54 @@ body.agent-reveal::after { content:"ACCESS GRANTED"; position:fixed; inset:0; z-
 
   <!-- HOME -->
   <section class="view" data-view="home">
-    <p class="streak" id="streak"></p>
-    <div class="ushi" id="ushi" hidden><b>丑三つ時</b><span>放置で貯まる疑念が2倍。封筒の中身も少し騒がしい。</span></div>
-    <article class="today paper aged urban" id="today-card">
-      <span class="clip" aria-hidden="true"></span>
-      <span class="stamp-sm">投函済</span>
-      <div class="eyebrow" id="today-no">本日の噂 #001</div>
-      <h2 id="today-h">今日は全員が同じ噂を追っている</h2>
-      <p id="today-line"></p>
-      <span class="note" id="today-note"></span>
-      <div class="foot">
-        <button class="btn-ink" id="free">本日のウワサを読む</button>
-        <span class="eyebrow" id="today-lv">LV.0/5</span>
+    <div class="home-tabs" role="group" aria-label="調査デスクの表示切替">
+      <button data-htab="desk" aria-pressed="true">デスク</button>
+      <button data-htab="tasks" aria-pressed="false">任務</button>
+      <button data-htab="comms" aria-pressed="false">通信</button>
+    </div>
+
+    <div class="home-pane" data-hpane="desk">
+      <p class="streak" id="streak"></p>
+      <div class="ushi" id="ushi" hidden><b>丑三つ時</b><span>放置で貯まる疑念が2倍。封筒の中身も少し騒がしい。</span></div>
+      <article class="desk-event paper aged urban" id="desk-event">
+        <span class="clip" aria-hidden="true"></span>
+        <span class="stamp-sm" id="desk-stamp">投函済</span>
+        <div class="eyebrow" id="desk-eye">調査デスク</div>
+        <h2 id="desk-title">本日の資料を確認してください</h2>
+        <p id="desk-body"></p>
+        <div class="actions" id="desk-actions"></div>
         <span class="crowd" id="today-crowd" hidden></span>
+      </article>
+      <div class="desk-quick">
+        <button class="btn-paper" data-desk="gacha">封筒を調査する</button>
+        <button class="btn-line" data-desk="archive">資料を見る</button>
       </div>
+      <button class="pad" id="sniff">
+        <span class="lens" aria-hidden="true"></span>
+        <span><b>真相を嗅ぎ回る</b><small id="sniff-sub">タップで疑念ptが貯まる ／ 近づく保証はない</small></span>
+        <span class="combo" id="combo">×1</span>
+      </button>
+      <div class="cap"><span id="cap-text"></span><div class="rk-bar"><i id="cap-bar" style="width:0%"></i></div></div>
+    </div>
+
+    <div class="home-pane" data-hpane="tasks" hidden>
+      <div>
+        <div class="sec-h"><h3>本日の任務</h3><small>0時にリセット</small></div>
+        <div class="mis" id="missions"></div>
+      </div>
+    </div>
+
+    <div class="home-pane" data-hpane="comms" hidden>
+      <div class="bbs">
+        <div class="bbs-h"><span><b>【怪】真相調査スレ Part<span id="bbs-part">666</span></b></span><span class="live">● 実況中</span></div>
+        <div class="bbs-body" id="bbs" aria-live="off"></div>
+      </div>
+    </div>
+
+    <article class="today paper aged urban" id="today-card" hidden>
+      <div id="today-no"></div><div id="today-h"></div><div id="today-line"></div><div id="today-note"></div>
+      <button id="free"></button><span id="today-lv"></span>
     </article>
-
-    <button class="pad" id="sniff">
-      <span class="lens" aria-hidden="true"></span>
-      <span><b>真相を嗅ぎ回る</b><small id="sniff-sub">タップで疑念ptが貯まる ／ 近づく保証はない</small></span>
-      <span class="combo" id="combo">×1</span>
-    </button>
-    <div class="cap"><span id="cap-text"></span><div class="rk-bar"><i id="cap-bar" style="width:0%"></i></div></div>
-
-    <div class="bbs">
-      <div class="bbs-h"><span><b>【怪】真相調査スレ Part<span id="bbs-part">666</span></b></span><span class="live">● 実況中</span></div>
-      <div class="bbs-body" id="bbs" aria-live="off"></div>
-    </div>
-
-    <div>
-      <div class="sec-h"><h3>本日の任務</h3><small>0時にリセット</small></div>
-      <div class="mis" id="missions"></div>
-    </div>
   </section>
 
   <!-- GACHA -->
@@ -1390,6 +1421,53 @@ async function openCard(id) {
 function shared() { bump("share"); markDirty(); renderMissions(); }
 
 /* ---------- render ---------- */
+let homeTab = "desk";
+function setHomeTab(tab) {
+  homeTab = tab;
+  document.querySelectorAll("[data-htab]").forEach(b => b.setAttribute("aria-pressed", b.dataset.htab === tab));
+  document.querySelectorAll("[data-hpane]").forEach(p => p.hidden = p.dataset.hpane !== tab);
+  window.scrollTo({top:0, behavior:REDUCED ? "auto" : "smooth"});
+}
+function claimableMission() {
+  return MISSIONS.find(m => {
+    const s = S.missions && S.missions[m.id];
+    return s && s.p >= m.target && !s.claimed;
+  });
+}
+function deskEventData() {
+  const t = todayItem(), L = lv(t.id), used = S.freeDate === dayKey();
+  const claim = claimableMission();
+  const upgrade = UPS.find(u => upLv(u.id) < u.max && (S.evi || 0) >= upCost(u));
+  if (!used && L < 5) return {
+    eye:"本日の投函", title:L ? t.name : "黒塗りの資料が届いている",
+    body:t.layers[0][1], stamp:"未読", alert:true, action:"today", label:"封を切る"
+  };
+  if (claim) return {
+    eye:"任務報告", title:"受け取っていない報酬があります",
+    body:claim.text + "。報告を提出すると +" + claim.reward + "pt。",
+    stamp:"報告", alert:false, action:"tasks", label:"任務を確認する"
+  };
+  if (upgrade) return {
+    eye:"調査室", title:upgrade.name + "を強化できます",
+    body:"証拠が必要数まで集まりました。調査効率を上げられます。",
+    stamp:"更新", alert:false, action:"lab", label:"調査室へ"
+  };
+  return {
+    eye:"調査デスク", title:L ? t.name : "本日の資料はまだ黒塗りです",
+    body:used ? "本日の投函分は確認済み。次は封筒を調査するか、資料を読み返してください。" : t.layers[0][1],
+    stamp:"調査中", alert:false, action:"gacha", label:"封筒を調査する"
+  };
+}
+function renderDeskEvent() {
+  const e = deskEventData(), card = $("desk-event");
+  if (!card) return;
+  card.className = "desk-event paper aged " + kind(todayItem().box) + (e.alert ? " alert" : "");
+  $("desk-eye").textContent = e.eye;
+  $("desk-title").innerHTML = e.title;
+  $("desk-body").textContent = e.body;
+  $("desk-stamp").textContent = e.stamp;
+  $("desk-actions").innerHTML = `<button class="btn-ink" data-desk="${e.action}">${e.label}</button>`;
+}
 let shownPt = 0;
 function animatePt() {
   const target = Math.floor(S.currency);
@@ -1434,7 +1512,7 @@ function render() {
   $("env-seal").textContent = box === "urban" ? "封" : "極秘";
   $("big-env").classList.toggle("old", box === "urban");
   document.querySelectorAll("[data-seg]").forEach(b => b.setAttribute("aria-pressed", b.dataset.seg === box));
-  renderMissions(); renderArchive(); renderReport(); renderLab();
+  renderMissions(); renderArchive(); renderReport(); renderLab(); renderDeskEvent();
   const st = S.streak || { n: 0 };
   $("streak").textContent = st.n ? `連続調査 ${st.n}日目 ・ 明日の出勤ボーナス +${20 + 10 * Math.min(st.n + 1, 7)}pt` : "";
 }
@@ -1519,12 +1597,23 @@ function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = fals
 /* ---------- navigation ---------- */
 function go(view) {
   if (isLite()) view = "lite";
+  if (view === "home" && !isLite()) setHomeTab("desk");
   document.querySelectorAll("[data-view]").forEach(v => v.hidden = v.dataset.view !== view);
   document.querySelectorAll("[data-nav]").forEach(b => { if (b.dataset.nav === view) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
   window.scrollTo(0, 0);
 }
 
 /* ---------- events ---------- */
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-htab],[data-desk]");
+  if (!t) return;
+  if (t.dataset.htab) return setHomeTab(t.dataset.htab);
+  if (t.dataset.desk === "today") return postScene();
+  if (t.dataset.desk === "tasks") return setHomeTab("tasks");
+  if (t.dataset.desk === "lab") return go("lab");
+  if (t.dataset.desk === "gacha") return go("gacha");
+  if (t.dataset.desk === "archive") return go("archive");
+});
 document.addEventListener("click", e => {
   const el = e.target.closest("[data-act],[data-nav],[data-seg],[data-chip],[data-pull]");
   if (!el) { if (e.target.id === "sheet-bg") hideSheet(); return; }
