@@ -487,7 +487,10 @@ body.night .top-in, body.night .today { animation: flicker 6s infinite; }
 .agent-home .radar-screen { min-height:118px; max-height:132px; }
 .agent-home .radar-line:nth-child(n+4) { display:none; }
 .agent-home .desk-event { min-height:210px; margin:0; }
-.agent-home .home-sniff { min-height:48px; }
+.agent-home .home-sniff { min-height:44px; opacity:.72; border-style:dashed; }
+.agent-home .home-sniff .lens { width:28px; height:28px; border-width:2px; }
+.agent-home .home-sniff b { font-size:14px; font-family:var(--f-body); }
+.agent-home .home-sniff .combo { font-size:17px; }
 .agent-home .home-sniff small { display:none; }
 body:has(.agent-home:not([hidden])) main { padding-bottom:calc(142px + env(safe-area-inset-bottom,0px)); }
 body:has(.agent-home:not([hidden])) .nav { display:none; }
