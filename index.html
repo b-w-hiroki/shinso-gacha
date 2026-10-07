@@ -2918,7 +2918,8 @@ document.addEventListener("click", e => {
   if (t.dataset.levt === "dismiss") clearLiteEvent();
   else if (t.dataset.levt) openLiteEventDetail((S.lite && S.lite.event) || null);
 });
-$("wallet").addEventListener("click", openWalletDetail);\n$("lite-result").addEventListener("click", liteResult);
+$("wallet").addEventListener("click", openWalletDetail);
+$("lite-result").addEventListener("click", liteResult);
 $("lite-apply").addEventListener("click", startInterview);
 
 /* ---------- idle ---------- */
