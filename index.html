@@ -471,7 +471,7 @@ body.night .top-in, body.night .today { animation: flicker 6s infinite; }
 }
 
 /* ---------- 視認性の調整（暗い面の上の黒塗り・薄い罫線・小さい文字） ---------- */
-:root { --fg: #eef1f6; --muted: #bcc3cf; --line: #50596a; --desk-3: #353b47; --paper-ink-2: #494438; --ink: #15171a; --mask-dark: #596171; --mask-edge: #a4adbd; }
+:root { --fg: #f4f6f9; --muted: #d0d5de; --line: #596273; --desk-3: #353b47; --paper-ink-2: #494438; --ink: #15171a; --mask-dark: #596171; --mask-edge: #a4adbd; }
 /* 暗い背景に載る黒塗りは、明るい縁取りと灰色の塗りで見えるようにする */
 .logo .bar { background: #000; box-shadow: 0 0 0 1px var(--mask-edge); }
 .sheet .rd i { background: var(--mask-dark); box-shadow: inset 0 0 0 1px var(--mask-edge); }
@@ -489,17 +489,17 @@ body.night .top-in, body.night .today { animation: flicker 6s infinite; }
 .folder.secret .m, .folder.deep .m { color: #ff9e94; }
 .folder .cond { color: #e3c9c4; }
 /* 小さすぎる文字を引き上げる */
-.logo small { font-size: 10px; white-space: nowrap; color: #aab0be; }
-.eyebrow { font-size: 12px; }
+.logo small { font-size: 11px; white-space: nowrap; color:#c5cbd4; font-weight:700; letter-spacing:.05em; }
+.eyebrow { font-size:12px; font-weight:700; letter-spacing:.06em; }
 .folder .m { font-size: 11px; letter-spacing: .04em; color: #403b31; }
-.formhead { font-size: 11px; }
-.wallet span { font-size: 11px; white-space: nowrap; }
-.sum span, .stats span, .perks span, .nav button, .big-env .lab, .st-env .lab, .lyr .lab, .rar { font-size: 12px; }
+.formhead { font-size:12px; font-weight:700; }
+.wallet span { font-size:12px; font-weight:700; white-space:nowrap; }
+.sum span, .stats span, .perks span, .nav button, .big-env .lab, .st-env .lab, .lyr .lab, .rar { font-size:12px; font-weight:700; }
 .sheet { background: var(--desk-2); border-color: #4a5060; }
 .sheet-bg { background: rgba(5,6,8,.82); }
 .oddslist div { font-size: 15px; border-bottom-color: #444a5a; }
 .btn-paper:disabled, .pulls .five:disabled { color: #8d93a2; }
-.nav button { color: #bdc4d0; }
+.nav button { color:#d3d8e1; font-weight:700; }
 .nav button[aria-current="page"] { color: var(--paper); }
 
 /* ---------- 一般人モード（入門版） ---------- */
@@ -569,7 +569,7 @@ body.lite.footer-nav-only main { padding-bottom: calc(92px + env(safe-area-inset
   background:transparent; border:0; border-radius:0; box-shadow:none; backdrop-filter:none;
 }
 .lite-tabs button {
-  min-height:54px; font-weight:700; font-size:13px; letter-spacing:.04em;
+  min-height:54px; font-weight:800; font-size:14px; letter-spacing:.03em;
   border-radius:8px; border:1px solid transparent; transition:background .18s,border-color .18s,color .18s;
   display:grid; grid-template-columns:24px auto; place-items:center; justify-content:center; align-content:center; gap:7px; padding:5px 8px;
 }
@@ -611,7 +611,7 @@ body.lite.phase-crisis .lite-event-badge { opacity:.92; filter:contrast(1.08); }
 .lite-bar .row { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
 .lite-bar .bar { height: 7px; background:#343a46; border-radius:999px; overflow:hidden; }
 .lite-bar .bar i { display:block; height:100%; background:#9ab9c1; transition:width .4s; border-radius:999px; }
-.lite-bar .row { color:#c6ccd6; }
+.lite-bar .row { color:#dde2e9; font-weight:700; }
 .lite-bar .row .mono { color:#dbe3e8; font-size:15px; }
 .lite-pull {
   width:100%; min-height:58px; padding:16px 52px 16px 18px; position:relative;
@@ -631,11 +631,11 @@ body.lite.phase-rescue .lite-footer .lite-pull { background:#b9b3a4; border-colo
 .lite-last { min-height: 0; }
 .lite-last .doc { animation: viewin .35s ease-out; }
 .lite-notes { display: grid; gap: 8px; }
-.lite-notes p { margin: 0; padding: 10px 12px; border-left: 3px solid var(--stamp); background: var(--desk-2); font-size: 14px; line-height: 1.7; }
+.lite-notes p { margin:0; padding:10px 12px; border-left:3px solid var(--stamp); background:var(--desk-2); font-size:15px; line-height:1.75; font-weight:500; color:#f0f2f6; }
 .lite-notes p.sealed { border-left-color: #687184; color: #c6ccd6; }
 .lite-notes p.sealed .rd i { background: var(--mask-dark); box-shadow: inset 0 0 0 1px var(--mask-edge); }
 .lite-join { display: grid; gap: 8px; text-align: center; padding: 16px; border: 1px dashed #5a6070; }
-.lite-join p { margin: 0; font-size: 13px; color: var(--muted); }
+.lite-join p { margin:0; font-size:14px; line-height:1.65; color:#d7dce5; font-weight:600; }
 .lite-join .btn-ink { background: var(--stamp); color: #fff; padding: 14px; font-weight: 800; letter-spacing: .1em; }
 .lite-join.hot .btn-ink { animation: pulse 1.6s ease-in-out infinite; }
 .lock-teaser { opacity: .9; }
@@ -643,7 +643,7 @@ body.lite.phase-rescue .lite-footer .lite-pull { background:#b9b3a4; border-colo
 .agent-id { padding:14px 16px; border:1px solid var(--line); background:var(--desk-2); display:grid; gap:4px; }
 .pursuer-signal { display:grid; gap:5px; padding:12px 14px; border:1px solid #465061; background:rgba(22,25,31,.9); }
 .pursuer-signal b { font-family:var(--f-display); font-size:20px; color:var(--paper); }
-.pursuer-signal span { color:var(--muted); font-size:13px; }
+.pursuer-signal span { color:#d7dce4; font-size:14px; line-height:1.55; font-weight:600; }
 .pursuer-signal strong { color:#d2c8ad; }
 .agent-id b { font-family:var(--f-display); font-size:19px; }
 .agent-id span { color:var(--muted); font-size:13px; }
