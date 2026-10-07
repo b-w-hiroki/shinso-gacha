@@ -1907,7 +1907,7 @@ function renderReport() {
   if (S.agentNo) {
     aid.hidden = false;
     const crowdLine = pursuerTotal ? `追求者 ${pursuerTotal}名 ・ 本日 ${todayActiveCount()}名が活動中` : "追求者数を照会中";
-    aid.innerHTML = `<span>第六文書課・調査員登録</span><b>No.${S.agentNo} ／ ${S.agentType || "境界観測型"}</b><span>${S.assign || "両班の兼任"} ・ ${S.pursuerNo ? "第" + S.pursuerNo + "追求者" : "追求者登録済み"}</span><span>${crowdLine}</span>`;
+    aid.innerHTML = `<span>第六文書課・調査員登録</span><b>No.${S.agentNo} ／ ${S.agentType || "境界観測型"}</b><span>${S.assign || "両班の兼任"}</span>`;
   } else aid.hidden = true;
   const [n, d] = diagnosis();
   $("diag-name").textContent = n; $("diag-desc").textContent = d;
