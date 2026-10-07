@@ -476,6 +476,23 @@ body.night .top-in, body.night .today { animation: flicker 6s infinite; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 
+/* ---------- screenshot QA compact pass ---------- */
+.wallet-detail { display:grid; grid-template-columns:1fr 1fr; border:1px solid #626b78; }
+.wallet-detail div { min-width:0; padding:11px 12px; border-right:1px solid #4c5561; border-bottom:1px solid #4c5561; display:grid; gap:2px; }
+.wallet-detail div:nth-child(2n){border-right:0}.wallet-detail div:nth-last-child(-n+2){border-bottom:0}
+.wallet-detail span { font-size:12px; color:var(--muted); white-space:nowrap; }
+.wallet-detail b { font:800 clamp(18px,5vw,24px) var(--f-mono); white-space:nowrap; }
+.post { padding-block:7px; }
+.post .ph { font-size:11px; line-height:1.25; }
+.post p { margin:3px 0 0; font-size:14px; line-height:1.45; }
+@media(max-width:599px){
+  .sheet{gap:9px}
+  .sheet-h{padding-bottom:3px}
+  .agent-home .desk-event h2{margin:3px 0 5px}
+  .agent-home .desk-event p{margin:0}
+  .agent-home .desk-event .actions .btn-line{min-height:42px;padding:8px 12px}
+}
+
 /* ---------- final first-view compression ---------- */
 @media(max-width:599px){
   .agent-home .radar-screen{min-height:108px;max-height:116px}
@@ -2930,7 +2947,7 @@ function openWalletDetail() {
   const step = idleStep(), perMin = 60000 / step, perHour = perMin * 60;
   const next = Math.max(0, step - (Date.now() - S.lastTick));
   const night = hour() === 2;
-  sheet("疑念pt / 自動獲得", `<div class="sum"><div><span>現在</span><b>${Math.floor(S.currency)}pt</b></div><div><span>自動獲得</span><b>+1 / ${(step/1000).toFixed(1)}秒</b></div><div><span>1分あたり</span><b>約${perMin.toFixed(1)}pt</b></div><div><span>1時間あたり</span><b>約${Math.round(perHour)}pt</b></div></div><div class="research-card ready"><b>次の +1pt まで ${(next/1000).toFixed(1)}秒</b><div class="rk-bar"><i style="width:${Math.min(100,(1-next/step)*100)}%"></i></div><small>ランク補正 ×${(1+.05*rankIdx()).toFixed(2)} ／ 無線設備 ×${(1+.1*upLv("radio")).toFixed(2)}${night ? " ／ 丑三つ時 ×2" : ""}</small></div><p class="hint" style="text-align:left">留守中の獲得には上限があります。通信端末の強化で上限が延びます。</p>`);
+  sheet("疑念pt / 自動獲得", `<div class="wallet-detail"><div><span>現在</span><b>${Math.floor(S.currency)}pt</b></div><div><span>自動獲得</span><b>+1 / ${(step/1000).toFixed(1)}秒</b></div><div><span>1分</span><b>約${perMin.toFixed(1)}pt</b></div><div><span>1時間</span><b>約${Math.round(perHour)}pt</b></div></div><div class="research-card ready"><b>次の +1pt まで ${(next/1000).toFixed(1)}秒</b><div class="rk-bar"><i style="width:${Math.min(100,(1-next/step)*100)}%"></i></div><small>ランク補正 ×${(1+.05*rankIdx()).toFixed(2)} ／ 無線設備 ×${(1+.1*upLv("radio")).toFixed(2)}${night ? " ／ 丑三つ時 ×2" : ""}</small></div><p class="hint" style="text-align:left">留守中の獲得には上限があります。通信端末の強化で上限が延びます。</p>`);
 }
 function tick() {
   if (isLite()) { S.lastTick = Date.now(); return; }
