@@ -76,3 +76,8 @@ has(/FOLLOW \/ 追随/, "field aftermath variety missing");
 has(/SHIFT \/ 境界変位/, "seal aftermath variety missing");
 has(/SPLIT \/ 分岐/, "watch aftermath variety missing");
 has(/\.agent-home \.home-sniff\{display:none\}/, "secondary sniff action must leave the mobile first view");
+
+has(/class="wallet-detail"/, "wallet detail must use compact mobile grid");
+has(/駅の時計、1台だけ4分遅れてる/, "expanded everyday-horror thread corpus missing");
+has(/今日の任務、住所がうちの最寄りと一文字違い/, "thread corpus variety missing");
+has(/data-kind="\$\{e\.type\}"/, "evidence visual kind hook missing");
