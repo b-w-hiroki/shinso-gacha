@@ -2039,7 +2039,8 @@ async function flush() {
     const key = JSON.stringify(scout);
     if (!isLite() && key !== lastScout) {
       await cloud.setDoc(cloud.scoutRef, scout); lastScout = key;
-      await refreshPursuerTotal(!S.pursuerNo);
+      await refreshPursuerTotal(!!S.pursuerPending);
+      if (S.pursuerNo && S.pursuerPending) { delete S.pursuerPending; save(); }
     }
     setSync("アカウントに保存済み（別の端末でも続きから遊べます）");
   } catch (e) {
@@ -2093,7 +2094,7 @@ async function initCloud() {
     if (!auth.currentUser) await Au.signInAnonymously(auth);
     bindCloud(auth.currentUser);
     await pullRemote();
-    if (!isLite()) await refreshPursuerTotal(!S.pursuerNo);
+    if (!isLite()) await refreshPursuerTotal(false);
     markDirty(); flush();
   } catch (e) { setSync("この端末のみに保存"); }
 }
@@ -2514,7 +2515,7 @@ function showAgentWelcome() {
 }
 function becomeAgent() {
   if (!S.role) {
-    S.role = "agent"; S.assign = SIDE_NAME[iv ? iv.side : 2]; S.agentType = iv && iv.type ? iv.type : "境界観測型"; S.onboarded = true;
+    S.role = "agent"; S.assign = SIDE_NAME[iv ? iv.side : 2]; S.agentType = iv && iv.type ? iv.type : "境界観測型"; S.onboarded = true; S.pursuerPending = true;
     S.levels = S.levels || {};
     LITE_IDS.forEach(id => { S.levels[id] = Math.max(S.levels[id] || 0, liteLv(id)); });
     S.currency += 30; S.lastTick = Date.now();
