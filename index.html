@@ -500,6 +500,21 @@ body:has(.agent-home:not([hidden])) .nav { display:none; }
 .radar-head { min-height:38px; padding:7px 10px; display:grid; grid-template-columns:1fr auto; gap:1px 8px; align-items:center; border-bottom:1px solid #3c4c47; font:700 10px var(--f-mono); letter-spacing:.1em; color:#8da49c; }
 .radar-head b { grid-row:1/3; grid-column:2; color:#c4d7d0; font-size:12px; }
 .radar-head .live { font-style:normal; color:#9fc7b8; }
+.radar-grid { position:absolute; inset:8px; border:1px solid rgba(122,177,156,.20); border-radius:50%; left:50%; width:118px; height:118px; transform:translateX(-50%); opacity:.7; }
+.radar-grid::before,.radar-grid::after,.radar-grid i { content:""; position:absolute; border:1px solid rgba(122,177,156,.16); border-radius:50%; inset:18px; }
+.radar-grid::after { inset:38px; }
+.radar-grid i:nth-child(1){ left:50%; top:0; bottom:0; width:1px; border:0; border-left:1px solid rgba(122,177,156,.14); border-radius:0; }
+.radar-grid i:nth-child(2){ top:50%; left:0; right:0; height:1px; border:0; border-top:1px solid rgba(122,177,156,.14); border-radius:0; }
+.radar-blips { position:absolute; inset:8px; left:50%; width:118px; height:118px; transform:translateX(-50%); }
+.radar-blip { position:absolute; width:7px; height:7px; border-radius:50%; background:#9bc9b8; box-shadow:0 0 9px currentColor; }
+.radar-blip.warn { background:#d7a552; color:#d7a552; }
+.radar-blip.danger { width:9px; height:9px; background:#d4574b; color:#d4574b; animation:radarPulse 1.25s ease-in-out infinite; }
+.radar-blip.sealed { background:transparent; border:1px dashed #aeb9b5; box-shadow:none; }
+@keyframes radarPulse { 50%{transform:scale(1.55);opacity:.55} }
+.radar-contact { position:absolute; right:9px; top:9px; z-index:2; width:118px; padding:7px 8px; border:1px solid rgba(121,159,145,.34); background:rgba(8,15,14,.82); display:grid; line-height:1.2; }
+.radar-contact small { font:700 9px var(--f-mono); color:#7f9b91; letter-spacing:.08em; }
+.radar-contact b { font:800 20px var(--f-mono); color:#d7e4df; margin:2px 0; }
+.radar-contact span { font-size:10px; color:#a8bab3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .radar-screen { position:relative; min-height:142px; padding:8px 10px; overflow:hidden; background:radial-gradient(circle at 50% 50%,rgba(78,126,108,.10),transparent 58%),repeating-linear-gradient(0deg,transparent 0 3px,rgba(114,155,140,.025) 3px 4px); }
 .radar-sweep { position:absolute; inset:-50%; background:conic-gradient(from 0deg,transparent 0 330deg,rgba(112,166,145,.13) 352deg,transparent 360deg); animation:radarSweep 7s linear infinite; pointer-events:none; }
 @keyframes radarSweep { to{transform:rotate(360deg)} }
@@ -858,7 +873,14 @@ body.agent-reveal::after { content:"PROTECTIVE CLEARANCE"; position:fixed; inset
       <section class="thread-radar" aria-label="異常探知スレッド">
         <div class="radar-head"><span>第六文書課 / 異常探知網</span><b>THREAD RADAR</b><i class="live">● LIVE</i></div>
         <div class="radar-screen">
+          <div class="radar-grid" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
           <div class="radar-sweep" aria-hidden="true"></div>
+          <div class="radar-blips" id="radar-blips" aria-hidden="true"></div>
+          <div class="radar-contact" id="radar-contact">
+            <small id="radar-state">MONITORING</small>
+            <b id="radar-distance">---</b>
+            <span id="radar-place">反応を走査中</span>
+          </div>
           <div class="radar-posts" id="radar-posts" aria-live="polite"></div>
         </div>
       </section>
@@ -1790,6 +1812,28 @@ function deskEventData() {
     stamp:"調査中", alert:false, action:"gacha", label:"封筒を調査する"
   };
 }
+const RADAR_PLACES = ["駅構内","集合住宅","商店街","地下通路","河川敷","学校裏","コンビニ周辺","高架下"];
+function radarSignal() {
+  const e = deskEventData(), seed = Math.abs((dayNo() * 97 + (S.pulls || 0) * 13 + totalLv() * 7) % 997);
+  const urgent = e.alert || e.action === "weekly";
+  const near = e.action === "today" || urgent;
+  const distance = urgent ? 80 + seed % 420 : near ? 300 + seed % 1700 : 1200 + seed % 7800;
+  const state = urgent ? "DANGER / 接近中" : near ? "CAUTION / 要確認" : "MONITORING / 経過観察";
+  const place = RADAR_PLACES[seed % RADAR_PLACES.length];
+  return { distance, state, place, urgent, near, seed };
+}
+function renderRadar() {
+  const r = radarSignal(), blips = $("radar-blips");
+  if (!blips) return;
+  $("radar-distance").textContent = r.distance < 1000 ? r.distance + "m" : (r.distance / 1000).toFixed(1) + "km";
+  $("radar-state").textContent = r.state;
+  $("radar-place").textContent = r.place + "付近 / ゲーム内観測";
+  const pts = [[18,25],[68,18],[32,70],[75,63],[51,43]];
+  blips.innerHTML = pts.map((p,i) => {
+    const cls = i === 4 ? (r.urgent ? "danger" : r.near ? "warn" : "") : i === 1 && !r.near ? "sealed" : "";
+    return `<i class="radar-blip ${cls}" style="left:${p[0]}%;top:${p[1]}%"></i>`;
+  }).join("");
+}
 function renderDeskEvent() {
   const e = deskEventData(), card = $("desk-event");
   if (!card) return;
@@ -1804,6 +1848,7 @@ function renderDeskEvent() {
     primary.textContent = e.label;
     primary.dataset.desk = e.action;
   }
+  renderRadar();
 }
 let shownPt = 0;
 function animatePt() {
@@ -2117,8 +2162,9 @@ function addPost() {
   const now = new Date(), hh = String(now.getHours()).padStart(2, "0"), mm = String(now.getMinutes()).padStart(2, "0"), ss = String(now.getSeconds()).padStart(2, "0");
   const haunted = Math.random() < (hour() === 2 ? .3 : .08);
   let body;
-  if (haunted) body = ["みつけた", "うしろ", "そこにいるの", "あと3回"][Math.floor(Math.random() * 4)];
-  else if (crowd && crowd.length > 1 && Math.random() < .15) body = `今日はもう${crowd.length}人がこの噂を追ってるらしい`;
+  if (haunted) body = ["同じ反応がまた出た", "駅のカメラだけ時刻がずれてる", "処理済みのはずなんだけど", "その地点、昨日も出てた"][Math.floor(Math.random() * 4)];
+  else if (Math.random() < .14) { const r = radarSignal(); body = `${r.place}の反応、まだ消えてない。距離表示だけ縮んでる`; }
+  else if (crowd && crowd.length > 1 && Math.random() < .15) body = `同じ異常を追ってる調査員がいるらしい`;
   else if (Math.random() < .2) { const t = todayItem(); body = lv(t.id) ? `今日の噂「${t.name}」、もうLv${lv(t.id)}まで行ったやついる？` : `今日の噂、${[...t.name].length}文字らしい。誰か引いた？`; }
   else body = POSTS[Math.floor(Math.random() * POSTS.length)];
   const p = document.createElement("div"); p.className = "post" + (haunted ? " haunt" : "");
