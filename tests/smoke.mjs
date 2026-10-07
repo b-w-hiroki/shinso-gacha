@@ -65,4 +65,4 @@ has(/RECUR \/ 再発/, "field investigation aftermath missing");
 has(/LEAK \/ 漏出/, "remote seal aftermath missing");
 has(/CLOSER \/ 接近/, "watch aftermath missing");
 has(/action:"evidence", label:"再検出を確認する"/, "aftermath must return to evidence investigation");
-has(/data\.aftermath = "1"/, "aftermath thread signal missing");
+has(/dataset\\.aftermath = "1"/, "aftermath thread signal missing");
