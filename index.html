@@ -66,9 +66,9 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--stamp); outline
 
 /* ---------- mock gacha scene ---------- */
 .gacha-scene { position:relative; isolation:isolate; min-height:calc(100dvh - 150px); }
-.gacha-scene::before { content:""; position:fixed; inset:58px 0 var(--nav-h); z-index:-3; pointer-events:none; background:radial-gradient(circle at 86% 27%,rgba(167,37,25,.34),transparent 19%),radial-gradient(circle at 48% 28%,rgba(183,170,138,.055),transparent 28%),repeating-linear-gradient(8deg,rgba(255,255,255,.012) 0 1px,transparent 1px 7px),linear-gradient(155deg,#080909 0%,#11100e 44%,#090909 100%); }
+.gacha-scene::before { content:""; position:fixed; inset:58px 0 var(--nav-h); z-index:-3; pointer-events:none; background:linear-gradient(rgba(4,5,5,.18),rgba(4,5,5,.28)),url("assets/gacha-desk-bg.svg") center/cover no-repeat,#080909; filter:saturate(.82) contrast(1.08); }
 .gacha-scene::after { content:""; position:fixed; inset:58px 0 var(--nav-h); z-index:-2; pointer-events:none; background:linear-gradient(90deg,rgba(0,0,0,.56),transparent 28%,transparent 72%,rgba(0,0,0,.42)),linear-gradient(0deg,rgba(0,0,0,.22),transparent 40%); }
-.scene-props { position:absolute; inset:-8px 0 0; z-index:-1; pointer-events:none; overflow:hidden; min-height:720px; }
+.scene-props { position:absolute; inset:-8px 0 0; z-index:-1; pointer-events:none; overflow:hidden; min-height:720px; opacity:.42; mix-blend-mode:screen; }
 .scene-props i { position:absolute; display:block; }
 .prop-files { left:-25px;top:36px;width:150px;height:210px;background:linear-gradient(90deg,#1b1813,#31261d 50%,#151311);transform:rotate(-5deg);box-shadow:12px 16px 25px rgba(0,0,0,.5);border:1px solid #46392d; }
 .prop-files::after { content:"第六文書課\\A未解決　要再調査"; white-space:pre; position:absolute;inset:24px 12px auto;padding:10px;border:1px solid #513b32;color:#7c5548;font:800 14px/2 var(--f-display); }
