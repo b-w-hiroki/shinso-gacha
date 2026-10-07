@@ -572,6 +572,8 @@ body:has(.agent-home:not([hidden])) .nav { display:none; }
 .radar-grid::before{inset:28px;border-color:rgba(120,202,169,.27)}.radar-grid::after{inset:58px;border-color:rgba(120,202,169,.22)}
 .radar-blips { width:184px;height:184px;left:42%;top:8px; }
 .radar-sweep { inset:-75%; opacity:.85; background:conic-gradient(from 0deg,transparent 0 336deg,rgba(112,207,169,.20) 354deg,transparent 360deg); }
+.radar-sector { position:absolute;left:10px;top:10px;z-index:2;display:grid;font:700 8px/1.5 var(--f-mono);letter-spacing:.08em;color:#507568; }
+.radar-screen::after { content:"35.6762, 139.6503   ZOOM ×4.0"; position:absolute;right:10px;bottom:6px;font:700 8px var(--f-mono);color:#42675a;letter-spacing:.04em; }
 .radar-contact { top:10px;right:10px;width:128px;border-color:#466d60;background:rgba(4,12,10,.90);box-shadow:0 0 18px rgba(0,0,0,.45); }
 .radar-contact b { font-size:24px;color:#e1ebe7; }
 .radar-contact small { color:#89ad9f; }
@@ -960,7 +962,7 @@ body.agent-reveal::after { content:"PROTECTIVE CLEARANCE"; position:fixed; inset
     <div class="home-pane" data-hpane="desk">
       <section class="thread-radar" aria-label="異常探知スレッド">
         <div class="radar-head"><span>第六文書課 / 異常探知網</span><b>THREAD RADAR</b><i class="live">● LIVE</i></div>
-        <div class="radar-screen">
+        <div class="radar-screen"><div class="radar-sector" aria-hidden="true"><span>SECTOR-A7 / SIM</span><span>STATUS: MONITORING</span></div>
           <div class="radar-grid" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
           <div class="radar-sweep" aria-hidden="true"></div>
           <div class="radar-blips" id="radar-blips" aria-hidden="true"></div>
