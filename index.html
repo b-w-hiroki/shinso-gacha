@@ -1848,10 +1848,12 @@ function deskEventData() {
 const RADAR_PLACES = ["駅構内","集合住宅","商店街","地下通路","河川敷","学校裏","コンビニ周辺","高架下"];
 function radarSignal() {
   const e = deskEventData(), seed = Math.abs((dayNo() * 97 + (S.pulls || 0) * 13 + totalLv() * 7) % 997);
-  const handled = S.caseLog && S.caseLog[dayKey()];
+  const handled = S.caseLog && S.caseLog[dayKey()], aftermath = caseAftermath();
   let urgent = e.alert || e.action === "weekly", near = e.action === "today" || urgent;
+  if (!handled && aftermath && e.action === "evidence") { urgent = true; near = true; }
   let distance = urgent ? 80 + seed % 420 : near ? 300 + seed % 1700 : 1200 + seed % 7800;
   let state = urgent ? "DANGER / 接近中" : near ? "CAUTION / 要確認" : "MONITORING / 経過観察";
+  if (!handled && aftermath && e.action === "evidence") state = aftermath.state;
   if (handled) {
     if (handled.choice === "seal") { urgent = false; near = false; distance = 0; state = "SEALED / 封鎖済"; }
     else if (handled.choice === "field") { urgent = false; near = true; distance = 20 + seed % 80; state = "ON SITE / 現地確認"; }
