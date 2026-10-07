@@ -1812,6 +1812,28 @@ function deskEventData() {
     stamp:"調査中", alert:false, action:"gacha", label:"封筒を調査する"
   };
 }
+const RADAR_PLACES = ["駅構内","集合住宅","商店街","地下通路","河川敷","学校裏","コンビニ周辺","高架下"];
+function radarSignal() {
+  const e = deskEventData(), seed = Math.abs((dayNo() * 97 + (S.pulls || 0) * 13 + totalLv() * 7) % 997);
+  const urgent = e.alert || e.action === "weekly";
+  const near = e.action === "today" || urgent;
+  const distance = urgent ? 80 + seed % 420 : near ? 300 + seed % 1700 : 1200 + seed % 7800;
+  const state = urgent ? "DANGER / 接近中" : near ? "CAUTION / 要確認" : "MONITORING / 経過観察";
+  const place = RADAR_PLACES[seed % RADAR_PLACES.length];
+  return { distance, state, place, urgent, near, seed };
+}
+function renderRadar() {
+  const r = radarSignal(), blips = $("radar-blips");
+  if (!blips) return;
+  $("radar-distance").textContent = r.distance < 1000 ? r.distance + "m" : (r.distance / 1000).toFixed(1) + "km";
+  $("radar-state").textContent = r.state;
+  $("radar-place").textContent = r.place + "付近 / ゲーム内観測";
+  const pts = [[18,25],[68,18],[32,70],[75,63],[51,43]];
+  blips.innerHTML = pts.map((p,i) => {
+    const cls = i === 4 ? (r.urgent ? "danger" : r.near ? "warn" : "") : i === 1 && !r.near ? "sealed" : "";
+    return `<i class="radar-blip ${cls}" style="left:${p[0]}%;top:${p[1]}%"></i>`;
+  }).join("");
+}
 function renderDeskEvent() {
   const e = deskEventData(), card = $("desk-event");
   if (!card) return;
@@ -1826,6 +1848,7 @@ function renderDeskEvent() {
     primary.textContent = e.label;
     primary.dataset.desk = e.action;
   }
+  renderRadar();
 }
 let shownPt = 0;
 function animatePt() {
