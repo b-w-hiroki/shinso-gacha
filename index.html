@@ -2098,6 +2098,15 @@ function addPost() {
   p.querySelector("p").textContent = body;
   box.appendChild(p);
   while (box.children.length > 5) box.firstElementChild.remove();
+  const radar = $("radar-posts");
+  if (radar) {
+    const line = document.createElement("div");
+    line.className = "radar-line" + (haunted ? " haunt" : "");
+    const time = document.createElement("time"); time.textContent = hh + ":" + mm;
+    const msg = document.createElement("span"); msg.textContent = body;
+    line.append(time, msg); radar.prepend(line);
+    while (radar.children.length > 4) radar.lastElementChild.remove();
+  }
 }
 function applyTime() {
   const h = hour();
