@@ -64,6 +64,28 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--stamp); outline
 .wallet span { font-size: 11px; color: var(--muted); }
 .wallet.pop b { color: var(--paper); }
 
+/* ---------- mock gacha scene ---------- */
+.gacha-scene { position:relative; isolation:isolate; min-height:calc(100dvh - 150px); }
+.gacha-scene::before { content:""; position:fixed; inset:58px 0 var(--nav-h); z-index:-3; pointer-events:none; background:radial-gradient(circle at 86% 27%,rgba(167,37,25,.34),transparent 19%),radial-gradient(circle at 48% 28%,rgba(183,170,138,.055),transparent 28%),repeating-linear-gradient(8deg,rgba(255,255,255,.012) 0 1px,transparent 1px 7px),linear-gradient(155deg,#080909 0%,#11100e 44%,#090909 100%); }
+.gacha-scene::after { content:""; position:fixed; inset:58px 0 var(--nav-h); z-index:-2; pointer-events:none; background:linear-gradient(90deg,rgba(0,0,0,.56),transparent 28%,transparent 72%,rgba(0,0,0,.42)),linear-gradient(0deg,rgba(0,0,0,.22),transparent 40%); }
+.scene-props { position:absolute; inset:-8px 0 0; z-index:-1; pointer-events:none; overflow:hidden; min-height:720px; }
+.scene-props i { position:absolute; display:block; }
+.prop-files { left:-25px;top:36px;width:150px;height:210px;background:linear-gradient(90deg,#1b1813,#31261d 50%,#151311);transform:rotate(-5deg);box-shadow:12px 16px 25px rgba(0,0,0,.5);border:1px solid #46392d; }
+.prop-files::after { content:"第六文書課\\A未解決　要再調査"; white-space:pre; position:absolute;inset:24px 12px auto;padding:10px;border:1px solid #513b32;color:#7c5548;font:800 14px/2 var(--f-display); }
+.prop-photo { right:72px;top:56px;width:130px;height:155px;transform:rotate(2deg);background:linear-gradient(rgba(12,13,13,.28),rgba(12,13,13,.28)),radial-gradient(ellipse at 53% 52%,#292b29 0 8%,transparent 9%),linear-gradient(145deg,#33332f,#111);border:7px solid #171717;box-shadow:0 10px 30px #000;opacity:.82; }
+.prop-photo::after { content:"23:14:26";position:absolute;right:6px;bottom:6px;color:#7c6d63;font:700 8px var(--f-mono); }
+.prop-lamp { right:-36px;top:18px;width:118px;height:170px;background:radial-gradient(circle at 35% 70%,rgba(255,80,50,.42),transparent 18%),linear-gradient(145deg,transparent 45%,#161313 46% 63%,transparent 64%);filter:drop-shadow(-12px 28px 25px rgba(176,36,23,.32)); }
+.prop-tape { left:6px;bottom:30px;width:128px;height:76px;background:#0e1010;border:2px solid #282a28;transform:rotate(5deg);box-shadow:0 8px 18px #000;opacity:.8; }
+.prop-tape::after { content:"記録媒体\\A返却すること";white-space:pre;position:absolute;inset:12px;color:#756b5d;font:700 10px/1.6 var(--f-display); }
+.prop-note { right:-12px;bottom:72px;width:170px;height:92px;background:#b9a98b;transform:rotate(-8deg);opacity:.16; }
+.gacha-scene .seg { background:rgba(12,14,16,.88); backdrop-filter:blur(8px); }
+.gacha-scene .cabinet { position:relative; background:transparent; border:0; padding-inline:0; }
+.gacha-scene .big-env { margin-top:24px; box-shadow:0 22px 42px rgba(0,0,0,.62),0 0 0 1px rgba(82,53,37,.24); filter:sepia(.16) contrast(1.04); }
+.gacha-scene .cab-desc { color:#d6d0c6; text-shadow:0 2px 5px #000; max-width:32em; margin-inline:auto; }
+.gacha-scene .pulls button { box-shadow:0 8px 20px rgba(0,0,0,.32); }
+.gacha-scene .pulls .five { background:linear-gradient(#b9342b,#8e211d);border-color:#c75047;color:#f2e7db; }
+@media(max-width:599px){.gacha-scene{gap:10px}.gacha-scene .section-pane{gap:10px}.gacha-scene .seg{margin-top:-2px}.gacha-scene .cabinet{display:grid;gap:12px}.gacha-scene .big-env{width:min(78vw,390px);min-height:250px}.gacha-scene .pulls{gap:8px}.gacha-scene .pulls button{min-height:58px}.gacha-scene .toggle,.gacha-scene .odds,.gacha-scene [data-act="odds"]{display:none}.scene-props{min-height:650px}.prop-photo{right:54px;top:45px}.gacha-scene .big-env{margin-top:18px}}
+
 /* ---------- views ---------- */
 main { max-width: 640px; margin: 0 auto; padding-inline: 16px; padding-block: 20px calc(var(--nav-h) + 40px + env(safe-area-inset-bottom, 0px)); }
 .view { display: grid; gap: 26px; animation: viewin .3s ease-out; }
@@ -1012,7 +1034,7 @@ body.agent-reveal::after { content:"PROTECTIVE CLEARANCE"; position:fixed; inset
   </section>
 
   <!-- GACHA -->
-  <section class="view" data-view="gacha" hidden>
+  <section class="view gacha-scene" data-view="gacha" hidden>\n    <div class="scene-props" aria-hidden="true"><i class="prop-files"></i><i class="prop-photo"></i><i class="prop-lamp"></i><i class="prop-tape"></i><i class="prop-note"></i></div>
     <div class="section-pane" data-spane="gacha:pull">
     <div class="seg" role="group" aria-label="ボックスを選ぶ">
       <button data-seg="urban" aria-pressed="true">都市伝説</button>

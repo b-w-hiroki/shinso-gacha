@@ -91,3 +91,9 @@ has(/grid-template-columns:1fr 1fr/, "agent footer must stay two-tab after log r
 assert(!html.includes('data-stab="gacha:rank"'), "rank must not remain a gacha mode");
 assert(!html.includes('data-spane="gacha:rank"'), "rank pane must leave gacha");
 has(/class="rankcard wallet-rank"/, "rank status must live in suspicion point detail");
+
+has(/class="view gacha-scene"/, "mock-style gacha scene missing");
+has(/class="scene-props"/, "gacha scene prop layers missing");
+has(/prop-files/, "classified file prop missing");
+has(/prop-photo/, "surveillance photo prop missing");
+has(/prop-lamp/, "red desk lamp prop missing");
