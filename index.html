@@ -2162,8 +2162,9 @@ function addPost() {
   const now = new Date(), hh = String(now.getHours()).padStart(2, "0"), mm = String(now.getMinutes()).padStart(2, "0"), ss = String(now.getSeconds()).padStart(2, "0");
   const haunted = Math.random() < (hour() === 2 ? .3 : .08);
   let body;
-  if (haunted) body = ["みつけた", "うしろ", "そこにいるの", "あと3回"][Math.floor(Math.random() * 4)];
-  else if (crowd && crowd.length > 1 && Math.random() < .15) body = `今日はもう${crowd.length}人がこの噂を追ってるらしい`;
+  if (haunted) body = ["同じ反応がまた出た", "駅のカメラだけ時刻がずれてる", "処理済みのはずなんだけど", "その地点、昨日も出てた"][Math.floor(Math.random() * 4)];
+  else if (Math.random() < .14) { const r = radarSignal(); body = `${r.place}の反応、まだ消えてない。距離表示だけ縮んでる`; }
+  else if (crowd && crowd.length > 1 && Math.random() < .15) body = `同じ異常を追ってる調査員がいるらしい`;
   else if (Math.random() < .2) { const t = todayItem(); body = lv(t.id) ? `今日の噂「${t.name}」、もうLv${lv(t.id)}まで行ったやついる？` : `今日の噂、${[...t.name].length}文字らしい。誰か引いた？`; }
   else body = POSTS[Math.floor(Math.random() * POSTS.length)];
   const p = document.createElement("div"); p.className = "post" + (haunted ? " haunt" : "");
