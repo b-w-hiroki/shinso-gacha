@@ -1991,9 +1991,17 @@ function render() {
   $("env-seal").textContent = box === "urban" ? "封" : "極秘";
   $("big-env").classList.toggle("old", box === "urban");
   document.querySelectorAll("[data-seg]").forEach(b => b.setAttribute("aria-pressed", b.dataset.seg === box));
-  renderMissions(); renderArchive(); renderReport(); renderLab(); renderDeskEvent(); renderPursuerSignal(); renderCaseLogToThread();
+  renderMissions(); renderArchive(); renderReport(); renderLab(); renderDeskEvent(); renderPursuerSignal(); renderAftermathToThread(); renderCaseLogToThread();
   const st = S.streak || { n: 0 };
   $("streak").textContent = st.n ? `連続調査 ${st.n}日目 ・ 明日の出勤ボーナス +${20 + 10 * Math.min(st.n + 1, 7)}pt` : "";
+}
+function renderAftermathToThread() {
+  const a = caseAftermath(), box = $("radar-posts");
+  if (!a || !box || caseState() || box.querySelector("[data-aftermath]")) return;
+  const line = document.createElement("div"); line.className = "radar-line haunt"; line.dataset.aftermath = "1";
+  const time = document.createElement("time"); time.textContent = "再検";
+  const msg = document.createElement("span"); msg.textContent = a.title;
+  line.append(time,msg); box.prepend(line);
 }
 function renderCaseLogToThread() {
   const st = caseState(), box = $("radar-posts");
