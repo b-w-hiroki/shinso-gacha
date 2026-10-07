@@ -496,6 +496,16 @@ body:has(.agent-home:not([hidden])) main { padding-bottom:calc(142px + env(safe-
 body:has(.agent-home:not([hidden])) .nav { display:none; }
 
 /* ---------- anomaly evidence ---------- */
+.case-choices { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
+.case-choices button { min-height:72px; padding:9px 7px; border:1px solid #59636d; background:#1c2228; color:var(--fg); display:grid; gap:4px; text-align:left; }
+.case-choices b { font-size:14px; }
+.case-choices span { color:var(--muted); font-size:11px; }
+.case-result { padding:12px 14px; border:1px solid #5b6b65; background:#18201e; display:grid; gap:3px; }
+.case-result span { font:700 10px var(--f-mono); color:#849b92; letter-spacing:.08em; }
+.case-result b { font-size:18px; }
+.case-result p { margin:0; color:var(--muted); font-size:13px; line-height:1.55; }
+@media(max-width:360px){.case-choices{grid-template-columns:1fr}.case-choices button{min-height:54px}}
+
 .evidence-stack { display:grid; gap:10px; }
 .evidence-view { position:relative; overflow:hidden; min-height:190px; border:1px solid #59636d; background:#11161a; color:#d8dedb; }
 .evidence-view::after { content:""; position:absolute; inset:0; pointer-events:none; background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.025) 3px 4px); }
@@ -1862,9 +1872,30 @@ function evidenceHTML() {
   }
   return `<div class="evidence-stack"><div class="ev-status"><span>${e.code}</span><span>${r.place}</span><span class="${r.urgent ? "danger" : ""}">${r.state}</span></div><div class="evidence-view"><div class="ev-head"><span>${e.label}</span><span>${e.clock}</span></div>${visual}<div class="ev-transcript">${e.note}</div></div><p class="hint" style="text-align:left">第六文書課・自動収集記録。表示地点と距離はゲーム内観測値です。</p></div>`;
 }
+function caseState() {
+  S.caseLog = S.caseLog || {};
+  return S.caseLog[dayKey()] || null;
+}
+function caseChoiceMeta(choice) {
+  return choice === "field" ? ["現地確認","現場へ向かう。最も情報を得られるが、異常へ近づく。"]
+    : choice === "seal" ? ["遠隔封鎖","対象区画を一時封鎖する。情報は減るが、接触を避けられる。"]
+    : ["経過観察","今は動かず監視を続ける。異常が接近する可能性が残る。"];
+}
+function resolveCase(choice) {
+  const e = anomalyEvidence(), r = radarSignal(), meta = caseChoiceMeta(choice);
+  S.caseLog = S.caseLog || {};
+  S.caseLog[dayKey()] = { choice, label:meta[0], evidence:e.type, code:e.code, place:r.place, at:Date.now() };
+  if (choice === "field") { S.evi = (S.evi || 0) + 2; toast("現地確認：証拠 +2"); }
+  else if (choice === "seal") toast("対象区画を遠隔封鎖しました");
+  else toast("経過観察へ移行しました");
+  markDirty(); hideSheet(); render();
+}
 function openAnomalyEvidence() {
-  const e = anomalyEvidence();
-  sheet("異常証拠 / " + e.label, evidenceHTML());
+  const e = anomalyEvidence(), state = caseState();
+  const decision = state
+    ? `<div class="case-result"><span>本日の処理</span><b>${state.label}</b><p>${caseChoiceMeta(state.choice)[1]}</p></div>`
+    : `<div class="case-choices"><button data-act="case" data-choice="field"><b>現地確認</b><span>異常へ近づく</span></button><button data-act="case" data-choice="seal"><b>遠隔封鎖</b><span>接触を避ける</span></button><button data-act="case" data-choice="watch"><b>経過観察</b><span>監視を継続</span></button></div>`;
+  sheet("異常証拠 / " + e.label, evidenceHTML() + decision);
 }
 function renderRadar() {
   const r = radarSignal(), blips = $("radar-blips");
@@ -2095,6 +2126,7 @@ document.addEventListener("click", e => {
   if (el.dataset.pull) return pull(+el.dataset.pull);
   const a = el.dataset.act, id = el.dataset.id;
   if (a === "close") hideSheet();
+  if (a === "case") return resolveCase(el.dataset.choice);
   if (a === "dossier") openDossier(id);
   if (a === "card") openCard(id);
   if (a === "x") shared();
