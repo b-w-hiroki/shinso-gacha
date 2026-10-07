@@ -476,6 +476,11 @@ body.night .top-in, body.night .today { animation: flicker 6s infinite; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 
+.wallet-rank { margin-top:2px; padding:12px; }
+.wallet-rank .rk-top b { font-size:20px; }
+.wallet-rank .perks { gap:5px; }
+.wallet-rank .pity { margin-top:4px; padding-top:8px; }
+
 /* ---------- screenshot QA compact pass ---------- */
 .wallet-detail { display:grid; grid-template-columns:1fr 1fr; border:1px solid #626b78; }
 .wallet-detail div { min-width:0; padding:11px 12px; border-right:1px solid #4c5561; border-bottom:1px solid #4c5561; display:grid; gap:2px; }
@@ -1008,20 +1013,6 @@ body.agent-reveal::after { content:"PROTECTIVE CLEARANCE"; position:fixed; inset
 
   <!-- GACHA -->
   <section class="view" data-view="gacha" hidden>
-    <div class="section-tabs" role="group" aria-label="ガチャ画面切替">
-      <button data-stab="gacha:pull" aria-pressed="true">引く</button>
-      <button data-stab="gacha:rank" aria-pressed="false">ランク</button>
-    </div>
-    <div class="section-pane" data-spane="gacha:rank" hidden>
-    <div class="rankcard">
-      <div class="rk-top"><span class="eyebrow" id="rk-lv">RANK 1 / 20</span><b id="rk-name">見習い調査員</b></div>
-      <div class="rk-bar"><i id="rk-bar" style="width:0%"></i></div>
-      <div class="rk-row"><span id="rk-next"></span></div>
-      <div class="perks" id="rk-perks"></div>
-      <div class="rk-row" id="rk-deep"></div>
-      <div class="pity"><span>このボックスで未発見の資料が確定するまで</span><b id="pity-left">あと30回</b></div>
-    </div>
-    </div>
     <div class="section-pane" data-spane="gacha:pull">
     <div class="seg" role="group" aria-label="ボックスを選ぶ">
       <button data-seg="urban" aria-pressed="true">都市伝説</button>
@@ -2984,7 +2975,8 @@ function openWalletDetail() {
   const step = idleStep(), perMin = 60000 / step, perHour = perMin * 60;
   const next = Math.max(0, step - (Date.now() - S.lastTick));
   const night = hour() === 2;
-  sheet("疑念pt / 自動獲得", `<div class="wallet-detail"><div><span>現在</span><b>${Math.floor(S.currency)}pt</b></div><div><span>自動獲得</span><b>+1 / ${(step/1000).toFixed(1)}秒</b></div><div><span>1分</span><b>約${perMin.toFixed(1)}pt</b></div><div><span>1時間</span><b>約${Math.round(perHour)}pt</b></div></div><div class="research-card ready"><b>次の +1pt まで ${(next/1000).toFixed(1)}秒</b><div class="rk-bar"><i style="width:${Math.min(100,(1-next/step)*100)}%"></i></div><small>ランク補正 ×${(1+.05*rankIdx()).toFixed(2)} ／ 無線設備 ×${(1+.1*upLv("radio")).toFixed(2)}${night ? " ／ 丑三つ時 ×2" : ""}</small></div><p class="hint" style="text-align:left">留守中の獲得には上限があります。通信端末の強化で上限が延びます。</p>`);
+  sheet("疑念pt / 自動獲得", `<div class="wallet-detail"><div><span>現在</span><b>${Math.floor(S.currency)}pt</b></div><div><span>自動獲得</span><b>+1 / ${(step/1000).toFixed(1)}秒</b></div><div><span>1分</span><b>約${perMin.toFixed(1)}pt</b></div><div><span>1時間</span><b>約${Math.round(perHour)}pt</b></div></div><div class="research-card ready"><b>次の +1pt まで ${(next/1000).toFixed(1)}秒</b><div class="rk-bar"><i style="width:${Math.min(100,(1-next/step)*100)}%"></i></div><small>ランク補正 ×${(1+.05*rankIdx()).toFixed(2)} ／ 無線設備 ×${(1+.1*upLv("radio")).toFixed(2)}${night ? " ／ 丑三つ時 ×2" : ""}</small></div><div class="rankcard wallet-rank"><div class="rk-top"><span class="eyebrow" id="rk-lv">RANK 1 / 20</span><b id="rk-name">見習い調査員</b></div><div class="rk-bar"><i id="rk-bar" style="width:0%"></i></div><div class="rk-row"><span id="rk-next"></span></div><div class="perks" id="rk-perks"></div><div class="rk-row" id="rk-deep"></div><div class="pity"><span>未発見資料の確定まで</span><b id="pity-left">あと30回</b></div></div><p class="hint" style="text-align:left">留守中の獲得には上限があります。通信端末の強化で上限が延びます。</p>`);
+  render();
 }
 function tick() {
   if (isLite()) { S.lastTick = Date.now(); return; }
