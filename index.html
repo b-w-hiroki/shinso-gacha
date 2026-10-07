@@ -476,6 +476,25 @@ body.night .top-in, body.night .today { animation: flicker 6s infinite; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 
+/* ---------- agent lite-style shell ---------- */
+.agent-footer { position:fixed; left:50%; bottom:calc(7px + env(safe-area-inset-bottom,0px)); z-index:10; width:min(612px,calc(100% - 14px)); transform:translateX(-50%); display:grid; gap:5px; padding:5px; background:rgba(16,19,24,.96); border:1px solid #465061; border-radius:12px; box-shadow:0 12px 34px rgba(0,0,0,.52); backdrop-filter:blur(14px); }
+.agent-primary { min-height:60px; border-radius:8px; background:var(--paper); color:var(--ink); font-weight:800; font-size:18px; letter-spacing:.035em; }
+.agent-footer .home-tabs { position:static; top:auto; border:0; background:transparent; padding:0; box-shadow:none; }
+.agent-footer .home-tabs::before { display:none; }
+.agent-footer .home-tabs button { min-height:50px; border-radius:8px; }
+.agent-home .home-pane[data-hpane="desk"] { gap:10px; }
+.agent-home .thread-radar { border-color:#52635e; }
+.agent-home .radar-screen { min-height:118px; max-height:132px; }
+.agent-home .radar-line:nth-child(n+4) { display:none; }
+.agent-home .desk-event { min-height:210px; margin:0; }
+.agent-home .home-sniff { min-height:44px; opacity:.72; border-style:dashed; }
+.agent-home .home-sniff .lens { width:28px; height:28px; border-width:2px; }
+.agent-home .home-sniff b { font-size:14px; font-family:var(--f-body); }
+.agent-home .home-sniff .combo { font-size:17px; }
+.agent-home .home-sniff small { display:none; }
+body:has(.agent-home:not([hidden])) main { padding-bottom:calc(142px + env(safe-area-inset-bottom,0px)); }
+body:has(.agent-home:not([hidden])) .nav { display:none; }
+
 /* ---------- thread radar home ---------- */
 .thread-radar { position:relative; overflow:hidden; border:1px solid #465852; background:#101716; box-shadow:0 16px 38px rgba(0,0,0,.42),inset 0 0 40px rgba(68,116,98,.08); }
 .radar-head { min-height:38px; padding:7px 10px; display:grid; grid-template-columns:1fr auto; gap:1px 8px; align-items:center; border-bottom:1px solid #3c4c47; font:700 10px var(--f-mono); letter-spacing:.1em; color:#8da49c; }
@@ -825,11 +844,14 @@ body.agent-reveal::after { content:"PROTECTIVE CLEARANCE"; position:fixed; inset
   </section>
 
   <!-- HOME -->
-  <section class="view" data-view="home">
-    <div class="home-tabs" role="group" aria-label="調査デスクの表示切替">
+  <section class="view agent-home" data-view="home">
+    <div class="agent-footer">
+      <button class="agent-primary" id="agent-primary" data-desk="gacha">封筒を調査する</button>
+      <div class="home-tabs" role="group" aria-label="調査デスクの表示切替">
       <button data-htab="desk" aria-pressed="true">探知</button>
       <button data-htab="tasks" aria-pressed="false">任務</button>
       <button data-htab="comms" aria-pressed="false">ログ</button>
+      </div>
     </div>
 
     <div class="home-pane" data-hpane="desk">
@@ -852,10 +874,6 @@ body.agent-reveal::after { content:"PROTECTIVE CLEARANCE"; position:fixed; inset
         <div class="actions" id="desk-actions"></div>
         <span class="crowd" id="today-crowd" hidden></span>
       </article>
-      <div class="desk-quick">
-        <button class="btn-paper" data-desk="gacha">封筒を調査する</button>
-        <button class="btn-line" data-desk="archive">資料を見る</button>
-      </div>
       <button class="pad home-sniff" id="sniff">
         <span class="lens" aria-hidden="true"></span>
         <span><b>周辺を探知する</b><small id="sniff-sub">疑念ptを集める</small></span>
@@ -1715,6 +1733,11 @@ function setHomeTab(tab) {
   homeTab = tab;
   document.querySelectorAll("[data-htab]").forEach(b => b.setAttribute("aria-pressed", b.dataset.htab === tab));
   document.querySelectorAll("[data-hpane]").forEach(p => p.hidden = p.dataset.hpane !== tab);
+  const primary = $("agent-primary");
+  if (primary) {
+    primary.hidden = tab !== "desk";
+    if (tab === "desk") renderDeskEvent();
+  }
   window.scrollTo({top:0, behavior:REDUCED ? "auto" : "smooth"});
 }
 function claimableMission() {
@@ -1775,7 +1798,12 @@ function renderDeskEvent() {
   $("desk-title").innerHTML = e.title;
   $("desk-body").textContent = e.body;
   $("desk-stamp").textContent = e.stamp;
-  $("desk-actions").innerHTML = `<button class="btn-ink" data-desk="${e.action}">${e.label}</button>`;
+  $("desk-actions").innerHTML = "";
+  const primary = $("agent-primary");
+  if (primary) {
+    primary.textContent = e.label;
+    primary.dataset.desk = e.action;
+  }
 }
 let shownPt = 0;
 function animatePt() {

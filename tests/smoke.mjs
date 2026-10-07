@@ -36,3 +36,8 @@ has(/id="radar-posts"/, "thread radar feed missing");
 has(/radar\.prepend\(line\)/, "thread posts must feed the radar");
 has(/body:not\(\.lite\) #pursuer-signal \{ display:none !important; \}/, "pursuer count must not occupy the agent home");
 assert(!/aid\.innerHTML[^\n]*pursuerNo/.test(html), "pursuer ordinal must not remain in the persistent report card");
+
+has(/class="agent-footer"/, "agent home must use the lite-style fixed footer");
+has(/id="agent-primary"/, "agent event primary CTA missing");
+has(/primary\.textContent = e\.label;[\s\S]*primary\.dataset\.desk = e\.action;/, "agent primary CTA must follow the current event");
+has(/body:has\(\.agent-home:not\(\[hidden\]\)\) \.nav \{ display:none; \}/, "global nav must not compete with the agent first view");
