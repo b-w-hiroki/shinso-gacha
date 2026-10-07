@@ -1899,11 +1899,29 @@ function previousCase() {
   const log = S.caseLog || {}, keys = Object.keys(log).filter(k => k !== dayKey()).sort().reverse();
   return keys.length ? Object.assign({ day:keys[0] }, log[keys[0]]) : null;
 }
+const AFTERMATH = {
+  field:[
+    ["継続異常","現地確認班の帰投後、別地点で同じ反応","昨日接触した異常と同じ波形が、別の生活圏から検出された。","RECUR / 再発"],
+    ["帰投記録","現地班の装備に未登録の音声","帰投後の録音機に、現場では聞いていない呼吸音が残っている。","FOLLOW / 追随"],
+    ["現場残留","処理地点に人影だけが残った","反応値は下がったが、防犯映像には同じ場所を向く人影が残っている。","RESIDUAL / 残留"]
+  ],
+  seal:[
+    ["封鎖後観測","封鎖区域の外側で反応を再検出","封鎖線の内側から反応は消えた。ただし境界の外で同じ特徴を記録した。","LEAK / 漏出"],
+    ["封鎖維持","封鎖扉の内側からノック音","区画内に人員はいない。解錠は禁止されている。","LOCKED / 内部反応"],
+    ["境界異常","封鎖線が図面より1.8m移動している","物理標識の位置は変わっていない。計測値だけが一致しない。","SHIFT / 境界変位"]
+  ],
+  watch:[
+    ["監視継続","経過観察中の反応が、昨夜より近い","消えてはいない。観測距離だけが短くなっている。","CLOSER / 接近"],
+    ["監視継続","反応が一度消え、生活時間帯に復帰","午前中はゼロだった。帰宅時間帯から再び記録されている。","RETURN / 復帰"],
+    ["要再判定","監視対象が二つに分かれた","同一特徴の反応が同時に別方向へ移動している。","SPLIT / 分岐"]
+  ]
+};
 function caseAftermath() {
   const p = previousCase(); if (!p) return null;
-  if (p.choice === "field") return { eye:"継続異常", title:"現地確認班の帰投後、別地点で同じ反応", body:"昨日接触した異常と同じ波形が、別の生活圏から検出された。処理完了にはなっていない。", state:"RECUR / 再発" };
-  if (p.choice === "seal") return { eye:"封鎖後観測", title:"封鎖区域の外側で反応を再検出", body:"封鎖線の内側から反応は消えた。ただし今朝、境界の外で同じ特徴が一度だけ記録された。", state:"LEAK / 漏出" };
-  return { eye:"監視継続", title:"経過観察中の反応が、昨夜より近い", body:"消えてはいない。観測距離だけが短くなっている。第六文書課は監視継続を指示している。", state:"CLOSER / 接近" };
+  const list = AFTERMATH[p.choice] || AFTERMATH.watch;
+  const seed = Math.abs(([...p.day].reduce((a,c)=>a+c.charCodeAt(0),0) + (p.code || "").length + totalLv()) % list.length);
+  const a = list[seed];
+  return { eye:a[0], title:a[1], body:a[2], state:a[3] };
 }
 function caseChoiceMeta(choice) {
   return choice === "field" ? ["現地確認","現場へ向かう。最も情報を得られるが、異常へ近づく。"]
