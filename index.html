@@ -128,7 +128,12 @@ main { max-width: 640px; margin: 0 auto; padding-inline: 16px; padding-block: 20
 .research-level.on { border-left-color:var(--stamp); }
 .research-level strong { display:block; font-size:13px; }
 .research-level span { font-size:13px; color:var(--muted); }
-.weekly-card { padding:16px; border:1px solid var(--stamp); background:rgba(184,53,43,.08); display:grid; gap:8px; }
+.weekly-card { padding:16px; border:1px solid var(--stamp); background:rgba(184,53,43,.08); display:grid; gap:8px; position:relative; }
+.weekly-card::after { content:"要対応"; position:absolute; right:10px; top:10px; padding:3px 7px; border:1px solid #8d433c; color:#c35a50; font:800 9px var(--f-mono); letter-spacing:.1em; transform:rotate(2deg); }
+body:not(.lite) .bbs { position:relative; }
+body:not(.lite) .bbs::after { content:"監視中"; position:absolute; right:10px; top:8px; color:#8f5a55; font:800 9px var(--f-mono); letter-spacing:.12em; opacity:.8; }
+body:not(.lite) .up.paper::before { content:"調査"; display:block; width:max-content; margin-bottom:5px; color:#6e6555; font:800 9px var(--f-mono); letter-spacing:.12em; }
+body:not(.lite) .research-card::before { content:"要確認"; display:block; width:max-content; margin-bottom:5px; color:#9a544d; font:800 9px var(--f-mono); letter-spacing:.12em; }
 
 /* ---------- gacha view ---------- */
 .seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--desk-2); border: 1px solid var(--line); padding: 4px; gap: 4px; }
@@ -198,6 +203,7 @@ main { max-width: 640px; margin: 0 auto; padding-inline: 16px; padding-block: 20
 
 /* ---------- agent home / event desk ---------- */
 .home-tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:4px; padding:4px; background:var(--desk-2); border:1px solid var(--line); position:sticky; top:58px; z-index:4; }
+body:not(.lite) .home-tabs::before { content:"第六文書課"; position:absolute; right:8px; top:-17px; color:#707986; font:800 9px var(--f-mono); letter-spacing:.12em; }
 .home-tabs button { min-height:44px; color:var(--muted); font-weight:700; }
 .home-tabs button[aria-pressed="true"] { background:var(--paper); color:var(--ink); }
 .home-pane { display:grid; gap:20px; }
@@ -544,6 +550,21 @@ body.lite.phase-rescue .lite-event::after { content:"保護通信"; color:#4f5f5
 body.lite.phase-rescue .lite-footer {
   background:rgba(25,28,29,.97); border-color:#59635f; box-shadow:0 10px 28px rgba(0,0,0,.36);
 }
+.horror-status { display:inline-flex; align-items:center; gap:7px; width:max-content; max-width:100%; padding:5px 9px; border:1px solid #646b72; background:#22272b; color:#d8d8cf; font:800 11px var(--f-mono); letter-spacing:.1em; transform:rotate(-.5deg); box-shadow:0 3px 9px rgba(0,0,0,.28); }
+.horror-status::before { content:""; width:7px; height:7px; border-radius:50%; background:#8e938d; box-shadow:0 0 0 2px rgba(255,255,255,.05); }
+.horror-status.monitor { color:#d4c8a8; border-color:#7c7157; background:#2a2822; }
+.horror-status.monitor::before { background:#b9a269; }
+.horror-status.danger { color:#f0c6bd; border-color:#8b4740; background:#351d1c; }
+.horror-status.danger::before { background:#c54a3e; box-shadow:0 0 8px rgba(197,74,62,.55); }
+.horror-status.rescue { color:#cbded8; border-color:#55716b; background:#1f302d; transform:none; }
+.horror-status.rescue::before { background:#75a396; }
+body.lite.phase-danger .lite-pane[data-lpane="open"]::before, body.lite.phase-crisis .lite-pane[data-lpane="open"]::before { content:""; position:fixed; left:0; right:0; top:0; height:3px; z-index:38; pointer-events:none; background:repeating-linear-gradient(90deg,#7d211c 0 38px,transparent 38px 50px); opacity:.55; }
+body.lite.phase-crisis .lite-footer::before { content:"接続異常 / SIGNAL CONTAMINATED"; display:block; padding:3px 8px 1px; color:#d9877c; font:800 9px var(--f-mono); letter-spacing:.12em; text-align:center; }
+body.lite.phase-rescue .lite-footer::before { content:"第六文書課 / PROTECTED CHANNEL"; display:block; padding:3px 8px 1px; color:#93afa7; font:800 9px var(--f-mono); letter-spacing:.12em; text-align:center; }
+body:not(.lite) .desk-event::before { content:"機密資料"; position:absolute; right:14px; top:12px; padding:4px 7px; border:1px solid rgba(184,53,43,.65); color:#a8483f; background:rgba(224,212,180,.82); font:800 10px var(--f-mono); letter-spacing:.1em; transform:rotate(1.5deg); }
+body:not(.lite) .pursuer-signal::before { content:"第六文書課 / 追跡網"; display:block; color:#879b95; font:800 10px var(--f-mono); letter-spacing:.12em; }
+body:not(.lite) .agent-id { position:relative; overflow:hidden; }
+body:not(.lite) .agent-id::after { content:"閲覧制限"; position:absolute; right:-16px; top:12px; transform:rotate(8deg); padding:4px 22px; border:1px solid rgba(184,53,43,.5); color:#bd655c; font:800 10px var(--f-mono); letter-spacing:.12em; opacity:.72; }
 @keyframes crisisNoise { 0%,100%{transform:translateY(0);opacity:.75} 48%{transform:translateY(1px);opacity:.48} 52%{transform:translateY(-1px);opacity:.88} }
 @keyframes crisisText {
   0%,89%,100%{transform:translateX(0)}
@@ -593,6 +614,15 @@ body.lite.footer-nav-only main { padding-bottom: calc(92px + env(safe-area-inset
   background:#332e3c; color:#e1dce7; border-color:#645b70;
 }
 .lite-pane { display:grid; gap:22px; }
+.lite-pane[data-lpane="files"]::before { content:"機密資料 / 閲覧注意"; width:max-content; padding:5px 9px; border:1px solid #6e6150; color:#cbbd9d; background:#28251f; font:800 10px var(--f-mono); letter-spacing:.12em; transform:rotate(-.6deg); }
+.lite-pane[data-lpane="notes"]::before { content:"観測記録 / 継続監視"; width:max-content; padding:5px 9px; border:1px solid #555b67; color:#c3c8d0; background:#23262c; font:800 10px var(--f-mono); letter-spacing:.12em; }
+body.lite.phase-danger .lite-pane[data-lpane="files"]::before, body.lite.phase-crisis .lite-pane[data-lpane="files"]::before { content:"機密資料 / 異常混入"; color:#e2b2a8; border-color:#86473f; background:#351e1d; }
+body.lite.phase-danger .lite-pane[data-lpane="notes"]::before, body.lite.phase-crisis .lite-pane[data-lpane="notes"]::before { content:"観測記録 / あなたを記録中"; color:#e2b2a8; border-color:#86473f; background:#351e1d; }
+body.lite.phase-rescue .lite-pane[data-lpane="files"]::before { content:"第六文書課 / 閲覧許可"; color:#c7d8d2; border-color:#577169; background:#21302d; transform:none; }
+body.lite.phase-rescue .lite-pane[data-lpane="notes"]::before { content:"第六文書課 / 保護記録"; color:#c7d8d2; border-color:#577169; background:#21302d; }
+body.lite .folder { position:relative; overflow:hidden; }
+body.lite .folder::after { content:"未確認"; position:absolute; right:-12px; top:9px; padding:3px 16px; border:1px solid rgba(184,53,43,.35); color:#9f574f; font:800 9px var(--f-mono); letter-spacing:.1em; transform:rotate(8deg); opacity:.5; }
+body.lite.phase-danger .folder::after, body.lite.phase-crisis .folder::after { content:"観測対象"; opacity:.9; color:#bd4e44; border-color:#914139; }
 .lite-event { position:relative; min-height:210px; padding:22px 18px 18px; display:grid; align-content:start; gap:10px; box-shadow:0 14px 30px rgba(0,0,0,.42); border:1px solid rgba(90,78,58,.18); }
 .lite-event-badge { position:absolute; right:14px; top:12px; width:74px; height:74px; background:center/contain no-repeat; opacity:0; pointer-events:none; transition:opacity .25s; }
 body.lite.phase-danger .lite-event-badge,
@@ -631,7 +661,8 @@ body.lite.phase-rescue .lite-footer .lite-pull { background:#b9b3a4; border-colo
 .lite-last { min-height: 0; }
 .lite-last .doc { animation: viewin .35s ease-out; }
 .lite-notes { display: grid; gap: 8px; }
-.lite-notes p { margin:0; padding:10px 12px; border-left:3px solid var(--stamp); background:var(--desk-2); font-size:15px; line-height:1.75; font-weight:500; color:#f0f2f6; }
+.lite-notes p { margin:0; padding:10px 12px; border-left:3px solid var(--stamp); background:var(--desk-2); font-size:15px; line-height:1.75; font-weight:500; color:#f0f2f6; position:relative; }
+.lite-notes p:nth-child(3n+1)::after { content:"記録"; float:right; margin-left:8px; color:#8f96a4; font:800 9px var(--f-mono); letter-spacing:.1em; }
 .lite-notes p.sealed { border-left-color: #687184; color: #c6ccd6; }
 .lite-notes p.sealed .rd i { background: var(--mask-dark); box-shadow: inset 0 0 0 1px var(--mask-edge); }
 .lite-join { display: grid; gap: 8px; text-align: center; padding: 16px; border: 1px dashed #5a6070; }
@@ -693,6 +724,7 @@ body.agent-reveal::after { content:"ACCESS GRANTED"; position:fixed; inset:0; z-
 
     <div class="lite-pane" data-lpane="open">
       <article class="lite-event paper aged urban" id="lite-event">
+        <span class="horror-status monitor" id="lite-horror-status">未確認資料</span>
         <span class="clip" aria-hidden="true"></span>
         <span class="lite-event-badge" aria-hidden="true"></span>
         <div class="eyebrow" id="lite-event-eye">取扱注意 ・ 宛先不明</div>
@@ -2219,6 +2251,11 @@ function clearLiteEvent() {
 function renderLiteEvent() {
   const evt = (S.lite && S.lite.event) || defaultLiteEvent();
   const card = $("lite-event"); if (!card) return;
+  const hs = $("lite-horror-status"), p = litePhase();
+  if (hs) {
+    hs.className = "horror-status " + (p === "rescue" ? "rescue" : p === "danger" || p === "crisis" ? "danger" : "monitor");
+    hs.textContent = p === "rescue" ? "保護通信" : p === "crisis" ? "接続異常" : p === "danger" ? "監視継続中" : p === "uneasy" ? "要確認" : "未確認資料";
+  }
   card.classList.toggle("alert", !!evt.alert);
   $("lite-event-eye").textContent = evt.eye || "記録";
   $("lite-event-title").textContent = evt.title || "";
@@ -2515,7 +2552,7 @@ function answerInterview(i) {
 function showAgentWelcome() {
   const ordinal = S.pursuerNo ? `あなたは、第${S.pursuerNo}追求者です。` : "追求者登録を照会しています。";
   const live = pursuerTotal ? `現在 ${pursuerTotal}人が登録、本日 ${todayActiveCount()}人が追跡中。` : "";
-  sheet("着任通知", `<article class="doc paper aged con"><div class="formhead"><span>第六文書課</span><span>採用通知</span><span>本人限り</span></div><h2>調査員 No.${S.agentNo}</h2><div class="lyr"><div class="lab">追求者登録</div><p><b>${ordinal}</b><br>${live}</p><span class="note">※ あなた以外にも、同じ真相を追っている者がいる</span></div><div class="lyr"><div class="lab">判定</div><p>${S.agentType}</p></div><div class="lyr"><div class="lab">配属</div><p>${S.assign}</p></div><div class="lyr"><div class="lab">閲覧権限</div><p>一般人には黒塗りだった LEVEL 4 / 5、および調査室へのアクセスを許可する。</p></div></article><div class="actions"><button class="btn-paper" data-la="enter">調査を開始する</button></div>`);
+  sheet("着任通知", `<article class="doc paper aged con"><div class="formhead"><span>第六文書課</span><span>緊急介入後・保護登録</span><span>機密</span></div><div class="horror-status rescue">接続遮断済 / 認証済</div><h2>調査員 No.${S.agentNo}</h2><div class="lyr"><div class="lab">追求者登録</div><p><b>${ordinal}</b><br>${live}</p><span class="note">※ あなた以外にも、同じ真相を追っている者がいる</span></div><div class="lyr"><div class="lab">判定</div><p>${S.agentType}</p></div><div class="lyr"><div class="lab">配属</div><p>${S.assign}</p></div><div class="lyr"><div class="lab">閲覧権限</div><p>一般人には黒塗りだった LEVEL 4 / 5、および調査室へのアクセスを許可する。</p></div></article><div class="actions"><button class="btn-paper" data-la="enter">調査を開始する</button></div>`);
 }
 function becomeAgent() {
   if (!S.role) {
