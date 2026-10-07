@@ -48,7 +48,6 @@ has(/ゲーム内観測/, "radar location must be explicitly fictional in-world 
 has(/renderRadar\(\);/, "radar must update with the current desk event");
 has(/DANGER \/ 接近中/, "danger radar state missing");
 
-has(/const EVIDENCE_TYPES = \["cctv","map","audio"\]/, "anomaly evidence types missing");
 has(/data-desk="evidence"/, "radar evidence entry point missing");
 has(/function openAnomalyEvidence\(\)/, "anomaly evidence sheet missing");
 has(/ゲーム内観測値/, "evidence location must remain explicitly fictional");
@@ -66,3 +65,14 @@ has(/LEAK \/ 漏出/, "remote seal aftermath missing");
 has(/CLOSER \/ 接近/, "watch aftermath missing");
 has(/action:"evidence", label:"再検出を確認する"/, "aftermath must return to evidence investigation");
 assert(html.includes('line.dataset.aftermath = "1"'), "aftermath thread signal missing");
+
+has(/id="wallet" type="button"/, "suspicion points must be tappable");
+has(/function openWalletDetail\(\)/, "suspicion point rate detail missing");
+has(/1時間あたり/, "hourly passive estimate missing");
+has(/次の \+1pt まで/, "next passive gain countdown missing");
+has(/const EVIDENCE_TYPES = \["cctv","map","audio","intercom","transit","photo"\]/, "expanded evidence set missing");
+has(/const AFTERMATH = \{/, "varied aftermath table missing");
+has(/FOLLOW \/ 追随/, "field aftermath variety missing");
+has(/SHIFT \/ 境界変位/, "seal aftermath variety missing");
+has(/SPLIT \/ 分岐/, "watch aftermath variety missing");
+has(/\.agent-home \.home-sniff\{display:none\}/, "secondary sniff action must leave the mobile first view");

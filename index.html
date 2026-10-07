@@ -476,6 +476,19 @@ body.night .top-in, body.night .today { animation: flicker 6s infinite; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 
+/* ---------- final first-view compression ---------- */
+@media(max-width:599px){
+  .agent-home .radar-screen{min-height:108px;max-height:116px}
+  .agent-home .desk-event{min-height:184px;padding:18px 15px 14px;gap:7px}
+  .agent-home .desk-event h2{font-size:clamp(24px,7vw,30px)}
+  .agent-home .desk-event p{font-size:14px;line-height:1.58}
+  .agent-home .desk-event .actions{padding-top:4px}
+  .agent-home .home-sniff{display:none}
+  .agent-home .radar-head{min-height:34px;padding-block:5px}
+  .agent-home .radar-posts{gap:3px}
+  .agent-home .radar-line{font-size:10px}
+}
+
 /* ---------- agent lite-style shell ---------- */
 .agent-footer { position:fixed; left:50%; bottom:calc(7px + env(safe-area-inset-bottom,0px)); z-index:10; width:min(612px,calc(100% - 14px)); transform:translateX(-50%); display:grid; gap:5px; padding:5px; background:rgba(16,19,24,.96); border:1px solid #465061; border-radius:12px; box-shadow:0 12px 34px rgba(0,0,0,.52); backdrop-filter:blur(14px); }
 .agent-primary { min-height:60px; border-radius:8px; background:var(--paper); color:var(--ink); font-weight:800; font-size:18px; letter-spacing:.035em; }
@@ -518,7 +531,7 @@ body:has(.agent-home:not([hidden])) .nav { display:none; }
 .ev-audio { min-height:155px; display:grid; place-items:center; padding:18px; background:#101518; }
 .wave { width:100%; height:64px; display:flex; align-items:center; gap:3px; }
 .wave i { flex:1; min-width:2px; height:var(--h); background:#7f9e92; opacity:.82; }
-.ev-transcript { padding:10px 12px; border-top:1px solid #424b54; font-size:14px; line-height:1.65; }
+.transit-mark { position:absolute; left:12px; bottom:12px; padding:6px 8px; background:#0e1515; border:1px solid #657970; font:700 11px var(--f-mono); color:#b9cbc4; }\n.ev-transcript { padding:10px 12px; border-top:1px solid #424b54; font-size:14px; line-height:1.65; }
 .ev-status { display:flex; gap:6px; flex-wrap:wrap; }
 .ev-status span { padding:5px 8px; border:1px solid #59636d; font:800 10px var(--f-mono); letter-spacing:.06em; }
 .ev-status .danger { color:#e0a19a; border-color:#8d4e48; }
@@ -830,7 +843,7 @@ body.agent-reveal::after { content:"PROTECTIVE CLEARANCE"; position:fixed; inset
 <header class="top">
   <div class="top-in">
     <div class="logo">真相<span class="bar">ガチ</span>ャ<small id="issue">UNVERIFIED ARCHIVE #001</small></div>
-    <div class="wallet" id="wallet" title="5秒ごとに+1pt">
+    <button class="wallet" id="wallet" type="button" aria-label="疑念ptの獲得詳細を見る">
       <span class="ring" id="ring" aria-hidden="true"></span>
       <b id="pt">0</b><span>疑念pt</span>
     </div>
@@ -1862,7 +1875,7 @@ function radarSignal() {
   const place = RADAR_PLACES[seed % RADAR_PLACES.length];
   return { distance, state, place, urgent, near, seed, handled };
 }
-const EVIDENCE_TYPES = ["cctv","map","audio"];
+const EVIDENCE_TYPES = ["cctv","map","audio","intercom","transit","photo"];
 function anomalyEvidence() {
   const r = radarSignal(), type = EVIDENCE_TYPES[r.seed % EVIDENCE_TYPES.length];
   const clock = String((r.seed % 23)).padStart(2,"0") + ":" + String((r.seed * 7) % 60).padStart(2,"0");
@@ -1870,18 +1883,25 @@ function anomalyEvidence() {
     note:"同じ人物が、連続する2フレームで別の位置に立っている。間の映像は欠損していない。" };
   if (type === "map") return { type, label:"構内照合図", code:"MAP-" + String(r.seed).padStart(3,"0"), clock,
     note:"存在しない通路から反応が出ている。現行図面と避難経路図のどちらにも記載がない。" };
-  return { type, label:"留守番電話記録", code:"TEL-" + String(r.seed).padStart(3,"0"), clock,
+  if (type === "audio") return { type, label:"留守番電話記録", code:"TEL-" + String(r.seed).padStart(3,"0"), clock,
     note:"無音のはずの区間から、人の声に近い波形が検出された。発信元番号は存在しない。" };
+  if (type === "intercom") return { type, label:"インターホン履歴", code:"INT-" + String(r.seed).padStart(3,"0"), clock,
+    note:"応答していない時刻に通話成立の記録がある。室内側の音声だけが保存されている。" };
+  if (type === "transit") return { type, label:"交通IC照合", code:"IC-" + String(r.seed).padStart(3,"0"), clock,
+    note:"入場記録のないカードが改札を出ている。同じ識別子は廃棄済みとして登録されている。" };
+  return { type, label:"現場写真", code:"IMG-" + String(r.seed).padStart(3,"0"), clock,
+    note:"撮影者の記憶にはない人物が画面端に写っている。別角度の写真にも同じ位置で残っている。" };
 }
 function evidenceHTML() {
   const e = anomalyEvidence(), r = radarSignal();
   let visual = "";
   if (e.type === "cctv") visual = `<div class="ev-cctv"><b>REC ● ${e.clock}:17 / FRAME LOST 0</b></div>`;
   else if (e.type === "map") visual = '<div class="ev-map"></div>';
-  else {
+  else if (e.type === "audio" || e.type === "intercom") {
     const hs = [18,42,25,61,36,78,29,52,88,34,65,23,47,72,31,55,20,39,68,27];
     visual = `<div class="ev-audio"><div class="wave">${hs.map(h=>`<i style="--h:${h}%"></i>`).join("")}</div></div>`;
-  }
+  } else if (e.type === "transit") visual = '<div class="ev-map"><span class="transit-mark">ENTRY -- / EXIT 23:41</span></div>';
+  else visual = `<div class="ev-cctv"><b>IMG ${e.code} / SUBJECT UNLISTED</b></div>`;
   return `<div class="evidence-stack"><div class="ev-status"><span>${e.code}</span><span>${r.place}</span><span class="${r.urgent ? "danger" : ""}">${r.state}</span></div><div class="evidence-view"><div class="ev-head"><span>${e.label}</span><span>${e.clock}</span></div>${visual}<div class="ev-transcript">${e.note}</div></div><p class="hint" style="text-align:left">第六文書課・自動収集記録。表示地点と距離はゲーム内観測値です。</p></div>`;
 }
 function caseState() {
@@ -1892,11 +1912,29 @@ function previousCase() {
   const log = S.caseLog || {}, keys = Object.keys(log).filter(k => k !== dayKey()).sort().reverse();
   return keys.length ? Object.assign({ day:keys[0] }, log[keys[0]]) : null;
 }
+const AFTERMATH = {
+  field:[
+    ["継続異常","現地確認班の帰投後、別地点で同じ反応","昨日接触した異常と同じ波形が、別の生活圏から検出された。","RECUR / 再発"],
+    ["帰投記録","現地班の装備に未登録の音声","帰投後の録音機に、現場では聞いていない呼吸音が残っている。","FOLLOW / 追随"],
+    ["現場残留","処理地点に人影だけが残った","反応値は下がったが、防犯映像には同じ場所を向く人影が残っている。","RESIDUAL / 残留"]
+  ],
+  seal:[
+    ["封鎖後観測","封鎖区域の外側で反応を再検出","封鎖線の内側から反応は消えた。ただし境界の外で同じ特徴を記録した。","LEAK / 漏出"],
+    ["封鎖維持","封鎖扉の内側からノック音","区画内に人員はいない。解錠は禁止されている。","LOCKED / 内部反応"],
+    ["境界異常","封鎖線が図面より1.8m移動している","物理標識の位置は変わっていない。計測値だけが一致しない。","SHIFT / 境界変位"]
+  ],
+  watch:[
+    ["監視継続","経過観察中の反応が、昨夜より近い","消えてはいない。観測距離だけが短くなっている。","CLOSER / 接近"],
+    ["監視継続","反応が一度消え、生活時間帯に復帰","午前中はゼロだった。帰宅時間帯から再び記録されている。","RETURN / 復帰"],
+    ["要再判定","監視対象が二つに分かれた","同一特徴の反応が同時に別方向へ移動している。","SPLIT / 分岐"]
+  ]
+};
 function caseAftermath() {
   const p = previousCase(); if (!p) return null;
-  if (p.choice === "field") return { eye:"継続異常", title:"現地確認班の帰投後、別地点で同じ反応", body:"昨日接触した異常と同じ波形が、別の生活圏から検出された。処理完了にはなっていない。", state:"RECUR / 再発" };
-  if (p.choice === "seal") return { eye:"封鎖後観測", title:"封鎖区域の外側で反応を再検出", body:"封鎖線の内側から反応は消えた。ただし今朝、境界の外で同じ特徴が一度だけ記録された。", state:"LEAK / 漏出" };
-  return { eye:"監視継続", title:"経過観察中の反応が、昨夜より近い", body:"消えてはいない。観測距離だけが短くなっている。第六文書課は監視継続を指示している。", state:"CLOSER / 接近" };
+  const list = AFTERMATH[p.choice] || AFTERMATH.watch;
+  const seed = Math.abs(([...p.day].reduce((a,c)=>a+c.charCodeAt(0),0) + (p.code || "").length + totalLv()) % list.length);
+  const a = list[seed];
+  return { eye:a[0], title:a[1], body:a[2], state:a[3] };
 }
 function caseChoiceMeta(choice) {
   return choice === "field" ? ["現地確認","現場へ向かう。最も情報を得られるが、異常へ近づく。"]
@@ -1939,7 +1977,7 @@ function renderDeskEvent() {
   $("desk-title").innerHTML = e.title;
   $("desk-body").textContent = e.body;
   $("desk-stamp").textContent = e.stamp;
-  $("desk-actions").innerHTML = `<button class="btn-line" data-desk="evidence">検知記録を見る</button>`;
+  $("desk-actions").innerHTML = `<button class="btn-line" data-desk="evidence">${caseState() ? "処理記録を見る" : "検知記録を見る"}</button>`;
   const primary = $("agent-primary");
   if (primary) {
     primary.textContent = e.label;
@@ -2880,14 +2918,23 @@ document.addEventListener("click", e => {
   if (t.dataset.levt === "dismiss") clearLiteEvent();
   else if (t.dataset.levt) openLiteEventDetail((S.lite && S.lite.event) || null);
 });
+$("wallet").addEventListener("click", openWalletDetail);
 $("lite-result").addEventListener("click", liteResult);
 $("lite-apply").addEventListener("click", startInterview);
 
 /* ---------- idle ---------- */
 const idleMult = () => (1 + .05 * rankIdx()) * (1 + .1 * upLv("radio"));
+function idleStep() { return (hour() === 2 ? 2500 : 5000) / idleMult(); }
+function openWalletDetail() {
+  if (isLite()) return;
+  const step = idleStep(), perMin = 60000 / step, perHour = perMin * 60;
+  const next = Math.max(0, step - (Date.now() - S.lastTick));
+  const night = hour() === 2;
+  sheet("疑念pt / 自動獲得", `<div class="sum"><div><span>現在</span><b>${Math.floor(S.currency)}pt</b></div><div><span>自動獲得</span><b>+1 / ${(step/1000).toFixed(1)}秒</b></div><div><span>1分あたり</span><b>約${perMin.toFixed(1)}pt</b></div><div><span>1時間あたり</span><b>約${Math.round(perHour)}pt</b></div></div><div class="research-card ready"><b>次の +1pt まで ${(next/1000).toFixed(1)}秒</b><div class="rk-bar"><i style="width:${Math.min(100,(1-next/step)*100)}%"></i></div><small>ランク補正 ×${(1+.05*rankIdx()).toFixed(2)} ／ 無線設備 ×${(1+.1*upLv("radio")).toFixed(2)}${night ? " ／ 丑三つ時 ×2" : ""}</small></div><p class="hint" style="text-align:left">留守中の獲得には上限があります。通信端末の強化で上限が延びます。</p>`);
+}
 function tick() {
   if (isLite()) { S.lastTick = Date.now(); return; }
-  const step = (hour() === 2 ? 2500 : 5000) / idleMult(), el = Date.now() - S.lastTick;
+  const step = idleStep(), el = Date.now() - S.lastTick;
   if (el >= step) { const g = Math.floor(el / step); S.currency += g; S.lastTick += g * step; save(); render(); }
   $("ring").style.setProperty("--p", Math.min(100, (Date.now() - S.lastTick) / step * 100));
 }
