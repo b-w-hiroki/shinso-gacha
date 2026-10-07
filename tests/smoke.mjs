@@ -41,3 +41,9 @@ has(/class="agent-footer"/, "agent home must use the lite-style fixed footer");
 has(/id="agent-primary"/, "agent event primary CTA missing");
 has(/primary\.textContent = e\.label;[\s\S]*primary\.dataset\.desk = e\.action;/, "agent primary CTA must follow the current event");
 has(/body:has\(\.agent-home:not\(\[hidden\]\)\) \.nav \{ display:none; \}/, "global nav must not compete with the agent first view");
+
+has(/id="radar-distance"/, "radar distance indicator missing");
+has(/function radarSignal\(\)/, "functional radar signal model missing");
+has(/ゲーム内観測/, "radar location must be explicitly fictional in-world observation");
+has(/renderRadar\(\);/, "radar must update with the current desk event");
+has(/DANGER \/ 接近中/, "danger radar state missing");
