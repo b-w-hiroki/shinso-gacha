@@ -68,7 +68,7 @@ assert(html.includes('line.dataset.aftermath = "1"'), "aftermath thread signal m
 
 has(/id="wallet" type="button"/, "suspicion points must be tappable");
 has(/function openWalletDetail\(\)/, "suspicion point rate detail missing");
-has(/<span>1時間<\\/span><b>約/, "hourly passive estimate missing");
+assert(html.includes("<span>1時間</span><b>約"), "hourly passive estimate missing");
 has(/次の \+1pt まで/, "next passive gain countdown missing");
 has(/const EVIDENCE_TYPES = \["cctv","map","audio","intercom","transit","photo"\]/, "expanded evidence set missing");
 has(/const AFTERMATH = \{/, "varied aftermath table missing");
