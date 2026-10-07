@@ -128,7 +128,12 @@ main { max-width: 640px; margin: 0 auto; padding-inline: 16px; padding-block: 20
 .research-level.on { border-left-color:var(--stamp); }
 .research-level strong { display:block; font-size:13px; }
 .research-level span { font-size:13px; color:var(--muted); }
-.weekly-card { padding:16px; border:1px solid var(--stamp); background:rgba(184,53,43,.08); display:grid; gap:8px; }
+.weekly-card { padding:16px; border:1px solid var(--stamp); background:rgba(184,53,43,.08); display:grid; gap:8px; position:relative; }
+.weekly-card::after { content:"要対応"; position:absolute; right:10px; top:10px; padding:3px 7px; border:1px solid #8d433c; color:#c35a50; font:800 9px var(--f-mono); letter-spacing:.1em; transform:rotate(2deg); }
+body:not(.lite) .bbs { position:relative; }
+body:not(.lite) .bbs::after { content:"監視中"; position:absolute; right:10px; top:8px; color:#8f5a55; font:800 9px var(--f-mono); letter-spacing:.12em; opacity:.8; }
+body:not(.lite) .up.paper::before { content:"調査"; display:block; width:max-content; margin-bottom:5px; color:#6e6555; font:800 9px var(--f-mono); letter-spacing:.12em; }
+body:not(.lite) .research-card::before { content:"要確認"; display:block; width:max-content; margin-bottom:5px; color:#9a544d; font:800 9px var(--f-mono); letter-spacing:.12em; }
 
 /* ---------- gacha view ---------- */
 .seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--desk-2); border: 1px solid var(--line); padding: 4px; gap: 4px; }
@@ -198,6 +203,7 @@ main { max-width: 640px; margin: 0 auto; padding-inline: 16px; padding-block: 20
 
 /* ---------- agent home / event desk ---------- */
 .home-tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:4px; padding:4px; background:var(--desk-2); border:1px solid var(--line); position:sticky; top:58px; z-index:4; }
+body:not(.lite) .home-tabs::before { content:"第六文書課"; position:absolute; right:8px; top:-17px; color:#707986; font:800 9px var(--f-mono); letter-spacing:.12em; }
 .home-tabs button { min-height:44px; color:var(--muted); font-weight:700; }
 .home-tabs button[aria-pressed="true"] { background:var(--paper); color:var(--ink); }
 .home-pane { display:grid; gap:20px; }
