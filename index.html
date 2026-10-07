@@ -1840,6 +1840,32 @@ function radarSignal() {
   const place = RADAR_PLACES[seed % RADAR_PLACES.length];
   return { distance, state, place, urgent, near, seed };
 }
+const EVIDENCE_TYPES = ["cctv","map","audio"];
+function anomalyEvidence() {
+  const r = radarSignal(), type = EVIDENCE_TYPES[r.seed % EVIDENCE_TYPES.length];
+  const clock = String((r.seed % 23)).padStart(2,"0") + ":" + String((r.seed * 7) % 60).padStart(2,"0");
+  if (type === "cctv") return { type, label:"防犯カメラ記録", code:"CAM-" + String(r.seed).padStart(3,"0"), clock,
+    note:"同じ人物が、連続する2フレームで別の位置に立っている。間の映像は欠損していない。" };
+  if (type === "map") return { type, label:"構内照合図", code:"MAP-" + String(r.seed).padStart(3,"0"), clock,
+    note:"存在しない通路から反応が出ている。現行図面と避難経路図のどちらにも記載がない。" };
+  return { type, label:"留守番電話記録", code:"TEL-" + String(r.seed).padStart(3,"0"), clock,
+    note:"無音のはずの区間から、人の声に近い波形が検出された。発信元番号は存在しない。" };
+}
+function evidenceHTML() {
+  const e = anomalyEvidence(), r = radarSignal();
+  let visual = "";
+  if (e.type === "cctv") visual = `<div class="ev-cctv"><b>REC ● ${e.clock}:17 / FRAME LOST 0</b></div>`;
+  else if (e.type === "map") visual = '<div class="ev-map"></div>';
+  else {
+    const hs = [18,42,25,61,36,78,29,52,88,34,65,23,47,72,31,55,20,39,68,27];
+    visual = `<div class="ev-audio"><div class="wave">${hs.map(h=>`<i style="--h:${h}%"></i>`).join("")}</div></div>`;
+  }
+  return `<div class="evidence-stack"><div class="ev-status"><span>${e.code}</span><span>${r.place}</span><span class="${r.urgent ? "danger" : ""}">${r.state}</span></div><div class="evidence-view"><div class="ev-head"><span>${e.label}</span><span>${e.clock}</span></div>${visual}<div class="ev-transcript">${e.note}</div></div><p class="hint" style="text-align:left">第六文書課・自動収集記録。表示地点と距離はゲーム内観測値です。</p></div>`;
+}
+function openAnomalyEvidence() {
+  const e = anomalyEvidence();
+  sheet("異常証拠 / " + e.label, evidenceHTML());
+}
 function renderRadar() {
   const r = radarSignal(), blips = $("radar-blips");
   if (!blips) return;
@@ -1860,7 +1886,7 @@ function renderDeskEvent() {
   $("desk-title").innerHTML = e.title;
   $("desk-body").textContent = e.body;
   $("desk-stamp").textContent = e.stamp;
-  $("desk-actions").innerHTML = "";
+  $("desk-actions").innerHTML = `<button class="btn-line" data-desk="evidence">検知記録を見る</button>`;
   const primary = $("agent-primary");
   if (primary) {
     primary.textContent = e.label;
@@ -2048,7 +2074,7 @@ document.addEventListener("click", e => {
   if (!t) return;
   if (t.dataset.htab) return setHomeTab(t.dataset.htab);
   if (t.dataset.stab) return setSectionTab(t.dataset.stab);
-  if (t.dataset.desk === "today") return postScene();
+  if (t.dataset.desk === "today") return postScene();\n  if (t.dataset.desk === "evidence") return openAnomalyEvidence();
   if (t.dataset.desk === "tasks") return setHomeTab("tasks");
   if (t.dataset.desk === "lab") return go("lab");
   if (t.dataset.desk === "gacha") return go("gacha");
