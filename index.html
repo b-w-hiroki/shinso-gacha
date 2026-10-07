@@ -476,6 +476,27 @@ body.night .top-in, body.night .today { animation: flicker 6s infinite; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 
+/* ---------- thread radar home ---------- */
+.thread-radar { position:relative; overflow:hidden; border:1px solid #465852; background:#101716; box-shadow:0 16px 38px rgba(0,0,0,.42),inset 0 0 40px rgba(68,116,98,.08); }
+.radar-head { min-height:38px; padding:7px 10px; display:grid; grid-template-columns:1fr auto; gap:1px 8px; align-items:center; border-bottom:1px solid #3c4c47; font:700 10px var(--f-mono); letter-spacing:.1em; color:#8da49c; }
+.radar-head b { grid-row:1/3; grid-column:2; color:#c4d7d0; font-size:12px; }
+.radar-head .live { font-style:normal; color:#9fc7b8; }
+.radar-screen { position:relative; min-height:142px; padding:8px 10px; overflow:hidden; background:radial-gradient(circle at 50% 50%,rgba(78,126,108,.10),transparent 58%),repeating-linear-gradient(0deg,transparent 0 3px,rgba(114,155,140,.025) 3px 4px); }
+.radar-sweep { position:absolute; inset:-50%; background:conic-gradient(from 0deg,transparent 0 330deg,rgba(112,166,145,.13) 352deg,transparent 360deg); animation:radarSweep 7s linear infinite; pointer-events:none; }
+@keyframes radarSweep { to{transform:rotate(360deg)} }
+.radar-posts { position:relative; z-index:1; display:grid; gap:5px; }
+.radar-line { display:grid; grid-template-columns:42px 1fr; gap:8px; align-items:start; font:700 11px/1.45 var(--f-mono); color:#b7c7c1; }
+.radar-line time { color:#6f8a80; }
+.radar-line.haunt { color:#d18c82; text-shadow:0 0 8px rgba(184,53,43,.18); }
+.home-pane[data-hpane="desk"] { gap:11px; }
+.home-pane[data-hpane="desk"] .desk-event { min-height:190px; }
+.home-pane[data-hpane="desk"] .desk-quick { margin-top:-2px; }
+.home-sniff { min-height:54px; padding:10px 13px; }
+.home-sniff .lens { width:34px; height:34px; }
+.home-sniff b { font-size:16px; }
+body:not(.lite) #pursuer-signal { display:none !important; }
+body:not(.lite) #today-crowd { display:none !important; }
+
 /* ---------- mobile visual polish ---------- */
 @media (max-width: 599px) {
   body { background-image:radial-gradient(100% 46% at 50% 0,var(--lamp),transparent 72%),linear-gradient(180deg,#111318,#15181e 48%,#101217); }
@@ -806,15 +827,22 @@ body.agent-reveal::after { content:"PROTECTIVE CLEARANCE"; position:fixed; inset
   <!-- HOME -->
   <section class="view" data-view="home">
     <div class="home-tabs" role="group" aria-label="調査デスクの表示切替">
-      <button data-htab="desk" aria-pressed="true">デスク</button>
+      <button data-htab="desk" aria-pressed="true">探知</button>
       <button data-htab="tasks" aria-pressed="false">任務</button>
-      <button data-htab="comms" aria-pressed="false">通信</button>
+      <button data-htab="comms" aria-pressed="false">ログ</button>
     </div>
 
     <div class="home-pane" data-hpane="desk">
-      <p class="streak" id="streak"></p>
+      <section class="thread-radar" aria-label="異常探知スレッド">
+        <div class="radar-head"><span>第六文書課 / 異常探知網</span><b>THREAD RADAR</b><i class="live">● LIVE</i></div>
+        <div class="radar-screen">
+          <div class="radar-sweep" aria-hidden="true"></div>
+          <div class="radar-posts" id="radar-posts" aria-live="polite"></div>
+        </div>
+      </section>
+      <p class="streak" id="streak" hidden></p>
       <div class="pursuer-signal" id="pursuer-signal" hidden></div>
-      <div class="ushi" id="ushi" hidden><b>丑三つ時</b><span>放置で貯まる疑念が2倍。封筒の中身も少し騒がしい。</span></div>
+      <div class="ushi" id="ushi" hidden><b>丑三つ時</b><span>異常探知感度が上がっています。</span></div>
       <article class="desk-event paper aged urban" id="desk-event" aria-live="polite">
         <span class="clip" aria-hidden="true"></span>
         <span class="stamp-sm" id="desk-stamp">投函済</span>
@@ -828,12 +856,12 @@ body.agent-reveal::after { content:"PROTECTIVE CLEARANCE"; position:fixed; inset
         <button class="btn-paper" data-desk="gacha">封筒を調査する</button>
         <button class="btn-line" data-desk="archive">資料を見る</button>
       </div>
-      <button class="pad" id="sniff">
+      <button class="pad home-sniff" id="sniff">
         <span class="lens" aria-hidden="true"></span>
-        <span><b>真相を嗅ぎ回る</b><small id="sniff-sub">タップで疑念ptが貯まる ／ 近づく保証はない</small></span>
+        <span><b>周辺を探知する</b><small id="sniff-sub">疑念ptを集める</small></span>
         <span class="combo" id="combo">×1</span>
       </button>
-      <div class="cap"><span id="cap-text"></span><div class="rk-bar"><i id="cap-bar" style="width:0%"></i></div></div>
+      <div class="cap home-cap" hidden><span id="cap-text"></span><div class="rk-bar"><i id="cap-bar" style="width:0%"></i></div></div>
     </div>
 
     <div class="home-pane" data-hpane="tasks" hidden>
