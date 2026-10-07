@@ -476,6 +476,19 @@ body.night .top-in, body.night .today { animation: flicker 6s infinite; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 
+/* ---------- final first-view compression ---------- */
+@media(max-width:599px){
+  .agent-home .radar-screen{min-height:108px;max-height:116px}
+  .agent-home .desk-event{min-height:184px;padding:18px 15px 14px;gap:7px}
+  .agent-home .desk-event h2{font-size:clamp(24px,7vw,30px)}
+  .agent-home .desk-event p{font-size:14px;line-height:1.58}
+  .agent-home .desk-event .actions{padding-top:4px}
+  .agent-home .home-sniff{display:none}
+  .agent-home .radar-head{min-height:34px;padding-block:5px}
+  .agent-home .radar-posts{gap:3px}
+  .agent-home .radar-line{font-size:10px}
+}
+
 /* ---------- agent lite-style shell ---------- */
 .agent-footer { position:fixed; left:50%; bottom:calc(7px + env(safe-area-inset-bottom,0px)); z-index:10; width:min(612px,calc(100% - 14px)); transform:translateX(-50%); display:grid; gap:5px; padding:5px; background:rgba(16,19,24,.96); border:1px solid #465061; border-radius:12px; box-shadow:0 12px 34px rgba(0,0,0,.52); backdrop-filter:blur(14px); }
 .agent-primary { min-height:60px; border-radius:8px; background:var(--paper); color:var(--ink); font-weight:800; font-size:18px; letter-spacing:.035em; }
@@ -1964,7 +1977,7 @@ function renderDeskEvent() {
   $("desk-title").innerHTML = e.title;
   $("desk-body").textContent = e.body;
   $("desk-stamp").textContent = e.stamp;
-  $("desk-actions").innerHTML = `<button class="btn-line" data-desk="evidence">検知記録を見る</button>`;
+  $("desk-actions").innerHTML = `<button class="btn-line" data-desk="evidence">${caseState() ? "処理記録を見る" : "検知記録を見る"}</button>`;
   const primary = $("agent-primary");
   if (primary) {
     primary.textContent = e.label;
