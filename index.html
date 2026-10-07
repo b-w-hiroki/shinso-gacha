@@ -496,6 +496,16 @@ body:has(.agent-home:not([hidden])) main { padding-bottom:calc(142px + env(safe-
 body:has(.agent-home:not([hidden])) .nav { display:none; }
 
 /* ---------- anomaly evidence ---------- */
+.case-choices { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
+.case-choices button { min-height:72px; padding:9px 7px; border:1px solid #59636d; background:#1c2228; color:var(--fg); display:grid; gap:4px; text-align:left; }
+.case-choices b { font-size:14px; }
+.case-choices span { color:var(--muted); font-size:11px; }
+.case-result { padding:12px 14px; border:1px solid #5b6b65; background:#18201e; display:grid; gap:3px; }
+.case-result span { font:700 10px var(--f-mono); color:#849b92; letter-spacing:.08em; }
+.case-result b { font-size:18px; }
+.case-result p { margin:0; color:var(--muted); font-size:13px; line-height:1.55; }
+@media(max-width:360px){.case-choices{grid-template-columns:1fr}.case-choices button{min-height:54px}}
+
 .evidence-stack { display:grid; gap:10px; }
 .evidence-view { position:relative; overflow:hidden; min-height:190px; border:1px solid #59636d; background:#11161a; color:#d8dedb; }
 .evidence-view::after { content:""; position:absolute; inset:0; pointer-events:none; background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.025) 3px 4px); }
@@ -1833,12 +1843,17 @@ function deskEventData() {
 const RADAR_PLACES = ["駅構内","集合住宅","商店街","地下通路","河川敷","学校裏","コンビニ周辺","高架下"];
 function radarSignal() {
   const e = deskEventData(), seed = Math.abs((dayNo() * 97 + (S.pulls || 0) * 13 + totalLv() * 7) % 997);
-  const urgent = e.alert || e.action === "weekly";
-  const near = e.action === "today" || urgent;
-  const distance = urgent ? 80 + seed % 420 : near ? 300 + seed % 1700 : 1200 + seed % 7800;
-  const state = urgent ? "DANGER / 接近中" : near ? "CAUTION / 要確認" : "MONITORING / 経過観察";
+  const handled = S.caseLog && S.caseLog[dayKey()];
+  let urgent = e.alert || e.action === "weekly", near = e.action === "today" || urgent;
+  let distance = urgent ? 80 + seed % 420 : near ? 300 + seed % 1700 : 1200 + seed % 7800;
+  let state = urgent ? "DANGER / 接近中" : near ? "CAUTION / 要確認" : "MONITORING / 経過観察";
+  if (handled) {
+    if (handled.choice === "seal") { urgent = false; near = false; distance = 0; state = "SEALED / 封鎖済"; }
+    else if (handled.choice === "field") { urgent = false; near = true; distance = 20 + seed % 80; state = "ON SITE / 現地確認"; }
+    else { urgent = false; near = false; distance = 900 + seed % 2600; state = "WATCH / 経過観察"; }
+  }
   const place = RADAR_PLACES[seed % RADAR_PLACES.length];
-  return { distance, state, place, urgent, near, seed };
+  return { distance, state, place, urgent, near, seed, handled };
 }
 const EVIDENCE_TYPES = ["cctv","map","audio"];
 function anomalyEvidence() {
@@ -1862,14 +1877,35 @@ function evidenceHTML() {
   }
   return `<div class="evidence-stack"><div class="ev-status"><span>${e.code}</span><span>${r.place}</span><span class="${r.urgent ? "danger" : ""}">${r.state}</span></div><div class="evidence-view"><div class="ev-head"><span>${e.label}</span><span>${e.clock}</span></div>${visual}<div class="ev-transcript">${e.note}</div></div><p class="hint" style="text-align:left">第六文書課・自動収集記録。表示地点と距離はゲーム内観測値です。</p></div>`;
 }
+function caseState() {
+  S.caseLog = S.caseLog || {};
+  return S.caseLog[dayKey()] || null;
+}
+function caseChoiceMeta(choice) {
+  return choice === "field" ? ["現地確認","現場へ向かう。最も情報を得られるが、異常へ近づく。"]
+    : choice === "seal" ? ["遠隔封鎖","対象区画を一時封鎖する。情報は減るが、接触を避けられる。"]
+    : ["経過観察","今は動かず監視を続ける。異常が接近する可能性が残る。"];
+}
+function resolveCase(choice) {
+  const e = anomalyEvidence(), r = radarSignal(), meta = caseChoiceMeta(choice);
+  S.caseLog = S.caseLog || {};
+  S.caseLog[dayKey()] = { choice, label:meta[0], evidence:e.type, code:e.code, place:r.place, at:Date.now() };
+  if (choice === "field") { S.evi = (S.evi || 0) + 2; toast("現地確認：証拠 +2"); }
+  else if (choice === "seal") toast("対象区画を遠隔封鎖しました");
+  else toast("経過観察へ移行しました");
+  markDirty(); hideSheet(); render();
+}
 function openAnomalyEvidence() {
-  const e = anomalyEvidence();
-  sheet("異常証拠 / " + e.label, evidenceHTML());
+  const e = anomalyEvidence(), state = caseState();
+  const decision = state
+    ? `<div class="case-result"><span>本日の処理</span><b>${state.label}</b><p>${caseChoiceMeta(state.choice)[1]}</p></div>`
+    : `<div class="case-choices"><button data-act="case" data-choice="field"><b>現地確認</b><span>異常へ近づく</span></button><button data-act="case" data-choice="seal"><b>遠隔封鎖</b><span>接触を避ける</span></button><button data-act="case" data-choice="watch"><b>経過観察</b><span>監視を継続</span></button></div>`;
+  sheet("異常証拠 / " + e.label, evidenceHTML() + decision);
 }
 function renderRadar() {
   const r = radarSignal(), blips = $("radar-blips");
   if (!blips) return;
-  $("radar-distance").textContent = r.distance < 1000 ? r.distance + "m" : (r.distance / 1000).toFixed(1) + "km";
+  $("radar-distance").textContent = r.state.startsWith("SEALED") ? "LOCK" : r.distance < 1000 ? r.distance + "m" : (r.distance / 1000).toFixed(1) + "km";
   $("radar-state").textContent = r.state;
   $("radar-place").textContent = r.place + "付近 / ゲーム内観測";
   const pts = [[18,25],[68,18],[32,70],[75,63],[51,43]];
@@ -1938,9 +1974,20 @@ function render() {
   $("env-seal").textContent = box === "urban" ? "封" : "極秘";
   $("big-env").classList.toggle("old", box === "urban");
   document.querySelectorAll("[data-seg]").forEach(b => b.setAttribute("aria-pressed", b.dataset.seg === box));
-  renderMissions(); renderArchive(); renderReport(); renderLab(); renderDeskEvent(); renderPursuerSignal();
+  renderMissions(); renderArchive(); renderReport(); renderLab(); renderDeskEvent(); renderPursuerSignal(); renderCaseLogToThread();
   const st = S.streak || { n: 0 };
   $("streak").textContent = st.n ? `連続調査 ${st.n}日目 ・ 明日の出勤ボーナス +${20 + 10 * Math.min(st.n + 1, 7)}pt` : "";
+}
+function renderCaseLogToThread() {
+  const st = caseState(), box = $("radar-posts");
+  if (!st || !box || box.querySelector("[data-case-log]")) return;
+  const line = document.createElement("div"); line.className = "radar-line"; line.dataset.caseLog = "1";
+  const time = document.createElement("time"); time.textContent = "課内";
+  const msg = document.createElement("span");
+  msg.textContent = st.choice === "field" ? "現地確認班が接触。記録を継続してください。"
+    : st.choice === "seal" ? "対象区画を封鎖。反応消失を確認するまで解除禁止。"
+    : "経過観察へ移行。距離変化があれば再通知します。";
+  line.append(time,msg); box.prepend(line);
 }
 function renderMissions() {
   let claimable = false;
@@ -2095,6 +2142,7 @@ document.addEventListener("click", e => {
   if (el.dataset.pull) return pull(+el.dataset.pull);
   const a = el.dataset.act, id = el.dataset.id;
   if (a === "close") hideSheet();
+  if (a === "case") return resolveCase(el.dataset.choice);
   if (a === "dossier") openDossier(id);
   if (a === "card") openCard(id);
   if (a === "x") shared();

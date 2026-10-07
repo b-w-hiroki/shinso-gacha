@@ -52,3 +52,10 @@ has(/const EVIDENCE_TYPES = \["cctv","map","audio"\]/, "anomaly evidence types m
 has(/data-desk="evidence"/, "radar evidence entry point missing");
 has(/function openAnomalyEvidence\(\)/, "anomaly evidence sheet missing");
 has(/ゲーム内観測値/, "evidence location must remain explicitly fictional");
+
+has(/function resolveCase\(choice\)/, "anomaly response decision loop missing");
+has(/現地確認[\s\S]*遠隔封鎖[\s\S]*経過観察/, "three anomaly response choices missing");
+has(/SEALED \/ 封鎖済/, "sealed radar result missing");
+has(/ON SITE \/ 現地確認/, "on-site radar result missing");
+has(/WATCH \/ 経過観察/, "watch radar result missing");
+has(/S\.caseLog\[dayKey\(\)\]/, "case decision must persist");
