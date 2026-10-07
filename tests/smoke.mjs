@@ -47,3 +47,9 @@ has(/function radarSignal\(\)/, "functional radar signal model missing");
 has(/ゲーム内観測/, "radar location must be explicitly fictional in-world observation");
 has(/renderRadar\(\);/, "radar must update with the current desk event");
 has(/DANGER \/ 接近中/, "danger radar state missing");
+
+has(/const EVIDENCE_TYPES = \["cctv","map","audio"\]/, "anomaly evidence types missing");
+has(/data-desk="evidence"/, "radar evidence entry point missing");
+has(/function openAnomalyEvidence\(\)/, "anomaly evidence sheet missing");
+has(/S\.caseLog\[dayKey\(\)\]/, "daily anomaly evidence state must persist");
+has(/ゲーム内観測値/, "evidence location must remain explicitly fictional");
