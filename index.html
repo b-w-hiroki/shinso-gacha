@@ -1843,12 +1843,17 @@ function deskEventData() {
 const RADAR_PLACES = ["駅構内","集合住宅","商店街","地下通路","河川敷","学校裏","コンビニ周辺","高架下"];
 function radarSignal() {
   const e = deskEventData(), seed = Math.abs((dayNo() * 97 + (S.pulls || 0) * 13 + totalLv() * 7) % 997);
-  const urgent = e.alert || e.action === "weekly";
-  const near = e.action === "today" || urgent;
-  const distance = urgent ? 80 + seed % 420 : near ? 300 + seed % 1700 : 1200 + seed % 7800;
-  const state = urgent ? "DANGER / 接近中" : near ? "CAUTION / 要確認" : "MONITORING / 経過観察";
+  const handled = S.caseLog && S.caseLog[dayKey()];
+  let urgent = e.alert || e.action === "weekly", near = e.action === "today" || urgent;
+  let distance = urgent ? 80 + seed % 420 : near ? 300 + seed % 1700 : 1200 + seed % 7800;
+  let state = urgent ? "DANGER / 接近中" : near ? "CAUTION / 要確認" : "MONITORING / 経過観察";
+  if (handled) {
+    if (handled.choice === "seal") { urgent = false; near = false; distance = 0; state = "SEALED / 封鎖済"; }
+    else if (handled.choice === "field") { urgent = false; near = true; distance = 20 + seed % 80; state = "ON SITE / 現地確認"; }
+    else { urgent = false; near = false; distance = 900 + seed % 2600; state = "WATCH / 経過観察"; }
+  }
   const place = RADAR_PLACES[seed % RADAR_PLACES.length];
-  return { distance, state, place, urgent, near, seed };
+  return { distance, state, place, urgent, near, seed, handled };
 }
 const EVIDENCE_TYPES = ["cctv","map","audio"];
 function anomalyEvidence() {
@@ -1900,7 +1905,7 @@ function openAnomalyEvidence() {
 function renderRadar() {
   const r = radarSignal(), blips = $("radar-blips");
   if (!blips) return;
-  $("radar-distance").textContent = r.distance < 1000 ? r.distance + "m" : (r.distance / 1000).toFixed(1) + "km";
+  $("radar-distance").textContent = r.state.startsWith("SEALED") ? "LOCK" : r.distance < 1000 ? r.distance + "m" : (r.distance / 1000).toFixed(1) + "km";
   $("radar-state").textContent = r.state;
   $("radar-place").textContent = r.place + "付近 / ゲーム内観測";
   const pts = [[18,25],[68,18],[32,70],[75,63],[51,43]];
