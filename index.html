@@ -518,7 +518,7 @@ body:has(.agent-home:not([hidden])) .nav { display:none; }
 .ev-audio { min-height:155px; display:grid; place-items:center; padding:18px; background:#101518; }
 .wave { width:100%; height:64px; display:flex; align-items:center; gap:3px; }
 .wave i { flex:1; min-width:2px; height:var(--h); background:#7f9e92; opacity:.82; }
-.ev-transcript { padding:10px 12px; border-top:1px solid #424b54; font-size:14px; line-height:1.65; }
+.transit-mark { position:absolute; left:12px; bottom:12px; padding:6px 8px; background:#0e1515; border:1px solid #657970; font:700 11px var(--f-mono); color:#b9cbc4; }\n.ev-transcript { padding:10px 12px; border-top:1px solid #424b54; font-size:14px; line-height:1.65; }
 .ev-status { display:flex; gap:6px; flex-wrap:wrap; }
 .ev-status span { padding:5px 8px; border:1px solid #59636d; font:800 10px var(--f-mono); letter-spacing:.06em; }
 .ev-status .danger { color:#e0a19a; border-color:#8d4e48; }
@@ -1862,7 +1862,7 @@ function radarSignal() {
   const place = RADAR_PLACES[seed % RADAR_PLACES.length];
   return { distance, state, place, urgent, near, seed, handled };
 }
-const EVIDENCE_TYPES = ["cctv","map","audio"];
+const EVIDENCE_TYPES = ["cctv","map","audio","intercom","transit","photo"];
 function anomalyEvidence() {
   const r = radarSignal(), type = EVIDENCE_TYPES[r.seed % EVIDENCE_TYPES.length];
   const clock = String((r.seed % 23)).padStart(2,"0") + ":" + String((r.seed * 7) % 60).padStart(2,"0");
@@ -1870,18 +1870,25 @@ function anomalyEvidence() {
     note:"同じ人物が、連続する2フレームで別の位置に立っている。間の映像は欠損していない。" };
   if (type === "map") return { type, label:"構内照合図", code:"MAP-" + String(r.seed).padStart(3,"0"), clock,
     note:"存在しない通路から反応が出ている。現行図面と避難経路図のどちらにも記載がない。" };
-  return { type, label:"留守番電話記録", code:"TEL-" + String(r.seed).padStart(3,"0"), clock,
+  if (type === "audio") return { type, label:"留守番電話記録", code:"TEL-" + String(r.seed).padStart(3,"0"), clock,
     note:"無音のはずの区間から、人の声に近い波形が検出された。発信元番号は存在しない。" };
+  if (type === "intercom") return { type, label:"インターホン履歴", code:"INT-" + String(r.seed).padStart(3,"0"), clock,
+    note:"応答していない時刻に通話成立の記録がある。室内側の音声だけが保存されている。" };
+  if (type === "transit") return { type, label:"交通IC照合", code:"IC-" + String(r.seed).padStart(3,"0"), clock,
+    note:"入場記録のないカードが改札を出ている。同じ識別子は廃棄済みとして登録されている。" };
+  return { type, label:"現場写真", code:"IMG-" + String(r.seed).padStart(3,"0"), clock,
+    note:"撮影者の記憶にはない人物が画面端に写っている。別角度の写真にも同じ位置で残っている。" };
 }
 function evidenceHTML() {
   const e = anomalyEvidence(), r = radarSignal();
   let visual = "";
   if (e.type === "cctv") visual = `<div class="ev-cctv"><b>REC ● ${e.clock}:17 / FRAME LOST 0</b></div>`;
   else if (e.type === "map") visual = '<div class="ev-map"></div>';
-  else {
+  else if (e.type === "audio" || e.type === "intercom") {
     const hs = [18,42,25,61,36,78,29,52,88,34,65,23,47,72,31,55,20,39,68,27];
     visual = `<div class="ev-audio"><div class="wave">${hs.map(h=>`<i style="--h:${h}%"></i>`).join("")}</div></div>`;
-  }
+  } else if (e.type === "transit") visual = '<div class="ev-map"><span class="transit-mark">ENTRY -- / EXIT 23:41</span></div>';
+  else visual = `<div class="ev-cctv"><b>IMG ${e.code} / SUBJECT UNLISTED</b></div>`;
   return `<div class="evidence-stack"><div class="ev-status"><span>${e.code}</span><span>${r.place}</span><span class="${r.urgent ? "danger" : ""}">${r.state}</span></div><div class="evidence-view"><div class="ev-head"><span>${e.label}</span><span>${e.clock}</span></div>${visual}<div class="ev-transcript">${e.note}</div></div><p class="hint" style="text-align:left">第六文書課・自動収集記録。表示地点と距離はゲーム内観測値です。</p></div>`;
 }
 function caseState() {
