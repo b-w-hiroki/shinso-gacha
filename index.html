@@ -526,6 +526,12 @@ body:has(.agent-home:not([hidden])) main { padding-bottom:calc(142px + env(safe-
 body:has(.agent-home:not([hidden])) .nav { display:none; }
 
 /* ---------- anomaly evidence ---------- */
+.evidence-view[data-kind="cctv"]::before,.evidence-view[data-kind="photo"]::before{content:"CAM / 第六文書課 自動収集";position:absolute;z-index:2;left:10px;top:40px;font:700 9px var(--f-mono);color:#aebbb6;letter-spacing:.08em}
+.ev-cctv{position:relative}
+.ev-cctv::before{content:"";position:absolute;left:18%;top:20%;width:22%;height:58%;border:1px solid rgba(207,221,215,.28);box-shadow:90px 14px 0 -1px rgba(0,0,0,0),90px 14px 0 0 rgba(207,221,215,.12)}
+.ev-cctv::after{content:"";position:absolute;right:13%;top:24%;width:8px;height:8px;border-radius:50%;background:#b84d43;box-shadow:0 0 12px #b84d43}
+.ev-map{background-image:linear-gradient(90deg,transparent 49%,rgba(155,174,166,.12) 50%,transparent 51%),linear-gradient(0deg,transparent 49%,rgba(155,174,166,.12) 50%,transparent 51%),repeating-linear-gradient(28deg,transparent 0 22px,rgba(160,177,170,.035) 23px 24px)}
+
 .case-choices { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
 .case-choices button { min-height:72px; padding:9px 7px; border:1px solid #59636d; background:#1c2228; color:var(--fg); display:grid; gap:4px; text-align:left; }
 .case-choices b { font-size:14px; }
@@ -1919,7 +1925,7 @@ function evidenceHTML() {
     visual = `<div class="ev-audio"><div class="wave">${hs.map(h=>`<i style="--h:${h}%"></i>`).join("")}</div></div>`;
   } else if (e.type === "transit") visual = '<div class="ev-map"><span class="transit-mark">ENTRY -- / EXIT 23:41</span></div>';
   else visual = `<div class="ev-cctv"><b>IMG ${e.code} / SUBJECT UNLISTED</b></div>`;
-  return `<div class="evidence-stack"><div class="ev-status"><span>${e.code}</span><span>${r.place}</span><span class="${r.urgent ? "danger" : ""}">${r.state}</span></div><div class="evidence-view"><div class="ev-head"><span>${e.label}</span><span>${e.clock}</span></div>${visual}<div class="ev-transcript">${e.note}</div></div><p class="hint" style="text-align:left">第六文書課・自動収集記録。表示地点と距離はゲーム内観測値です。</p></div>`;
+  return `<div class="evidence-stack"><div class="ev-status"><span>${e.code}</span><span>${r.place}</span><span class="${r.urgent ? "danger" : ""}">${r.state}</span></div><div class="evidence-view" data-kind="${e.type}"><div class="ev-head"><span>${e.label}</span><span>${e.clock}</span></div>${visual}<div class="ev-transcript">${e.note}</div></div><p class="hint" style="text-align:left">第六文書課・自動収集記録。表示地点と距離はゲーム内観測値です。</p></div>`;
 }
 function caseState() {
   S.caseLog = S.caseLog || {};
