@@ -1864,10 +1864,7 @@ function evidenceHTML() {
 }
 function openAnomalyEvidence() {
   const e = anomalyEvidence();
-  S.caseLog = S.caseLog || {};
-  S.caseLog[dayKey()] = { seen:true, type:e.type, code:e.code, at:Date.now() };
-  markDirty();
-  sheet("異常証拠 / " + e.label, evidenceHTML() + '<div class="actions"><button class="btn-paper" data-act="case-watch">経過観察として記録</button></div>');
+  sheet("異常証拠 / " + e.label, evidenceHTML());
 }
 function renderRadar() {
   const r = radarSignal(), blips = $("radar-blips");
@@ -2097,12 +2094,6 @@ document.addEventListener("click", e => {
   if (el.dataset.pull) return pull(+el.dataset.pull);
   const a = el.dataset.act, id = el.dataset.id;
   if (a === "close") hideSheet();
-  if (a === "case-watch") {
-    S.caseLog = S.caseLog || {};
-    const prev = S.caseLog[dayKey()] || {};
-    S.caseLog[dayKey()] = Object.assign(prev, { status:"watch", closedAt:Date.now() });
-    markDirty(); hideSheet(); render(); toast("経過観察として記録しました");
-  }
   if (a === "dossier") openDossier(id);
   if (a === "card") openCard(id);
   if (a === "x") shared();
