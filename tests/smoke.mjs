@@ -59,3 +59,10 @@ has(/SEALED \/ 封鎖済/, "sealed radar result missing");
 has(/ON SITE \/ 現地確認/, "on-site radar result missing");
 has(/WATCH \/ 経過観察/, "watch radar result missing");
 has(/S\.caseLog\[dayKey\(\)\]/, "case decision must persist");
+
+has(/function caseAftermath\(\)/, "case aftermath system missing");
+has(/RECUR \/ 再発/, "field investigation aftermath missing");
+has(/LEAK \/ 漏出/, "remote seal aftermath missing");
+has(/CLOSER \/ 接近/, "watch aftermath missing");
+has(/action:"evidence", label:"再検出を確認する"/, "aftermath must return to evidence investigation");
+assert(html.includes('line.dataset.aftermath = "1"'), "aftermath thread signal missing");
