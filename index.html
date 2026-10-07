@@ -524,9 +524,17 @@ body.lite main { padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
   backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
 }
 .lite-tabs button {
-  min-height:58px; font-weight:700; font-size:15px; letter-spacing:.04em;
+  min-height:66px; font-weight:700; font-size:14px; letter-spacing:.04em;
   border-radius:8px; border:1px solid transparent; transition:background .18s,border-color .18s,color .18s;
+  display:grid; grid-template-rows:30px auto; place-items:center; align-content:center; gap:2px; padding:5px 8px;
 }
+.lite-tabs button::before {
+  content:""; width:30px; height:30px; display:block; background-size:contain; background-position:center; background-repeat:no-repeat; opacity:.72;
+}
+.lite-tabs button[data-ltab="open"]::before { background-image:url("assets/ui/lite-open.webp"); }
+.lite-tabs button[data-ltab="files"]::before { background-image:url("assets/ui/lite-files.webp"); }
+.lite-tabs button[data-ltab="notes"]::before { background-image:url("assets/ui/lite-notes.webp"); }
+.lite-tabs button[aria-pressed="true"]::before { opacity:1; filter:brightness(1.08) contrast(1.04); }
 .lite-tabs button[data-ltab="open"] { color:#c7b98e; }
 .lite-tabs button[data-ltab="files"] { color:#8faeae; }
 .lite-tabs button[data-ltab="notes"] { color:#aaa0b7; }
@@ -541,6 +549,10 @@ body.lite main { padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
 }
 .lite-pane { display:grid; gap:22px; }
 .lite-event { position:relative; min-height:210px; padding:22px 18px 18px; display:grid; align-content:start; gap:10px; box-shadow:0 14px 30px rgba(0,0,0,.42); border:1px solid rgba(90,78,58,.18); }
+.lite-event-badge { position:absolute; right:14px; top:12px; width:74px; height:74px; background:center/contain no-repeat; opacity:0; pointer-events:none; transition:opacity .25s; }
+body.lite.phase-danger .lite-event-badge,
+body.lite.phase-crisis .lite-event-badge { background-image:url("assets/ui/lite-warning.webp"); opacity:.74; }
+body.lite.phase-crisis .lite-event-badge { opacity:.92; filter:contrast(1.08); }
 .lite-event .eyebrow { color:var(--paper-ink-2); }
 .lite-event h2 { margin:0; font-family:var(--f-display); font-size:clamp(26px,7vw,34px); line-height:1.28; }
 .lite-event p { margin:0; font-size:15px; line-height:1.75; }
@@ -624,6 +636,7 @@ body.agent-reveal::after { content:"ACCESS GRANTED"; position:fixed; inset:0; z-
     <div class="lite-pane" data-lpane="open">
       <article class="lite-event paper aged urban" id="lite-event">
         <span class="clip" aria-hidden="true"></span>
+        <span class="lite-event-badge" aria-hidden="true"></span>
         <div class="eyebrow" id="lite-event-eye">取扱注意 ・ 宛先不明</div>
         <h2 id="lite-event-title">郵便受けに、見覚えのない封筒があった</h2>
         <p id="lite-event-body">差出人も、宛名もない。中には、途中まで黒く塗りつぶされた記録が入っている。開封するなら、少し慎重に扱った方がよさそうだ。</p>
