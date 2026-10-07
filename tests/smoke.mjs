@@ -68,7 +68,7 @@ assert(html.includes('line.dataset.aftermath = "1"'), "aftermath thread signal m
 
 has(/id="wallet" type="button"/, "suspicion points must be tappable");
 has(/function openWalletDetail\(\)/, "suspicion point rate detail missing");
-has(/1時間あたり/, "hourly passive estimate missing");
+assert(html.includes("<span>1時間</span><b>約"), "hourly passive estimate missing");
 has(/次の \+1pt まで/, "next passive gain countdown missing");
 has(/const EVIDENCE_TYPES = \["cctv","map","audio","intercom","transit","photo"\]/, "expanded evidence set missing");
 has(/const AFTERMATH = \{/, "varied aftermath table missing");
@@ -76,3 +76,8 @@ has(/FOLLOW \/ 追随/, "field aftermath variety missing");
 has(/SHIFT \/ 境界変位/, "seal aftermath variety missing");
 has(/SPLIT \/ 分岐/, "watch aftermath variety missing");
 has(/\.agent-home \.home-sniff\{display:none\}/, "secondary sniff action must leave the mobile first view");
+
+has(/class="wallet-detail"/, "wallet detail must use compact mobile grid");
+has(/駅の時計、1台だけ4分遅れてる/, "expanded everyday-horror thread corpus missing");
+has(/今日の任務、住所がうちの最寄りと一文字違い/, "thread corpus variety missing");
+has(/data-kind="\$\{e\.type\}"/, "evidence visual kind hook missing");

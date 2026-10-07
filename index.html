@@ -476,6 +476,23 @@ body.night .top-in, body.night .today { animation: flicker 6s infinite; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 
+/* ---------- screenshot QA compact pass ---------- */
+.wallet-detail { display:grid; grid-template-columns:1fr 1fr; border:1px solid #626b78; }
+.wallet-detail div { min-width:0; padding:11px 12px; border-right:1px solid #4c5561; border-bottom:1px solid #4c5561; display:grid; gap:2px; }
+.wallet-detail div:nth-child(2n){border-right:0}.wallet-detail div:nth-last-child(-n+2){border-bottom:0}
+.wallet-detail span { font-size:12px; color:var(--muted); white-space:nowrap; }
+.wallet-detail b { font:800 clamp(18px,5vw,24px) var(--f-mono); white-space:nowrap; }
+.post { padding-block:7px; }
+.post .ph { font-size:11px; line-height:1.25; }
+.post p { margin:3px 0 0; font-size:14px; line-height:1.45; }
+@media(max-width:599px){
+  .sheet{gap:9px}
+  .sheet-h{padding-bottom:3px}
+  .agent-home .desk-event h2{margin:3px 0 5px}
+  .agent-home .desk-event p{margin:0}
+  .agent-home .desk-event .actions .btn-line{min-height:42px;padding:8px 12px}
+}
+
 /* ---------- final first-view compression ---------- */
 @media(max-width:599px){
   .agent-home .radar-screen{min-height:108px;max-height:116px}
@@ -509,6 +526,12 @@ body:has(.agent-home:not([hidden])) main { padding-bottom:calc(142px + env(safe-
 body:has(.agent-home:not([hidden])) .nav { display:none; }
 
 /* ---------- anomaly evidence ---------- */
+.evidence-view[data-kind="cctv"]::before,.evidence-view[data-kind="photo"]::before{content:"CAM / 第六文書課 自動収集";position:absolute;z-index:2;left:10px;top:40px;font:700 9px var(--f-mono);color:#aebbb6;letter-spacing:.08em}
+.ev-cctv{position:relative}
+.ev-cctv::before{content:"";position:absolute;left:18%;top:20%;width:22%;height:58%;border:1px solid rgba(207,221,215,.28);box-shadow:90px 14px 0 -1px rgba(0,0,0,0),90px 14px 0 0 rgba(207,221,215,.12)}
+.ev-cctv::after{content:"";position:absolute;right:13%;top:24%;width:8px;height:8px;border-radius:50%;background:#b84d43;box-shadow:0 0 12px #b84d43}
+.ev-map{background-image:linear-gradient(90deg,transparent 49%,rgba(155,174,166,.12) 50%,transparent 51%),linear-gradient(0deg,transparent 49%,rgba(155,174,166,.12) 50%,transparent 51%),repeating-linear-gradient(28deg,transparent 0 22px,rgba(160,177,170,.035) 23px 24px)}
+
 .case-choices { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
 .case-choices button { min-height:72px; padding:9px 7px; border:1px solid #59636d; background:#1c2228; color:var(--fg); display:grid; gap:4px; text-align:left; }
 .case-choices b { font-size:14px; }
@@ -1902,7 +1925,7 @@ function evidenceHTML() {
     visual = `<div class="ev-audio"><div class="wave">${hs.map(h=>`<i style="--h:${h}%"></i>`).join("")}</div></div>`;
   } else if (e.type === "transit") visual = '<div class="ev-map"><span class="transit-mark">ENTRY -- / EXIT 23:41</span></div>';
   else visual = `<div class="ev-cctv"><b>IMG ${e.code} / SUBJECT UNLISTED</b></div>`;
-  return `<div class="evidence-stack"><div class="ev-status"><span>${e.code}</span><span>${r.place}</span><span class="${r.urgent ? "danger" : ""}">${r.state}</span></div><div class="evidence-view"><div class="ev-head"><span>${e.label}</span><span>${e.clock}</span></div>${visual}<div class="ev-transcript">${e.note}</div></div><p class="hint" style="text-align:left">第六文書課・自動収集記録。表示地点と距離はゲーム内観測値です。</p></div>`;
+  return `<div class="evidence-stack"><div class="ev-status"><span>${e.code}</span><span>${r.place}</span><span class="${r.urgent ? "danger" : ""}">${r.state}</span></div><div class="evidence-view" data-kind="${e.type}"><div class="ev-head"><span>${e.label}</span><span>${e.clock}</span></div>${visual}<div class="ev-transcript">${e.note}</div></div><p class="hint" style="text-align:left">第六文書課・自動収集記録。表示地点と距離はゲーム内観測値です。</p></div>`;
 }
 function caseState() {
   S.caseLog = S.caseLog || {};
@@ -2293,24 +2316,37 @@ function haunt() {
   setTimeout(() => g.remove(), 950);
 }
 const POSTS = [
-  "きさらぎ駅の話してたら、本当に電車が遅延した",
-  "8番出口の老人、今日すれ違った気がする。毎日すれ違ってる気もする",
-  "黒塗りの下、見えたやつおる？",
-  "Lv5まで行ったけど誰にも言えないのつらい",
-  "うちの会社の会議資料もだいたい黒塗りなんだが",
-  "後ろを振り返るな。いいな、絶対だぞ",
-  "さっきから同じIDのやつが一人いる",
-  "陰謀論の封筒開けるたびに、部屋のWi-Fiが一本減る",
-  "嗅ぎ回るボタン押しすぎて指がくねくねしてきた",
-  "このスレ、誰も書いてないのにレスが増えてる",
-  "花子さん3回呼んだら疑念が3増えた。仕様？",
-  "赤い部屋の広告、閉じても閉じても出てくる",
-  "今日の噂、全員同じなの逆に怖くない？",
-  "丑三つ時に引くと、封筒の中から声がするって聞いた",
-  "≫1 お前の後ろにいるの誰？",
-  "メリーさんから電話きた。今、駅前にいるらしい",
-  "くねくねの正体わかったかもしれない。いや、やっぱりわからない",
-];
+  "駅の時計、1台だけ4分遅れてる。昨日は3分だった",
+  "閉店後のコンビニから入店音がずっと鳴ってる",
+  "同じ部屋番号から管理会社に3人分の退去連絡が来た",
+  "防犯カメラ、誰もいないのに顔認識だけ反応してる",
+  "改札の入場履歴なしで出場だけ残ってるカードがある",
+  "団地の非常階段、踊り場が一段増えてない？",
+  "エレベーターの履歴に存在しない階が混ざってる",
+  "留守電17秒、無音なのに文字起こしだけ成功してる",
+  "昨日封鎖した場所、今朝は住所そのものが検索に出ない",
+  "処理済み判子が押されてる。誰が処理したか空欄",
+  "駅員に聞いたら『その出口は昔からない』って言われた",
+  "学校裏のカメラ、毎晩2:13だけ同じフレームになる",
+  "マンションの掲示板に明日の日付の注意書きが貼られてた",
+  "写真の端に同じ人がいる。撮影場所は全部違う",
+  "封鎖線の外側に足跡。内側には一つもない",
+  "現地班から帰投連絡きたけど、まだ現場から無線が入ってる",
+  "監視対象、消えたんじゃなくて観測点の真下にいるっぽい",
+  "第六文書課から『見なかったことに』って通知来た。正式文書で",
+  "同じ異常を追ってる調査員が、昨日から一人ログインしてない",
+  "このスレのレス番号、さっき一つ飛ばなかった？",
+  "俺が書いた覚えのないレスに俺のIDついてる",
+  "午前3時の投稿なのにタイムスタンプが昼になってる",
+  "課内ログに『帰宅確認』ってあるんだけど、何を確認した？",
+  "経過観察って書いてあるけど、向こうもこっちを観察してない？",
+  "異常距離2.2km。さっき2.4kmだったよな",
+  "普通の住宅街なのが一番嫌だ。逃げる場所がない",
+  "誰かが毎晩処理してるから、朝は普通に電車が動いてるんだな",
+  "封鎖解除の申請欄だけ最初から黒塗りなんだけど",
+  "現地確認の持ち物に『鏡を見ないこと』って追加されてる",
+  "今日の任務、住所がうちの最寄りと一文字違いなんだが"
+]
 let postNo = 120 + Math.floor(Math.random() * 300);
 const rid = () => Array.from({ length: 8 }, () => "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 54)]).join("");
 function addPost() {
@@ -2318,7 +2354,7 @@ function addPost() {
   const now = new Date(), hh = String(now.getHours()).padStart(2, "0"), mm = String(now.getMinutes()).padStart(2, "0"), ss = String(now.getSeconds()).padStart(2, "0");
   const haunted = Math.random() < (hour() === 2 ? .3 : .08);
   let body;
-  if (haunted) body = ["同じ反応がまた出た", "駅のカメラだけ時刻がずれてる", "処理済みのはずなんだけど", "その地点、昨日も出てた"][Math.floor(Math.random() * 4)];
+  if (haunted) body = ["同じ反応がまた出た。今度は近い", "駅のカメラだけ時刻がずれてる", "処理済みのはず。なのに再検出", "その地点、昨日も出てた", "このレス、俺は書いてない", "第六文書課：当該投稿を記録保全しました"][Math.floor(Math.random() * 6)];
   else if (Math.random() < .14) { const r = radarSignal(); body = `${r.place}の反応、まだ消えてない。距離表示だけ縮んでる`; }
   else if (crowd && crowd.length > 1 && Math.random() < .15) body = `同じ異常を追ってる調査員がいるらしい`;
   else if (Math.random() < .2) { const t = todayItem(); body = lv(t.id) ? `今日の噂「${t.name}」、もうLv${lv(t.id)}まで行ったやついる？` : `今日の噂、${[...t.name].length}文字らしい。誰か引いた？`; }
@@ -2930,7 +2966,7 @@ function openWalletDetail() {
   const step = idleStep(), perMin = 60000 / step, perHour = perMin * 60;
   const next = Math.max(0, step - (Date.now() - S.lastTick));
   const night = hour() === 2;
-  sheet("疑念pt / 自動獲得", `<div class="sum"><div><span>現在</span><b>${Math.floor(S.currency)}pt</b></div><div><span>自動獲得</span><b>+1 / ${(step/1000).toFixed(1)}秒</b></div><div><span>1分あたり</span><b>約${perMin.toFixed(1)}pt</b></div><div><span>1時間あたり</span><b>約${Math.round(perHour)}pt</b></div></div><div class="research-card ready"><b>次の +1pt まで ${(next/1000).toFixed(1)}秒</b><div class="rk-bar"><i style="width:${Math.min(100,(1-next/step)*100)}%"></i></div><small>ランク補正 ×${(1+.05*rankIdx()).toFixed(2)} ／ 無線設備 ×${(1+.1*upLv("radio")).toFixed(2)}${night ? " ／ 丑三つ時 ×2" : ""}</small></div><p class="hint" style="text-align:left">留守中の獲得には上限があります。通信端末の強化で上限が延びます。</p>`);
+  sheet("疑念pt / 自動獲得", `<div class="wallet-detail"><div><span>現在</span><b>${Math.floor(S.currency)}pt</b></div><div><span>自動獲得</span><b>+1 / ${(step/1000).toFixed(1)}秒</b></div><div><span>1分</span><b>約${perMin.toFixed(1)}pt</b></div><div><span>1時間</span><b>約${Math.round(perHour)}pt</b></div></div><div class="research-card ready"><b>次の +1pt まで ${(next/1000).toFixed(1)}秒</b><div class="rk-bar"><i style="width:${Math.min(100,(1-next/step)*100)}%"></i></div><small>ランク補正 ×${(1+.05*rankIdx()).toFixed(2)} ／ 無線設備 ×${(1+.1*upLv("radio")).toFixed(2)}${night ? " ／ 丑三つ時 ×2" : ""}</small></div><p class="hint" style="text-align:left">留守中の獲得には上限があります。通信端末の強化で上限が延びます。</p>`);
 }
 function tick() {
   if (isLite()) { S.lastTick = Date.now(); return; }
