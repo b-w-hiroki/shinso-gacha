@@ -81,3 +81,9 @@ has(/class="wallet-detail"/, "wallet detail must use compact mobile grid");
 has(/駅の時計、1台だけ4分遅れてる/, "expanded everyday-horror thread corpus missing");
 has(/今日の任務、住所がうちの最寄りと一文字違い/, "thread corpus variety missing");
 has(/data-kind="\$\{e\.type\}"/, "evidence visual kind hook missing");
+
+assert(!html.includes('data-htab="comms"'), "obsolete log tab must stay removed");
+assert(!html.includes('data-hpane="comms"'), "obsolete log pane must stay removed");
+has(/ANOMALY DETECTION SYSTEM/, "radar terminal HUD missing");
+has(/SECTOR-A7 \/ SIM/, "fictional radar sector HUD missing");
+has(/grid-template-columns:1fr 1fr/, "agent footer must stay two-tab after log removal");

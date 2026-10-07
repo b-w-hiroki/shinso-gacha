@@ -559,6 +559,32 @@ body:has(.agent-home:not([hidden])) .nav { display:none; }
 .ev-status span { padding:5px 8px; border:1px solid #59636d; font:800 10px var(--f-mono); letter-spacing:.06em; }
 .ev-status .danger { color:#e0a19a; border-color:#8d4e48; }
 
+/* ---------- radar mock visual overhaul ---------- */
+.agent-home { --radar-green:#83c6ad; --radar-dim:#385a50; --radar-red:#d24f43; }
+.agent-home .home-tabs { grid-template-columns:1fr 1fr; }
+.thread-radar { border:1px solid #537a6d; background:linear-gradient(180deg,#07110f,#081311 70%,#050b0a); box-shadow:0 0 0 1px rgba(129,195,170,.08),0 18px 50px rgba(0,0,0,.65),inset 0 0 70px rgba(40,115,88,.09); }
+.thread-radar::before { content:"ANOMALY DETECTION SYSTEM / V2.3.1"; position:absolute; left:10px; bottom:6px; z-index:3; font:700 8px var(--f-mono); letter-spacing:.09em; color:#42675a; pointer-events:none; }
+.radar-head { background:#091613; border-bottom-color:#3e6859; color:#83aa9b; }
+.radar-head b { color:#d2e4dc; letter-spacing:.13em; }
+.radar-head .live { color:#8bd5b8; text-shadow:0 0 8px rgba(112,216,176,.45); }
+.radar-screen { min-height:210px!important; max-height:none!important; background:radial-gradient(circle at 42% 52%,rgba(66,153,119,.16),transparent 42%),repeating-linear-gradient(0deg,transparent 0 3px,rgba(115,182,155,.035) 3px 4px),linear-gradient(135deg,#07100f,#0b1714); }
+.radar-grid { width:184px;height:184px;top:8px;left:42%;border-color:rgba(120,202,169,.34);box-shadow:0 0 24px rgba(77,164,129,.08),inset 0 0 24px rgba(77,164,129,.05); }
+.radar-grid::before{inset:28px;border-color:rgba(120,202,169,.27)}.radar-grid::after{inset:58px;border-color:rgba(120,202,169,.22)}
+.radar-blips { width:184px;height:184px;left:42%;top:8px; }
+.radar-sweep { inset:-75%; opacity:.85; background:conic-gradient(from 0deg,transparent 0 336deg,rgba(112,207,169,.20) 354deg,transparent 360deg); }
+.radar-sector { position:absolute;left:10px;top:10px;z-index:2;display:grid;font:700 8px/1.5 var(--f-mono);letter-spacing:.08em;color:#507568; }
+.radar-screen::after { content:"35.6762, 139.6503   ZOOM ×4.0"; position:absolute;right:10px;bottom:6px;font:700 8px var(--f-mono);color:#42675a;letter-spacing:.04em; }
+.radar-contact { top:10px;right:10px;width:128px;border-color:#466d60;background:rgba(4,12,10,.90);box-shadow:0 0 18px rgba(0,0,0,.45); }
+.radar-contact b { font-size:24px;color:#e1ebe7; }
+.radar-contact small { color:#89ad9f; }
+.radar-posts { position:absolute;left:10px;right:148px;bottom:20px;max-height:62px;overflow:hidden; }
+.radar-line { grid-template-columns:36px 1fr;color:#a9c5ba;font-size:10px;line-height:1.35; }
+.radar-line.haunt { color:#df766c;text-shadow:0 0 8px rgba(211,66,55,.35); }
+.radar-blip.danger { box-shadow:0 0 0 7px rgba(210,79,67,.10),0 0 18px #d24f43; }
+.agent-home .desk-event { background-color:#d8d0bd; filter:sepia(.08) contrast(1.04); box-shadow:0 18px 44px rgba(0,0,0,.62); }
+.agent-home .desk-event::after { content:"第六文書課\\A SPECIAL INVESTIGATION DIVISION"; white-space:pre; position:absolute; right:16px; bottom:12px; font:700 8px/1.4 var(--f-mono); color:rgba(40,36,31,.35); text-align:right; }
+body:not(.lite) { background-image:radial-gradient(85% 38% at 50% 12%,rgba(31,73,60,.12),transparent 70%),linear-gradient(180deg,#090c0d,#111217 58%,#090b0d); }
+
 /* ---------- thread radar home ---------- */
 .thread-radar { position:relative; overflow:hidden; border:1px solid #465852; background:#101716; box-shadow:0 16px 38px rgba(0,0,0,.42),inset 0 0 40px rgba(68,116,98,.08); }
 .radar-head { min-height:38px; padding:7px 10px; display:grid; grid-template-columns:1fr auto; gap:1px 8px; align-items:center; border-bottom:1px solid #3c4c47; font:700 10px var(--f-mono); letter-spacing:.1em; color:#8da49c; }
@@ -929,14 +955,13 @@ body.agent-reveal::after { content:"PROTECTIVE CLEARANCE"; position:fixed; inset
       <div class="home-tabs" role="group" aria-label="調査デスクの表示切替">
       <button data-htab="desk" aria-pressed="true">探知</button>
       <button data-htab="tasks" aria-pressed="false">任務</button>
-      <button data-htab="comms" aria-pressed="false">ログ</button>
       </div>
     </div>
 
     <div class="home-pane" data-hpane="desk">
       <section class="thread-radar" aria-label="異常探知スレッド">
         <div class="radar-head"><span>第六文書課 / 異常探知網</span><b>THREAD RADAR</b><i class="live">● LIVE</i></div>
-        <div class="radar-screen">
+        <div class="radar-screen"><div class="radar-sector" aria-hidden="true"><span>SECTOR-A7 / SIM</span><span>STATUS: MONITORING</span></div>
           <div class="radar-grid" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
           <div class="radar-sweep" aria-hidden="true"></div>
           <div class="radar-blips" id="radar-blips" aria-hidden="true"></div>
@@ -972,13 +997,6 @@ body.agent-reveal::after { content:"PROTECTIVE CLEARANCE"; position:fixed; inset
       <div>
         <div class="sec-h"><h3>本日の任務</h3><small>0時にリセット</small></div>
         <div class="mis" id="missions"></div>
-      </div>
-    </div>
-
-    <div class="home-pane" data-hpane="comms" hidden>
-      <div class="bbs">
-        <div class="bbs-h"><span><b>【怪】真相調査スレ Part<span id="bbs-part">666</span></b></span><span class="live">● 実況中</span></div>
-        <div class="bbs-body" id="bbs" aria-live="off"></div>
       </div>
     </div>
 
