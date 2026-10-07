@@ -514,7 +514,7 @@ body.lite.phase-crisis::before { content:""; position:fixed; inset:0; z-index:39
 @keyframes crisisNoise { 50% { transform:translateY(2px); opacity:.6; } }
 body.lite.phase-rescue .lite-event { border-color:#7a7468; box-shadow:0 18px 40px rgba(0,0,0,.5),0 0 0 1px rgba(221,213,195,.08); }
 body.lite.phase-rescue .lite-event .eyebrow { color:#716b5f; }
-body.lite main { padding-bottom: calc(176px + env(safe-area-inset-bottom, 0px)); }
+body.lite main { padding-bottom: calc(158px + env(safe-area-inset-bottom, 0px)); }
 .lite-footer {
   position:fixed; left:50%; bottom:calc(8px + env(safe-area-inset-bottom, 0px)); z-index:10;
   width:min(612px, calc(100% - 22px)); transform:translateX(-50%);
@@ -523,19 +523,19 @@ body.lite main { padding-bottom: calc(176px + env(safe-area-inset-bottom, 0px));
   box-shadow:0 12px 34px rgba(0,0,0,.52);
   backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
 }
-.lite-footer .lite-pull { margin:0; border-radius:9px; min-height:64px; font-size:19px; }
+.lite-footer .lite-pull { margin:0; border-radius:9px; min-height:62px; font-size:19px; }
 .lite-tabs {
   display:grid; grid-template-columns:repeat(3,1fr); gap:1px; padding:0;
   position:static; width:auto; transform:none;
   background:transparent; border:0; border-radius:0; box-shadow:none; backdrop-filter:none;
 }
 .lite-tabs button {
-  min-height:66px; font-weight:700; font-size:14px; letter-spacing:.04em;
+  min-height:54px; font-weight:700; font-size:13px; letter-spacing:.04em;
   border-radius:8px; border:1px solid transparent; transition:background .18s,border-color .18s,color .18s;
-  display:grid; grid-template-rows:30px auto; place-items:center; align-content:center; gap:2px; padding:5px 8px;
+  display:grid; grid-template-columns:24px auto; place-items:center; justify-content:center; align-content:center; gap:7px; padding:5px 8px;
 }
 .lite-tabs button::before {
-  content:""; width:30px; height:30px; display:block; background-size:contain; background-position:center; background-repeat:no-repeat; opacity:.72;
+  content:""; width:24px; height:24px; display:block; background-size:contain; background-position:center; background-repeat:no-repeat; opacity:.72;
 }
 .lite-tabs button[data-ltab="open"]::before { background-image:url("assets/ui/lite-open.webp"); }
 .lite-tabs button[data-ltab="files"]::before { background-image:url("assets/ui/lite-files.webp"); }
@@ -2125,12 +2125,12 @@ function defaultLiteEvent() {
 }
 function setLiteEvent(evt) {
   S.lite = S.lite || { lv:{}, pulls:0 };
-  S.lite.event = evt; markDirty(); renderLiteEvent();
+  S.lite.event = evt; markDirty(); renderLiteEvent(); updateLiteFooter();
   setLiteTab("open");
 }
 function clearLiteEvent() {
   if (S.lite) delete S.lite.event;
-  markDirty(); renderLiteEvent();
+  markDirty(); renderLiteEvent(); updateLiteFooter();
 }
 function renderLiteEvent() {
   const evt = (S.lite && S.lite.event) || defaultLiteEvent();
@@ -2273,7 +2273,10 @@ function litePull() {
 }
 let liteTab = "open", liteFilter = "urban";
 function liteFooterLabel(n = liteTotal()) {
-  if (n >= 36) return "保護通信を確認する";
+  const evt = S.lite && S.lite.event;
+  if (evt && evt.action) return evt.label || "確認する";
+  if (evt) return n >= 33 ? "通信を確認する" : "警告を確認する";
+  if (n >= 36) return "事情聴取を受ける";
   const p = litePhase(n);
   if (p === "crisis") return "警告を確認する";
   if (p === "danger") return "続きを確認する";
@@ -2285,6 +2288,7 @@ function updateLiteFooter() {
   const n = liteTotal();
   b.disabled = false;
   b.textContent = liteFooterLabel(n);
+  b.dataset.mode = S.lite && S.lite.event ? "event" : "pull";
 }
 function setLiteTab(tab) {
   liteTab = tab;
@@ -2449,9 +2453,15 @@ document.addEventListener("click", e => {
   else if (a === "enter") { hideSheet(); toast("まずは「本日のウワサ」を確認してください"); }
 });
 $("lite-pull").addEventListener("click", () => {
-  const n = liteTotal();
-  if (n >= LITE_ALL) return startInterview();
+  const n = liteTotal(), evt = S.lite && S.lite.event;
   setLiteTab("open");
+  if (evt) {
+    if (evt.action) return openLiteEventDetail(evt);
+    clearLiteEvent();
+    updateLiteFooter();
+    return;
+  }
+  if (n >= LITE_ALL) return startInterview();
   litePull();
 });
 document.addEventListener("click", e => {
