@@ -30,3 +30,9 @@ has(/\.desk-event \{ min-height:clamp\(245px,38dvh,320px\)/, "mobile investigati
 has(/aria-label="調査デスクの表示切替"/, "investigation desk accessible label missing");
 
 console.log("shinso-gacha smoke checks passed");
+
+has(/class="thread-radar"/, "thread radar must be on the agent first view");
+has(/id="radar-posts"/, "thread radar feed missing");
+has(/radar\.prepend\(line\)/, "thread posts must feed the radar");
+has(/body:not\(\.lite\) #pursuer-signal \{ display:none !important; \}/, "pursuer count must not occupy the agent home");
+assert(!/aid\.innerHTML[^\n]*pursuerNo/.test(html), "pursuer ordinal must not remain in the persistent report card");
