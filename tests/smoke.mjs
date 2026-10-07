@@ -103,3 +103,5 @@ has(/dossier-view lab-scene/, "physical investigation room scene missing");
 has(/dossier-view report-scene/, "physical report scene missing");
 has(/ARCHIVE CABINET/, "archive cabinet visual language missing");
 has(/AUTHORIZED PERSONNEL ONLY/, "investigation room classified visual missing");
+
+has(/assets\/gacha-desk-bg\.svg/, "generated desk image asset must be wired into gacha");
