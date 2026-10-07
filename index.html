@@ -830,7 +830,7 @@ body.agent-reveal::after { content:"PROTECTIVE CLEARANCE"; position:fixed; inset
 <header class="top">
   <div class="top-in">
     <div class="logo">真相<span class="bar">ガチ</span>ャ<small id="issue">UNVERIFIED ARCHIVE #001</small></div>
-    <div class="wallet" id="wallet" title="5秒ごとに+1pt">
+    <button class="wallet" id="wallet" type="button" aria-label="疑念ptの獲得詳細を見る">
       <span class="ring" id="ring" aria-hidden="true"></span>
       <b id="pt">0</b><span>疑念pt</span>
     </div>
@@ -2880,14 +2880,22 @@ document.addEventListener("click", e => {
   if (t.dataset.levt === "dismiss") clearLiteEvent();
   else if (t.dataset.levt) openLiteEventDetail((S.lite && S.lite.event) || null);
 });
-$("lite-result").addEventListener("click", liteResult);
+$("wallet").addEventListener("click", openWalletDetail);\n$("lite-result").addEventListener("click", liteResult);
 $("lite-apply").addEventListener("click", startInterview);
 
 /* ---------- idle ---------- */
 const idleMult = () => (1 + .05 * rankIdx()) * (1 + .1 * upLv("radio"));
+function idleStep() { return (hour() === 2 ? 2500 : 5000) / idleMult(); }
+function openWalletDetail() {
+  if (isLite()) return;
+  const step = idleStep(), perMin = 60000 / step, perHour = perMin * 60;
+  const next = Math.max(0, step - (Date.now() - S.lastTick));
+  const night = hour() === 2;
+  sheet("疑念pt / 自動獲得", `<div class="sum"><div><span>現在</span><b>${Math.floor(S.currency)}pt</b></div><div><span>自動獲得</span><b>+1 / ${(step/1000).toFixed(1)}秒</b></div><div><span>1分あたり</span><b>約${perMin.toFixed(1)}pt</b></div><div><span>1時間あたり</span><b>約${Math.round(perHour)}pt</b></div></div><div class="research-card ready"><b>次の +1pt まで ${(next/1000).toFixed(1)}秒</b><div class="rk-bar"><i style="width:${Math.min(100,(1-next/step)*100)}%"></i></div><small>ランク補正 ×${(1+.05*rankIdx()).toFixed(2)} ／ 無線設備 ×${(1+.1*upLv("radio")).toFixed(2)}${night ? " ／ 丑三つ時 ×2" : ""}</small></div><p class="hint" style="text-align:left">留守中の獲得には上限があります。通信端末の強化で上限が延びます。</p>`);
+}
 function tick() {
   if (isLite()) { S.lastTick = Date.now(); return; }
-  const step = (hour() === 2 ? 2500 : 5000) / idleMult(), el = Date.now() - S.lastTick;
+  const step = idleStep(), el = Date.now() - S.lastTick;
   if (el >= step) { const g = Math.floor(el / step); S.currency += g; S.lastTick += g * step; save(); render(); }
   $("ring").style.setProperty("--p", Math.min(100, (Date.now() - S.lastTick) / step * 100));
 }
