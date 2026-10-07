@@ -97,3 +97,9 @@ has(/class="scene-props"/, "gacha scene prop layers missing");
 has(/prop-files/, "classified file prop missing");
 has(/prop-photo/, "surveillance photo prop missing");
 has(/prop-lamp/, "red desk lamp prop missing");
+
+has(/dossier-view archive-scene/, "physical archive scene missing");
+has(/dossier-view lab-scene/, "physical investigation room scene missing");
+has(/dossier-view report-scene/, "physical report scene missing");
+has(/ARCHIVE CABINET/, "archive cabinet visual language missing");
+has(/AUTHORIZED PERSONNEL ONLY/, "investigation room classified visual missing");
