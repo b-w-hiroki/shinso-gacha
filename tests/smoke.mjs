@@ -16,7 +16,7 @@ has(/n === 35[\s\S]*保護通信[\s\S]*見てはいけないところまで来�
 has(/n === 36[\s\S]*保護手続き[\s\S]*action:"apply"[\s\S]*事情聴取を受ける/, "fragment 36 interview handoff missing");
 has(/if \(liteTotal\(\) < 36\)/, "interview must stay locked until fragment 36");
 has(/\.lite-footer\.nav-only \.lite-pull \{ display:none; \}/, "large CTA must be hidden outside the open tab");
-has(/const RESEARCH_COST\s*=\s*\{[^}]*1:8[^}]*2:14[^}]*3:22[^}]*\}/, "re-investigation costs changed");
+has(/const RESEARCH_COST\s*=\s*\[0,\s*8,\s*14,\s*22\]/, "re-investigation costs changed");
 has(/S\.weekSeen !== w\.key && S\.pulls >= 20/, "weekly anomaly gate changed");
 has(/S\.pursuerPending = true/, "new-agent pursuer numbering trigger missing");
 has(/if \(assignNo && !S\.pursuerNo && pursuerTotal > 0\)/, "pursuer number persistence guard missing");
