@@ -87,3 +87,7 @@ assert(!html.includes('data-hpane="comms"'), "obsolete log pane must stay remove
 has(/ANOMALY DETECTION SYSTEM/, "radar terminal HUD missing");
 has(/SECTOR-A7 \/ SIM/, "fictional radar sector HUD missing");
 has(/grid-template-columns:1fr 1fr/, "agent footer must stay two-tab after log removal");
+
+assert(!html.includes('data-stab="gacha:rank"'), "rank must not remain a gacha mode");
+assert(!html.includes('data-spane="gacha:rank"'), "rank pane must leave gacha");
+has(/class="rankcard wallet-rank"/, "rank status must live in suspicion point detail");
