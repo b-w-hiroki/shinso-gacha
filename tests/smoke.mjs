@@ -25,5 +25,8 @@ has(/S\.weekSeen !== w\.key && S\.pulls >= 20/, "weekly anomaly gate changed");
 has(/S\.pursuerPending = true/, "new-agent pursuer numbering trigger missing");
 has(/if \(assignNo && !S\.pursuerNo && pursuerTotal > 0\)/, "pursuer number persistence guard missing");
 has(/\[hidden\] \{ display: none !important; \}/, "hidden visibility safety rule missing");
+has(/@media \(max-width: 599px\)[\s\S]*\.lite-event \{ min-height:clamp\(270px,43dvh,360px\)/, "mobile lite-event composition missing");
+has(/\.desk-event \{ min-height:clamp\(245px,38dvh,320px\)/, "mobile investigation desk composition missing");
+has(/aria-label="調査デスクの表示切替"/, "investigation desk accessible label missing");
 
 console.log("shinso-gacha smoke checks passed");
