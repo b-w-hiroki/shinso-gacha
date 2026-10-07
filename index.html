@@ -2074,7 +2074,8 @@ document.addEventListener("click", e => {
   if (!t) return;
   if (t.dataset.htab) return setHomeTab(t.dataset.htab);
   if (t.dataset.stab) return setSectionTab(t.dataset.stab);
-  if (t.dataset.desk === "today") return postScene();\n  if (t.dataset.desk === "evidence") return openAnomalyEvidence();
+  if (t.dataset.desk === "today") return postScene();
+  if (t.dataset.desk === "evidence") return openAnomalyEvidence();
   if (t.dataset.desk === "tasks") return setHomeTab("tasks");
   if (t.dataset.desk === "lab") return go("lab");
   if (t.dataset.desk === "gacha") return go("gacha");
