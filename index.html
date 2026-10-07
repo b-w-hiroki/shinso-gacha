@@ -687,7 +687,7 @@ body.lite.phase-rescue .lite-footer .lite-pull { background:#b9b3a4; border-colo
 .recruit-card { padding:18px; border:2px solid var(--stamp); background:var(--paper); color:var(--ink); transform:rotate(-.4deg); }
 .recruit-card .eyebrow { color:var(--stamp); }
 .recruit-card h2 { font-family:var(--f-display); font-size:28px; margin:6px 0 10px; }
-body.agent-reveal::after { content:"ACCESS GRANTED"; position:fixed; inset:0; z-index:40; display:grid; place-items:center; background:#121419; color:var(--paper); font:800 clamp(32px,10vw,72px) var(--f-display); letter-spacing:.12em; animation:agentReveal .9s ease both; pointer-events:none; }
+body.agent-reveal::after { content:"PROTECTIVE CLEARANCE"; position:fixed; inset:0; z-index:40; display:grid; place-items:center; background:#121419; color:var(--paper); font:800 clamp(32px,10vw,72px) var(--f-display); letter-spacing:.12em; animation:agentReveal .9s ease both; pointer-events:none; }
 @keyframes agentReveal { 0%{opacity:0} 18%,70%{opacity:1} 100%{opacity:0} }
 /* 面接 */
 .chat { display: grid; gap: 10px; }
@@ -2305,9 +2305,9 @@ const LITE_NOTES = [
   [10, "同じ封筒を開いている人間が、この街に他にもいるらしい。"],
   [15, "内側に、鉛筆の走り書きがある。「まだ、半分も見ていない」"],
   [18, "一枚だけ、開封した覚えのない資料が混ざっていた。紙の端が少し濡れている。"],
-  [24, "「必要なら、こちらへ」。地図にも検索にも出ない住所が書かれている。"],
-  [30, "「まだ一般人でいるのか」。筆跡は、これまでのメモと違う。"],
-  [36, "最後の封筒には、あなたの名前だけが書かれていた。差出人欄は、空白のままだ。"],
+  [24, "別の資料の余白に、あなたの観察番号が書かれている。まだ開いていないはずの資料だ。"],
+  [30, "接続元を照合している記録が混ざった。第六文書課の印字だけが、上から何度も押し直されている。"],
+  [36, "最後の封筒には「保護対象」と印字されていた。差出人欄には、第六文書課とだけある。"],
 ];
 const LITE_CELL = ["⬛", "🟫", "🟧", "🟥"];
 function liteProfile() {
@@ -2374,7 +2374,11 @@ function liteMilestone(n) {
   if (n === 28) return setLiteEvent({ eye:"閲覧権限外", title:"これ以上、開かないでください", body:"画面の外側から、あなたの端末を参照するような記録が混ざり始めている。", alert:true });
   if (n === 30) return setLiteEvent({ eye:"接続元特定中", title:"こちらの位置を探している", body:"差出人ではない何かが、閲覧記録を辿っている。第六文書課の印字だけが赤く滲んでいる。", alert:true });
   if (n === 32) return setLiteEvent({ eye:"緊急警告", title:"封筒を閉じてください", body:"閲覧を続けると、観測対象がこちら側へ固定されます。画面を閉じても構いません。", alert:true });
-  if (n === 33) return setLiteEvent({ eye:"第六文書課・緊急介入", title:"接続を遮断しました", body:"聞こえますか。こちらは第六文書課です。今から先は、こちらの指示だけを見てください。", alert:false });
+  if (n === 33) {
+    document.body.classList.add("rescue-flash");
+    setTimeout(() => document.body.classList.remove("rescue-flash"), 1500);
+    return setLiteEvent({ eye:"第六文書課・緊急介入", title:"接続を遮断しました", body:"聞こえますか。こちらは第六文書課です。追跡されていた接続は、こちらで切りました。今から先は、こちらの指示だけを見てください。", alert:false });
+  }
   if (n === 35) return setLiteEvent({ eye:"保護通信", title:"あなたは、見てはいけないところまで来た", body:"責任はこちらにもあります。保護のため、最後に確認事項があります。", alert:false });
   if (n === 36) return setLiteEvent({ eye:"第六文書課・保護手続き", title:"一般人のまま放置することはできません", body:"見てしまった内容について事情を確認し、そのまま第六文書課の管理下へ移します。", alert:false, action:"apply", label:"事情聴取を受ける" });
 }
@@ -2552,7 +2556,7 @@ function answerInterview(i) {
 function showAgentWelcome() {
   const ordinal = S.pursuerNo ? `あなたは、第${S.pursuerNo}追求者です。` : "追求者登録を照会しています。";
   const live = pursuerTotal ? `現在 ${pursuerTotal}人が登録、本日 ${todayActiveCount()}人が追跡中。` : "";
-  sheet("着任通知", `<article class="doc paper aged con"><div class="formhead"><span>第六文書課</span><span>緊急介入後・保護登録</span><span>機密</span></div><div class="horror-status rescue">接続遮断済 / 認証済</div><h2>調査員 No.${S.agentNo}</h2><div class="lyr"><div class="lab">追求者登録</div><p><b>${ordinal}</b><br>${live}</p><span class="note">※ あなた以外にも、同じ真相を追っている者がいる</span></div><div class="lyr"><div class="lab">判定</div><p>${S.agentType}</p></div><div class="lyr"><div class="lab">配属</div><p>${S.assign}</p></div><div class="lyr"><div class="lab">閲覧権限</div><p>一般人には黒塗りだった LEVEL 4 / 5、および調査室へのアクセスを許可する。</p></div></article><div class="actions"><button class="btn-paper" data-la="enter">調査を開始する</button></div>`);
+  sheet("保護登録 / 着任通知", `<article class="doc paper aged con"><div class="formhead"><span>第六文書課</span><span>緊急介入後・保護登録</span><span>機密</span></div><div class="horror-status rescue">接続遮断済 / 認証済</div><h2>調査員 No.${S.agentNo}</h2><div class="lyr"><div class="lab">追求者登録</div><p><b>${ordinal}</b><br>${live}</p><span class="note">※ 保護対象から調査員へ移管。あなた以外にも、同じ真相を追っている者がいる</span></div><div class="lyr"><div class="lab">判定</div><p>${S.agentType}</p></div><div class="lyr"><div class="lab">配属</div><p>${S.assign}</p></div><div class="lyr"><div class="lab">閲覧権限</div><p>一般人には黒塗りだった LEVEL 4 / 5、および調査室へのアクセスを許可する。</p></div></article><div class="actions"><button class="btn-paper" data-la="enter">調査を開始する</button></div>`);
 }
 function becomeAgent() {
   if (!S.role) {
