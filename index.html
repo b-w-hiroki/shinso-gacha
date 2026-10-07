@@ -639,6 +639,10 @@ body.lite.phase-rescue .lite-footer .lite-pull { background:#b9b3a4; border-colo
 .lock-teaser { opacity: .9; }
 .lite-result { display:grid; gap:8px; padding:14px; border:1px solid #5a6070; background:var(--desk-2); }
 .agent-id { padding:14px 16px; border:1px solid var(--line); background:var(--desk-2); display:grid; gap:4px; }
+.pursuer-signal { display:grid; gap:5px; padding:12px 14px; border:1px solid #465061; background:rgba(22,25,31,.9); }
+.pursuer-signal b { font-family:var(--f-display); font-size:20px; color:var(--paper); }
+.pursuer-signal span { color:var(--muted); font-size:13px; }
+.pursuer-signal strong { color:#d2c8ad; }
 .agent-id b { font-family:var(--f-display); font-size:19px; }
 .agent-id span { color:var(--muted); font-size:13px; }
 .lite-result b { font-family:var(--f-display); font-size:18px; }
@@ -731,6 +735,7 @@ body.agent-reveal::after { content:"ACCESS GRANTED"; position:fixed; inset:0; z-
 
     <div class="home-pane" data-hpane="desk">
       <p class="streak" id="streak"></p>
+      <div class="pursuer-signal" id="pursuer-signal" hidden></div>
       <div class="ushi" id="ushi" hidden><b>丑三つ時</b><span>放置で貯まる疑念が2倍。封筒の中身も少し騒がしい。</span></div>
       <article class="desk-event paper aged urban" id="desk-event">
         <span class="clip" aria-hidden="true"></span>
@@ -1710,7 +1715,7 @@ function render() {
   $("env-seal").textContent = box === "urban" ? "封" : "極秘";
   $("big-env").classList.toggle("old", box === "urban");
   document.querySelectorAll("[data-seg]").forEach(b => b.setAttribute("aria-pressed", b.dataset.seg === box));
-  renderMissions(); renderArchive(); renderReport(); renderLab(); renderDeskEvent();
+  renderMissions(); renderArchive(); renderReport(); renderLab(); renderDeskEvent(); renderPursuerSignal();
   const st = S.streak || { n: 0 };
   $("streak").textContent = st.n ? `連続調査 ${st.n}日目 ・ 明日の出勤ボーナス +${20 + 10 * Math.min(st.n + 1, 7)}pt` : "";
 }
@@ -1793,7 +1798,11 @@ function renderLab() {
 }
 function renderReport() {
   const aid = $("agent-id");
-  if (S.agentNo) { aid.hidden = false; aid.innerHTML = `<span>第六文書課・調査員登録</span><b>No.${S.agentNo} ／ ${S.agentType || "境界観測型"}</b><span>${S.assign || "両班の兼任"}</span>`; } else aid.hidden = true;
+  if (S.agentNo) {
+    aid.hidden = false;
+    const crowdLine = pursuerTotal ? `追求者 ${pursuerTotal}名 ・ 本日 ${todayActiveCount()}名が活動中` : "追求者数を照会中";
+    aid.innerHTML = `<span>第六文書課・調査員登録</span><b>No.${S.agentNo} ／ ${S.agentType || "境界観測型"}</b><span>${S.assign || "両班の兼任"} ・ ${S.pursuerNo ? "第" + S.pursuerNo + "追求者" : "追求者登録済み"}</span><span>${crowdLine}</span>`;
+  } else aid.hidden = true;
   const [n, d] = diagnosis();
   $("diag-name").textContent = n; $("diag-desc").textContent = d;
   $("rep-no").textContent = "#" + pad(dayNo());
@@ -1991,7 +2000,28 @@ function applyTime() {
 }
 
 /* ---------- アカウント保存と、今日の調査員 ---------- */
-let cloud = null, crowd = null, lastScout = "", flushT = null, flushing = false, again = false;
+let cloud = null, crowd = null, pursuerTotal = 0, lastScout = "", flushT = null, flushing = false, again = false;
+function todayActiveCount() { return crowd ? crowd.length : 0; }
+function renderPursuerSignal() {
+  const el = $("pursuer-signal"); if (!el || isLite()) { if (el) el.hidden = true; return; }
+  el.hidden = false;
+  const no = S.pursuerNo ? "第" + S.pursuerNo + "追求者" : "追求者登録済み";
+  const total = pursuerTotal || "—", today = todayActiveCount();
+  el.innerHTML = `<span>第六文書課・追求者ネットワーク</span><b>あなたは <strong>${no}</strong> です</b><span>現在 ${total}人が登録 ・ 本日 ${today}人が追跡中</span>`;
+}
+async function refreshPursuerTotal(assignNo = false) {
+  if (!FB || !cloud || isLite()) return;
+  try {
+    const snap = await FB.getCountFromServer(FB.collection(FB.db, "scouts"));
+    pursuerTotal = snap.data().count || 0;
+    if (assignNo && !S.pursuerNo && pursuerTotal > 0) {
+      S.pursuerNo = pursuerTotal;
+      S.updatedAt = Date.now(); save();
+      await cloud.setDoc(cloud.saveRef, { state: JSON.parse(JSON.stringify(S)) });
+    }
+    renderPursuerSignal(); renderReport();
+  } catch (e) {}
+}
 function setSync(t) { $("sync").textContent = "記録：" + t; }
 function markDirty() {
   S.updatedAt = Date.now(); save();
@@ -2007,7 +2037,10 @@ async function flush() {
     const t = todayItem();
     const scout = { day: dayKey(), todayLv: lv(t.id), total: totalLv(), lv5: ITEMS.filter(i => lv(i.id) === 5).length };
     const key = JSON.stringify(scout);
-    if (!isLite() && key !== lastScout) { await cloud.setDoc(cloud.scoutRef, scout); lastScout = key; }
+    if (!isLite() && key !== lastScout) {
+      await cloud.setDoc(cloud.scoutRef, scout); lastScout = key;
+      await refreshPursuerTotal(!S.pursuerNo);
+    }
     setSync("アカウントに保存済み（別の端末でも続きから遊べます）");
   } catch (e) {
     if (e && (e.code === "permission-denied" || e.code === "invalid-argument")) { cloud.canWrite = false; setSync("この端末のみに保存"); } else setSync("保存に失敗（あとで再試行します）");
@@ -2028,6 +2061,7 @@ function renderCrowd() {
     const top = Math.max(1, Math.round((1 - below / others) * 100));
     r.hidden = false; r.textContent = `今日の調査員 ${n}人の中で、あなたの解読量は上位 ${top}%`;
   } else r.hidden = true;
+  renderPursuerSignal();
 }
 const FB_CONFIG = { apiKey:"AIzaSyAMn8f4sbyKIuAIZKdQVGhgmAzSPOErgA0", authDomain:"shinso-gacha.firebaseapp.com", projectId:"shinso-gacha", storageBucket:"shinso-gacha.firebasestorage.app", messagingSenderId:"1035473896096", appId:"1:1035473896096:web:19a89c0b71de6c3d8d3fc5" };
 const FB_V = "10.14.1";
@@ -2053,12 +2087,13 @@ async function initCloud() {
     const base = "https://www.gstatic.com/firebasejs/" + FB_V + "/";
     const [A, Au, F] = await Promise.all([import(base + "firebase-app.js"), import(base + "firebase-auth.js"), import(base + "firebase-firestore.js")]);
     const app = A.initializeApp(FB_CONFIG), auth = Au.getAuth(app), db = F.getFirestore(app);
-    FB = { db, auth, doc: F.doc, getDoc: F.getDoc, setDoc: F.setDoc, Au };
+    FB = { db, auth, doc: F.doc, collection: F.collection, getDoc: F.getDoc, setDoc: F.setDoc, getCountFromServer: F.getCountFromServer, Au };
     F.onSnapshot(F.query(F.collection(db, "scouts"), F.where("day", "==", dayKey())), snap => { crowd = snap.docs.map(d => d.data()); renderCrowd(); }, () => {});
     await auth.authStateReady();
     if (!auth.currentUser) await Au.signInAnonymously(auth);
     bindCloud(auth.currentUser);
     await pullRemote();
+    if (!isLite()) await refreshPursuerTotal(!S.pursuerNo);
     markDirty(); flush();
   } catch (e) { setSync("この端末のみに保存"); }
 }
@@ -2472,6 +2507,11 @@ function answerInterview(i) {
     setTimeout(() => { iv.log.push(["them", INTERVIEW[iv.step].q()]); renderInterview(true); }, 900);
   }
 }
+function showAgentWelcome() {
+  const ordinal = S.pursuerNo ? `あなたは、第${S.pursuerNo}追求者です。` : "追求者登録を照会しています。";
+  const live = pursuerTotal ? `現在 ${pursuerTotal}人が登録、本日 ${todayActiveCount()}人が追跡中。` : "";
+  sheet("着任通知", `<article class="doc paper aged con"><div class="formhead"><span>第六文書課</span><span>採用通知</span><span>本人限り</span></div><h2>調査員 No.${S.agentNo}</h2><div class="lyr"><div class="lab">追求者登録</div><p><b>${ordinal}</b><br>${live}</p><span class="note">※ あなた以外にも、同じ真相を追っている者がいる</span></div><div class="lyr"><div class="lab">判定</div><p>${S.agentType}</p></div><div class="lyr"><div class="lab">配属</div><p>${S.assign}</p></div><div class="lyr"><div class="lab">閲覧権限</div><p>一般人には黒塗りだった LEVEL 4 / 5、および調査室へのアクセスを許可する。</p></div></article><div class="actions"><button class="btn-paper" data-la="enter">調査を開始する</button></div>`);
+}
 function becomeAgent() {
   if (!S.role) {
     S.role = "agent"; S.assign = SIDE_NAME[iv ? iv.side : 2]; S.agentType = iv && iv.type ? iv.type : "境界観測型"; S.onboarded = true;
@@ -2483,7 +2523,10 @@ function becomeAgent() {
   hideSheet(); applyMode(); go("home"); render();
   document.body.classList.add("agent-reveal");
   setTimeout(() => document.body.classList.remove("agent-reveal"), 1000);
-  setTimeout(() => sheet("着任通知", `<article class="doc paper aged con"><div class="formhead"><span>第六文書課</span><span>採用通知</span><span>本人限り</span></div><h2>調査員 No.${S.agentNo}</h2><div class="lyr"><div class="lab">判定</div><p>${S.agentType}</p></div><div class="lyr"><div class="lab">配属</div><p>${S.assign}</p></div><div class="lyr"><div class="lab">閲覧権限</div><p>一般人には黒塗りだった LEVEL 4 / 5、および調査室へのアクセスを許可する。</p></div></article><div class="actions"><button class="btn-paper" data-la="enter">調査を開始する</button></div>`), 720);
+  setTimeout(async () => {
+    if (cloud) await refreshPursuerTotal(true);
+    showAgentWelcome();
+  }, 720);
 }
 function applyMode() {
   document.body.classList.toggle("lite", isLite());
