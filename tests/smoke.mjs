@@ -12,6 +12,10 @@ const has = (re, message) => assert.match(html, re, message);
 
 has(/if \(n <= 10\) return "calm";[\s\S]*if \(n <= 18\) return "uneasy";[\s\S]*if \(n <= 27\) return "danger";[\s\S]*if \(n <= 32\) return "crisis";[\s\S]*return "rescue";/, "chapter 0 phase boundaries changed");
 has(/n === 33[\s\S]*緊急介入[\s\S]*接続を遮断しました/, "fragment 33 rescue intervention missing");
+has(/rescue-flash/, "fragment 33 visual rescue reset missing");
+assert(!html.includes("必要なら、こちらへ"), "obsolete voluntary recruitment copy returned");
+assert(!html.includes("まだ一般人でいるのか"), "obsolete voluntary recruitment implication returned");
+has(/PROTECTIVE CLEARANCE/, "agent transition must read as protective clearance");
 has(/n === 35[\s\S]*保護通信[\s\S]*見てはいけないところまで来た/, "fragment 35 protected communication missing");
 has(/n === 36[\s\S]*保護手続き[\s\S]*action:"apply"[\s\S]*事情聴取を受ける/, "fragment 36 interview handoff missing");
 has(/if \(liteTotal\(\) < 36\)/, "interview must stay locked until fragment 36");
