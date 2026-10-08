@@ -34,8 +34,13 @@ jobs:
       - run: node tests/photoreal.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/dossier-ui.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: photoreal-browser-qa
-          path: docs/qa/
+          path: |
+            docs/qa/
+            docs/qa-ui/
