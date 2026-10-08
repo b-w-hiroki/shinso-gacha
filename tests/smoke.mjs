@@ -129,3 +129,15 @@ for (const name of photos) {
   }
 }
 console.log('All ten photoreal assets are present and referenced');
+const physicalCSS = fs.readFileSync('assets/physical-ui.css', 'utf8');
+const physical = JSON.parse(fs.readFileSync('assets/ui/physical-manifest.json', 'utf8'));
+assert.equal(physical.length, 12);
+assert(html.includes('assets/physical-ui.css'));
+for (const asset of physical) {
+  const bytes = fs.readFileSync(asset.path);
+  assert.equal(bytes.length, asset.bytes, `${asset.path}: unexpected bytes`);
+  assert.equal(bytes.subarray(0,4).toString(), 'RIFF');
+  assert.equal(bytes.subarray(8,12).toString(), 'WEBP');
+  assert(physicalCSS.includes(asset.path.replace('assets/', '')), `${asset.path}: missing consumer`);
+}
+console.log('All twelve additional physical UI assets are present and referenced');
