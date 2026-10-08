@@ -62,7 +62,9 @@ const server=http.createServer((req,res)=>{
   await p.evaluate(()=>{S.lite.lv=Object.fromEntries(LITE_IDS.map((id,i)=>[id,i<10?3:0]));renderLite();});
   assert(await p.locator('body.phase-crisis').count());assert((await p.locator('body').evaluate(e=>getComputedStyle(e,'::after').backgroundImage)).includes('danger-overlay.webp'));assert.equal(await p.locator('body').evaluate(e=>getComputedStyle(e,'::after').pointerEvents),'none');await shot('danger-390');
   await p.evaluate(()=>{S.agentNo='0618';S.agentType='境界観測型';S.assign='都市伝説';showAgentWelcome();});assert(await p.locator('.appointment-paper').isVisible());await shot('appointment-390');await p.locator('.sheet .x').click();
-  await p.evaluate(()=>{S.role='agent';S.onboarded=true;save();});await p.reload();await font();
+  // This fixture tests rank notifications, not the delayed daily-login toast.
+  // Suppress that unrelated notification just as the initial agent fixture does.
+  await p.evaluate(()=>{S.role='agent';S.onboarded=true;S.streak={last:dayKey(),n:1};S.lastTick=Date.now();save();});await p.reload();await font();
   for(const [tier,pulls] of await p.evaluate(()=>[0,5,10,15].map(i=>[Math.floor(i/5),RANKS[i].need]))){await p.evaluate(pulls=>{S.pulls=pulls;render();},pulls);await p.locator('#wallet').click();assert.equal(await p.locator('.wallet-rank .rank-emblem').getAttribute('data-tier'),String(tier));await p.locator('.sheet .x').click();}
   await p.evaluate(()=>{sheet('証拠画像の確認','<div class="ev-cctv"><b>記録照合中</b></div><div class="ev-audio"><div class="wave">音声解析</div></div>');});await shot('evidence-390');await p.locator('.sheet .x').click();
   await p.evaluate(()=>{rankNews=rank().name;notify();});await p.locator('.toast .rank-emblem').waitFor();await p.screenshot({path:path.join(out,'promotion-390.jpg'),quality:83,animations:'disabled'});
