@@ -24,3 +24,4 @@
 /* Let cost captions wrap inside the paper border even with wider JP font metrics. */
 .gacha-scene .pulls button { min-width:0; grid-template-columns:minmax(0,1fr); }
 .gacha-scene .pulls button span { min-width:0; max-width:100%; white-space:normal; overflow-wrap:anywhere; word-break:normal; }
+.gacha-scene .pulls .btn-paper { display:flex; flex-direction:column; align-items:stretch; justify-content:center; gap:2px; padding:6px 2px; }
