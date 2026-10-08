@@ -87,7 +87,8 @@ const server = http.createServer((req,res) => {
     assert.equal(await page.locator('#claim-all').isVisible(),false);
     await page.evaluate(()=>document.querySelector('#claim-all').click());
     assert.equal(await page.evaluate(()=>S.currency),535,'no double claim');
-    await page.locator('#wallet').click();
+    await page.locator('#wallet').click();assert(await page.locator('.wallet-summary').isVisible());await page.keyboard.press('Escape');
+    await page.evaluate(()=>go('report'));await page.locator('#agent-record').click();
     assert((await page.locator('#rk-lv').innerText()).includes('RANK 11'));
     await page.keyboard.press('Escape');
     // Exercise the existing cloud boundary with a stub; never mutate real Firebase.

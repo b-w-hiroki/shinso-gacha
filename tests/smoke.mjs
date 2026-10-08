@@ -44,13 +44,13 @@ has(/body:has\(\.agent-home:not\(\[hidden\]\)\) \.nav \{ display:none; \}/, "glo
 
 has(/id="radar-distance"/, "radar distance indicator missing");
 has(/function radarSignal\(\)/, "functional radar signal model missing");
-has(/ゲーム内観測/, "radar location must be explicitly fictional in-world observation");
+has(/架空の観測地点/, "radar location must be explicitly fictional in-world observation");
 has(/renderRadar\(\);/, "radar must update with the current desk event");
 has(/DANGER \/ 接近中/, "danger radar state missing");
 
 has(/data-desk="evidence"/, "radar evidence entry point missing");
 has(/function openAnomalyEvidence\(\)/, "anomaly evidence sheet missing");
-has(/ゲーム内観測値/, "evidence location must remain explicitly fictional");
+has(/架空の観測地点/, "evidence location must remain explicitly fictional");
 
 has(/function resolveCase\(choice\)/, "anomaly response decision loop missing");
 has(/現地確認[\s\S]*遠隔封鎖[\s\S]*経過観察/, "three anomaly response choices missing");
@@ -68,8 +68,8 @@ assert(html.includes('line.dataset.aftermath = "1"'), "aftermath thread signal m
 
 has(/id="wallet" type="button"/, "suspicion points must be tappable");
 has(/function openWalletDetail\(\)/, "suspicion point rate detail missing");
-assert(html.includes("<span>1時間</span><b>約"), "hourly passive estimate missing");
-has(/次の \+1pt まで/, "next passive gain countdown missing");
+has(/id="wallet-hour"/, "hourly passive estimate missing");
+assert(!html.includes("次の +1pt まで"), "redundant countdown must not return");
 has(/const EVIDENCE_TYPES = \["cctv","map","audio","intercom","transit","photo"\]/, "expanded evidence set missing");
 has(/const AFTERMATH = \{/, "varied aftermath table missing");
 has(/FOLLOW \/ 追随/, "field aftermath variety missing");
@@ -77,7 +77,7 @@ has(/SHIFT \/ 境界変位/, "seal aftermath variety missing");
 has(/SPLIT \/ 分岐/, "watch aftermath variety missing");
 has(/\.agent-home \.home-sniff\{display:none\}/, "secondary sniff action must leave the mobile first view");
 
-has(/class="wallet-detail"/, "wallet detail must use compact mobile grid");
+has(/class="wallet-summary"/, "wallet must present a compact currency summary");
 has(/駅の時計、1台だけ4分遅れてる/, "expanded everyday-horror thread corpus missing");
 has(/今日の任務、住所がうちの最寄りと一文字違い/, "thread corpus variety missing");
 has(/data-kind="\$\{e\.type\}"/, "evidence visual kind hook missing");
@@ -90,7 +90,7 @@ has(/grid-template-columns:1fr 1fr/, "agent footer must stay two-tab after log r
 
 assert(!html.includes('data-stab="gacha:rank"'), "rank must not remain a gacha mode");
 assert(!html.includes('data-spane="gacha:rank"'), "rank pane must leave gacha");
-has(/class="rankcard wallet-rank"/, "rank status must live in suspicion point detail");
+has(/class="rankcard wallet-rank"/, "rank status must remain in the dedicated personnel sheet");
 
 has(/class="view gacha-scene"/, "mock-style gacha scene missing");
 has(/class="scene-props"/, "gacha scene prop layers missing");

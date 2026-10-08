@@ -32,7 +32,7 @@ const server=http.createServer((req,res)=>{
     if(w===390||w===320)await shot(v+'-'+w);
     const nav=await p.locator('.nav').boundingBox();assert(nav.y+nav.height<=h+1,'nav fits viewport');
     if(v==='home'){
-     if(h<740)await p.locator('#agent-primary').scrollIntoViewIfNeeded();const btn=await p.locator('#agent-primary').boundingBox();assert(btn&&btn.height>=44&&btn.y+btn.height<=nav.y,'home CTA must sit above nav');
+     if(h<740)await p.locator('#agent-primary').evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));const btn=await p.locator('#agent-primary').boundingBox();assert(btn&&btn.height>=44&&btn.y+btn.height<=nav.y,'home CTA must sit above nav '+JSON.stringify({w,h,btn,nav}));
     }
    }
   }
@@ -51,7 +51,7 @@ const server=http.createServer((req,res)=>{
   await p.locator('#share-report').click();assert(await p.locator('#sheet-bg').isVisible());await p.locator('.sheet .x').click();
   await p.locator('[data-stab="report:achieve"]').click();assert(await p.locator('.stats').isVisible());await shot('achievements-390');
   await p.locator('[data-stab="report:settings"]').click();assert(await p.locator('#sync').isVisible());await widthCheck('settings');
-  await p.locator('#wallet').click();assert(await p.locator('.wallet-rank').isVisible());await shot('wallet-390');await p.locator('.sheet .x').click();
+  await p.locator('#wallet').click();assert(await p.locator('.wallet-summary').isVisible());assert.equal(await p.locator('.wallet-rank').count(),0);await shot('wallet-390');await p.locator('.sheet .x').click();
   await p.reload();await font();assert.deepEqual(await p.evaluate(()=>({up:upLv('radio'),research:researchLv('u2'),evi:S.evi})),{up:1,research:1,evi:180});
   await p.locator('.nav [data-nav="gacha"]').click();await p.locator('[data-pull="1"]').click();
   assert((await p.locator('#st-env').evaluate(e=>getComputedStyle(e).backgroundImage)).includes('envelope.png'));await shot('opening-390');
@@ -71,7 +71,7 @@ const server=http.createServer((req,res)=>{
   // This fixture tests rank notifications, not the delayed daily-login toast.
   // Suppress that unrelated notification just as the initial agent fixture does.
   await p.evaluate(()=>{S.role='agent';S.onboarded=true;S.streak={last:dayKey(),n:1};S.lastTick=Date.now();save();});await p.reload();await font();
-  for(const [tier,pulls] of await p.evaluate(()=>[0,5,10,15].map(i=>[Math.floor(i/5),RANKS[i].need]))){await p.evaluate(pulls=>{S.pulls=pulls;render();},pulls);await p.locator('#wallet').click();assert.equal(await p.locator('.wallet-rank .rank-emblem').getAttribute('data-tier'),String(tier));await p.locator('.sheet .x').click();}
+  for(const [tier,pulls] of await p.evaluate(()=>[0,5,10,15].map(i=>[Math.floor(i/5),RANKS[i].need]))){await p.evaluate(pulls=>{S.pulls=pulls;render();},pulls);await p.evaluate(()=>go('report'));await p.locator('#agent-record').click();assert.equal(await p.locator('.wallet-rank .rank-emblem').getAttribute('data-tier'),String(tier));await p.locator('.sheet .x').click();}
   await p.evaluate(()=>{sheet('証拠画像の確認','<div class="ev-cctv"><b>記録照合中</b></div><div class="ev-audio"><div class="wave">音声解析</div></div>');});await shot('evidence-390');await p.locator('.sheet .x').click();
   await p.evaluate(()=>{rankNews=rank().name;notify();});await p.locator('.toast .rank-emblem').waitFor();await p.screenshot({path:path.join(out,'promotion-390.jpg'),quality:83,animations:'disabled'});
   assert(contrastChecks.length>10);fs.writeFileSync(path.join(out,'contrast.json'),JSON.stringify(contrastChecks,null,2)+'\n');assert.deepEqual(errors,[]);const report={passed:true,checks:['home navigation + task-specific CTA','320/390/1280 width and navigation','archive filter + dossier + testimony','44px modal close control','equipment upgrade and evidence deduction','re-investigation and persistence','report share draft + achievements + settings','wallet rank','photoreal opening and reveal','new-user initialization','12 image decodes + transparent centers','civilian opening + tabs','danger overlay does not intercept controls','appointment document','all four rank emblem tiers + promotion notification'],errors};fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report,null,2));

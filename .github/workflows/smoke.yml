@@ -46,6 +46,9 @@ jobs:
       - run: node tests/incursion-growth.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/information-ui.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/layout.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
