@@ -942,6 +942,15 @@ body.agent-reveal::after { content:"PROTECTIVE CLEARANCE"; position:fixed; inset
 .gacha-scene .big-env{z-index:2;background:linear-gradient(155deg,#d0bd94,#aa8d62 76%,#786044);border:1px solid #e1cda5;filter:drop-shadow(0 18px 18px #000)}
 .gacha-scene [data-pull][hidden]{display:none!important}
 @media(max-width:599px){.gacha-scene .scene-props{min-height:570px}.gacha-scene .prop-files{left:-65px}.gacha-scene .prop-photo{right:-22px}.gacha-scene .big-env{width:min(76vw,340px)}}
+
+/* Real independent asset layers; envelope remains a live interactive scene object. */
+.gacha-scene .prop-files{background:#29241e url("assets/desk-file.svg") center/contain no-repeat;border:0}
+.gacha-scene .prop-photo{background:#202522 url("assets/desk-photo.svg") center/contain no-repeat;border:0}
+.gacha-scene .prop-tape{background:#111 url("assets/desk-tape.svg") center/contain no-repeat;border:0}
+.gacha-scene .big-env{background:#b9a37a url("assets/desk-envelope.svg") center/100% 100% no-repeat}
+.gacha-scene .big-env .tie{opacity:.22}
+#claim-all[hidden]{display:none!important}
+#claim-all{width:100%;min-height:46px;margin:8px 0 12px}
 </style>
 
 <header class="top">
@@ -1051,7 +1060,7 @@ body.agent-reveal::after { content:"PROTECTIVE CLEARANCE"; position:fixed; inset
     <div class="home-pane" data-hpane="tasks" hidden>
       <div>
         <div class="sec-h"><h3>本日の任務</h3><small>0時にリセット</small></div>
-        <div class="mis" id="missions"></div>
+        <button class="btn-paper" id="claim-all" data-act="claim-all" hidden>受取可能な報酬を一括受取</button><div class="mis" id="missions"></div>
       </div>
     </div>
 
@@ -2143,6 +2152,7 @@ function renderMissions() {
     const right = s.claimed ? `<span class="r">受領済</span>` : full ? `<button data-act="claim" data-id="${m.id}">受領 +${m.reward}</button>` : `<span class="r">${s.p}/${m.target} ・ +${m.reward}pt</span>`;
     return `<div class="mi ${s.claimed ? "done" : ""}"><span class="t">${m.text}</span>${right}<span class="meter"><i style="width:${s.p / m.target * 100}%"></i></span></div>`;
   }).join("");
+  $("claim-all").hidden = !claimable;
   $("dot-home").hidden = !claimable && !(S.freeDate !== dayKey() && lv(todayItem().id) < 5);
 }
 function renderArchive() {
@@ -2316,8 +2326,14 @@ document.addEventListener("click", e => {
   }
   if (a === "post-open") { hideSheet(); freePull(); }
   if (a === "onboard") { S.onboarded = true; markDirty(); hideSheet(); toast("まずはホームの「本日のウワサ」を読んでください"); }
+  if (a === "claim-all") {
+    let total = 0, count = 0;
+    MISSIONS.forEach(m => { const st = S.missions[m.id]; if (st && st.p >= m.target && !st.claimed) { st.claimed = true; total += m.reward; count++; } });
+    if (count) { S.currency += total; markDirty(); render(); toast(`任務${count}件の報酬 +${total}pt`); buzz(20); }
+    return;
+  }
   if (a === "claim") {
-    const m = MISSIONS.find(x => x.id === id); S.missions[id].claimed = true; S.currency += m.reward;
+    const m = MISSIONS.find(x => x.id === id); if (!m || !S.missions[id] || S.missions[id].claimed || S.missions[id].p < m.target) return; S.missions[id].claimed = true; S.currency += m.reward;
     markDirty(); render(); toast("任務完了 +" + m.reward + "pt"); buzz(20);
   }
 });
