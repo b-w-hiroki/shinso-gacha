@@ -1,0 +1,48 @@
+/* Text surfaces use explicit foreground/background pairs; patina stays at the edges. */
+:root { --fg:#f5ecd9; --muted:#ded0b6; --ink:#241b12; --paper-ink-2:#4b3825; }
+body { font-weight:500; }
+/* Remove screen-wide scanlines that previously crossed every glyph. */
+body::after { content:none; }
+/* Keep the danger vignette below all text and controls. */
+body.lite:is(.phase-danger,.phase-crisis)::after,body:has(.agent-home:not([hidden]) [data-hpane='desk']:not([hidden]) .desk-event.alert)::after { content:''; z-index:0; opacity:.28; }
+main { position:relative; z-index:1; }
+body :is(.hint,.note) { font-size:14px; line-height:1.65; font-weight:500; }
+body .note { font-family:var(--f-body); transform:none; }
+body :is(.paper,.doc,.tbook,.intro-note) { --muted:#4b3825; --paper-ink-2:#4b3825; color:#241b12; }
+body :is(.paper,.doc,.tbook,.intro-note) :is(.note,.hint,.lyr .lab,.cond) { color:#49331e; background:#f0e4ca; padding:3px 5px; opacity:1; }
+body :is(.paper,.doc,.tbook,.intro-note) :is(.eyebrow,.m,.formhead,.memohead) { color:#49331e; font-weight:700; }
+body :is(.paper,.doc,.tbook) .lyr p { color:#241b12; background:#f0e4ca; padding:5px 7px; font-weight:500; }
+body .paper .rar-n,body .paper .rar-r { color:#4b3219; background:#eee0c1; }
+body .paper .rar-x { color:#7a2019; background:#f1dfc2; }
+body :is(.stamp-sm,.verdict,.truth,.seal,.sr.earned em) { -webkit-mask-image:none; mask-image:none; opacity:1; }
+body .stamp-sm,body .doc .verdict { color:#7b2219; background:#f0dfbf; border-color:#7b2219; }
+body .folder.locked,body .mi.done { opacity:1; }
+body .folder :is(.m,.cond) { font-size:12px; }
+body .folder .cond { color:#3f2b19; background:#ebdbb9; }
+body .mi.done :is(.t,.r) { color:#3e2c1a; }
+body .pulls button span { opacity:1; font-weight:700; font-size:14px; }
+body .gacha-scene .cab-desc { color:#fff3da; background:#15100deb; font-weight:700; }
+body .agent-home .home-sniff { opacity:1; }
+body .scene-heading p,body .scene-heading .eyebrow { color:#ecddc1; background:#15120f; width:fit-content; padding:2px 5px; }
+body .scene-heading p { font-size:14px; line-height:1.6; }
+body .sec-h small { font-size:12px; font-weight:700; }
+body .lab-scene .labhead p { color:#ebddc2; font-size:14px; }
+body .sheet :is(.rk-row,.perks span,.research-card small,.wallet-detail span),body .lab-scene .research-card small { color:#ebddc2; font-weight:500; }
+body .stage :is(.st-tip,.st-top) { color:#f1e3c7; background:#14100d; padding:4px 8px; }
+body .intro-caption { color:#f6ead1; background:#17130f; padding:7px 9px; border-left:2px solid #a38a65; }
+body .intro-time { background:#10110e; color:#fff2d4; }
+body :is(.intro-receipt,.intro-top,.intro-fiction) { color:#ebdabe; }
+body .intro-top button { color:#f1e2c6; background:#17130f; }
+body .intro-receipt span { background:#17130f; padding:4px 7px; }
+body .intro-note { color:#24180d; }
+body .intro-note > :is(p,span) { background:#ecdfc4; padding:3px 5px; }
+body .intro-archive .hint { color:#ebddc2; }
+body .ev-cctv b { color:#fff0d0; background:#10110e; }
+body .lite-notes p:not(.sealed) { color:#f2e7d0; background:#17130f; }
+body .lite-notes p.sealed { color:#e0d2b7; background:#17130f; }
+body :is(.btn-paper,.btn-ink,.btn-line):disabled { opacity:1; }
+body .lab-scene .up .btn-ink:disabled { color:#49331f; background:#d9c6a2; }
+body .lab-scene .research-card .btn-ink:disabled { color:#e0cfad; background:#30261a; }
+body .nav button { font-size:12px; font-weight:700; }
+body :is(button,a,input):focus-visible { outline:3px solid #f4bc64; outline-offset:3px; }
+@media(max-height:700px) { #intro-case figure .intro-image { max-height:120px; } body .intro-caption { padding:5px 7px; } }

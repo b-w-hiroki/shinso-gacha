@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "checks": [
+    "fresh + existing user",
+    "320/390/430 mobile controls",
+    "photo comparison",
+    "exactly three ordinary draws",
+    "reload resume",
+    "redaction reveal",
+    "skip + replay without rewards",
+    "33 fragment intervention + 36 interview gate",
+    "double tap guard",
+    "7 image decodes"
+  ],
+  "errors": []
+}

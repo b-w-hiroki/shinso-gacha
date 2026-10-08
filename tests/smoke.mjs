@@ -141,3 +141,9 @@ for (const asset of physical) {
   assert(physicalCSS.includes(asset.path.replace('assets/', '')), `${asset.path}: missing consumer`);
 }
 console.log('All twelve additional physical UI assets are present and referenced');
+new Function(fs.readFileSync('assets/intro-story.js','utf8'));
+const introAssets=JSON.parse(fs.readFileSync('assets/intro/manifest.json','utf8'));
+assert.equal(introAssets.length,7);
+for(const a of introAssets){const bytes=fs.readFileSync(a.path);assert.equal(bytes.length,a.bytes);assert.equal(bytes.subarray(8,12).toString(),'WEBP');}
+assert(html.includes('assets/intro-story.js')&&html.includes('assets/intro-story.css'));
+console.log('Seven story assets and introduction script are present');

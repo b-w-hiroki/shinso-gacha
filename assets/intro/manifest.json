@@ -1,0 +1,85 @@
+[
+  {
+    "name": "station-before",
+    "prompt": "Photorealistic production evidence photograph for Japanese mystery mobile game. Landscape 3:2 old rural Japanese train platform at night, static security camera from far end looking down platform, fluorescent lamps, a bench on right, dark tunnel vanishing point, one adult commuter silhouette far left beside pillar. Quiet mundane realism with restrained unease, desaturated green charcoal and warm paper tone, fine analog grain. No text, station signs blank, no numerals, no time stamp, no borders, no UI. This is baseline photograph; clearly ONE person only, center platform near bench empty. Composition readable at 350px wide.",
+    "path": "assets/intro/station-before.webp",
+    "bytes": 274372,
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha": null
+  },
+  {
+    "name": "station-after",
+    "prompt": "Edit this exact railway platform evidence photograph. Preserve camera position, architecture, bench, train tracks, lighting, grain, colors and the original commuter on left. Add ONLY one additional distant adult person in a dark coat standing on the right platform just left of the bench, facing the camera; face indistinct but clearly recognizable as a human silhouette at mobile size. No violence, monster, text or other changes. The intended clue is one person becomes two. Exact same composition and dimensions.",
+    "path": "assets/intro/station-after.webp",
+    "bytes": 230024,
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha": null
+  },
+  {
+    "name": "envelope-torn",
+    "prompt": "Edit reference kraft envelope into next state: same material, size, frontal overhead camera, warm upper-left light. Tear open a narrow rough strip along upper long edge, revealing a small dark inner slit and paper fibers; flap partly loosened. Keep whole envelope centered, horizontal. No letters, no text, no stamps, no hands. Preserve genuine transparent exterior alpha; remove all surrounding colored backdrop or glow. Photoreal game asset, visibly opened at mobile size.",
+    "path": "assets/intro/envelope-torn.webp",
+    "bytes": 337516,
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha": [
+      0,
+      254
+    ]
+  },
+  {
+    "name": "envelope-open",
+    "prompt": "Edit reference torn kraft envelope into final evidence state. Preserve same frontal overhead view, proportions, old tan paper and warm upper-left light. Open the top further and let a blank ivory document and dark photograph corner peek out from it. Subtle damp stain on lower right edge, no gore. Keep subject fully within frame and exterior genuinely transparent alpha. No text, no writing, no UI, no backdrop. Photoreal production game asset.",
+    "path": "assets/intro/envelope-open.webp",
+    "bytes": 354396,
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha": [
+      0,
+      254
+    ]
+  },
+  {
+    "name": "station-plan",
+    "prompt": "Photoreal fictional evidence asset: overhead old folded cream railway station site-plan paper, landscape 3:2, fills frame. Simple hand-drawn gray pencil layout of two parallel platforms and track lines, a tunnel at left and small bench rectangle at right, one restrained red pencil circle at right beside bench and pencil route line toward an exit. This is fictional atmospheric game evidence, not technical documentation. No written words, letters, numbers, legend or labels; HTML supplies all clues. Detailed paper fibers and subtle edge stains, warm upper-left light, central legibility, no surrounding objects or UI.",
+    "path": "assets/intro/station-plan.webp",
+    "bytes": 402120,
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha": null
+  },
+  {
+    "name": "witness-note",
+    "prompt": "Photoreal production evidence memo for mystery game. Landscape 3:2 old cream note paper with a torn left edge, single rusted paperclip upper left, faint pencil smudges and a small damp stain bottom right. Large entirely blank pale center for HTML handwriting and interactive black redaction bars, even low-contrast paper texture. Warm upper-left light, overhead straight camera, paper fills image. No words, symbols, writing, numbers, printed lines, logos or UI. Atmosphere of a note concealed in an old envelope.",
+    "path": "assets/intro/witness-note.webp",
+    "bytes": 278250,
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha": null
+  },
+  {
+    "name": "bureau-intervention",
+    "prompt": "Photoreal cinematic evidence game image, landscape 3:2. Overhead dark investigation desk; a calm adult investigator's black gloved hand enters from right holding a blank ivory identification card with small tarnished bronze shield emblem, beside vintage black radio with soft green indicator. No person's face or body. Warm gentle upper-left illumination, muted charcoal and cream, restrained red background light fading out. Reassuring intervention after eerie mystery; tactile realistic leather, paper, metal. No written text, letters, numbers, brands, weapons, violence or UI. Card and hand clearly visible at 350px.",
+    "path": "assets/intro/bureau-intervention.webp",
+    "bytes": 231588,
+    "size": [
+      1536,
+      1024
+    ],
+    "alpha": null
+  }
+]
