@@ -113,3 +113,19 @@ assert(html.includes('data-act="claim-all"'),"claim-all action missing");
 assert(html.includes('st.p >= m.target && !st.claimed'),"claim-all eligibility guard missing");
 assert(html.includes('assets/desk-envelope.svg'),"envelope asset missing");
 assert(html.includes('assets/desk-photo.svg'),"photo asset missing");
+
+// A successful deploy must include the image bytes, not merely CSS paths.
+const photos = ['desk-background.webp','envelope.png','button-paper.png','button-red.png','button-locked.png','classified-files.png','surveillance-photo.png','red-lamp.png','film-canister.png','cassette.png'];
+for (const name of photos) {
+  const file = fs.readFileSync(`assets/${name}`);
+  assert(file.length > 1000, `${name}: empty/placeholder asset`);
+  assert(html.includes(`assets/${name}`), `${name}: not wired into the scene`);
+  if (name.endsWith('.png')) {
+    assert.equal(file.subarray(0,8).toString('hex'), '89504e470d0a1a0a', `${name}: invalid PNG`);
+    assert.equal(file[25], 6, `${name}: must preserve RGBA transparency`);
+  } else {
+    assert.equal(file.subarray(0,4).toString(), 'RIFF');
+    assert.equal(file.subarray(8,12).toString(), 'WEBP');
+  }
+}
+console.log('All ten photoreal assets are present and referenced');

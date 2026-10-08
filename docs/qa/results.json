@@ -1,0 +1,73 @@
+{
+  "passed": true,
+  "images": [
+    {
+      "name": "desk-background.webp",
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "name": "envelope.png",
+      "width": 900,
+      "height": 560
+    },
+    {
+      "name": "button-paper.png",
+      "width": 475,
+      "height": 183
+    },
+    {
+      "name": "button-red.png",
+      "width": 520,
+      "height": 183
+    },
+    {
+      "name": "button-locked.png",
+      "width": 470,
+      "height": 183
+    },
+    {
+      "name": "classified-files.png",
+      "width": 455,
+      "height": 501
+    },
+    {
+      "name": "surveillance-photo.png",
+      "width": 275,
+      "height": 367
+    },
+    {
+      "name": "red-lamp.png",
+      "width": 405,
+      "height": 447
+    },
+    {
+      "name": "film-canister.png",
+      "width": 150,
+      "height": 225
+    },
+    {
+      "name": "cassette.png",
+      "width": 275,
+      "height": 234
+    }
+  ],
+  "viewports": [
+    "390×844",
+    "375×667",
+    "320×568",
+    "430×932",
+    "1280×900"
+  ],
+  "checks": [
+    "1/5/10/100 actual button pulls and costs",
+    "rank unlock boundaries",
+    "disabled CTA",
+    "claim-all and duplicate protection",
+    "wallet rank",
+    "local reload",
+    "Firebase save/restore/permission-denied adapter"
+  ],
+  "cloud": "stubbed; live Firebase not written",
+  "errors": []
+}

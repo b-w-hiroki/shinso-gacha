@@ -17,3 +17,25 @@ jobs:
         with:
           node-version: 22
       - run: node tests/smoke.mjs
+
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save --package-lock=false playwright@1.62.1
+      - run: npx playwright install --with-deps chromium
+      - name: Japanese font for reproducible offline screenshots
+        run: curl --fail --location --retry 2 --output "$RUNNER_TEMP/noto.otf" https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/OTF/Japanese/NotoSansCJKjp-Regular.otf
+      - run: node tests/photoreal.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: photoreal-browser-qa
+          path: docs/qa/
