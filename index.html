@@ -932,6 +932,16 @@ body.agent-reveal::after { content:"PROTECTIVE CLEARANCE"; position:fixed; inset
 .choices { display: grid; gap: 8px; }
 .choices button { text-align: left; padding: 12px 14px; border: 1px solid #5a6070; color: var(--fg); font-size: 15px; line-height: 1.6; }
 .choices button:active { background: var(--desk-3); }
+
+/* Layered props: independent, responsive surfaces; interactive envelope stays above. */
+.gacha-scene::before{background:linear-gradient(rgba(5,5,5,.35),rgba(5,5,5,.45)),url("assets/gacha-desk-bg.svg") center/cover no-repeat,#090a09}
+.gacha-scene .scene-props{opacity:1;mix-blend-mode:normal;z-index:-1}
+.gacha-scene .prop-files{background:linear-gradient(145deg,#544535,#211b16);border:7px solid #393027;box-shadow:5px 12px 30px #000}
+.gacha-scene .prop-photo{background:linear-gradient(165deg,rgba(22,25,24,.2),rgba(0,0,0,.6)),repeating-linear-gradient(90deg,#3b403a 0 14px,#1a201d 15px 27px);border:8px solid #c0b49c}
+.gacha-scene .prop-lamp{background:radial-gradient(ellipse at 22% 45%,rgba(234,64,42,.75),transparent 55%);filter:blur(9px);mix-blend-mode:screen}
+.gacha-scene .big-env{z-index:2;background:linear-gradient(155deg,#d0bd94,#aa8d62 76%,#786044);border:1px solid #e1cda5;filter:drop-shadow(0 18px 18px #000)}
+.gacha-scene [data-pull][hidden]{display:none!important}
+@media(max-width:599px){.gacha-scene .scene-props{min-height:570px}.gacha-scene .prop-files{left:-65px}.gacha-scene .prop-photo{right:-22px}.gacha-scene .big-env{width:min(76vw,340px)}}
 </style>
 
 <header class="top">
@@ -1052,7 +1062,8 @@ body.agent-reveal::after { content:"PROTECTIVE CLEARANCE"; position:fixed; inset
   </section>
 
   <!-- GACHA -->
-  <section class="view gacha-scene" data-view="gacha" hidden>\n    <div class="scene-props" aria-hidden="true"><i class="prop-files"></i><i class="prop-photo"></i><i class="prop-lamp"></i><i class="prop-tape"></i><i class="prop-note"></i></div>
+  <section class="view gacha-scene" data-view="gacha" hidden>
+    <div class="scene-props" aria-hidden="true"><i class="prop-files"></i><i class="prop-photo"></i><i class="prop-lamp"></i><i class="prop-tape"></i><i class="prop-note"></i></div>
     <div class="section-pane" data-spane="gacha:pull">
     <div class="seg" role="group" aria-label="ボックスを選ぶ">
       <button data-seg="urban" aria-pressed="true">都市伝説</button>
@@ -1064,8 +1075,8 @@ body.agent-reveal::after { content:"PROTECTIVE CLEARANCE"; position:fixed; inset
       <div class="pulls">
         <button class="btn-paper" data-pull="1">1回引く<span>10pt</span></button>
         <button class="btn-paper five" data-pull="5">5連で引く<span>45pt（必ず1段は剥がれる）</span></button>
-        <button class="btn-paper bulk" data-pull="10">10連で引く<span id="lbl-10">90pt</span></button>
-        <button class="btn-paper bulk" data-pull="100">100連で引く<span id="lbl-100">850pt</span></button>
+        <button class="btn-paper bulk" data-pull="10" hidden>10連で引く<span id="lbl-10">90pt</span></button>
+        <button class="btn-paper bulk" data-pull="100" hidden>100連で引く<span id="lbl-100">850pt</span></button>
       </div>
       <label class="toggle"><input type="checkbox" id="fast"> 演出を高速にする（封筒を自動で開封）</label>
       <p class="odds">出やすさは 並 ＞ 稀 ＞ 禁。ランクが上がると稀と禁が出やすくなる。調査中のネタは出やすく、真相到達済みは出にくい。5連は必ず1段以上剥がれる。</p>
@@ -2084,7 +2095,7 @@ function render() {
   $("free").disabled = used || tl === 5;
   $("free").textContent = used ? "本日分は読みました（明日また入っている）" : tl === 5 ? "この噂は読み尽くした" : "本日のウワサを読む";
   if (used) $("today-note").textContent = POST_AFTER[dayNo() % POST_AFTER.length];
-  document.querySelectorAll("[data-pull]").forEach(b => { const n = +b.dataset.pull; b.disabled = !bulkOpen(n) || S.currency < COST[n]; });
+  document.querySelectorAll("[data-pull]").forEach(b => { const n = +b.dataset.pull; b.hidden = n > 5 && !bulkOpen(n); b.disabled = !bulkOpen(n) || S.currency < COST[n]; });
   [10, 100].forEach(n => { $("lbl-" + n).textContent = bulkOpen(n) ? `${COST[n]}pt（演出なし）` : `RANK ${BULK_RANK[n] + 1}で解放`; });
   $("cab-desc").textContent = BOX_DESC[box];
   const ri = rankIdx(), rk = RANKS[ri], nx = RANKS[ri + 1];
