@@ -1,0 +1,199 @@
+/* Shared physical surfaces. Decorative images never carry live labels or controls. */
+:root {
+  --ui-paper:#ddd0b4;
+  --ui-ink:#30261c;
+  --ui-faint:#665641;
+  --ui-edge:#75634b;
+  --ui-metal:#171614;
+  --ui-red:#9a3025;
+  --ui-grain:repeating-linear-gradient(103deg,transparent 0 3px,rgba(77,51,27,.025) 3px 4px);
+  --ui-stock:radial-gradient(ellipse at 0 0,rgba(134,87,37,.23),transparent 56%),radial-gradient(ellipse at 100% 100%,rgba(91,54,23,.19),transparent 65%),var(--ui-grain),linear-gradient(110deg,#e6d9bd,#d7c7a8);
+}
+body:not(.lite) { --muted:#bcb3a2; --line:#4c463c; }
+body:not(.lite) .top,body:not(.lite) .nav { background:linear-gradient(110deg,rgba(25,23,21,.98),rgba(9,9,9,.97)); border-color:#62533f; }
+body:not(.lite) .wallet { border-color:#807057; background:linear-gradient(#26231f,#13120f); color:#f1e4ca; box-shadow:inset 0 1px 0 #514432,0 3px 9px #0005; }
+body:not(.lite) .wallet span { color:#d6c8ad; }
+body:not(.lite) .nav button { color:#bbb09d; }
+body:not(.lite) .nav button[aria-current="page"] { color:#fff0cc; background:linear-gradient(0deg,rgba(164,75,37,.15),transparent); }
+body:not(.lite) .nav button[aria-current="page"]::before { height:3px; background:#bd4937; }
+body:not(.lite) :is(button,a,input):focus-visible { outline:3px solid #e9b971; outline-offset:3px; }
+body:not(.lite) main:has(.dossier-view:not([hidden])) { padding-top:16px; }
+.dossier-view,.agent-home { position:relative; isolation:isolate; animation:none; }
+.dossier-view::before,.agent-home::before { content:""; position:fixed; inset:58px 0 0; z-index:-2; pointer-events:none; background:linear-gradient(180deg,rgba(8,7,6,.7),rgba(8,7,6,.86)),url("desk-background.webp") center/cover; }
+.scene-heading { position:relative; isolation:isolate; padding:16px 112px 16px 4px; min-height:104px; border-bottom:1px solid #746047; }
+.scene-heading::after { content:""; position:absolute; z-index:-1; pointer-events:none; right:-8px; top:-8px; bottom:0; width:114px; background:url("classified-files.png") center/contain no-repeat; transform:rotate(8deg); filter:brightness(.72); }
+.lab-scene .scene-heading::after { background-image:url("cassette.png"); }
+.report-scene .scene-heading::after { background-image:url("envelope.png"); width:132px; }
+.scene-heading .eyebrow { color:#c5a777; font-size:10px; letter-spacing:.14em; }
+.scene-heading h1 { margin:3px 0 5px; font:800 27px/1.25 var(--f-display); color:#f1e1c4; letter-spacing:.1em; }
+.scene-heading p { margin:0; font-size:12px; line-height:1.6; color:#c6baa7; }
+.dossier-view { gap:16px; }
+.dossier-view .section-tabs,.agent-home > .home-tabs { top:calc(67px + env(safe-area-inset-top,0px)); padding:4px; border:1px solid #6c5d48; border-radius:2px; background:#15130f; box-shadow:0 5px 16px #0008,inset 0 1px 0 #97806533; }
+.dossier-view .section-tabs button,.agent-home > .home-tabs button { min-height:44px; color:#c8bda9; font-size:14px; }
+.dossier-view .section-tabs button[aria-pressed="true"],.agent-home > .home-tabs button[aria-pressed="true"] { background:var(--ui-stock); color:var(--ui-ink); box-shadow:inset 0 0 0 1px #b49e77; }
+/* Cardstock stays light; type stays dark. No whole-card opacity for locked files. */
+.dossier-view :is(.folder,.diag,.up),.agent-home .desk-event,.sheet .doc,.stage .st-card {
+  background:var(--ui-stock); color:var(--ui-ink); border:1px solid #9c8560; border-radius:2px; filter:none; box-shadow:inset 0 0 26px #5f40141c,2px 3px 0 #756448,4px 6px 0 #30281c,0 14px 26px #0008;
+}
+.dossier-view :is(.folder,.diag,.up) :is(.note,.eyebrow,.m,.cond),.agent-home .desk-event :is(.eyebrow,.note),.sheet .doc :is(.eyebrow,.note,.hint,.lyr .lab),.stage .st-card :is(.eyebrow,.hint,.lyr .lab) { color:var(--ui-faint); }
+.dossier-view .paper::before,.dossier-view .paper::after { pointer-events:none; }
+.dossier-view .sec-h h3 { color:#f0e0c3; font-size:18px; }
+.dossier-view .sec-h small { color:#c5b7a0; }
+/* Paper buttons use the label-free outer frame of the supplied raster. */
+.dossier-view .btn-paper,.agent-home .btn-paper,.sheet .btn-paper,.stage .btn-paper {
+  border:solid transparent; border-width:9px 12px; border-image:url("button-paper.png") 25 35 stretch;
+  background:linear-gradient(120deg,#dfd0af,#c7b38e); background-clip:padding-box; color:#2d241a;
+  min-height:48px; padding:4px 8px; font-size:14px; font-weight:800; line-height:1.5; box-shadow:0 5px 12px #0006;
+}
+.dossier-view .btn-line,.sheet .btn-line,.stage .btn-line { min-height:44px; border-color:#877153; color:#e9d9ba; background:#171410; font-size:14px; }
+.dossier-view .btn-paper:disabled,.sheet .btn-paper:disabled { border-image-source:url("button-locked.png"); background:#2c2923; color:#b9b09e; opacity:1; box-shadow:none; }
+/* Archive: filed folders, clear progress, high-contrast lock reasons. */
+.archive-scene .progress { background:linear-gradient(120deg,#211e19,#12110e); border-color:#796647; padding:14px; box-shadow:inset 0 0 0 3px #0003; }
+.archive-scene .progress .row { color:#d4c5aa; font-size:12px; gap:8px; }
+.archive-scene .progress #rate { color:#ffebbc; font-size:18px; font-weight:800; }
+.archive-scene .progress .bar { height:5px; background:#443b2d; }
+.archive-scene .progress .bar i { background:linear-gradient(90deg,#b49969,#c84932); }
+.archive-scene .chips { gap:7px; }
+.archive-scene .chips button { min-height:44px; border-radius:2px; padding:7px 12px; border-color:#71634d; color:#d3c5ac; background:#171410; }
+.archive-scene .chips button[aria-pressed="true"] { color:#f7e8c9; border-color:#bfa076; border-bottom:3px solid #b24736; background:#362a1d; }
+.archive-scene .files { gap:24px 12px; padding-top:12px; }
+.archive-scene .files::before { color:#b5a284; font-size:10px; border-color:#6c5b43; }
+.archive-scene .folder { padding:14px 12px 12px; gap:11px; min-height:130px; align-content:start; }
+.archive-scene .folder::before { background:#b6a17b; border:1px solid #927d57; border-bottom:0; top:-10px; height:10px; border-radius:3px 8px 0 0; }
+.archive-scene .folder .n { font-size:17px; font-weight:800; color:#30261c; }
+.archive-scene .folder .m { letter-spacing:.02em; font-size:11px; padding-bottom:7px; border-bottom:1px solid #9b896547; }
+.archive-scene .folder .cond { font-size:12px; line-height:1.6; }
+.archive-scene .folder.locked { opacity:1; background:var(--ui-grain),linear-gradient(110deg,#b6a78c,#a5967c); box-shadow:inset 0 0 18px #5b49252b,1px 3px 0 #514631,0 8px 14px #0005; }
+.archive-scene .folder.locked .m,.archive-scene .folder.locked .cond { color:#3e3528; }
+.archive-scene .folder.truth::after { top:auto; bottom:18px; right:10px; background:#e6d3acbd; }
+.archive-scene .folder .pips { margin-top:4px; }
+.archive-scene .tbook { padding:18px; border:1px solid #9d8864; background:var(--ui-stock); color:var(--ui-ink); box-shadow:4px 5px 0 #69583c,0 12px 30px #0008; }
+.archive-scene .tbook .sec-h h3,.archive-scene .tbook .sec-h small,.archive-scene .tbook .hint { color:var(--ui-ink); }
+.archive-scene .testi { background:#cbbb9b66; border-color:#937a53; color:#3a2a1c; font-size:14px; padding:13px 10px; line-height:1.75; }
+.archive-scene .testi.t-x { color:#7b281f; border-color:#923226; }
+/* Lab: evidence ledger and equipment work orders. */
+.lab-scene .labhead { background:linear-gradient(120deg,#2b261e,#15120e); border-color:#89704d; padding:18px; box-shadow:inset 0 0 0 4px #09080666,0 12px 24px #0005; }
+.lab-scene .labhead::before { color:#c19c68; margin-bottom:10px; }
+.lab-scene .labhead b { color:#f0dab1; }
+.lab-scene .labhead #evi { font-size:32px; }
+.lab-scene .labhead p { color:#cbbda4; font-size:13px; line-height:1.7; }
+.lab-scene .ups { gap:18px; }
+.lab-scene .up { position:relative; padding:20px 16px 16px; border-left:5px solid #987847; }
+.lab-scene .up.paper::before { content:"設備整備票 / EQUIPMENT"; color:#735436; font-size:10px; letter-spacing:.14em; margin-bottom:10px; }
+.lab-scene .up-h { gap:12px; align-items:baseline; }
+.lab-scene .up-h b { font-size:19px; color:#30261c; }
+.lab-scene .up-h .mono { color:#685339; font-size:12px; white-space:nowrap; }
+.lab-scene .up-eff { color:#44331f; font-size:14px; }
+.lab-scene .up-eff span { color:#883020; font-weight:800; }
+.lab-scene .up .note { font-size:13px; line-height:1.65; }
+.lab-scene .up .btn-ink { min-height:48px; margin-top:10px; border:1px solid #733325; background:linear-gradient(#8f3527,#65241c); color:#fff0d4; box-shadow:inset 0 1px 0 #cc8b5966,0 3px 6px #5e381a33; }
+.lab-scene .up .btn-ink:disabled { opacity:1; background:#c2b393; color:#62543e; border-color:#a28d69; box-shadow:none; }
+.lab-scene .research-card { background:linear-gradient(120deg,#29231b,#14110d); color:#ebdbbd; border-color:#7b6647; }
+.lab-scene .research-card small,.lab-scene .research-level span { color:#cfbea0; }
+.lab-scene .research-level { background:#17130f; border-color:#786042; }
+.lab-scene .research-level.on { border-color:#bc5a3a; }
+/* Report: cream personnel card above a dark stamped record ledger. */
+.report-scene .agent-id { border-color:#8d734f; background:linear-gradient(120deg,#342b20,#17120c); color:#e3d0af; }
+.report-scene .diag { padding:24px 20px; gap:12px; transform:rotate(-.35deg); }
+.report-scene .diag > b { padding-right:32px; color:#332719; }
+.report-scene .diag > p { font-size:14px; line-height:1.75; }
+.report-scene .grid-card { background:linear-gradient(135deg,#28231c,#15120d); border-color:#806b49; padding:18px; gap:16px; }
+.report-scene .grid-card::after { display:none; }
+.report-scene .grid-card .hint,.report-scene .sq { color:#cebea0; }
+.report-scene .grid-card .actions { display:grid; grid-template-columns:1fr; }
+.report-scene .grid-card .btn-line { justify-content:center; }
+.report-scene .sq i { border-radius:0; background:#3b3327; border:1px solid #554731; }
+.report-scene .sq i.l1 { background:#8c7854; }.report-scene .sq i.l3 { background:#c7994f; }.report-scene .sq i.l5 { background:#a63528; }
+.report-scene .stats { gap:8px; background:transparent; border:0; }
+.report-scene .stats > div { background:var(--ui-stock); color:var(--ui-ink); border:1px solid #9c8560; padding:16px; }
+.report-scene .stats span { color:#66543b; }.report-scene .stats b { font-size:28px; color:#3b2b1a; }
+.report-scene .series .sr { background:#211b13; border-color:#766144; color:#ddcfb3; }
+.report-scene #sync { padding:18px; border:1px solid #6b5a3f; color:#d8c7a9; background:#18140f; font-size:14px; }
+/* Agent desk: functional CRT hardware, dispatch paper and one clear action. */
+body:has(.agent-home:not([hidden])) .nav { display:block; }
+body:has(.agent-home:not([hidden])) main { padding-bottom:calc(154px + env(safe-area-inset-bottom,0px)); }
+.agent-home { gap:14px; }
+.agent-home > .home-tabs { grid-template-columns:1fr 1fr; }
+.agent-home > .home-tabs::before { display:none; }
+.agent-footer { bottom:calc(var(--nav-h) + 8px + env(safe-area-inset-bottom,0px)); padding:0; background:transparent; border:0; border-radius:0; box-shadow:none; backdrop-filter:none; width:min(608px,calc(100% - 26px)); }
+.agent-primary { min-height:62px; border:solid transparent; border-width:10px 13px; border-image:url("button-red.png") 25 35 stretch; border-radius:0; background:linear-gradient(#962e23,#651d16); background-clip:padding-box; color:#fff0d1; padding:4px 18px; box-shadow:0 7px 25px #000b; font-size:17px; }
+.agent-home:has([data-hpane="tasks"]:not([hidden])) .agent-footer { display:none; }
+body:has(.agent-home [data-hpane="tasks"]:not([hidden])) main { padding-bottom:calc(84px + env(safe-area-inset-bottom,0px)); }
+.agent-home .thread-radar { border:8px solid #292820; border-radius:7px; outline:1px solid #80765d; background:#121610; box-shadow:inset 0 0 0 1px #050604,0 5px 0 #12100b,0 13px 26px #0009; }
+.agent-home .radar-head { background:linear-gradient(#333228,#202019); padding:9px 9px; border-color:#474835; color:#d4c9a6; }
+.agent-home .radar-head > b { font-size:10px; color:#c8cbb0; }
+.agent-home .radar-head > span { font-size:10px; }
+.agent-home .radar-head .live { color:#bac795; font-size:10px; }
+.agent-home .radar-screen { min-height:175px!important; border-radius:0 0 3px 3px; background:radial-gradient(ellipse at center,#172d21,#080f0b 78%); box-shadow:inset 0 0 32px #000; }
+.agent-home .radar-screen::after { color:#7d9b73; font-size:8px; }
+.agent-home .radar-contact { border-color:#758867; background:#09120eed; width:128px; }
+.agent-home .radar-contact b { color:#e7efcf; font-size:24px; }
+.agent-home .radar-contact small { color:#b5c8a0; }
+.agent-home .radar-contact span { color:#d0ddbd; }
+.agent-home .radar-posts { position:absolute; left:9px; right:9px; bottom:20px; max-height:54px; }
+.agent-home .radar-line { color:#becdaa; font-size:11px; }
+.agent-home .radar-line time { color:#9cac86; }
+.agent-home .desk-event { min-height:190px; padding:21px 18px 30px; gap:10px; }
+.agent-home .desk-event h2 { font-size:clamp(23px,6vw,30px); max-width:100%; padding-right:32px; line-height:1.4; }
+.agent-home .desk-event p { font-size:14px; line-height:1.7; }
+.agent-home .desk-event .clip { top:-10px; right:17px; height:42px; border-color:#817d69; }
+.agent-home .desk-event .stamp-sm { top:20px; right:13px; font-size:10px; opacity:.8; }
+.agent-home .desk-event::after { color:#756141; bottom:8px; font-size:8px; }
+.agent-home .mi { background:var(--ui-stock); border:1px solid #a28b65; color:var(--ui-ink); padding:15px 12px; }
+.agent-home .mi .t { font-size:14px; font-weight:700; }.agent-home .mi .r { color:#665238; }
+.agent-home .mi .meter { background:#b5a17c; }.agent-home .mi .meter i { background:#8d3d2b; }
+.agent-home .mi.done { opacity:1; background:#b8ab92; }.agent-home .mi.done .t { color:#62533c; }
+.agent-home .mi button { min-width:62px; min-height:44px; background:#823024; color:#ffefd2; }
+/* Detail sheets and opening share the same desk and tactile envelope. */
+.sheet-bg { background:#070604cf; backdrop-filter:blur(5px); }
+.sheet { --desk-2:#231e16; --muted:#c8b798; --line:#64543b; background:linear-gradient(145deg,#292219,#13100c); border:1px solid #8c7350; border-bottom:0; border-radius:5px 5px 0 0; box-shadow:0 -15px 60px #000b; color:#eadabd; }
+.sheet .grab { background:#917956; }.sheet .sheet-h { background:#211b13; border-bottom:1px solid #66523a; padding:7px 0 11px; }
+.sheet .sheet-h .eyebrow { color:#d6c09b; font-size:12px; letter-spacing:.06em; }
+.sheet .x { width:44px; height:44px; flex:0 0 44px; font-size:24px; color:#ead6b1; border-color:#8d7450; background:#17120c; }
+.sheet .doc { margin:3px 0 6px; padding:24px 18px; }
+.sheet .doc h2 { font-size:26px; color:#30261c; padding-right:15px; }
+.sheet .doc .verdict { position:static; display:inline-block; justify-self:end; margin-bottom:8px; }
+.sheet .doc .lyr { border-color:#ab967349; }.sheet .doc .lyr p { font-size:15px; line-height:1.85; }
+.sheet .wallet-detail>div,.sheet .rankcard,.sheet .research-card { background:linear-gradient(130deg,#31291e,#18120d); border-color:#7d6442; color:#e9d6b2; }
+.sheet .wallet-detail b { color:#ffebc2; }.sheet .wallet-detail span,.sheet .rk-row,.sheet .perks span,.sheet .research-card small { color:#d0bc99; }
+.sheet .rankcard .rk-top { flex-wrap:wrap; }.sheet .rankcard .rk-top b { color:#f4dfb8; }
+.sheet .res button { background:var(--ui-stock); color:var(--ui-ink); }
+.stage { background:linear-gradient(#060504a6,#060504de),url("desk-background.webp") center/cover; }
+.stage .st-env { background:transparent url("envelope.png") center/contain no-repeat; aspect-ratio:900/560; width:92%; box-shadow:none; filter:drop-shadow(0 18px 20px #000); }
+.stage .st-env::before,.stage .st-env .lab,.stage .st-env .seal { display:none; }
+.stage .st-env.glow-r { filter:drop-shadow(0 0 20px #b68b4c99); }.stage .st-env.glow-x { filter:drop-shadow(0 0 22px #b8322688); }
+.stage .st-tip,.stage .st-top { color:#ddc9a7; }
+.stage .st-card { overflow-y:auto; }
+@media(max-width:599px) and (max-height:740px){
+  .agent-home .radar-screen { min-height:125px!important; }
+  .agent-home .desk-event { min-height:165px; padding:16px 15px 24px; gap:6px; }
+  .agent-home .desk-event h2 { font-size:23px; }.agent-home .desk-event p { font-size:13px; }
+  .agent-home .radar-posts { max-height:34px; }
+}
+@media(max-width:350px){
+  .scene-heading { padding-right:84px; }.scene-heading::after { width:88px; opacity:.65; }
+  .scene-heading h1 { font-size:25px; }
+  .archive-scene .folder { padding:12px 9px; }.archive-scene .folder .n { font-size:16px; }
+  .agent-home .radar-head > b { display:none; }
+  .agent-home .radar-screen { min-height:110px!important; }
+  .agent-home .desk-event h2 { font-size:21px; }
+  .sheet { padding-inline:12px; }.sheet .doc { padding-inline:13px; }
+  .lab-scene .up-h b { font-size:17px; }
+}
+@media(prefers-reduced-motion:reduce){.stage .st-env.glow-x { animation:none; }}
+/* Contain decorative props without clipping the readable document contents. */
+.scene-heading { overflow:clip; }
+.lab-scene .research-card .up-h b { color:#efdfc2; }
+.lab-scene .research-card .up-h .mono { color:#c8b18b; }
+.lab-scene .research-card .btn-ink { min-height:48px; background:#8c3426; color:#fff0d2; border:1px solid #b96547; }
+.lab-scene .research-card .btn-ink:disabled { opacity:1; color:#b9ab92; background:#31291e; border-color:#67563d; }
+.dossier-view .paper .rar-n,.sheet .paper .rar-n { color:#544736; }
+.dossier-view .paper .rar-r,.sheet .paper .rar-r { color:#794b20; }
+.agent-home .desk-event .btn-line { min-height:44px; color:#44301d; border-color:#8e7650; background:#c9b99466; font-weight:700; }
+@media(max-width:599px) and (max-height:740px){
+  /* Short screens scroll as a document; the action must never cover the dispatch. */
+  .agent-home > .home-tabs { grid-row:1; }
+  .agent-home > .home-pane { grid-row:2; }
+  .agent-home > .agent-footer { grid-row:3; position:relative; inset:auto; transform:none; width:100%; margin-top:4px; }
+  body:has(.agent-home:not([hidden])) main { padding-bottom:calc(84px + env(safe-area-inset-bottom,0px)); }
+}

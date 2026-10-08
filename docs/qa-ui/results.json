@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "checks": [
+    "home navigation + task-specific CTA",
+    "320/390/1280 width and navigation",
+    "archive filter + dossier + testimony",
+    "44px modal close control",
+    "equipment upgrade and evidence deduction",
+    "re-investigation and persistence",
+    "report share draft + achievements + settings",
+    "wallet rank",
+    "photoreal opening and reveal",
+    "new-user initialization"
+  ],
+  "errors": []
+}

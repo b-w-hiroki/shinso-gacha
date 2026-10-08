@@ -991,6 +991,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
   .gacha-scene .prop-film{top:245px}
 }
 </style>
+<link rel="stylesheet" href="assets/dossier-ui.css">
 
 <header class="top">
   <div class="top-in">
@@ -1053,12 +1054,12 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 
   <!-- HOME -->
   <section class="view agent-home" data-view="home">
+    <div class="home-tabs" role="group" aria-label="調査デスクの表示切替">
+      <button data-htab="desk" aria-pressed="true">異常探知</button>
+      <button data-htab="tasks" aria-pressed="false">本日の任務</button>
+    </div>
     <div class="agent-footer">
       <button class="agent-primary" id="agent-primary" data-desk="gacha">封筒を調査する</button>
-      <div class="home-tabs" role="group" aria-label="調査デスクの表示切替">
-      <button data-htab="desk" aria-pressed="true">探知</button>
-      <button data-htab="tasks" aria-pressed="false">任務</button>
-      </div>
     </div>
 
     <div class="home-pane" data-hpane="desk">
@@ -1135,6 +1136,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 
   <!-- ARCHIVE -->
   <section class="view dossier-view archive-scene" data-view="archive" hidden>
+    <header class="scene-heading"><span class="eyebrow">ARCHIVE / 02</span><h1>資料保管庫</h1><p>黒塗りの下に、まだ知らない記録がある。</p></header>
     <div class="section-tabs" role="group" aria-label="ファイル画面切替">
       <button data-stab="archive:files" aria-pressed="true">資料</button>
       <button data-stab="archive:testimony" aria-pressed="false">証言</button>
@@ -1163,6 +1165,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 
   <!-- LAB -->
   <section class="view dossier-view lab-scene" data-view="lab" hidden>
+    <header class="scene-heading"><span class="eyebrow">LABORATORY / 03</span><h1>調査室</h1><p>集めた証拠を、次の発見につなげる。</p></header>
     <div class="section-tabs" role="group" aria-label="調査室切替">
       <button data-stab="lab:upgrade" aria-pressed="true">強化</button>
       <button data-stab="lab:research" aria-pressed="false">再調査</button>
@@ -1182,6 +1185,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 
   <!-- REPORT -->
   <section class="view dossier-view report-scene" data-view="report" hidden>
+    <header class="scene-heading"><span class="eyebrow">PERSONNEL FILE / 04</span><h1>調査報告</h1><p>あなたが辿った真相の記録。</p></header>
     <div class="section-tabs three" role="group" aria-label="報告画面切替">
       <button data-stab="report:diag" aria-pressed="true">診断</button>
       <button data-stab="report:achieve" aria-pressed="false">実績</button>
