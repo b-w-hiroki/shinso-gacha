@@ -996,6 +996,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 <link rel="stylesheet" href="assets/intro-story.css">
 <link rel="stylesheet" href="assets/readability.css">
 <link rel="stylesheet" href="assets/incursions.css">
+<link rel="stylesheet" href="assets/layout-safety.css">
 
 <header class="top">
   <div class="top-in">
@@ -1183,6 +1184,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
       <div><span class="eyebrow">調査室</span><b>証拠 <span class="mono" id="evi">0</span></b></div>
       <p>証拠はガチャで手に入る。新規ファイルは3、黒塗り解除は1、目撃証言は2〜15。</p>
     </div>
+    <div id="incursion-defense"></div>
     <div class="ups" id="ups"></div>
     </div>
     <div class="section-pane" data-spane="lab:research" hidden>
@@ -2136,6 +2138,11 @@ function renderDeskEvent() {
   }
   renderRadar();
 }
+function setWalletText(value) {
+  $("pt").textContent = value >= 10000 ? new Intl.NumberFormat("ja-JP", {notation:"compact",maximumFractionDigits:1}).format(value) : String(value);
+  $("wallet").setAttribute("aria-label", `疑念 ${value.toLocaleString("ja-JP")}pt。獲得詳細を見る`);
+  $("wallet").title = value.toLocaleString("ja-JP") + "pt";
+}
 let shownPt = 0;
 function animatePt() {
   const target = Math.floor(S.currency);
@@ -2145,7 +2152,7 @@ function animatePt() {
   const step = now => {
     const k = dur ? Math.min(1, (now - t0) / dur) : 1;
     shownPt = Math.round(from + (target - from) * k);
-    $("pt").textContent = shownPt;
+    setWalletText(shownPt);
     if (k < 1) requestAnimationFrame(step); else $("wallet").classList.remove("pop");
   };
   requestAnimationFrame(step);
@@ -2250,6 +2257,7 @@ function renderArchive() {
   }).join("");
 }
 function renderLab() {
+  renderIncursionDefense();
   $("evi").textContent = S.evi || 0;
   let any = false;
   $("ups").innerHTML = UPS.map(u => {
@@ -2592,7 +2600,7 @@ async function pullRemote() {
   const remote = snap.exists() ? (snap.data() || {}).state : null;
   if (remote && (remote.updatedAt || 0) > (S.updatedAt || 0)) {
     S = Object.assign(fresh(), remote); ensureMissions(); save();
-    shownPt = Math.floor(S.currency); $("pt").textContent = shownPt; $("fast").checked = !!S.fast;
+    shownPt = Math.floor(S.currency); setWalletText(shownPt); $("fast").checked = !!S.fast;
     render(); toast("アカウントの記録から続きを読み込みました");
   }
 }
@@ -3140,7 +3148,7 @@ if (isLite()) { S.lastTick = Date.now(); } else if (away > 60000) {
   S.currency += g; S.lastTick = Date.now(); save();
   setTimeout(() => toast("留守中に疑念が " + g + "pt 貯まりました"), 500);
 }
-shownPt = Math.floor(S.currency); $("pt").textContent = shownPt;
+shownPt = Math.floor(S.currency); setWalletText(shownPt);
 render();
 renderSniffCap();
 applyTime();

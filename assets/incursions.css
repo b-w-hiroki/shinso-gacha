@@ -42,3 +42,13 @@ body[data-incursion='close']:not(.incursion-quiet) .radar-grid::after,body[data-
 .inc-meter meter:-moz-meter-optimum::-moz-meter-bar { background:#91ad81; }
 .inc-meter meter:-moz-meter-sub-optimum::-moz-meter-bar { background:#d4a35a; }
 .inc-meter meter:-moz-meter-sub-sub-optimum::-moz-meter-bar { background:#e56f50; }
+
+/* Growth controls flow with the page and wrap on narrow screens. */
+.inc-defense { margin:12px 0; padding:12px; border:1px solid #9d8561; background:#211c16; color:#f5e9d0; overflow-wrap:anywhere; }
+.inc-defense summary { min-height:44px; padding:10px 0; cursor:pointer; font-weight:700; }
+.inc-defense article { padding:12px 0; border-top:1px solid #78664e; }
+.inc-defense h3 { font-size:16px; margin:0; }.inc-defense p { font-size:14px; line-height:1.65; margin:8px 0; }
+.inc-defense button { min-height:44px; width:100%; padding:10px; border:1px solid #aa916d; color:#302214; background:#eddfbe; font-size:14px; font-weight:700; }
+.inc-defense button:disabled { background:#322b22; color:#cfc1a9; }
+.inc-defense label { display:flex; gap:10px; align-items:center; min-height:44px; font-size:14px; }.inc-defense input { width:22px; height:22px; flex-shrink:0; }
+.inc-tier { background:#35251b; color:#fff0d4; padding:10px; border-left:3px solid #ce9d57; }

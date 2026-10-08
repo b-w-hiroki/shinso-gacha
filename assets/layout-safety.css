@@ -1,0 +1,23 @@
+/* Keep status values and actions readable when space is constrained. */
+.top-in { min-width:0; }.top-in .logo { min-width:0; }
+.wallet { flex-shrink:0; white-space:nowrap; }.wallet b { white-space:nowrap; font-variant-numeric:tabular-nums; }
+@media(max-width:360px) {
+  .top-in { gap:8px; }.top-in .logo { font-size:18px; }.logo small { font-size:8px; letter-spacing:.08em; }
+  .wallet { gap:6px; padding:6px 8px; font-size:11px; }.wallet b { font-size:20px; }.wallet .ring { width:20px; height:20px; flex-shrink:0; }
+}
+#incursion-dialog { --inc-padding:18px; scroll-padding-top:72px; scroll-padding-bottom:12px; }
+#incursion-dialog .inc-heading { position:sticky; top:calc(-1 * var(--inc-padding)); z-index:2; background:#181510; margin:calc(-1 * var(--inc-padding)) calc(-1 * var(--inc-padding)) 0; padding:8px var(--inc-padding); border-bottom:1px solid #66563b; }
+@media(max-height:700px) { #incursion-dialog { --inc-padding:12px; } }
+@media(max-height:500px) {
+  /* Landscape: keep the document unobscured and retain the normal bottom navigation. */
+  .agent-home > .home-tabs { grid-row:1; }
+  .agent-home > .home-pane { grid-row:2; }
+  .agent-home > .agent-footer { grid-row:3; position:relative; inset:auto; transform:none; width:100%; margin-top:4px; }
+  body:has(.agent-home:not([hidden])) main { padding-bottom:calc(84px + env(safe-area-inset-bottom,0px)); }
+  body.lite .lite-footer { grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; }
+  body.lite .lite-footer.nav-only { grid-template-columns:1fr; }
+  body.lite[class] .lite-footer .lite-pull { min-height:58px; padding:10px 12px; font-size:16px; }
+  body.lite .lite-footer .lite-tabs button { min-height:54px; font-size:13px; }
+  body.lite .lite-footer::before { display:none; }
+  body.lite main,body.intro-active main { padding-bottom:calc(100px + env(safe-area-inset-bottom,0px)); }
+}
