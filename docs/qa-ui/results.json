@@ -10,7 +10,12 @@
     "report share draft + achievements + settings",
     "wallet rank",
     "photoreal opening and reveal",
-    "new-user initialization"
+    "new-user initialization",
+    "12 image decodes + transparent centers",
+    "civilian opening + tabs",
+    "danger overlay does not intercept controls",
+    "appointment document",
+    "all four rank emblem tiers + promotion notification"
   ],
   "errors": []
 }

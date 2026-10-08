@@ -1,0 +1,155 @@
+[
+  {
+    "path": "assets/ui/civilian-desk.webp",
+    "size": [
+      1024,
+      1536
+    ],
+    "bytes": 321314,
+    "alpha": null,
+    "centerAlpha": null
+  },
+  {
+    "path": "assets/ui/civilian-envelope.webp",
+    "size": [
+      1536,
+      1024
+    ],
+    "bytes": 349102,
+    "alpha": [
+      0,
+      254
+    ],
+    "centerAlpha": 253
+  },
+  {
+    "path": "assets/ui/radar-bezel.webp",
+    "size": [
+      1254,
+      1254
+    ],
+    "bytes": 308016,
+    "alpha": [
+      0,
+      255
+    ],
+    "centerAlpha": 0
+  },
+  {
+    "path": "assets/ui/mission-clipboard.webp",
+    "size": [
+      1122,
+      1402
+    ],
+    "bytes": 227456,
+    "alpha": [
+      0,
+      255
+    ],
+    "centerAlpha": 253
+  },
+  {
+    "path": "assets/ui/archive-folder.webp",
+    "size": [
+      1448,
+      1086
+    ],
+    "bytes": 228922,
+    "alpha": [
+      0,
+      255
+    ],
+    "centerAlpha": 253
+  },
+  {
+    "path": "assets/ui/evidence-paper.webp",
+    "size": [
+      1024,
+      1536
+    ],
+    "bytes": 269342,
+    "alpha": [
+      0,
+      254
+    ],
+    "centerAlpha": 253
+  },
+  {
+    "path": "assets/ui/photo-frame.webp",
+    "size": [
+      1448,
+      1086
+    ],
+    "bytes": 178350,
+    "alpha": [
+      0,
+      255
+    ],
+    "centerAlpha": 0
+  },
+  {
+    "path": "assets/ui/audio-analyzer.webp",
+    "size": [
+      1536,
+      1024
+    ],
+    "bytes": 484050,
+    "alpha": [
+      0,
+      254
+    ],
+    "centerAlpha": 252
+  },
+  {
+    "path": "assets/ui/report-paper.webp",
+    "size": [
+      1024,
+      1536
+    ],
+    "bytes": 195900,
+    "alpha": [
+      0,
+      254
+    ],
+    "centerAlpha": 253
+  },
+  {
+    "path": "assets/ui/appointment-paper.webp",
+    "size": [
+      1024,
+      1536
+    ],
+    "bytes": 341762,
+    "alpha": [
+      0,
+      254
+    ],
+    "centerAlpha": 253
+  },
+  {
+    "path": "assets/ui/rank-insignia.webp",
+    "size": [
+      1254,
+      1254
+    ],
+    "bytes": 405274,
+    "alpha": [
+      0,
+      255
+    ],
+    "centerAlpha": 0
+  },
+  {
+    "path": "assets/ui/danger-overlay.webp",
+    "size": [
+      1024,
+      1536
+    ],
+    "bytes": 184776,
+    "alpha": [
+      0,
+      254
+    ],
+    "centerAlpha": 0
+  }
+]

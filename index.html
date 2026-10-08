@@ -992,6 +992,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 }
 </style>
 <link rel="stylesheet" href="assets/dossier-ui.css">
+<link rel="stylesheet" href="assets/physical-ui.css">
 
 <header class="top">
   <div class="top-in">
@@ -1561,6 +1562,7 @@ const RANK_NEED = [0, 10, 25, 45, 75, 120, 190, 290, 430, 640, 950, 1400, 2100, 
 const RANKS = RANK_NAMES.map((name, k) => { const t = k / 19; return { name, need: RANK_NEED[k], r: 1 + .8 * t, x: 1 + 1.8 * t, crit: .2 * t, pity: Math.round(30 - 15 * t) }; });
 const rankIdx = () => { let k = 0; RANKS.forEach((r, i) => { if (S.pulls >= r.need) k = i; }); return k; };
 const rank = () => RANKS[rankIdx()];
+const rankEmblem = () => `<span class="rank-emblem" data-tier="${Math.min(3, Math.floor(rankIdx() / 5))}" aria-hidden="true"></span>`;
 /* ---------- 調査室（育成）：証拠を使って設備を強化 ---------- */
 const UPS = [
   { id:"radio", name:"盗聴ラジオ", max:20, base:12, grow:1.32, flavor:"深夜のAM放送の隙間に、ときどき知らない声が混ざる。", eff: L => `放置効率 +${L * 10}%` },
@@ -1785,7 +1787,7 @@ function closeStage() {
   notify();
 }
 function notify() {
-  if (rankNews) { const n = rankNews; rankNews = null; setTimeout(() => toast("ランクアップ：" + n + "（稀・禁が出やすくなった）"), 450); buzz([30, 30, 60]); }
+  if (rankNews) { const n = rankNews; rankNews = null; setTimeout(() => { toast("ランクアップ：" + n + "（稀・禁が出やすくなった）"); $("toast").insertAdjacentHTML("afterbegin", rankEmblem()); }, 450); buzz([30, 30, 60]); }
   if (titleNews) { const t = titleNews; titleNews = null; setTimeout(() => toast("称号「" + t.join("」「") + "」を獲得しました（報告画面）"), 150); buzz([20, 40, 20]); }
   if (secretNews) { secretNews = false; setTimeout(() => toast("機密区分外のファイルに動きがありました（ファイル画面）"), 300); }
 }
@@ -3025,7 +3027,7 @@ function answerInterview(i) {
 function showAgentWelcome() {
   const ordinal = S.pursuerNo ? `あなたは、第${S.pursuerNo}追求者です。` : "追求者登録を照会しています。";
   const live = pursuerTotal ? `現在 ${pursuerTotal}人が登録、本日 ${todayActiveCount()}人が追跡中。` : "";
-  sheet("保護登録 / 着任通知", `<article class="doc paper aged con"><div class="formhead"><span>第六文書課</span><span>緊急介入後・保護登録</span><span>機密</span></div><div class="horror-status rescue">接続遮断済 / 認証済</div><h2>調査員 No.${S.agentNo}</h2><div class="lyr"><div class="lab">追求者登録</div><p><b>${ordinal}</b><br>${live}</p><span class="note">※ 保護対象から調査員へ移管。あなた以外にも、同じ真相を追っている者がいる</span></div><div class="lyr"><div class="lab">判定</div><p>${S.agentType}</p></div><div class="lyr"><div class="lab">配属</div><p>${S.assign}</p></div><div class="lyr"><div class="lab">閲覧権限</div><p>一般人には黒塗りだった LEVEL 4 / 5、および調査室へのアクセスを許可する。</p></div></article><div class="actions"><button class="btn-paper" data-la="enter">調査を開始する</button></div>`);
+  sheet("保護登録 / 着任通知", `<article class="doc paper aged con appointment-paper">${rankEmblem()}<div class="formhead"><span>第六文書課</span><span>緊急介入後・保護登録</span><span>機密</span></div><div class="horror-status rescue">接続遮断済 / 認証済</div><h2>調査員 No.${S.agentNo}</h2><div class="lyr"><div class="lab">追求者登録</div><p><b>${ordinal}</b><br>${live}</p><span class="note">※ 保護対象から調査員へ移管。あなた以外にも、同じ真相を追っている者がいる</span></div><div class="lyr"><div class="lab">判定</div><p>${S.agentType}</p></div><div class="lyr"><div class="lab">配属</div><p>${S.assign}</p></div><div class="lyr"><div class="lab">閲覧権限</div><p>一般人には黒塗りだった LEVEL 4 / 5、および調査室へのアクセスを許可する。</p></div></article><div class="actions"><button class="btn-paper" data-la="enter">調査を開始する</button></div>`);
 }
 function becomeAgent() {
   if (!S.role) {
@@ -3088,7 +3090,7 @@ function openWalletDetail() {
   const step = idleStep(), perMin = 60000 / step, perHour = perMin * 60;
   const next = Math.max(0, step - (Date.now() - S.lastTick));
   const night = hour() === 2;
-  sheet("疑念pt / 自動獲得", `<div class="wallet-detail"><div><span>現在</span><b>${Math.floor(S.currency)}pt</b></div><div><span>自動獲得</span><b>+1 / ${(step/1000).toFixed(1)}秒</b></div><div><span>1分</span><b>約${perMin.toFixed(1)}pt</b></div><div><span>1時間</span><b>約${Math.round(perHour)}pt</b></div></div><div class="research-card ready"><b>次の +1pt まで ${(next/1000).toFixed(1)}秒</b><div class="rk-bar"><i style="width:${Math.min(100,(1-next/step)*100)}%"></i></div><small>ランク補正 ×${(1+.05*rankIdx()).toFixed(2)} ／ 無線設備 ×${(1+.1*upLv("radio")).toFixed(2)}${night ? " ／ 丑三つ時 ×2" : ""}</small></div><div class="rankcard wallet-rank"><div class="rk-top"><span class="eyebrow" id="rk-lv">RANK 1 / 20</span><b id="rk-name">見習い調査員</b></div><div class="rk-bar"><i id="rk-bar" style="width:0%"></i></div><div class="rk-row"><span id="rk-next"></span></div><div class="perks" id="rk-perks"></div><div class="rk-row" id="rk-deep"></div><div class="pity"><span>未発見資料の確定まで</span><b id="pity-left">あと30回</b></div></div><p class="hint" style="text-align:left">留守中の獲得には上限があります。通信端末の強化で上限が延びます。</p>`);
+  sheet("疑念pt / 自動獲得", `<div class="wallet-detail"><div><span>現在</span><b>${Math.floor(S.currency)}pt</b></div><div><span>自動獲得</span><b>+1 / ${(step/1000).toFixed(1)}秒</b></div><div><span>1分</span><b>約${perMin.toFixed(1)}pt</b></div><div><span>1時間</span><b>約${Math.round(perHour)}pt</b></div></div><div class="research-card ready"><b>次の +1pt まで ${(next/1000).toFixed(1)}秒</b><div class="rk-bar"><i style="width:${Math.min(100,(1-next/step)*100)}%"></i></div><small>ランク補正 ×${(1+.05*rankIdx()).toFixed(2)} ／ 無線設備 ×${(1+.1*upLv("radio")).toFixed(2)}${night ? " ／ 丑三つ時 ×2" : ""}</small></div><div class="rankcard wallet-rank">${rankEmblem()}<div class="rk-top"><span class="eyebrow" id="rk-lv">RANK 1 / 20</span><b id="rk-name">見習い調査員</b></div><div class="rk-bar"><i id="rk-bar" style="width:0%"></i></div><div class="rk-row"><span id="rk-next"></span></div><div class="perks" id="rk-perks"></div><div class="rk-row" id="rk-deep"></div><div class="pity"><span>未発見資料の確定まで</span><b id="pity-left">あと30回</b></div></div><p class="hint" style="text-align:left">留守中の獲得には上限があります。通信端末の強化で上限が延びます。</p>`);
   render();
 }
 function tick() {
