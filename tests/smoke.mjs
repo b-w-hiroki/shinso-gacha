@@ -108,3 +108,8 @@ has(/assets\/gacha-desk-bg\.svg/, "generated desk image asset must be wired into
 
 assert(html.includes('b.hidden = n > 5 && !bulkOpen(n)'), "locked bulk options must be hidden");
 assert(html.includes(".gacha-scene .scene-props{opacity:1"), "scene props must be layered");
+
+assert(html.includes('data-act="claim-all"'),"claim-all action missing");
+assert(html.includes('st.p >= m.target && !st.claimed'),"claim-all eligibility guard missing");
+assert(html.includes('assets/desk-envelope.svg'),"envelope asset missing");
+assert(html.includes('assets/desk-photo.svg'),"photo asset missing");
