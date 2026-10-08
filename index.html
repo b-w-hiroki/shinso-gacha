@@ -951,6 +951,21 @@ body.agent-reveal::after { content:"PROTECTIVE CLEARANCE"; position:fixed; inset
 .gacha-scene .big-env .tie{opacity:.22}
 #claim-all[hidden]{display:none!important}
 #claim-all{width:100%;min-height:46px;margin:8px 0 12px}
+
+/* 2026-10-08: isolated photorealistic asset slots. Existing SVG remains a fallback. */
+.gacha-scene::before{background:linear-gradient(rgba(0,0,0,.12),rgba(0,0,0,.25)),url("assets/desk-background.webp") center/cover no-repeat,url("assets/gacha-desk-bg.svg") center/cover no-repeat,#0a0909}
+.gacha-scene .prop-files{background: url("assets/classified-files.png") center/contain no-repeat,url("assets/desk-file.svg") center/contain no-repeat;border:0}
+.gacha-scene .prop-photo{background:url("assets/surveillance-photo.png") center/contain no-repeat,url("assets/desk-photo.svg") center/contain no-repeat;border:0}
+.gacha-scene .prop-lamp{background:url("assets/red-lamp.png") center/contain no-repeat;filter:drop-shadow(0 0 24px rgba(220,44,30,.35))}
+.gacha-scene .prop-tape{background:url("assets/cassette.png") center/contain no-repeat,url("assets/desk-tape.svg") center/contain no-repeat;border:0}
+.gacha-scene .big-env{background:url("assets/envelope.png") center/100% 100% no-repeat,url("assets/desk-envelope.svg") center/100% 100% no-repeat;background-color:transparent}
+.gacha-scene .big-env .tie{opacity:0}
+.gacha-scene .pulls .btn-paper:not(.five){background:url("assets/button-paper.png") center/100% 100% no-repeat,var(--paper)}
+.gacha-scene .pulls .five{background:url("assets/button-red.png") center/100% 100% no-repeat,#912720}
+.gacha-scene .pulls button{position:relative;text-shadow:0 1px 1px rgba(255,255,255,.16)}
+.gacha-scene .pulls .five{text-shadow:0 1px 2px #290c0b}
+.gacha-scene .prop-note{display:none}
+@media(max-width:599px){.gacha-scene .scene-props{pointer-events:none}.gacha-scene .big-env{width:min(82vw,390px)}}
 </style>
 
 <header class="top">
