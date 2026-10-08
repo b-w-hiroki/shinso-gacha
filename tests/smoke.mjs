@@ -105,3 +105,6 @@ has(/ARCHIVE CABINET/, "archive cabinet visual language missing");
 has(/AUTHORIZED PERSONNEL ONLY/, "investigation room classified visual missing");
 
 has(/assets\/gacha-desk-bg\.svg/, "generated desk image asset must be wired into gacha");
+
+assert(html.includes('b.hidden = n > 5 && !bulkOpen(n)'), "locked bulk options must be hidden");
+assert(html.includes(".gacha-scene .scene-props{opacity:1"), "scene props must be layered");
