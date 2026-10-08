@@ -21,3 +21,6 @@
   body.lite .lite-footer::before { display:none; }
   body.lite main,body.intro-active main { padding-bottom:calc(100px + env(safe-area-inset-bottom,0px)); }
 }
+/* Let cost captions wrap inside the paper border even with wider JP font metrics. */
+.gacha-scene .pulls button { min-width:0; grid-template-columns:minmax(0,1fr); }
+.gacha-scene .pulls button span { min-width:0; max-width:100%; white-space:normal; overflow-wrap:anywhere; word-break:normal; }
