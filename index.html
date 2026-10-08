@@ -993,6 +993,8 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 </style>
 <link rel="stylesheet" href="assets/dossier-ui.css">
 <link rel="stylesheet" href="assets/physical-ui.css">
+<link rel="stylesheet" href="assets/intro-story.css">
+<link rel="stylesheet" href="assets/readability.css">
 
 <header class="top">
   <div class="top-in">
@@ -1017,12 +1019,14 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
     </div>
 
     <div class="lite-pane" data-lpane="open">
+      <section id="intro-case" aria-label="最初の3通" hidden></section>
       <article class="lite-event paper aged urban" id="lite-event">
         <span class="horror-status monitor" id="lite-horror-status">未確認資料</span>
         <span class="clip" aria-hidden="true"></span>
         <span class="lite-event-badge" aria-hidden="true"></span>
         <div class="eyebrow" id="lite-event-eye">取扱注意 ・ 宛先不明</div>
         <h2 id="lite-event-title">郵便受けに、見覚えのない封筒があった</h2>
+        <div id="lite-rescue" hidden></div>
         <p id="lite-event-body">差出人も、宛名もない。中には、途中まで黒く塗りつぶされた記録が入っている。開封するなら、少し慎重に扱った方がよさそうだ。</p>
         <div class="actions" id="lite-event-actions"></div>
       </article>
@@ -1048,6 +1052,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
     </div>
 
     <div class="lite-pane" data-lpane="notes" hidden>
+      <button class="intro-archive-link" data-intro="archive">最初の3通を読み返す</button>
       <div><div class="sec-h"><h3>封筒に残されていたメモ</h3><small>確認するほど増える</small></div><div class="lite-notes" id="lite-notes"></div></div>
       <div class="actions"><button class="btn-paper" id="lite-result" hidden>観察記録を見る</button></div>
     </div>
@@ -1225,6 +1230,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
     </div>
     <div class="section-pane" data-spane="report:settings" hidden>
     <p class="hint" id="sync" style="text-align:left">記録：この端末のみに保存</p>
+    <button class="intro-archive-link" data-intro="archive">最初の3通を読み返す</button>
     <button class="btn-paper" id="glink" hidden onclick="linkGoogle()">Googleで記録を引き継ぐ</button>
     </div>
   </section>
@@ -1255,6 +1261,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 <div class="sheet-bg" id="sheet-bg" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
 <div class="toast" id="toast" hidden></div>
 
+<script src="assets/intro-story.js"></script>
 <script>
 /* ---------- 日本語の改行（文節で折り返す） ---------- */
 document.documentElement.lang = "ja";
@@ -2727,6 +2734,9 @@ function renderLiteEvent() {
     hs.className = "horror-status " + (p === "rescue" ? "rescue" : p === "danger" || p === "crisis" ? "danger" : "monitor");
     hs.textContent = p === "rescue" ? "保護通信" : p === "crisis" ? "接続異常" : p === "danger" ? "監視継続中" : p === "uneasy" ? "要確認" : "未確認資料";
   }
+  const rescue = $("lite-rescue");
+  rescue.hidden = p !== "rescue";
+  rescue.innerHTML = p === "rescue" ? introImage("bureau-intervention", "黒い手袋の職員が身分証を差し出す。無線機の緑の灯りが点いている。") : "";
   card.classList.toggle("alert", !!evt.alert);
   $("lite-event-eye").textContent = evt.eye || "記録";
   $("lite-event-title").textContent = evt.title || "";
@@ -2864,6 +2874,7 @@ function litePull() {
   S.lite.lv[it.id] = L; S.lite.pulls++;
   markDirty(); renderLite(it, L); buzz(15);
   const n = liteTotal();
+  if (introActive()) return;
   if ([3, 10, 18, 24, 28, 30, 32, 33, 35, 36].includes(n)) setTimeout(() => liteMilestone(n), 220);
   else setTimeout(() => maybeLiteAnomaly(n), 220);
 }
@@ -2893,6 +2904,7 @@ function setLiteTab(tab) {
   document.querySelectorAll("[data-ltab]").forEach(b => b.setAttribute("aria-pressed", b.dataset.ltab === tab));
   document.querySelectorAll("[data-lpane]").forEach(p => p.hidden = p.dataset.lpane !== tab);
   updateLiteFooter();
+  renderIntro();
   window.scrollTo({ top: 0, behavior: REDUCED ? "auto" : "smooth" });
 }
 function setLiteFilter(filter) {
@@ -2945,6 +2957,7 @@ function renderLite(freshIt, freshL) {
     : prof ? "閲覧傾向を観察している者がいる。"
     : n >= 3 ? "第六文書課という印字だけが残っている。もう少し確認すれば何か分かるかもしれない。"
     : "封筒を開き続けると、差出人の痕跡が見えてくるかもしれない。";
+  renderIntro();
 }
 function liteOpen(id) {
   const it = byId(id), L = liteLv(id);
@@ -3059,6 +3072,7 @@ document.addEventListener("click", e => {
   else if (a === "enter") { hideSheet(); toast("まずは「本日のウワサ」を確認してください"); }
 });
 $("lite-pull").addEventListener("click", () => {
+  if (introActive()) return advanceIntro();
   const n = liteTotal(), evt = S.lite && S.lite.event;
   setLiteTab("open");
   if (evt) {
@@ -3136,6 +3150,7 @@ setInterval(addPost, 4500);
 setInterval(applyTime, 60000);
 initLiteReferral();
 applyMode();
+initIntro();
 const startView = (location.hash || "").slice(1);
 if (["home", "gacha", "archive", "lab", "report"].includes(startView)) go(startView);
 setInterval(() => { if (S.missionDate !== dayKey()) { ensureMissions(); render(); } tick(); }, 250);

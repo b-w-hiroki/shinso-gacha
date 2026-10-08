@@ -37,6 +37,9 @@ jobs:
       - run: node tests/dossier-ui.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/intro.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -44,3 +47,4 @@ jobs:
           path: |
             docs/qa/
             docs/qa-ui/
+            docs/qa-intro/

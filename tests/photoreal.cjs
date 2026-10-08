@@ -15,7 +15,7 @@ const server = http.createServer((req,res) => {
   try {
     if (pathname === '/baseline.html') {res.setHeader('Content-Type','text/html; charset=utf-8'); return res.end(baseline);}
     const file = pathname === '/qa-font.otf' ? process.env.QA_FONT : path.join(root, pathname === '/' ? 'index.html' : pathname);
-    res.setHeader('Content-Type', file.endsWith('.html') ? 'text/html; charset=utf-8' : file.endsWith('.css') ? 'text/css; charset=utf-8' : file.endsWith('.png') ? 'image/png' : file.endsWith('.webp') ? 'image/webp' : file.endsWith('.otf') ? 'font/otf' : 'image/svg+xml');
+    res.setHeader('Content-Type', file.endsWith('.html') ? 'text/html; charset=utf-8' : file.endsWith('.js') ? 'application/javascript' : file.endsWith('.css') ? 'text/css; charset=utf-8' : file.endsWith('.png') ? 'image/png' : file.endsWith('.webp') ? 'image/webp' : file.endsWith('.otf') ? 'font/otf' : 'image/svg+xml');
     res.end(fs.readFileSync(file));
   } catch {res.writeHead(404);res.end();}
 });
