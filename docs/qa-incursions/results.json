@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "checks": [
+    "old save migration without retroactive danger",
+    "real openings cause escalation",
+    "photo comparison and wrong answer",
+    "radio identification and disconnection",
+    "ordered sealing",
+    "progress resumes for all three actions",
+    "no duplicate completion or currency reward",
+    "two safe investigations after resolution",
+    "all new opening routes paused at 100 without loss",
+    "320/390/430/1280 dialog and 44px targets",
+    "keyboard modal focus + Escape return",
+    "quiet setting persists",
+    "no offline danger growth",
+    "Firebase adapter state round trip",
+    "civilian escalation and intro exemption"
+  ],
+  "cloud": "stub only",
+  "errors": []
+}

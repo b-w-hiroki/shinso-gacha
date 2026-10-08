@@ -995,6 +995,8 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 <link rel="stylesheet" href="assets/physical-ui.css">
 <link rel="stylesheet" href="assets/intro-story.css">
 <link rel="stylesheet" href="assets/readability.css">
+<link rel="stylesheet" href="assets/incursions.css">
+<link rel="stylesheet" href="assets/layout-safety.css">
 
 <header class="top">
   <div class="top-in">
@@ -1004,6 +1006,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
       <b id="pt">0</b><span>疑念pt</span>
     </button>
   </div>
+  <button id="incursion-status" data-inc="open" type="button" hidden></button>
 </header>
 
 <main>
@@ -1181,6 +1184,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
       <div><span class="eyebrow">調査室</span><b>証拠 <span class="mono" id="evi">0</span></b></div>
       <p>証拠はガチャで手に入る。新規ファイルは3、黒塗り解除は1、目撃証言は2〜15。</p>
     </div>
+    <div id="incursion-defense"></div>
     <div class="ups" id="ups"></div>
     </div>
     <div class="section-pane" data-spane="lab:research" hidden>
@@ -1261,7 +1265,9 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 <div class="sheet-bg" id="sheet-bg" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
 <div class="toast" id="toast" hidden></div>
 
+<dialog id="incursion-dialog" aria-labelledby="incursion-title"></dialog>
 <script src="assets/intro-story.js"></script>
+<script src="assets/incursions.js"></script>
 <script>
 /* ---------- 日本語の改行（文節で折り返す） ---------- */
 document.documentElement.lang = "ja";
@@ -1632,6 +1638,7 @@ const COST = { 1: 10, 5: 45, 10: 90, 100: 850 };
 const BULK_RANK = { 10: 4, 100: 10 };
 const bulkOpen = n => !BULK_RANK[n] || rankIdx() >= BULK_RANK[n];
 function pull(n) {
+  if (incursionBlocked()) return;
   const cost = COST[n];
   if (!bulkOpen(n)) return toast(`${n}連は RANK ${BULK_RANK[n] + 1}「${RANKS[BULK_RANK[n]].name}」で解放`);
   if (S.currency < cost) return toast("疑念ptが足りません。ホームで嗅ぎ回ってください");
@@ -1681,6 +1688,7 @@ function postScene() {
   <div class="actions"><button class="btn-paper" data-act="post-open">封を開ける</button></div>`);
 }
 function freePull() {
+  if (incursionBlocked()) return;
   if (S.freeDate === dayKey() || lv(todayItem().id) === 5) return;
   S.freeDate = dayKey();
   commit([levelUp(todayItem())]);
@@ -1694,6 +1702,7 @@ function commit(res) {
   const newT = titles().map(sr => sr.title).filter(t => !seen.includes(t));
   if (newT.length) { S.titlesSeen = seen.concat(newT); titleNews = newT; }
   S.pulls += res.length;
+  incursionInvestigate(res.length);
   if (rankIdx() > r0) rankNews = rank().name + (ITEMS.some(i => i.minRank && i.minRank > r0 && i.minRank <= rankIdx()) ? "。深層ファイルが解禁された" : "");
   bump("pull", res.length);
   bump("layer", res.filter(r => r.opened).length);
@@ -2129,6 +2138,11 @@ function renderDeskEvent() {
   }
   renderRadar();
 }
+function setWalletText(value) {
+  $("pt").textContent = value >= 10000 ? new Intl.NumberFormat("ja-JP", {notation:"compact",maximumFractionDigits:1}).format(value) : String(value);
+  $("wallet").setAttribute("aria-label", `疑念 ${value.toLocaleString("ja-JP")}pt。獲得詳細を見る`);
+  $("wallet").title = value.toLocaleString("ja-JP") + "pt";
+}
 let shownPt = 0;
 function animatePt() {
   const target = Math.floor(S.currency);
@@ -2138,12 +2152,13 @@ function animatePt() {
   const step = now => {
     const k = dur ? Math.min(1, (now - t0) / dur) : 1;
     shownPt = Math.round(from + (target - from) * k);
-    $("pt").textContent = shownPt;
+    setWalletText(shownPt);
     if (k < 1) requestAnimationFrame(step); else $("wallet").classList.remove("pop");
   };
   requestAnimationFrame(step);
 }
 function render() {
+  renderIncursion();
   animatePt();
   const n = dayNo(), t = todayItem(), tl = lv(t.id), used = S.freeDate === dayKey();
   $("issue").textContent = "UNVERIFIED ARCHIVE #" + pad(n);
@@ -2242,6 +2257,7 @@ function renderArchive() {
   }).join("");
 }
 function renderLab() {
+  renderIncursionDefense();
   $("evi").textContent = S.evi || 0;
   let any = false;
   $("ups").innerHTML = UPS.map(u => {
@@ -2584,7 +2600,7 @@ async function pullRemote() {
   const remote = snap.exists() ? (snap.data() || {}).state : null;
   if (remote && (remote.updatedAt || 0) > (S.updatedAt || 0)) {
     S = Object.assign(fresh(), remote); ensureMissions(); save();
-    shownPt = Math.floor(S.currency); $("pt").textContent = shownPt; $("fast").checked = !!S.fast;
+    shownPt = Math.floor(S.currency); setWalletText(shownPt); $("fast").checked = !!S.fast;
     render(); toast("アカウントの記録から続きを読み込みました");
   }
 }
@@ -2864,6 +2880,7 @@ function liteMilestone(n) {
   if (n === 36) return setLiteEvent({ eye:"第六文書課・保護手続き", title:"一般人のまま放置することはできません", body:"見てしまった内容について事情を確認し、そのまま第六文書課の管理下へ移します。", alert:false, action:"apply", label:"事情聴取を受ける" });
 }
 function litePull() {
+  if (incursionBlocked()) return;
   const pool = liteItems().filter(i => liteLv(i.id) < LITE_MAX);
   if (!pool.length) return;
   S.lite = S.lite || { lv: {}, pulls: 0 };
@@ -2872,6 +2889,7 @@ function litePull() {
   for (let k = 0; k < pool.length; k++) { r -= ws[k]; if (r <= 0) { it = pool[k]; break; } }
   const L = liteLv(it.id) + 1;
   S.lite.lv[it.id] = L; S.lite.pulls++;
+  incursionInvestigate();
   markDirty(); renderLite(it, L); buzz(15);
   const n = liteTotal();
   if (introActive()) return;
@@ -2958,6 +2976,7 @@ function renderLite(freshIt, freshL) {
     : n >= 3 ? "第六文書課という印字だけが残っている。もう少し確認すれば何か分かるかもしれない。"
     : "封筒を開き続けると、差出人の痕跡が見えてくるかもしれない。";
   renderIntro();
+  renderIncursion();
 }
 function liteOpen(id) {
   const it = byId(id), L = liteLv(id);
@@ -3129,7 +3148,7 @@ if (isLite()) { S.lastTick = Date.now(); } else if (away > 60000) {
   S.currency += g; S.lastTick = Date.now(); save();
   setTimeout(() => toast("留守中に疑念が " + g + "pt 貯まりました"), 500);
 }
-shownPt = Math.floor(S.currency); $("pt").textContent = shownPt;
+shownPt = Math.floor(S.currency); setWalletText(shownPt);
 render();
 renderSniffCap();
 applyTime();

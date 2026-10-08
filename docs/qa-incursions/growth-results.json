@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "checks": [
+    "tier 1/2/3 rounds and one-time rewards",
+    "purchase and insufficient funds",
+    "automatic cooldown and no reward farming",
+    "Lv3 manual only",
+    "automation toggle",
+    "45% protection and five safe draws",
+    "unlock thresholds",
+    "saved growth and partial progress",
+    "320/390/844 layout and hit tests"
+  ],
+  "errors": []
+}

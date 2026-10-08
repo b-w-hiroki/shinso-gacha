@@ -40,6 +40,15 @@ jobs:
       - run: node tests/intro.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/incursions.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/incursion-growth.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/layout.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -48,3 +57,4 @@ jobs:
             docs/qa/
             docs/qa-ui/
             docs/qa-intro/
+            docs/qa-incursions/

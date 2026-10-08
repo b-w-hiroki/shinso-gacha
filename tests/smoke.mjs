@@ -147,3 +147,7 @@ assert.equal(introAssets.length,7);
 for(const a of introAssets){const bytes=fs.readFileSync(a.path);assert.equal(bytes.length,a.bytes);assert.equal(bytes.subarray(8,12).toString(),'WEBP');}
 assert(html.includes('assets/intro-story.js')&&html.includes('assets/intro-story.css'));
 console.log('Seven story assets and introduction script are present');
+
+new Function(fs.readFileSync('assets/incursions.js','utf8'));
+assert(html.includes('assets/incursions.js') && html.includes('assets/incursions.css'));
+console.log('Incursion module syntax and entry points verified');
