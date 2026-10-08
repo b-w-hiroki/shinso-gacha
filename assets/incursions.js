@@ -52,6 +52,7 @@ function renderIncursion() {
   const label={calm:'静穏',trace:'違和感',noticed:'観測されている',close:'侵入の兆候',breach:'開封を一時停止'}[stage];
   const text=`${label}${a.event?' Lv.'+a.event.tier:''} ${a.level}/100　｜　${a.event?'対処する':'対処記録'}`;
   if(b.textContent!==text)b.textContent=text;
+  if(typeof renderRadar==='function')renderRadar();
   b.setAttribute('aria-label',`異変の危険度 ${a.level} / 100。${label}。${a.event?'対処画面を開く':'対処記録を開く'}`);
 }
 let incursionReturnFocus=null;

@@ -997,6 +997,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 <link rel="stylesheet" href="assets/readability.css">
 <link rel="stylesheet" href="assets/incursions.css">
 <link rel="stylesheet" href="assets/layout-safety.css">
+<link rel="stylesheet" href="assets/information-ui.css">
 
 <header class="top">
   <div class="top-in">
@@ -1064,7 +1065,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
   <!-- HOME -->
   <section class="view agent-home" data-view="home">
     <div class="home-tabs" role="group" aria-label="調査デスクの表示切替">
-      <button data-htab="desk" aria-pressed="true">異常探知</button>
+      <button data-htab="desk" aria-pressed="true">異変の観測</button>
       <button data-htab="tasks" aria-pressed="false">本日の任務</button>
     </div>
     <div class="agent-footer">
@@ -1073,7 +1074,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 
     <div class="home-pane" data-hpane="desk">
       <section class="thread-radar" aria-label="異常探知スレッド">
-        <div class="radar-head"><span>第六文書課 / 異常探知網</span><b>THREAD RADAR</b><i class="live">● LIVE</i></div>
+        <div class="radar-head"><span>異変の観測</span><button type="button" data-desk="evidence">検知記録を見る</button></div>
         <div class="radar-screen"><div class="radar-sector" aria-hidden="true"><span>SECTOR-A7 / SIM</span><span>STATUS: MONITORING</span></div>
           <div class="radar-grid" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
           <div class="radar-sweep" aria-hidden="true"></div>
@@ -1083,7 +1084,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
             <b id="radar-distance">---</b>
             <span id="radar-place">反応を走査中</span>
           </div>
-          <div class="radar-posts" id="radar-posts" aria-live="polite"></div>
+          <div class="radar-posts" id="radar-posts" hidden></div>
         </div>
       </section>
       <p class="streak" id="streak" hidden></p>
@@ -1196,6 +1197,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
   <!-- REPORT -->
   <section class="view dossier-view report-scene" data-view="report" hidden>
     <header class="scene-heading"><span class="eyebrow">PERSONNEL FILE / 04</span><h1>調査報告</h1><p>あなたが辿った真相の記録。</p></header>
+    <button type="button" class="agent-record-link" id="agent-record">調査員証・ランクを見る</button>
     <div class="section-tabs three" role="group" aria-label="報告画面切替">
       <button data-stab="report:diag" aria-pressed="true">診断</button>
       <button data-stab="report:achieve" aria-pressed="false">実績</button>
@@ -2055,7 +2057,7 @@ function evidenceHTML() {
     visual = `<div class="ev-audio"><div class="wave">${hs.map(h=>`<i style="--h:${h}%"></i>`).join("")}</div></div>`;
   } else if (e.type === "transit") visual = '<div class="ev-map"><span class="transit-mark">ENTRY -- / EXIT 23:41</span></div>';
   else visual = `<div class="ev-cctv"><b>IMG ${e.code} / SUBJECT UNLISTED</b></div>`;
-  return `<div class="evidence-stack"><div class="ev-status"><span>${e.code}</span><span>${r.place}</span><span class="${r.urgent ? "danger" : ""}">${r.state}</span></div><div class="evidence-view" data-kind="${e.type}"><div class="ev-head"><span>${e.label}</span><span>${e.clock}</span></div>${visual}<div class="ev-transcript">${e.note}</div></div><p class="hint" style="text-align:left">第六文書課・自動収集記録。表示地点と距離はゲーム内観測値です。</p></div>`;
+  return `<div class="evidence-stack"><div class="ev-status"><span>${e.code}</span><span>${r.place}</span><span class="${r.urgent ? "danger" : ""}">${r.state}</span></div><div class="evidence-view" data-kind="${e.type}"><div class="ev-head"><span>${e.label}</span><span>${e.clock}</span></div>${visual}<div class="ev-transcript">${e.note}</div></div><p class="hint" style="text-align:left">第六文書課・自動収集記録。記録の地点は架空の観測地点です。</p></div>`;
 }
 function caseState() {
   S.caseLog = S.caseLog || {};
@@ -2111,16 +2113,19 @@ function openAnomalyEvidence() {
   sheet("異常証拠 / " + e.label, evidenceHTML() + decision);
 }
 function renderRadar() {
-  const r = radarSignal(), blips = $("radar-blips");
-  if (!blips) return;
-  $("radar-distance").textContent = r.state.startsWith("SEALED") ? "LOCK" : r.distance < 1000 ? r.distance + "m" : (r.distance / 1000).toFixed(1) + "km";
-  $("radar-state").textContent = r.state;
-  $("radar-place").textContent = r.place + "付近 / ゲーム内観測";
-  const pts = [[18,25],[68,18],[32,70],[75,63],[51,43]];
-  blips.innerHTML = pts.map((p,i) => {
-    const cls = i === 4 ? (r.urgent ? "danger" : r.near ? "warn" : "") : i === 1 && !r.near ? "sealed" : "";
-    return `<i class="radar-blip ${cls}" style="left:${p[0]}%;top:${p[1]}%"></i>`;
-  }).join("");
+  const blips=$("radar-blips");if(!blips)return;
+  const a=incursionState(),level=a?.level||0,event=a?.event;
+  const stage=level>=70?'close':event?'noticed':level?'trace':'calm';
+  document.querySelector('.thread-radar').dataset.signal=stage;
+  $("radar-state").textContent=event?`異変 Lv.${event.tier}`:'観測状態';
+  $("radar-distance").textContent=level>=70?'接近中':event?'反応あり':level?'微かな反応':'静穏';
+  $("radar-place").textContent=level>=70?'こちらの動きに、反応している。':event?'同じ反応が、消えずに残る。':level?'記録にはない気配がある。':'今は、こちらを見ていない。';
+  const pts=event?[[51,43],[68,25],[32,70]].slice(0,event.tier):level?[[68,25]]:[];
+  blips.innerHTML=pts.map(p=>`<i class="radar-blip ${level>=70?'danger':'warn'}" style="left:${p[0]}%;top:${p[1]}%"></i>`).join('');
+  const button=document.querySelector('.radar-head button');
+  button.textContent=event?'異変に対処する':'検知記録を見る';
+  if(event){delete button.dataset.desk;button.dataset.inc='open';}
+  else{delete button.dataset.inc;button.dataset.desk='evidence';}
 }
 function renderDeskEvent() {
   const e = deskEventData(), card = $("desk-event");
@@ -2130,7 +2135,7 @@ function renderDeskEvent() {
   $("desk-title").innerHTML = e.title;
   $("desk-body").textContent = e.body;
   $("desk-stamp").textContent = e.stamp;
-  $("desk-actions").innerHTML = `<button class="btn-line" data-desk="evidence">${caseState() ? "処理記録を見る" : "検知記録を見る"}</button>`;
+  $("desk-actions").replaceChildren();
   const primary = $("agent-primary");
   if (primary) {
     primary.textContent = e.label;
@@ -2174,7 +2179,9 @@ function render() {
   document.querySelectorAll("[data-pull]").forEach(b => { const n = +b.dataset.pull; b.hidden = n > 5 && !bulkOpen(n); b.disabled = !bulkOpen(n) || S.currency < COST[n]; });
   [10, 100].forEach(n => { $("lbl-" + n).textContent = bulkOpen(n) ? `${COST[n]}pt（演出なし）` : `RANK ${BULK_RANK[n] + 1}で解放`; });
   $("cab-desc").textContent = BOX_DESC[box];
-  // Rank elements exist only while the wallet detail sheet has been created.
+  // Rank details live in the personnel sheet, separate from currency.
+  if($("wallet-current"))$("wallet-current").textContent=Math.floor(S.currency).toLocaleString("ja-JP")+"pt";
+  if($("wallet-hour"))$("wallet-hour").textContent="約"+Math.round(3600000/idleStep()).toLocaleString("ja-JP")+"pt / 時間";
   if ($("rk-name")) {
   const ri = rankIdx(), rk = RANKS[ri], nx = RANKS[ri + 1];
   $("rk-name").textContent = rk.name;
@@ -2502,7 +2509,7 @@ function addPost() {
   const haunted = Math.random() < (hour() === 2 ? .3 : .08);
   let body;
   if (haunted) body = ["同じ反応がまた出た。今度は近い", "駅のカメラだけ時刻がずれてる", "処理済みのはず。なのに再検出", "その地点、昨日も出てた", "このレス、俺は書いてない", "第六文書課：当該投稿を記録保全しました"][Math.floor(Math.random() * 6)];
-  else if (Math.random() < .14) { const r = radarSignal(); body = `${r.place}の反応、まだ消えてない。距離表示だけ縮んでる`; }
+  else if (Math.random() < .14) { const r = radarSignal(); body = `${r.place}の反応、まだ消えてない。こちらに近づいている気がする`; }
   else if (crowd && crowd.length > 1 && Math.random() < .15) body = `同じ異常を追ってる調査員がいるらしい`;
   else if (Math.random() < .2) { const t = todayItem(); body = lv(t.id) ? `今日の噂「${t.name}」、もうLv${lv(t.id)}まで行ったやついる？` : `今日の噂、${[...t.name].length}文字らしい。誰か引いた？`; }
   else body = POSTS[Math.floor(Math.random() * POSTS.length)];
@@ -3119,13 +3126,16 @@ $("lite-apply").addEventListener("click", startInterview);
 const idleMult = () => (1 + .05 * rankIdx()) * (1 + .1 * upLv("radio"));
 function idleStep() { return (hour() === 2 ? 2500 : 5000) / idleMult(); }
 function openWalletDetail() {
-  if (isLite()) return;
-  const step = idleStep(), perMin = 60000 / step, perHour = perMin * 60;
-  const next = Math.max(0, step - (Date.now() - S.lastTick));
-  const night = hour() === 2;
-  sheet("疑念pt / 自動獲得", `<div class="wallet-detail"><div><span>現在</span><b>${Math.floor(S.currency)}pt</b></div><div><span>自動獲得</span><b>+1 / ${(step/1000).toFixed(1)}秒</b></div><div><span>1分</span><b>約${perMin.toFixed(1)}pt</b></div><div><span>1時間</span><b>約${Math.round(perHour)}pt</b></div></div><div class="research-card ready"><b>次の +1pt まで ${(next/1000).toFixed(1)}秒</b><div class="rk-bar"><i style="width:${Math.min(100,(1-next/step)*100)}%"></i></div><small>ランク補正 ×${(1+.05*rankIdx()).toFixed(2)} ／ 無線設備 ×${(1+.1*upLv("radio")).toFixed(2)}${night ? " ／ 丑三つ時 ×2" : ""}</small></div><div class="rankcard wallet-rank">${rankEmblem()}<div class="rk-top"><span class="eyebrow" id="rk-lv">RANK 1 / 20</span><b id="rk-name">見習い調査員</b></div><div class="rk-bar"><i id="rk-bar" style="width:0%"></i></div><div class="rk-row"><span id="rk-next"></span></div><div class="perks" id="rk-perks"></div><div class="rk-row" id="rk-deep"></div><div class="pity"><span>未発見資料の確定まで</span><b id="pity-left">あと30回</b></div></div><p class="hint" style="text-align:left">留守中の獲得には上限があります。通信端末の強化で上限が延びます。</p>`);
+  if(isLite())return;
+  const perHour=Math.round(3600000/idleStep());
+  sheet("疑念pt", `<div class="wallet-summary"><span>所持ポイント</span><strong id="wallet-current">${Math.floor(S.currency).toLocaleString('ja-JP')}pt</strong><p>封筒の開封に使います。</p><div><span>プレイ中の自動獲得</span><b id="wallet-hour">約${perHour.toLocaleString('ja-JP')}pt / 時間</b></div><p class="wallet-note">留守中も少しずつ貯まります（上限${2+upLv('phone')}時間）。</p></div>`);
+}
+function openAgentRecord() {
+  if(isLite())return;
+  sheet("調査員証・ランク", `<div class="rankcard wallet-rank">${rankEmblem()}<div class="rk-top"><span class="eyebrow" id="rk-lv">RANK 1 / 20</span><b id="rk-name">見習い調査員</b></div><div class="rk-bar"><i id="rk-bar" style="width:0%"></i></div><div class="rk-row"><span id="rk-next"></span></div><div class="perks" id="rk-perks"></div><div class="rk-row" id="rk-deep"></div><div class="pity"><span>未発見資料の確定まで</span><b id="pity-left">あと30回</b></div></div>`);
   render();
 }
+$("agent-record").addEventListener("click",openAgentRecord);
 function tick() {
   if (isLite()) { S.lastTick = Date.now(); return; }
   const step = idleStep(), el = Date.now() - S.lastTick;
