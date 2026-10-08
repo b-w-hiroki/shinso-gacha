@@ -1,12 +1,32 @@
-# 真相ガチャ 写実素材パック (2026-10-08)
+# 写実素材の実装と検証（2026-10-08）
 
-`shinso_assets.zip` に含まれる10画像をリポジトリの `assets/` へ配置する。
+添付 `shinso_assets(1).zip` の画像10点を `assets/` にそのまま配置。背景はRGB WebP、残り9点はアルファ付きRGBA PNG。元ZIPとのSHA一致を確認済み。
 
-- desk-background.webp — 机の背景
-- envelope.png — 封筒（透過）
-- button-paper.png / button-red.png / button-locked.png — ボタン
-- classified-files.png / surveillance-photo.png / red-lamp.png / film-canister.png / cassette.png — 装飾
+- 背景・封筒・機密資料・監視写真・赤いランプ・カセット・フィルムを独立したCSSレイヤーで使用。
+- ボタンは画像の縁だけを `border-image` で使用。焼き込み文字がある中央部は描画せず、回数・費用・クリック領域をHTMLで管理。
+- 透過部分から旧SVGが見える重ね合わせ、封筒の旧フラップ・文字・矩形の影を除去。
+- 1回・5連を基本表示。10連はRANK 5、100連はRANK 11から表示。ポイント不足時はボタンを無効化。
+- 幅320/375/390/430pxでCTAの44px以上の操作領域、横はみ出しなし、不要な縦スクロールなし、下部ナビとの重なりなしを確認。
 
-CSSは既存SVGをフォールバックとして指定しているため、画像配置前も既存画面が動作する。ボタン文字とクリック判定はHTMLのまま。
+## 既存不具合の修正
 
-注意: 元画像は合成モックであり、切り抜きの端に背景色が残る箇所がある。画像を貼っただけで完全な透過品質になるわけではない。最終的な実機確認が必要。
+main `bcf5fb6` の `render()` は、疑念pt詳細を開くまで存在しない `rk-name` などを無条件に更新していた。初期描画が例外で止まり、その後のFirebase初期化やガチャ開封演出も実行されない。ランク表示先の存在確認を追加した。抽選・費用・一括受取・Firebase同期の関数本体は変更していない。
+
+## 検証
+
+- `node tests/smoke.mjs`：既存検査と画像10点の存在・形式・CSS参照を検査。
+- `node tests/photoreal.cjs`：Playwrightで画像デコード、5画面サイズ、1/5/10/100連、重複還元、開封演出、解放境界、一括受取と二重受取防止、疑念pt詳細のランク、再読み込み後の保存を検査。
+- Firebaseはテスト用アダプターで保存ペイロード・復元・permission-denied時のローカル保存継続を検査。本番Firebaseアカウントへの書き込み・実端末Safariは未検証。
+- CIの `browser` ジョブでも同じブラウザ検査を実行し、画面と検証結果をartifactとして保存。
+
+再実行には `npm install --no-save --package-lock=false playwright@1.62.1` と `npx playwright install --with-deps chromium` が必要。オフライン画面確認には `QA_FONT` で日本語フォントを指定できる。外部サービスへの通信はブラウザテスト内で遮断する。
+
+## 画面比較
+
+[元モックと実装後の比較](qa/mock-comparison.jpg) / [390px](qa/gacha-390.jpg) / [320px](qa/gacha-320.jpg) / [PC](qa/gacha-1280.jpg) / [検証結果](qa/results.json)
+
+比較元：以前に生成した「真相未解明アーカイブ・ガチャ画面.png」。構図・素材の方向性を照合した。モックの未解放ボタン常時表示は、今回の指示に従って実装していない。封筒などは今回添付された素材を使用しているため、元モックと完全に同一の絵ではない。
+
+`before-integration.jpg` は旧CSSに今回の素材を配置した状態。画像欠落時の旧公開画面ではない。
+
+注意：素材は合成モックから加工されたもので、一部に背景色の残る縁がある。透過画像のピクセルは変更せず、暗い調査机上で重ねている。

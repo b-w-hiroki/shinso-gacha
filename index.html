@@ -1,3 +1,6 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>真相ガチャ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -952,20 +955,41 @@ body.agent-reveal::after { content:"PROTECTIVE CLEARANCE"; position:fixed; inset
 #claim-all[hidden]{display:none!important}
 #claim-all{width:100%;min-height:46px;margin:8px 0 12px}
 
-/* 2026-10-08: isolated photorealistic asset slots. Existing SVG remains a fallback. */
-.gacha-scene::before{background:linear-gradient(rgba(0,0,0,.12),rgba(0,0,0,.25)),url("assets/desk-background.webp") center/cover no-repeat,url("assets/gacha-desk-bg.svg") center/cover no-repeat,#0a0909}
-.gacha-scene .prop-files{background: url("assets/classified-files.png") center/contain no-repeat,url("assets/desk-file.svg") center/contain no-repeat;border:0}
-.gacha-scene .prop-photo{background:url("assets/surveillance-photo.png") center/contain no-repeat,url("assets/desk-photo.svg") center/contain no-repeat;border:0}
-.gacha-scene .prop-lamp{background:url("assets/red-lamp.png") center/contain no-repeat;filter:drop-shadow(0 0 24px rgba(220,44,30,.35))}
-.gacha-scene .prop-tape{background:url("assets/cassette.png") center/contain no-repeat,url("assets/desk-tape.svg") center/contain no-repeat;border:0}
-.gacha-scene .big-env{background:url("assets/envelope.png") center/100% 100% no-repeat,url("assets/desk-envelope.svg") center/100% 100% no-repeat;background-color:transparent}
-.gacha-scene .big-env .tie{opacity:0}
-.gacha-scene .pulls .btn-paper:not(.five){background:linear-gradient(135deg,#ded1b9,#b9a587);border:2px solid #796c59}
-.gacha-scene .pulls .five{background:linear-gradient(135deg,#a72d25,#641916);border:2px solid #bd5947}
-.gacha-scene .pulls button{position:relative;text-shadow:0 1px 1px rgba(255,255,255,.16)}
-.gacha-scene .pulls .five{text-shadow:0 1px 2px #290c0b}
-.gacha-scene .prop-note{display:none}
-@media(max-width:599px){.gacha-scene .scene-props{pointer-events:none}.gacha-scene .big-env{width:min(82vw,390px)}}
+/* Photoreal layers: transparent PNGs must not reveal the legacy SVG beneath. */
+.gacha-scene,.gacha-scene .section-pane,.gacha-scene .cabinet{align-content:start}
+main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px))}
+.gacha-scene{min-height:calc(100dvh - 188px);animation:none}
+.gacha-scene .seg button{min-height:44px}
+.gacha-scene::before{background:linear-gradient(rgba(0,0,0,.12),rgba(0,0,0,.25)),url("assets/desk-background.webp") center/cover no-repeat,#0a0909}
+.gacha-scene .scene-props{min-height:0;bottom:0;pointer-events:none}
+.gacha-scene .prop-files{background:url("assets/classified-files.png") center/contain no-repeat;border:0;box-shadow:none;left:-32px;top:62px;width:160px;height:190px}
+.gacha-scene .prop-photo{background:url("assets/surveillance-photo.png") center/contain no-repeat;border:0;box-shadow:none;right:8px;top:80px;width:110px;height:150px;opacity:1}
+.gacha-scene .prop-lamp{background:url("assets/red-lamp.png") center/contain no-repeat;filter:drop-shadow(0 0 24px rgba(220,44,30,.35));mix-blend-mode:normal;right:-20px;top:0;width:125px;height:138px}
+.gacha-scene .prop-tape{background:url("assets/cassette.png") center/contain no-repeat;border:0;box-shadow:none;left:-20px;top:300px;bottom:auto;width:130px;height:110px;opacity:1}
+.gacha-scene .prop-film{background:url("assets/film-canister.png") center/contain no-repeat;right:0;top:292px;width:60px;height:90px;transform:rotate(8deg)}
+.gacha-scene .prop-files::after,.gacha-scene .prop-photo::after,.gacha-scene .prop-tape::after,.gacha-scene .big-env::before{display:none}
+.gacha-scene .big-env{background:transparent url("assets/envelope.png") center/contain no-repeat;aspect-ratio:900/560;width:min(82vw,390px);min-height:0;border:0;box-shadow:none;filter:drop-shadow(0 18px 18px #000);margin:65px 0 22px}
+.gacha-scene .big-env .tie,.gacha-scene .big-env .lab,.gacha-scene .big-env .seal{display:none}
+/* Use only the image frame, excluding baked-in labels. All labels remain HTML. */
+.gacha-scene .pulls .btn-paper{border:solid transparent;border-width:12px 14px;border-image:url("assets/button-paper.png") 25 35 stretch;background:linear-gradient(135deg,#d7c6a5,#bba787);background-clip:padding-box;color:#251d15;padding:3px 0;min-height:72px;text-shadow:none;font-weight:800}
+.gacha-scene .pulls .five{border-image-source:url("assets/button-red.png");background-image:linear-gradient(135deg,#94241c,#66130f);color:#fff3de}
+.gacha-scene .pulls .btn-paper:disabled{border-image-source:url("assets/button-locked.png");background-image:linear-gradient(135deg,#38312c,#231f1c);color:#ded2bf;opacity:1}
+.gacha-scene .pulls button span{opacity:1;font-size:12px;font-weight:700}
+.gacha-scene .pulls button:focus-visible{outline:3px solid #f8e3ae;outline-offset:3px}
+.gacha-scene .cab-desc{font-size:14px;font-weight:700;background:rgba(12,9,8,.76);padding:8px 12px;border-radius:3px}
+@media(max-width:599px){
+  .gacha-scene .cabinet{gap:12px}
+  .gacha-scene .big-env{margin-top:clamp(48px,8dvh,76px);margin-bottom:20px}
+  .gacha-scene .pulls{grid-template-columns:1fr 1.25fr}
+  .gacha-scene .pulls .five span{font-size:10px}
+}
+@media(max-width:599px) and (max-height:700px){
+  .gacha-scene .big-env{width:78vw;margin-top:22px;margin-bottom:6px}
+  .gacha-scene .cabinet{gap:8px}
+  .gacha-scene .cab-desc{font-size:13px;line-height:1.6;padding:6px 8px}
+  .gacha-scene .prop-tape{top:250px}
+  .gacha-scene .prop-film{top:245px}
+}
 </style>
 
 <header class="top">
@@ -1087,7 +1111,7 @@ body.agent-reveal::after { content:"PROTECTIVE CLEARANCE"; position:fixed; inset
 
   <!-- GACHA -->
   <section class="view gacha-scene" data-view="gacha" hidden>
-    <div class="scene-props" aria-hidden="true"><i class="prop-files"></i><i class="prop-photo"></i><i class="prop-lamp"></i><i class="prop-tape"></i><i class="prop-note"></i></div>
+    <div class="scene-props" aria-hidden="true"><i class="prop-files"></i><i class="prop-photo"></i><i class="prop-lamp"></i><i class="prop-tape"></i><i class="prop-film"></i></div>
     <div class="section-pane" data-spane="gacha:pull">
     <div class="seg" role="group" aria-label="ボックスを選ぶ">
       <button data-seg="urban" aria-pressed="true">都市伝説</button>
@@ -2122,6 +2146,8 @@ function render() {
   document.querySelectorAll("[data-pull]").forEach(b => { const n = +b.dataset.pull; b.hidden = n > 5 && !bulkOpen(n); b.disabled = !bulkOpen(n) || S.currency < COST[n]; });
   [10, 100].forEach(n => { $("lbl-" + n).textContent = bulkOpen(n) ? `${COST[n]}pt（演出なし）` : `RANK ${BULK_RANK[n] + 1}で解放`; });
   $("cab-desc").textContent = BOX_DESC[box];
+  // Rank elements exist only while the wallet detail sheet has been created.
+  if ($("rk-name")) {
   const ri = rankIdx(), rk = RANKS[ri], nx = RANKS[ri + 1];
   $("rk-name").textContent = rk.name;
   $("rk-lv").textContent = `RANK ${ri + 1} / ${RANKS.length}`;
@@ -2132,6 +2158,7 @@ function render() {
   const nextDeep = ITEMS.find(i => i.minRank && !unlocked(i));
   $("rk-deep").textContent = nextDeep ? `RANK ${nextDeep.minRank + 1} で深層ファイルが1件解禁` : "深層ファイルはすべて解禁済み";
   $("pity-left").textContent = unownedN ? `あと${Math.max(1, pityMax() - ((S.pity || {})[box] || 0))}回` : "全資料発見済み";
+  }
   $("env-lab").textContent = box === "urban" ? "開封厳禁" : "CASE FILE / CONSPIRACY";
   $("env-seal").textContent = box === "urban" ? "封" : "極秘";
   $("big-env").classList.toggle("old", box === "urban");
