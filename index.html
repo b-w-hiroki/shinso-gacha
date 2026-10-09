@@ -271,7 +271,7 @@ body:not(.lite) .home-tabs::before { content:"第六文書課"; position:absolut
 
 /* ---------- pull stage ---------- */
 .stage { position: fixed; inset: 0; z-index: 20; background: radial-gradient(80% 60% at 50% 40%, #23262e, #07080a 75%); display: grid; place-items: center; padding: 16px; overflow: hidden; }
-.stage.flash::after { content: ""; position: absolute; inset: 0; background: var(--stamp); animation: flash .5s ease-out forwards; pointer-events: none; }
+.stage.flash::after { content: ""; position: absolute; inset: 0; background: var(--stamp); opacity:0; animation: flash .5s ease-out forwards; pointer-events: none; }
 @keyframes flash { from { opacity: .55; } to { opacity: 0; } }
 .stage.shake .st-card { animation: hit .4s ease-out; }
 @keyframes hit { 20% { transform: translate(-6px, 3px); } 40% { transform: translate(5px, -4px); } 60% { transform: translate(-3px, 2px); } 100% { transform: none; } }
@@ -301,8 +301,8 @@ body:not(.lite) .home-tabs::before { content:"第六文書課"; position:absolut
 .lyr.fresh .wipe { animation: peel .8s .25s cubic-bezier(.7,0,.3,1) both; }
 @keyframes peel { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 .st-card .pips { margin-top: 4px; }
-.truth { position: absolute; right: 18px; bottom: 26px; border: 4px solid var(--stamp); color: var(--stamp); font-family: var(--f-display); font-weight: 800; font-size: 30px; padding: 2px 14px; letter-spacing: .1em; transform: rotate(-12deg) scale(2.4); opacity: 0; transition: transform .25s cubic-bezier(.3,1.6,.6,1), opacity .15s; }
-.st-card.truthy .truth { opacity: .92; transform: rotate(-12deg) scale(1); }
+.st-card > .truth { position: static; justify-self:end; margin:12px 4px 8px; border: 4px solid var(--stamp); color: var(--stamp); font-family: var(--f-display); font-weight: 800; font-size: 30px; padding: 2px 14px; letter-spacing: .1em; transform: rotate(-6deg); visibility:hidden; opacity: 0; transition: transform .25s cubic-bezier(.3,1.6,.6,1), opacity .15s; }
+.st-card.truthy > .truth { visibility:visible; opacity: .92; transform: rotate(-6deg); }
 .st-tip { min-height: 1.5em; color: var(--muted); font-size: 13px; text-align: center; }
 .st-btns { display: flex; gap: 10px; }
 
@@ -1010,7 +1010,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
       <span class="ring" id="ring" aria-hidden="true"></span>
       <b id="pt">0</b><span>疑念pt</span>
     </button>
-    <button id="game-menu" type="button" aria-label="メニュー"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span id="menu-dot" hidden></span></button>
+    <button id="game-menu" type="button" aria-label="メニュー"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="menu-label">メニュー</span><span id="menu-dot" hidden></span></button>
   </div>
   <button id="incursion-status" data-inc="open" type="button" hidden></button>
 </header>
@@ -1079,15 +1079,16 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 
     <div class="home-pane" data-hpane="desk">
       <section class="thread-radar" aria-label="観測映像">
-        <div class="obs-topline"><span id="obs-source"></span><button class="obs-icon" data-watch="settings" aria-label="観測の詳細と設定">⚙</button></div>
+        <div class="obs-topline"><span id="obs-source"></span><span id="obs-name"></span></div>
         <button id="obs-frame" class="obs-frame" data-mode="cctv" aria-label="観測映像を確認">
           <span id="obs-image" aria-hidden="true"></span><span class="obs-effect" aria-hidden="true"></span>
-          <span id="obs-ready" class="obs-alert" hidden aria-hidden="true">!</span>
+          <span id="obs-ready" class="obs-alert" hidden aria-hidden="true">受信</span>
           <span id="obs-timer" class="obs-timer" aria-hidden="true"></span>
-          <span id="obs-first-hint">変化を待つ</span>
+          <span id="obs-first-hint">映像または下のボタンをタップ</span>
         </button>
+        <div class="obs-progress"><div><span id="obs-action-label"></span><b id="obs-progress-count"></b></div><progress id="obs-progress" max="10" value="0" aria-label="観測の進捗"></progress><small id="obs-auto-status"></small></div>
         <p id="obs-feedback" role="status" aria-live="polite"></p>
-        <div class="obs-under"><span id="obs-name"></span><button id="obs-danger" class="obs-icon" data-inc="open" aria-label="異変に対処" hidden>!</button></div>
+        <div class="obs-controls"><button id="obs-tap" type="button">観測を進める</button><button data-watch="settings" type="button">観測設定</button><button id="obs-danger" data-inc="open" aria-label="別件の異変に対処" hidden>対処記録</button></div>
       </section>
       <p class="streak" id="streak" hidden></p>
       <div class="pursuer-signal" id="pursuer-signal" hidden></div>
@@ -3048,6 +3049,7 @@ function becomeAgent() {
 }
 function applyMode() {
   document.body.classList.toggle("lite", isLite());
+  document.querySelector(isLite()?".lite-tabs":".nav-in").appendChild($("game-menu"));
   if (isLite()) { $("issue").textContent = "UNVERIFIED ARCHIVE ・ 一般人"; go("lite"); setLiteTab("open"); setLiteFilter("urban"); renderLite(); }
 }
 document.addEventListener("click", e => {

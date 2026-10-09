@@ -6,11 +6,10 @@ await font();
 
 await p.evaluate(()=>{go('home');setHomeTab('desk');S.currency=100;S.lastTick=Date.now()+600000;S.incursion={version:1,level:0,resolved:0,history:[]};S.observation=WatchModel.create(Date.now(),42);S.streak={last:dayKey(),n:1};save();render();});
 assert.equal(await p.locator('[data-obs-mode],#obs-report,#obs-reference,#sniff,.obs-preview').count(),0,'no permanent comparison/report/tap button group');
-assert.equal(await p.locator('.thread-radar button').count(),3,'one scene, one settings icon, one conditional danger icon');
-const initial=await p.evaluate(()=>S.currency);assert(await p.locator('#obs-frame').isDisabled());await p.locator('#obs-frame').evaluate(e=>e.click());assert.equal(await p.evaluate(()=>S.currency),initial,'waiting taps do not pay');
-// Simulate due time without waiting; collection remains explicit and exactly once.
-await p.evaluate(()=>{const o=observationState();o.dueAt=Date.now()-1000;renderObservation();});assert(await p.locator('#obs-ready').isVisible());
-const expected=await p.evaluate(()=>WatchModel.reward(S.observation.pending));await p.locator('#obs-frame').click();assert.equal(await p.evaluate(()=>S.currency),initial+expected);await p.locator('#obs-frame').evaluate(e=>e.click());assert.equal(await p.evaluate(()=>S.currency),initial+expected);
+assert.equal(await p.locator('.thread-radar button').count(),4,'scene and lower action, settings and conditional danger controls');
+const initial=await p.evaluate(()=>S.currency);assert(await p.locator('#obs-frame').isEnabled());
+for(let i=0;i<9;i++)await p.locator('#obs-frame').evaluate(e=>e.click());assert.equal(await p.evaluate(()=>S.currency),initial,'partial patrol does not pay');
+const expected=8;await p.locator('#obs-tap').click();assert.equal(await p.evaluate(()=>S.currency),initial+expected);await p.locator('#obs-frame').evaluate(e=>e.click());assert.equal(await p.evaluate(()=>S.currency),initial+expected);
 // Collection records discoveries, survives reload and never pays for replay.
 const recordKey=await p.evaluate(()=>S.observation.history[0].mode+':'+S.observation.history[0].rarity);
 await p.evaluate(()=>{go('archive');setSectionTab('archive:observations');});
@@ -91,7 +90,7 @@ await p.locator('#game-menu').click();await p.locator('[data-menu="inbox"]').cli
 await p.screenshot({path:`${out}/menu-inbox-320.jpg`,quality:85});await p.keyboard.press('Escape');
 for(const width of [320,390,430]){await p.setViewportSize({width,height:844});assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert(await p.locator('#game-menu').evaluate(e=>{const r=e.getBoundingClientRect();return document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)===e||e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}));}
 // Expired observation never pays or escalates danger; passive pt still work.
-await p.evaluate(()=>{go('home');S.incursion.level=0;S.incursion.event=null;const o=observationState();o.lastSeen=Date.now()-2000;o.pending.expiresAt=Date.now()-1000;o.pending.readyAt=Date.now()-4*3600000;S.lastTick=Date.now()+600000;render();});assert(!(await p.locator('#obs-ready').isVisible()));const expired=await p.evaluate(()=>S.currency);assert(await p.locator('#obs-frame').isDisabled());await p.locator('#obs-frame').evaluate(e=>e.click());assert.equal(await p.evaluate(()=>S.currency),expired);assert.equal(await p.evaluate(()=>incursionState().level),0);
+await p.evaluate(()=>{go('home');S.incursion.level=0;S.incursion.event=null;const o=observationState();o.lastSeen=Date.now()-2000;o.pending.expiresAt=Date.now()-1000;o.pending.readyAt=Date.now()-4*3600000;S.lastTick=Date.now()+600000;render();});assert(!(await p.locator('#obs-ready').isVisible()));const expired=await p.evaluate(()=>S.currency);assert(await p.locator('#obs-frame').isEnabled());await p.locator('#obs-frame').evaluate(e=>e.click());assert.equal(await p.evaluate(()=>S.currency),expired);assert.equal(await p.evaluate(()=>incursionState().level),0);
 await p.evaluate(()=>{S.lastTick=Date.now()-idleStep()*2;tick();});assert.equal(await p.evaluate(()=>S.currency),expired+2);
 assert.deepEqual(errors,[]);console.log('Single scene clock collection, unlock/growth, persistence, 16 visuals and four responsive sizes passed');
 }finally{await b.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});

@@ -53,3 +53,26 @@ assert.equal(o.collected,0);assert.equal(o.history.length,0);assert.equal(Object
 const firstPending={mode:'cctv',rarity:Number(Object.keys(o.reconstructed)[0].split(':')[1]),readyAt:T,expiresAt:T+3*H,sequence:0};o.pending=firstPending;
 assert.equal(M.claim(o,T).first,false,'restored record is already known');assert.equal(M.researchStatus(o,'cctv').available,1);
 console.log('Duplicate research: cost boundary, original preservation, stale confirmation, reload, unseen result, live state isolation and completion passed');
+// Patrol rewards require a complete set of taps; only unlocked sources rotate.
+o=M.create(T,42);o.unlocked.push('photo');
+for(let i=0;i<9;i++)assert.equal(M.tap(o,T),null);
+assert.equal(o.collected,0);o=M.normalize(JSON.parse(JSON.stringify(o)));
+let patrol=M.tap(o,T);assert.equal(patrol.kind,'patrol');assert.equal(patrol.record.reward,8);assert.equal(o.mode,'photo');assert.equal(o.patrols,1);assert.equal(o.collection['cctv:0'],1);
+assert.equal(M.tap(o,T),null,'next click cannot pay twice');
+for(const mode of Object.keys(M.MODES))for(const rarity of [1,2,3]){
+ o=M.create(T,42);o.unlocked=Object.keys(M.MODES);o.mode=mode;o.pending={mode,rarity,readyAt:T,expiresAt:T+3*H,sequence:0};
+ for(let i=0;i<M.SUPPRESS[rarity]-1;i++){assert.equal(M.tap(o,T),null);o=JSON.parse(JSON.stringify(o));}
+ const result=M.tap(o,T);assert.equal(result.kind,'anomaly');assert.equal(result.record.reward,Math.round(M.ANOMALY_REWARDS[rarity]*M.MODES[mode].mult));assert.equal(o.collected,1);assert.equal(o.history[0].reward,result.record.reward);assert.equal(M.tap(o,T),null);
+}
+// Automation is purchased separately, foreground-only and never catches up in bursts.
+o=M.create(T,42);M.automate(o,T+5000);assert.equal(o.tapProgress,0);
+assert.equal(M.upgrade(o,'patrol',300,T+5000),300);
+M.automate(o,T+9999);assert.equal(o.tapProgress,0);M.automate(o,T+10000);assert.equal(o.tapProgress,1);
+M.automate(o,T+15000,false);assert.equal(o.tapProgress,1);M.automate(o,T+15001,true);assert.equal(o.tapProgress,1);
+o.autoEnabled=false;M.automate(o,T+20000);assert.equal(o.tapProgress,1);o.autoEnabled=true;
+M.automate(o,T+100000);assert.equal(o.tapProgress,2,'one tick even after a large gap');
+o.pending={mode:'cctv',rarity:2,readyAt:T,expiresAt:T+3*H,sequence:0};o.upgrades.suppression=1;
+M.automate(o,T+105000);assert.equal(o.pending.suppression,0,'R automation cannot suppress SR');o.upgrades.suppression=2;
+M.automate(o,T+110000);assert.equal(o.pending.suppression,1);
+const legacy=M.create(T,42);delete legacy.tapProgress;delete legacy.autoLastAt;delete legacy.upgrades.patrol;delete legacy.upgrades.suppression;legacy.collection={'cctv:3':2};M.normalize(legacy);assert.equal(legacy.tapProgress,0);assert.equal(legacy.upgrades.patrol,0);assert.equal(legacy.collection['cctv:3'],2);
+console.log('Tap thresholds, normal/rare payouts, rotation, saved progress, foreground automation and migration passed');
