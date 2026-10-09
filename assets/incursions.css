@@ -52,3 +52,7 @@ body[data-incursion='close']:not(.incursion-quiet) .radar-grid::after,body[data-
 .inc-defense button:disabled { background:#322b22; color:#cfc1a9; }
 .inc-defense label { display:flex; gap:10px; align-items:center; min-height:44px; font-size:14px; }.inc-defense input { width:22px; height:22px; flex-shrink:0; }
 .inc-tier { background:#35251b; color:#fff0d4; padding:10px; border-left:3px solid #ce9d57; }
+
+.inc-reference{border:1px solid #9b8869;background:#d8ccb2;color:#302820;padding:12px}.inc-reference h3{font-size:14px;margin:0}.inc-records{display:grid;gap:8px;margin:12px 0}.inc-records button{text-align:left}
+
+#incursion-dialog:has(.inc-presence) :is(.inc-meter,.inc-tier,.inc-feedback){display:none}

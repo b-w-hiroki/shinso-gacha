@@ -9,8 +9,8 @@ assert.equal(await p.locator('[data-obs-mode],#obs-report,#obs-reference,#sniff,
 assert.equal(await p.locator('.thread-radar #obs-frame,.thread-radar .obs-secondary button').count(),4,'scene, rest, colleagues and unlocked settings; no patrol button');
 assert.equal(await p.locator('#obs-atmosphere .investigation-link').count(),1,'one contextual lead replaces ambient copy');
 const initial=await p.evaluate(()=>S.currency);assert(await p.locator('#obs-frame').isEnabled());
-for(let i=0;i<9;i++)await p.locator('#obs-frame').evaluate(e=>e.click());assert.equal(await p.evaluate(()=>S.currency),initial,'partial patrol does not pay');
-const expected=8;await p.locator('#obs-frame').click();assert.equal(await p.evaluate(()=>S.currency),initial+expected);await p.locator('#obs-frame').evaluate(e=>e.click());assert.equal(await p.evaluate(()=>S.currency),initial+expected);
+for(let i=0;i<9;i++)await p.locator('#obs-frame').evaluate(e=>e.click());assert.equal(await p.evaluate(()=>S.currency),initial+9,'each partial patrol tap pays one point');
+const expected=18;await p.locator('#obs-frame').click();assert.equal(await p.evaluate(()=>S.currency),initial+expected);await p.locator('#obs-frame').evaluate(e=>e.click());assert.equal(await p.evaluate(()=>S.currency),initial+expected);
 await p.keyboard.press('Escape'); // A keyboard tap on an anomaly opens location selection.
 // Collection records discoveries, survives reload and never pays for replay.
 const recordKey=await p.evaluate(()=>S.observation.history[0].mode+':'+S.observation.history[0].rarity);
@@ -93,7 +93,7 @@ await p.locator('#game-menu').click();await p.locator('[data-menu="inbox"]').cli
 await p.screenshot({path:`${out}/menu-inbox-320.jpg`,quality:85});await p.keyboard.press('Escape');
 for(const width of [320,390,430]){await p.setViewportSize({width,height:844});assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert(await p.locator('#game-menu').evaluate(e=>{const r=e.getBoundingClientRect();return document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)===e||e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}));}
 // Expired observation never pays or escalates danger; passive pt still work.
-await p.evaluate(()=>{go('home');S.incursion.level=0;S.incursion.event=null;const o=observationState();o.lastSeen=Date.now()-2000;o.pending.expiresAt=Date.now()-1000;o.pending.readyAt=Date.now()-4*3600000;S.lastTick=Date.now()+600000;render();});assert(!(await p.locator('#obs-ready').isVisible()));const expired=await p.evaluate(()=>S.currency);assert(await p.locator('#obs-frame').isEnabled());await p.locator('#obs-frame').evaluate(e=>e.click());assert.equal(await p.evaluate(()=>S.currency),expired);assert.equal(await p.evaluate(()=>incursionState().level),0);
-await p.evaluate(()=>{S.lastTick=Date.now()-idleStep()*2;tick();});assert.equal(await p.evaluate(()=>S.currency),expired+2);
+await p.evaluate(()=>{go('home');S.incursion.level=0;S.incursion.event=null;const o=observationState();o.lastSeen=Date.now()-2000;o.pending.expiresAt=Date.now()-1000;o.pending.readyAt=Date.now()-4*3600000;S.lastTick=Date.now()+600000;render();});assert(!(await p.locator('#obs-ready').isVisible()));const expired=await p.evaluate(()=>S.currency);assert(await p.locator('#obs-frame').isEnabled());await p.locator('#obs-frame').evaluate(e=>e.click());assert.equal(await p.evaluate(()=>S.currency),expired+1);assert.equal(await p.evaluate(()=>incursionState().level),0);
+await p.evaluate(()=>{S.lastTick=Date.now()-idleStep()*2;tick();});assert.equal(await p.evaluate(()=>S.currency),expired+3);
 assert.deepEqual(errors,[]);console.log('Single scene clock collection, unlock/growth, persistence, 16 visuals and four responsive sizes passed');
 }finally{await b.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});
