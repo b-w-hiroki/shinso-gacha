@@ -17,6 +17,7 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  }
  await p.locator('[data-watch="settings"]').click();await p.locator('[data-watch-auto]').uncheck();await p.keyboard.press('Escape');
  await p.evaluate(()=>{S.observation.autoLastAt=Date.now()-6000;watchLastTick=0;observationTick();});assert.equal(await p.evaluate(()=>S.observation.tapProgress),0);
+ assert(await p.evaluate(()=>{const stamp=S.updatedAt;watchLastTick=0;observationTick();return S.updatedAt===stamp;}),'idle tick must not restart the cloud save debounce');
  for(const [width,height] of [[320,568],[390,844],[844,390]]){
   await p.setViewportSize({width,height});
   for(const selector of ['#obs-tap','[data-watch="settings"]','#game-menu']){const el=p.locator(selector);await el.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));assert(await el.evaluate(e=>{const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.width>=44&&r.height>=44&&e.scrollWidth<=e.clientWidth&&(e===hit||e.contains(hit));}),selector+' accessible at '+width);}

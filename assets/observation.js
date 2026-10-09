@@ -52,8 +52,12 @@ function observationTick(){
  if(isLite())return;
  const scene=document.getElementById('obs-frame').getBoundingClientRect();
  const active=scene.bottom>0&&scene.top<innerHeight-60&&!document.hidden&&!document.getElementById('incursion-dialog').open&&document.getElementById('sheet-bg').hidden&&document.getElementById('stage').hidden&&!!document.getElementById('obs-frame').getClientRects().length;
- const result=WatchModel.automate(observationState(),Date.now(),active);
- if(result)observationReward(result,true);else {markDirty();renderObservation();}
+ const o=observationState(),before=[o.tapProgress,o.pending?.suppression,o.pending?.sequence,o.sequence].join('/');
+ const result=WatchModel.automate(o,Date.now(),active);
+ if(result)observationReward(result,true);else {
+  if(before!==[o.tapProgress,o.pending?.suppression,o.pending?.sequence,o.sequence].join('/'))markDirty();
+  renderObservation();
+ }
  const dot=document.getElementById('dot-home');if(S.observation?.pending&&dot)dot.hidden=false;
 }
 function observationReward(result,auto=false){
