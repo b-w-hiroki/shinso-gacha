@@ -120,3 +120,16 @@ body[data-incursion='close']:not(.incursion-quiet) .radar-grid::after,body[data-
 #incursion-dialog.inc-record-mode:not([open]){display:none}
 .inc-record-body{overflow:auto;overscroll-behavior:contain;min-height:0;padding-right:3px}
 .inc-record-nav{padding-top:8px;border-top:1px solid #67523c}.inc-record-nav .inc-grid{margin-top:0}
+
+/* Live incursion cues frame the evidence; never distort copy or navigation. */
+#incursion-dialog[data-disturbance]:not([data-disturbance='0']):not(.inc-record-mode){--inc-bleed:.45;border-color:#b76f51;box-shadow:0 16px 80px #000,inset 3px 0 #8d403777,inset -3px 0 #43777955}
+#incursion-dialog[data-disturbance='2']{--inc-bleed:.7!important}
+#incursion-dialog[data-disturbance='3']{--inc-bleed:.95!important}
+#incursion-dialog[data-disturbance]:not([data-disturbance='0']):not(.inc-record-mode)::backdrop{background:radial-gradient(ellipse at 0 30%,#65302877,transparent 35%),radial-gradient(ellipse at 100% 70%,#315e5f55,transparent 30%),#080807dc}
+#incursion-dialog[data-disturbance]:not([data-disturbance='0']) .inc-case-photo::before{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,#982f2855,transparent 25%,transparent 75%,#31646744);box-shadow:inset 10px 0 22px #b43e3477,inset -10px 0 22px #467f8466;opacity:var(--inc-bleed);animation:inc-edge-breathe 7s ease-in-out infinite alternate}
+@keyframes inc-edge-breathe{from{filter:blur(2px)}to{filter:blur(6px)}}
+body:is([data-incursion='noticed'],[data-incursion='close'],[data-incursion='breach']):not(.incursion-quiet):not(.watch-mind-quiet) #watch-veil{opacity:1;box-shadow:inset 7px 0 30px #8f332d66,inset -7px 0 30px #387c7955}
+body:is([data-incursion='close'],[data-incursion='breach']):not(.incursion-quiet):not(.watch-mind-quiet) #watch-veil{box-shadow:inset 10px 0 42px #8f332d99,inset -10px 0 42px #387c7977}
+body:has(#incursion-dialog.inc-record-mode[open]) #watch-veil{display:none}
+@media(prefers-reduced-motion:reduce){.inc-case-photo::before{animation:none!important;filter:none!important}}
+.inc-rarity{display:block;margin-top:4px;font:12px/1.5 var(--f-mono);color:#c9b99c}

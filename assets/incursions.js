@@ -1252,11 +1252,22 @@ function incursionProfile(kind){
  const family=kind===4?'device':kind===5?'memory':kind===6||kind>=90?'presence':kind>=76?'memory':kind>=62||kind===3?'paper':kind>=48?'device':kind>=34?'body':kind>=20?'space':'time';
  return {family,...INC_FAMILIES[family]};
 }
-const INC_ORDER=(()=>{
- const order=[0,1,2,3,4,5,6],groups=[[7,19],[20,33],[34,47],[48,61],[62,75],[76,89],[90,99]].map(([a,b])=>Array.from({length:b-a+1},(_,i)=>a+i));
- while(groups.some(g=>g.length))for(const g of groups)if(g.length)order.push(g.shift());
- return order;
-})();
+// Rarity is separate from the encounter's escalating difficulty tier.
+const INC_RARITIES=[
+ {id:'N',weight:60,cases:[]},
+ {id:'R',weight:28,cases:[1,4,8,11,14,17,20,22,24,26,28,30,32,35,36,37,38,41,42,44,46,50,55,60,65,70,75,80,84,88]},
+ {id:'SR',weight:10,cases:[34,39,40,43,45,47,79,85,89,90,93,94,95,97,98]},
+ {id:'SSR',weight:2,cases:[6,91,92,96,99]}
+];
+INC_RARITIES[0].cases=INCURSIONS.map((_,i)=>i).filter(i=>!INC_RARITIES.slice(1).some(r=>r.cases.includes(i)));
+function incursionRarity(kind){return INC_RARITIES.find(r=>r.cases.includes(kind));}
+function drawIncursionKind(a){
+ let roll=Math.random()*100,rarity=INC_RARITIES.at(-1);
+ for(const r of INC_RARITIES){if(roll<r.weight){rarity=r;break;}roll-=r.weight;}
+ const previous=a.history?.at(-1)?.kind;
+ const candidates=rarity.cases.filter(k=>k!==previous);
+ return candidates[Math.floor(Math.random()*candidates.length)];
+}
 const INC_VISUALS={
  doorway:{alt:'扉の上から長い首を曲げた人影が覗いている。',target:[.5,.42]},
  peephole:{alt:'覗き穴の向こうを巨大な目が塞いでいる。',target:[.5,.5]},
@@ -1285,7 +1296,7 @@ function incursionPhoto(a,e,contact=false){
  const p=INCURSIONS[e.kind],v=INC_VISUALS[p.visual],variant=incursionVariant(a,e);
  const img=`<img src="assets/incursions/${p.visual}.webp" alt="${contact?'':v.alt}" decoding="async">`;
  if(contact)return `<button class="inc-contact-photo inc-case-photo" data-variant="${variant}" data-motion="${incursionMotion(a,e)}" data-contacted="${(e.contacts||0)>0}" data-inc="contact-photo" aria-label="${v.alt} 異変の付近を繰り返しタップ。キーボードでは下の痕跡ボタンから対処。">${img}</button>`;
- return `<figure class="inc-presence inc-case-photo" data-variant="${variant}" data-motion="${incursionMotion(a,e)}">${img}<figcaption>現地から届いた記録 ／ 撮影者の記載なし</figcaption></figure>`;
+ return `<figure class="inc-presence inc-case-photo" data-variant="${variant}" data-motion="${incursionMotion(a,e)}">${img}<figcaption>${incursionRarity(e.kind).id} ／ 現地から届いた記録</figcaption></figure>`;
 }
 
 function incursionEvidenceHTML(a,e){
@@ -1333,13 +1344,15 @@ function incursionState(create=false) {
   a.history=Array.isArray(a.history)?a.history.filter(h=>h&&Number.isInteger(h.kind)&&INCURSIONS[h.kind]).slice(-8):[];
   a.discovered=Object.fromEntries(Object.entries(a.discovered&&typeof a.discovered==='object'&&!Array.isArray(a.discovered)?a.discovered:{}).filter(([k,v])=>/^\d+$/.test(k)&&Number(k)<INCURSIONS.length&&v===true));
   for(const h of a.history)a.discovered[h.kind]=true;
+  delete a.deck;
   if(a.event){if(!Number.isInteger(a.event.kind)||!INCURSIONS[a.event.kind])a.event=null;else {a.event.step=int(a.event.step,2);a.event.seen=int(a.event.seen,3);a.event.tier=Math.max(1,int(a.event.tier||1,3));a.event.round=int(a.event.round,2);a.event.work=int(a.event.work,3);a.event.wires=int(a.event.wires,3);a.event.contacts=int(a.event.contacts,5);}}
   if(a.level>=36&&!a.event)a.event=incursionEvent(a);
   return a;
 }
 function incursionEvent(a) {
+  if(a.event)return a.event;
   const unlocked=a.manual>=8?3:a.manual>=3?2:1;
-  return {kind:INC_ORDER[a.resolved%INC_ORDER.length],step:0,seen:0,tier:1+(a.resolved%unlocked),round:0};
+  return {kind:drawIncursionKind(a),step:0,seen:0,tier:1+(a.resolved%unlocked),round:0};
 }
 function incursionBlocked() {
   const a=incursionState();
@@ -1387,6 +1400,7 @@ function closeIncursion() {
 function drawIncursion(message='') {
   const a=incursionState(true),e=a.event,d=document.getElementById('incursion-dialog');
   d.classList.remove('inc-record-mode');
+  d.dataset.disturbance=String(e&&!a.quiet?(a.level>=100?3:a.level>=70?2:1):0);
   const heading=e?INCURSIONS[e.kind].name:a.level?'まだ、違和感だけ。':'日常に、戻った。';
   let content='';
   if(e?.kind===0){
@@ -1402,7 +1416,7 @@ function drawIncursion(message='') {
     content=`<div class="inc-settled"><span>${a.level?'異変の兆候を観測中':'接続は安定しています'}</span><strong>${Object.keys(a.discovered).filter(k=>INCURSIONS[k]).length} / 100種類 鎮静済み</strong><p>${last?INCURSIONS[last.kind].after:'調査を進めると、写真・通信・資料に異変が現れます。'}</p></div><p class="inc-instruction">${a.cooldown?`次の${a.cooldown}回の開封までは保護区間。`:'異変は開封を進めたときだけ蓄積します。'}<br>時間の経過や留守中には悪化しません。</p><button class="inc-primary" data-inc="close">調査に戻る</button>`;
   }
   if(e&&e.kind<3&&!a.quiet&&!e.seen&&!e.step)content=incursionPhoto(a,e)+content;
-  d.innerHTML=`<div class="inc-heading"><span>第六文書課 ／ 異変対処</span><button data-inc="close" aria-label="異変対処を閉じる">×</button></div><h2 id="incursion-title" tabindex="-1">${heading}</h2><div class="inc-meter"><span>危険度 <b>${a.level} / 100</b></span><meter min="0" max="100" low="36" high="70" optimum="0" value="${a.level}" aria-label="危険度"></meter></div>${e?`<p class="inc-tier">異変 Lv.${e.tier} ／ ${['局所的な異変','反復する干渉','深層からの侵入'][e.tier-1]}<br>鎮静手順 ${e.round+1} / ${e.tier} ・ 手動完了で対策資料 +${e.tier}</p>`:''}${content}<p class="inc-feedback" role="status">${message|| (a.level>=100?'対処すると新しい開封を再開できます。資料・ptは失われません。':e?'対処で危険度を0に戻す。見送って調査を続けると上昇します。':'対処記録を保管しました。')}</p><button class="inc-primary" data-inc="records">保管された異変を見る</button>${incursionDefenseHTML(a)}<details class="inc-details"><summary>演出設定・直近の対処</summary><label><input type="checkbox" data-inc="quiet" ${a.quiet?'checked':''}> 異変の画面演出を控えめにする</label><p>ゲーム内の異変です。この対処演出には点滅・大音量・放置中の悪化はありません。</p><ol>${a.history.slice().reverse().map(h=>`<li>${INCURSIONS[h.kind].short} Lv.${h.tier||1}：${h.auto?'自動':'手動'}鎮静</li>`).join('')||'<li>対処記録はまだありません。</li>'}</ol></details>`;
+  d.innerHTML=`<div class="inc-heading"><span>第六文書課 ／ 異変対処</span><button data-inc="close" aria-label="異変対処を閉じる">×</button></div><h2 id="incursion-title" tabindex="-1">${heading}</h2><div class="inc-meter"><span>危険度 <b>${a.level} / 100</b></span><meter min="0" max="100" low="36" high="70" optimum="0" value="${a.level}" aria-label="危険度"></meter></div>${e?`<p class="inc-tier">異変 Lv.${e.tier} ／ ${['局所的な異変','反復する干渉','深層からの侵入'][e.tier-1]}<br>鎮静手順 ${e.round+1} / ${e.tier} ・ 手動完了で対策資料 +${e.tier}</p>`:''}${content}<p class="inc-feedback" role="status">${message|| (a.level>=100?'対処すると新しい開封を再開できます。資料・ptは失われません。':e?'対処で危険度を0に戻す。見送って調査を続けると上昇します。':'対処記録を保管しました。')}</p><button class="inc-primary" data-inc="records">保管された異変を見る</button>${incursionDefenseHTML(a)}<details class="inc-details"><summary>演出設定・出現率・直近の対処</summary><p>異変発生時の希少度：N 60％ ／ R 28％ ／ SR 10％ ／ SSR 2％。同じ希少度の中では均等抽選。直前と同じ異変は候補から除外します。希少度と対処Lv.は別です。</p><label><input type="checkbox" data-inc="quiet" ${a.quiet?'checked':''}> 異変の画面演出を控えめにする</label><p>ゲーム内の異変です。この対処演出には点滅・大音量・放置中の悪化はありません。</p><ol>${a.history.slice().reverse().map(h=>`<li>${INCURSIONS[h.kind].short} Lv.${h.tier||1}：${h.auto?'自動':'手動'}鎮静</li>`).join('')||'<li>対処記録はまだありません。</li>'}</ol></details>`;
   d.querySelector('h2').focus({preventScroll:true});
 }
 // Read-only collection: only resolved cases are addressable, with no encounter mutation.
@@ -1412,9 +1426,9 @@ function openIncursionRecords(kind=null, fromList=false) {
   if(kind!==null&&(!Number.isInteger(kind)||!owned.includes(kind)))return;
   if(!d.open){incursionReturnFocus=document.activeElement;d.showModal();}
   const p=kind===null?null:INCURSIONS[kind],at=owned.indexOf(kind);
-  const photo=p&&!a.quiet?`<figure class="inc-record-photo"><img src="assets/incursions/${p.visual}.webp" alt="${INC_VISUALS[p.visual].alt}" decoding="async"><figcaption>保管写真 ／ ${String(kind+1).padStart(3,'0')}</figcaption></figure>`:'';
+  const photo=p&&!a.quiet?`<figure class="inc-record-photo"><img src="assets/incursions/${p.visual}.webp" alt="${INC_VISUALS[p.visual].alt}" decoding="async"><figcaption>保管写真 ／ ${String(kind+1).padStart(3,'0')} ／ ${incursionRarity(kind).id}</figcaption></figure>`:'';
   const content=p?`${photo}${a.quiet?'<p>控えめな演出設定のため、写真を伏せています。</p>':''}${p.reference?`<article class="inc-reference"><h3>保管された原本</h3><p>${p.reference}</p></article>`:''}<article class="inc-record-aftermath"><h3>鎮静後の記録</h3><p>${p.after}</p></article>`:
-    `<p>保管済み ${owned.length} / 100件。未遭遇の記録は伏せられています。</p>${owned.length?`<div class="inc-record-list">${owned.map(k=>`<button data-inc="record" data-value="${k}"><span>${String(k+1).padStart(3,'0')}</span><strong>${INCURSIONS[k].short}</strong><span aria-hidden="true">›</span></button>`).join('')}</div>`:'<p class="inc-instruction">まだ保管された記録はありません。封筒の調査中に現れた異変を鎮めると、ここに残ります。</p>'}`;
+    `<p>保管済み ${owned.length} / 100件。未遭遇の記録は伏せられています。</p>${owned.length?`<div class="inc-record-list">${owned.map(k=>`<button data-inc="record" data-value="${k}"><span>${String(k+1).padStart(3,'0')}</span><strong>${INCURSIONS[k].short}<small class="inc-rarity">${incursionRarity(k).id}</small></strong><span aria-hidden="true">›</span></button>`).join('')}</div>`:'<p class="inc-instruction">まだ保管された記録はありません。封筒の調査中に現れた異変を鎮めると、ここに残ります。</p>'}`;
   const navigation=p?`<div class="inc-grid"><button data-inc="record" data-value="${owned[at-1]}" ${at===0?'disabled':''}>前の記録</button><button data-inc="record" data-value="${owned[at+1]}" ${at===owned.length-1?'disabled':''}>次の記録</button></div><button class="inc-primary" data-inc="records" data-value="${kind}">記録一覧に戻る</button>`:`<button class="inc-primary" data-inc="open">${a.event?'進行中の異変に戻る':'対処状況を見る'}</button>`;
   d.classList.add('inc-record-mode');
   d.innerHTML=`<div class="inc-heading"><span>第六文書課 ／ 異変記録</span><button data-inc="close" aria-label="異変記録を閉じる">×</button></div><h2 id="incursion-title" tabindex="-1">${p?p.name:'保管された異変'}</h2><div class="inc-record-body">${content}</div><footer class="inc-record-nav">${navigation}</footer>`;

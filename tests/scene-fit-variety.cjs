@@ -35,7 +35,9 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
   await p.locator('[data-inc="quarantine"]').click();await p.evaluate(()=>incursionAction('quarantine',0));
   assert.equal(await p.evaluate(()=>S.incursion.resolved),kind+1);assert.equal(await p.evaluate(()=>S.currency),money);await p.keyboard.press('Escape');
  }
- assert.deepEqual(await p.evaluate(()=>Array.from({length:6},(_,resolved)=>incursionEvent({resolved,manual:0}).kind)),[0,1,2,3,4,5]);
+ // A controlled high rarity roll replaces the obsolete fixed 0→5 rotation assertion.
+ const rarities=await p.evaluate(()=>{const random=Math.random;Math.random=()=>.99;try{return Array.from({length:6},(_,resolved)=>incursionRarity(incursionEvent({resolved,manual:0}).kind).id);}finally{Math.random=random;}});
+ assert.deepEqual(rarities,Array(6).fill('SSR'),'Event selection follows the rarity roll at every progress level');
  // Inspect the reported blank topic through all unlocked layers, then actual opening and completion.
  if(process.env.QA_FONT){await p.addStyleTag({content:"@font-face{font-family:QAJP;src:url('/font.otf')} :root{--f-body:QAJP;--f-display:QAJP;--f-mono:QAJP;--f-hand:QAJP}"});await p.evaluate(()=>document.fonts.load('16px QAJP'));}
  for(let level=1;level<=5;level++){
