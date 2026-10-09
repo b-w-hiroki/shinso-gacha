@@ -82,12 +82,30 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&typeof S!
 
 function renderObservationAlbum(){
  const root=document.getElementById('watch-album');if(!root||isLite())return;
- const o=observationState(),count=Object.values(o.collection).filter(n=>n>0).length;
- root.innerHTML=`<div class="watch-album-count"><b>観測記録</b><span>${count} / 16</span></div>${Object.entries(OBSERVATIONS).map(([mode,m])=>`<section class="watch-album-group"><h3>${m.title} <small>${[0,1,2,3].filter(r=>o.collection[mode+':'+r]>0).length}/4</small></h3><div class="watch-album-grid">${[0,1,2,3].map(r=>{const n=o.collection[mode+':'+r]||0;return `<button data-watch-record="${mode}:${r}" ${n?'':'disabled'}><b>${WatchModel.RARITY[r].name}</b><span>${n?m.records[r]:'未観測'}</span><small>${n?'×'+n:'―'}</small></button>`;}).join('')}</div></section>`).join('')}`;
+ const o=observationState(),count=Object.keys(OBSERVATIONS).reduce((n,mode)=>n+WatchModel.setProgress(o,mode),0);
+ root.innerHTML=`<div class="watch-album-count"><b>観測記録</b><span>${count} / 16</span></div>${Object.entries(OBSERVATIONS).map(([mode,m])=>`<section class="watch-album-group"><h3>${m.title} <small>${WatchModel.setProgress(o,mode)}/4</small></h3><div class="watch-album-grid">${[0,1,2,3].map(r=>{const n=o.collection[mode+':'+r]||0;return `<button data-watch-record="${mode}:${r}" ${n?'':'disabled'}><b>${WatchModel.RARITY[r].name}</b><span>${n?m.records[r]:'未観測'}</span><small>${n?'×'+n:'―'}</small></button>`;}).join('')}</div><button class="watch-set-reward" data-watch-set="${mode}" ${WatchModel.setProgress(o,mode)!==4||o.completedSets[mode]?'disabled':''}>${o.completedSets[mode]?'✓ 全4種・達成報酬受取済み':WatchModel.setProgress(o,mode)===4?`全4種達成 · ${WatchModel.SET_REWARDS[mode]}ptを受け取る`:`全4種で ${WatchModel.SET_REWARDS[mode]}pt`}</button></section>`).join('')}`;
 }
 document.addEventListener('click',e=>{
+ const rewardButton=e.target.closest('[data-watch-set]');
+ if(rewardButton&&!rewardButton.disabled){
+  if(isLite())return;
+  const reward=WatchModel.claimSet(observationState(),rewardButton.dataset.watchSet);if(reward===null)return;
+  S.currency+=reward;markDirty();save();render();return;
+ }
+ const compare=e.target.closest('[data-watch-compare]');
+ if(compare){
+  const [mode,r]=compare.dataset.watchCompare.split(':'),rarity=Number(r),o=observationState();
+  if(!OBSERVATIONS[mode]||!o.collection[mode+':0']||!o.collection[mode+':'+rarity])return;
+  const normal=compare.getAttribute('aria-pressed')!=='true',shown=normal?0:rarity,m=OBSERVATIONS[mode];
+  const im=document.querySelector('.watch-record-image');if(!im)return;
+  im.style.backgroundImage=`url('assets/observation/${mode}${shown===1||shown===3?'-variants':''}.webp')`;
+  im.style.backgroundPosition=`${shown===2||shown===3?'right':'left'} center`;
+  im.setAttribute('aria-label',m.records[shown]);
+  document.getElementById('watch-compare-status').textContent=normal?`平常の記録：${m.records[0]}`:`発見した記録：${m.records[rarity]}`;
+  compare.setAttribute('aria-pressed',String(normal));compare.textContent=normal?'発見した記録へ戻す':'平常の記録と見比べる';return;
+ }
  const b=e.target.closest('[data-watch-record]');if(!b||b.disabled)return;
  const [mode,r]=b.dataset.watchRecord.split(':'),rarity=Number(r),o=observationState();if(!o.collection[b.dataset.watchRecord])return;
  const advanced=rarity===1||rarity===3,side=rarity===2||rarity===3?'right':'left',m=OBSERVATIONS[mode];
- sheet('観測資料',`<div class="watch-record-image" role="img" aria-label="${m.records[rarity]}" style="aspect-ratio:${m.ratio};background-image:url('assets/observation/${mode}${advanced?'-variants':''}.webp');background-position:${side} center"></div><div class="watch-record-caption"><b>${WatchModel.RARITY[rarity].name} ／ ${m.records[rarity]}</b><span>観測 ${o.collection[b.dataset.watchRecord]}回</span></div>`);
+ sheet('観測資料',`<div class="watch-record-image" role="img" aria-label="${m.records[rarity]}" style="aspect-ratio:${m.ratio};background-image:url('assets/observation/${mode}${advanced?'-variants':''}.webp');background-position:${side} center"></div><div class="watch-record-caption"><b>${WatchModel.RARITY[rarity].name} ／ ${m.records[rarity]}</b><span>観測 ${o.collection[b.dataset.watchRecord]}回</span></div>${rarity>0&&o.collection[mode+':0']?`<div class="watch-compare"><p id="watch-compare-status" aria-live="polite">発見した記録：${m.records[rarity]}</p><button class="btn-paper" data-watch-compare="${mode}:${rarity}" aria-pressed="false">平常の記録と見比べる</button></div>`:''}`);
 });

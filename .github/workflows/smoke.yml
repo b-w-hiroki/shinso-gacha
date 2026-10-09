@@ -18,6 +18,7 @@ jobs:
           node-version: 22
       - run: node tests/smoke.mjs
       - run: node tests/observation-model.cjs
+      - run: node tests/branch-cleanup.mjs
 
   browser:
     runs-on: ubuntu-latest

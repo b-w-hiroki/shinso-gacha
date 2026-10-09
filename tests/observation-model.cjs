@@ -24,3 +24,13 @@ const counts=[0,0,0,0];o=M.create(T,93);for(let i=0;i<10000;i++)counts[M.roll(o,
 // Migration preserves chosen medium and a held old anomaly, without granting every unlock.
 o=M.create(T,13,{version:1,mode:'vision',anomaly:true,quiet:true});assert.equal(o.mode,'vision');assert.deepEqual(o.unlocked,['cctv','vision']);assert.equal(o.pending.rarity,2);assert(o.quiet);
 console.log('Clock boundaries, 3–24h hold, offline catch-up, no reroll/double payout, unlocks and growth passed');
+// Set completion is retroactive, explicit, fixed-value and once per saved set.
+o=M.normalize(M.create(T,99));
+assert.equal(M.claimSet(o,'cctv'),null);assert.equal(M.claimSet(o,'toString'),null);
+for(let r=0;r<3;r++)o.collection['cctv:'+r]=20;
+assert.equal(M.setProgress(o,'cctv'),3);assert.equal(M.claimSet(o,'cctv'),null);
+o.collection['cctv:3']=1;assert.equal(M.claimSet(o,'cctv'),80);assert.equal(M.claimSet(o,'cctv'),null);
+o=M.normalize(JSON.parse(JSON.stringify(o)));assert.equal(M.claimSet(o,'cctv'),null);
+for(const mode of ['photo','vision','dash']){for(let r=0;r<4;r++)o.collection[mode+':'+r]=1;assert.equal(M.claimSet(o,mode),M.SET_REWARDS[mode]);}
+assert.equal(Object.values(o.completedSets).filter(Boolean).length,4);
+console.log('Set completion: partial, repeats, all media, saved one-time claims passed');

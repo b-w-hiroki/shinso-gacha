@@ -5,6 +5,7 @@
  const RETENTION=[3,6,12,24],INTERVAL=[10,8,6,5];
  const UPGRADES={retention:{name:'記録保持',costs:[80,240,600],max:3},interval:{name:'観測加速',costs:[100,300,800],max:3},sensitivity:{name:'異常感度',costs:[200,500],max:2}};
  const RARITY=[{name:'N',reward:8},{name:'R',reward:20},{name:'SR',reward:60},{name:'SSR',reward:180}];
+ const SET_REWARDS={cctv:80,photo:100,vision:120,dash:160};
  const int=(v,max=Number.MAX_SAFE_INTEGER)=>Math.max(0,Math.min(max,Math.floor(Number(v)||0)));
  const interval=o=>INTERVAL[o.upgrades.interval]*MINUTE,hold=o=>RETENTION[o.upgrades.retention]*HOUR;
  function create(now,seed,old){
@@ -23,6 +24,7 @@
   o.seed=int(o.seed,0xffffffff)||1;o.quiet=!!o.quiet;
   o.history=Array.isArray(o.history)?o.history.filter(x=>x&&MODES[x.mode]&&Number.isInteger(x.rarity)&&RARITY[x.rarity]).slice(-12):[];
   o.collection=o.collection&&typeof o.collection==='object'?o.collection:{};
+  o.completedSets=Object.fromEntries(Object.keys(MODES).map(mode=>[mode,o.completedSets?.[mode]===true]));
   for(const mode of Object.keys(MODES))for(let rarity=0;rarity<4;rarity++){const key=mode+':'+rarity;o.collection[key]=int(o.collection[key],999999);}
   if(o.pending&&(!MODES[o.pending.mode]||o.pending.mode!==o.mode||!Number.isInteger(o.pending.rarity)||!RARITY[o.pending.rarity]||!Number.isFinite(o.pending.readyAt)||!Number.isFinite(o.pending.expiresAt)||o.pending.expiresAt<=o.pending.readyAt))o.pending=null;
   return o;
@@ -54,6 +56,11 @@
   const p={...o.pending,reward:reward(o.pending)};o.pending=null;o.collected++;o.sequence++;o.dueAt=o.lastSeen+interval(o);const key=p.mode+':'+p.rarity;p.first=!o.collection[key];o.collection[key]=(o.collection[key]||0)+1;o.history.push(p);o.history=o.history.slice(-12);return p;
  }
  function equip(o,mode,now){sync(o,now);if(o.pending||!o.unlocked.includes(mode)||o.mode===mode)return false;o.mode=mode;o.sequence++;o.dueAt=o.lastSeen+interval(o);return true;}
+ function setProgress(o,mode){return MODES[mode]?[0,1,2,3].filter(r=>o.collection[mode+':'+r]>0).length:0;}
+ function claimSet(o,mode){
+  if(!Object.hasOwn(SET_REWARDS,mode)||setProgress(o,mode)!==4||o.completedSets?.[mode])return null;
+  o.completedSets=o.completedSets||{};o.completedSets[mode]=true;return SET_REWARDS[mode];
+ }
  function unlock(o,mode,balance){const m=MODES[mode];if(!m||o.unlocked.includes(mode)||o.collected<m.need||balance<m.cost)return null;o.unlocked.push(mode);return m.cost;}
  function upgrade(o,id,balance,now){
   sync(o,now);const u=UPGRADES[id];if(!u)return null;const lv=o.upgrades[id],cost=u.costs[lv];if(lv>=u.max||balance<cost)return null;
@@ -62,5 +69,5 @@
   if(id==='interval'&&!o.pending)o.dueAt=Math.min(o.dueAt,o.lastSeen+interval(o));
   return cost;
  }
- return {MINUTE,HOUR,MODES,RETENTION,INTERVAL,UPGRADES,RARITY,create,normalize,interval,hold,roll,sync,reward,claim,equip,unlock,upgrade};
+ return {MINUTE,HOUR,MODES,RETENTION,INTERVAL,UPGRADES,RARITY,SET_REWARDS,create,normalize,interval,hold,roll,sync,reward,claim,equip,unlock,upgrade,setProgress,claimSet};
 });

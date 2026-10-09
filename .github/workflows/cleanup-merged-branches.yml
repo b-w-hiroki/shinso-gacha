@@ -1,0 +1,58 @@
+name: Delete unused merged branches
+
+on:
+  pull_request_target:
+    types: [closed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: merged-branch-cleanup
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      # No checkout and no execution of code from the PR branch.
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const {owner, repo} = context.repo;
+            const repository = (await github.rest.repos.get({owner, repo})).data;
+            const open = await github.paginate(github.rest.pulls.list, {owner, repo, state: 'open', per_page: 100});
+            const candidates = context.eventName === 'workflow_dispatch'
+              ? await github.paginate(github.rest.pulls.list, {owner, repo, state: 'closed', sort: 'updated', direction: 'desc', per_page: 100})
+              : [context.payload.pull_request];
+            const seen = new Set();
+            for (const pr of candidates) {
+              const name = pr.head.ref;
+              if (seen.has(name)) continue;
+              seen.add(name);
+              if (!pr.merged_at || pr.head.repo?.full_name !== repository.full_name || pr.base.ref !== repository.default_branch) continue;
+              if (name === repository.default_branch || /^(main|master|develop|development|staging|production|release)(\/|$)/.test(name)) continue;
+              if (open.some(p => p.base.ref === name || (p.head.repo?.full_name === repository.full_name && p.head.ref === name))) continue;
+              try {
+                const branch = (await github.rest.repos.getBranch({owner, repo, branch: name})).data;
+                if (branch.protected || branch.commit.sha !== pr.head.sha) {
+                  core.info(`Kept ${name}: protected or changed since merge`); continue;
+                }
+                // Recheck both the ref and dependent PRs immediately before deletion.
+                const latestOpen = await github.paginate(github.rest.pulls.list, {owner, repo, state: 'open', per_page: 100});
+                if (latestOpen.some(p => p.base.ref === name || (p.head.repo?.full_name === repository.full_name && p.head.ref === name))) continue;
+                const ref = (await github.rest.git.getRef({owner, repo, ref: `heads/${name}`})).data;
+                if (ref.object.sha !== pr.head.sha) continue;
+                await github.rest.git.deleteRef({owner, repo, ref: `heads/${name}`});
+                core.info(`Deleted ${name} (merged PR #${pr.number})`);
+              } catch (error) {
+                if (error.status === 404) continue;
+                if (error.status === 403 || error.status === 422) {
+                  core.warning(`Kept ${name}: GitHub protection or permission denied deletion`); continue;
+                }
+                throw error;
+              }
+            }
