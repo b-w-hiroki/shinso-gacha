@@ -35,6 +35,26 @@ await p.locator('[data-watch-set="cctv"]').click();assert.equal(await p.evaluate
 await p.locator('[data-watch-set="cctv"]').evaluate(e=>e.click());assert.equal(await p.evaluate(()=>S.currency),beforeSet+80);assert(await p.locator('[data-watch-set="photo"]').isDisabled());
 await p.reload();await font();await p.evaluate(()=>{go('archive');setSectionTab('archive:observations');});assert(await p.locator('[data-watch-set="cctv"]').isDisabled());assert(await p.evaluate(()=>S.observation.completedSets.cctv));
 await p.setViewportSize({width:390,height:844});
+// Research confirmation consumes only duplicates and never pays or disturbs a held record.
+await p.evaluate(()=>{S.observation=WatchModel.create(Date.now(),42);const o=observationState();o.collection={'cctv:0':47,'cctv:1':2,'cctv:2':2};o.dueAt=Date.now()-100;observationSync();S.lastTick=Date.now()+600000;go('archive');setSectionTab('archive:observations');render();});
+const researchBefore=await p.evaluate(()=>({pt:S.currency,pending:JSON.stringify(S.observation.pending),count:S.observation.collected}));
+await p.locator('[data-watch-research="cctv"]').click();assert(!(await p.locator('#sheet').textContent()).includes('砂場の整列'),'no unseen name in confirmation');
+await p.locator('[data-watch-research-cancel]').click();assert.equal(await p.evaluate(()=>S.observation.researchSpent.cctv),0);
+for(const [width,height] of [[320,568],[390,844],[844,390]]){
+ await p.setViewportSize({width,height});await p.locator('[data-watch-research="cctv"]').click();
+ const confirm=p.locator('[data-watch-research-confirm]');await confirm.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));
+ assert(await confirm.evaluate(e=>{const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.height>=44&&e.scrollWidth<=e.clientWidth&&(hit===e||e.contains(hit));}));
+ assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+ if(width===390)await p.screenshot({path:`${out}/research-confirm-390.jpg`,quality:85});
+ await p.locator('[data-watch-research-cancel]').click();
+}
+await p.setViewportSize({width:390,height:844});await p.locator('[data-watch-research="cctv"]').click();await p.locator('[data-watch-research-confirm]').click();
+assert((await p.locator('.watch-record-caption').textContent()).includes('照合で復元'));assert.equal(await p.locator('.watch-record-image').getAttribute('aria-label'),'砂場の整列');
+assert.deepEqual(await p.evaluate(()=>({pt:S.currency,pending:JSON.stringify(S.observation.pending),count:S.observation.collected})),researchBefore);
+assert.equal(await p.evaluate(()=>S.observation.researchSpent.cctv),48);assert.equal(await p.evaluate(()=>S.observation.collection['cctv:0']),47);
+await p.screenshot({path:`${out}/research-result-390.jpg`,quality:85});await p.keyboard.press('Escape');assert.equal(await p.locator('[data-watch-research="cctv"]').count(),0);
+await p.reload();await font();assert(await p.evaluate(()=>S.observation.reconstructed['cctv:3']));assert.equal(await p.evaluate(()=>S.observation.researchSpent.cctv),48);
+await p.evaluate(()=>{S.observation=WatchModel.create(Date.now(),42);save();});
 // Genuine growth flow: locked source -> unlock -> equip, with point deductions.
 await p.evaluate(()=>{S.currency=1000;S.observation.collected=5;go('lab');render();});
 await p.locator('[data-watch-unlock="photo"]').click();assert.equal(await p.evaluate(()=>S.currency),900);await p.locator('[data-watch-equip="photo"]').click();assert.equal(await p.evaluate(()=>S.observation.mode),'photo');assert(await p.locator('[data-watch-unlock="vision"]').isDisabled());
@@ -62,10 +82,11 @@ for(const [width,height] of [[320,568],[390,844],[430,932],[844,390]]){
 await p.setViewportSize({width:320,height:568});
 await p.evaluate(()=>{go('home');S.lastTick=Date.now()+600000;render();});
 await p.locator('#game-menu').click();await p.locator('[data-menu="news"]').click();
-for(const id of ['observation-2','menu-1']){await p.locator(`[data-notice="${id}"]`).click();assert(await p.locator('.game-message h2').isVisible());await p.locator('[data-menu="news"]').click();}
+const noticeIds=await p.evaluate(()=>GAME_NOTICES.map(n=>n.id));
+for(const id of noticeIds){await p.locator(`[data-notice="${id}"]`).click();assert(await p.locator('.game-message h2').isVisible());await p.locator('[data-menu="news"]').click();}
 await p.locator('[data-menu="home"]').click();await p.locator('[data-menu="inbox"]').click();await p.locator('[data-mail="welcome-1"]').click();
 const beforeMail=await p.evaluate(()=>S.currency);await p.locator('[data-mail-claim="welcome-1"]').click();assert.equal(await p.evaluate(()=>S.currency),beforeMail+50);await p.locator('[data-mail-claim="welcome-1"]').evaluate(e=>e.click());assert.equal(await p.evaluate(()=>S.currency),beforeMail+50);
-await p.reload();await font();assert(await p.evaluate(()=>S.communications.mail['welcome-1'].claimed));assert.equal(await p.evaluate(()=>S.communications.readNotices.length),2);
+await p.reload();await font();assert(await p.evaluate(()=>S.communications.mail['welcome-1'].claimed));assert.equal(await p.evaluate(()=>S.communications.readNotices.length),noticeIds.length);
 await p.locator('#game-menu').click();await p.locator('[data-menu="inbox"]').click();assert(await p.locator('[data-mail="records-5"]').isVisible());
 await p.screenshot({path:`${out}/menu-inbox-320.jpg`,quality:85});await p.keyboard.press('Escape');
 for(const width of [320,390,430]){await p.setViewportSize({width,height:844});assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert(await p.locator('#game-menu').evaluate(e=>{const r=e.getBoundingClientRect();return document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)===e||e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}));}
