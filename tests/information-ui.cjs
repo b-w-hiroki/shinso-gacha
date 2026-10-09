@@ -7,11 +7,11 @@ await font();
 await p.evaluate(()=>{S.incursion={version:1,level:0,resolved:0,history:[]};S.currency=543;S.lastTick=Date.now()+600000;go("home");setHomeTab("desk");render();});
 for(const [level,tier,label] of [[0,1,'静穏'],[12,1,'微かな反応'],[36,2,'反応あり'],[90,3,'接近中']]){
  await p.evaluate(({level,tier})=>{S.incursion.level=level;S.incursion.event=level>=36?{kind:2,tier,round:0,step:0}:null;renderIncursion();},{level,tier});
- assert.equal(await p.locator('#radar-distance').innerText(),label);
- if(level>=36){await p.locator('.radar-head button').click();assert(await p.locator('#incursion-dialog').isVisible());await p.keyboard.press('Escape');}
+ assert.equal(await p.locator('#obs-danger').isVisible(),level>=36);
+ if(level>=36){await p.locator('#obs-danger').click();assert(await p.locator('#incursion-dialog').isVisible());await p.keyboard.press('Escape');}
 }
 await p.evaluate(()=>{S.incursion.level=0;S.incursion.event=null;render();});
-await p.locator('.radar-head button').click();assert(await p.locator('.evidence-stack').isVisible());assert.equal(await p.locator('.case-choices button').count(),3);await p.keyboard.press('Escape');
+await p.locator('[data-watch="settings"]').click();await p.locator('.watch-settings [data-desk="evidence"]').click();assert(await p.locator('.evidence-stack').isVisible());assert.equal(await p.locator('.case-choices button').count(),3);await p.keyboard.press('Escape');
 for(const [width,height] of [[320,568],[390,700],[430,932]]){
  await p.setViewportSize({width,height});await p.locator('#wallet').click();assert.equal(await p.locator('.wallet-rank').count(),0);assert.equal(await p.locator('#wallet-current').innerText(),'543pt');
  await p.evaluate(()=>{S.currency=654;render();});assert.equal(await p.locator('#wallet-current').innerText(),'654pt');assert(await p.locator('#wallet-hour').isVisible());
@@ -33,17 +33,8 @@ for(const width of [320,390]){
  }
 }
 
-await p.evaluate(()=>{go('home');S.currency=100;S.sniffDay={d:dayKey(),pts:0};S.lastTick=Date.now()+600000;tapTimes=[];render();});
-for(const width of [320,390,430]){
- await p.setViewportSize({width,height:700});const tap=p.locator('#sniff');await tap.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));
- assert(await tap.evaluate(e=>{const r=e.getBoundingClientRect(),t=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.height>=44&&(t===e||e.contains(t));}));
- const before=await p.evaluate(()=>S.currency);await tap.click();assert.equal(await p.evaluate(()=>S.currency),before+2);
-}
-await p.evaluate(()=>{S.sniffDay.pts=sniffFull();tapTimes=[];render();});const half=await p.evaluate(()=>S.currency);await p.locator('#sniff').click();assert.equal(await p.evaluate(()=>S.currency),half+1);
-await p.evaluate(()=>{S.sniffDay.pts=sniffHalf();render();});assert(await p.locator('#sniff').isDisabled());
-const capped=await p.evaluate(()=>S.currency);await p.evaluate(()=>{S.lastTick=Date.now()-idleStep()*2;tick();});assert.equal(await p.evaluate(()=>S.currency),capped+2,'idle still earns after tap cap');
-await p.evaluate(()=>{S.sniffDay.d='2000-1-1';render();});assert(!(await p.locator('#sniff').isDisabled()));
-await p.setViewportSize({width:390,height:700});await p.evaluate(()=>go('home'));await p.screenshot({path:out+'/tap-home-390.jpg',quality:85});
+// Passive income remains independent of the single observation slot.
+await p.evaluate(()=>{go('home');S.currency=100;S.lastTick=Date.now()-idleStep()*2;tick();});assert.equal(await p.evaluate(()=>S.currency),102);
 await p.evaluate(()=>{S.lastTick=Date.now()+600000;S.streak={last:dayKey(),n:1};save();});const saved=await p.evaluate(()=>S.currency);await p.reload();assert.equal(await p.evaluate(()=>S.currency),saved);
 assert.deepEqual(errors,[]);console.log('Information hierarchy checks passed');
 }finally{await b.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});

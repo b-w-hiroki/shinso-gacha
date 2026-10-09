@@ -1000,6 +1000,8 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 <link rel="stylesheet" href="assets/layout-safety.css">
 <link rel="stylesheet" href="assets/information-ui.css">
 <link rel="stylesheet" href="assets/observation.css">
+<link rel="stylesheet" href="assets/focus-ui.css">
+<link rel="stylesheet" href="assets/menu.css">
 
 <header class="top">
   <div class="top-in">
@@ -1008,6 +1010,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
       <span class="ring" id="ring" aria-hidden="true"></span>
       <b id="pt">0</b><span>疑念pt</span>
     </button>
+    <button id="game-menu" type="button" aria-label="メニュー"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span id="menu-dot" hidden></span></button>
   </div>
   <button id="incursion-status" data-inc="open" type="button" hidden></button>
 </header>
@@ -1075,30 +1078,21 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
     </div>
 
     <div class="home-pane" data-hpane="desk">
-      <section class="thread-radar" aria-label="異常探知スレッド">
-        <div class="radar-head"><span>異変の観測</span><button type="button" data-desk="evidence">検知記録を見る</button></div>
-        <div class="obs-modes" aria-label="観測方法">
-          <button data-obs-mode="cctv">監視カメラ</button><button data-obs-mode="photo">写真</button><button data-obs-mode="vision">視界ジャック</button><button data-obs-mode="dash">車載カメラ</button>
-        </div>
-        <div class="obs-meta"><b id="obs-source"></b><span id="obs-time"></span></div>
-        <div id="obs-frame" class="obs-frame" data-mode="cctv" data-observation-view="before">
-          <div id="obs-image" role="img"></div><div class="obs-effect" aria-hidden="true"></div><span id="obs-disconnected" hidden>接続を切断しました</span>
-        </div>
-      <button class="pad home-sniff" id="sniff">
-        <span class="lens" aria-hidden="true"></span>
-        <span><b>気配を探る</b><small id="sniff-sub">タップと放置で疑念ptを集める</small></span>
-        <span class="combo" id="combo">+2pt</span>
-      </button>
-        <div class="obs-caption"><b id="obs-title"></b><p id="obs-caption"></p><span id="radar-state"></span> · <span id="radar-distance"></span><span id="radar-place" hidden></span><span id="radar-blips" hidden></span></div>
-        <div class="obs-actions"><button id="obs-reference" data-obs="reference">前の記録</button><button id="obs-report" data-obs="report">異変を報告</button></div>
-        <p id="obs-feedback" role="status"></p>
-        <details class="obs-preview"><summary>4方式を試写する</summary><p>試写中はpt・危険度に影響しません。</p><div class="obs-actions"><button data-obs="preview-before">平常を試写</button><button data-obs="preview-after">異変を試写</button><button data-obs="preview-exit">観測へ戻る</button></div><label><input id="obs-quiet" type="checkbox"> 揺れ・瞬きの演出を抑える</label></details>
-
+      <section class="thread-radar" aria-label="観測映像">
+        <div class="obs-topline"><span id="obs-source"></span><button class="obs-icon" data-watch="settings" aria-label="観測の詳細と設定">⚙</button></div>
+        <button id="obs-frame" class="obs-frame" data-mode="cctv" aria-label="観測映像を確認">
+          <span id="obs-image" aria-hidden="true"></span><span class="obs-effect" aria-hidden="true"></span>
+          <span id="obs-ready" class="obs-alert" hidden aria-hidden="true">!</span>
+          <span id="obs-timer" class="obs-timer" aria-hidden="true"></span>
+          <span id="obs-first-hint">変化を待つ</span>
+        </button>
+        <p id="obs-feedback" role="status" aria-live="polite"></p>
+        <div class="obs-under"><span id="obs-name"></span><button id="obs-danger" class="obs-icon" data-inc="open" aria-label="異変に対処" hidden>!</button></div>
       </section>
       <p class="streak" id="streak" hidden></p>
       <div class="pursuer-signal" id="pursuer-signal" hidden></div>
       <div class="ushi" id="ushi" hidden><b>丑三つ時</b><span>異常探知感度が上がっています。</span></div>
-      <article class="desk-event paper aged urban" id="desk-event" aria-live="polite">
+      <details class="home-dispatch"><summary>調査デスク <span aria-hidden="true">↗</span></summary><article class="desk-event paper aged urban" id="desk-event" aria-live="polite">
         <span class="clip" aria-hidden="true"></span>
         <span class="stamp-sm" id="desk-stamp">投函済</span>
         <div class="eyebrow" id="desk-eye">調査デスク</div>
@@ -1106,7 +1100,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
         <p id="desk-body"></p>
         <div class="actions" id="desk-actions"></div>
         <span class="crowd" id="today-crowd" hidden></span>
-      </article>
+      </article></details>
 
       <div class="cap home-cap" hidden><span id="cap-text"></span><div class="rk-bar"><i id="cap-bar" style="width:0%"></i></div></div>
     </div>
@@ -1142,8 +1136,8 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
         <button class="btn-paper bulk" data-pull="100" hidden>100連で引く<span id="lbl-100">850pt</span></button>
       </div>
       <label class="toggle"><input type="checkbox" id="fast"> 演出を高速にする（封筒を自動で開封）</label>
-      <p class="odds">出やすさは 並 ＞ 稀 ＞ 禁。ランクが上がると稀と禁が出やすくなる。調査中のネタは出やすく、真相到達済みは出にくい。5連は必ず1段以上剥がれる。</p>
-      <button class="btn-line" data-act="odds">提供割合を見る</button>
+      <details class="context-help"><summary>開封について</summary><p class="odds">出やすさは 並 ＞ 稀 ＞ 禁。ランクが上がると稀と禁が出やすくなる。調査中のネタは出やすく、真相到達済みは出にくい。5連は必ず1段以上剥がれる。</p>
+      <button class="btn-line" data-act="odds">提供割合を見る</button></details>
     </div>
     </div>
   </section>
@@ -1154,6 +1148,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
     <div class="section-tabs" role="group" aria-label="ファイル画面切替">
       <button data-stab="archive:files" aria-pressed="true">資料</button>
       <button data-stab="archive:testimony" aria-pressed="false">証言</button>
+      <button data-stab="archive:observations" aria-pressed="false">観測</button>
     </div>
     <div class="section-pane" data-spane="archive:files">
     <div class="progress">
@@ -1175,6 +1170,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
       <div id="tb-list"></div>
     </div>
     </div>
+    <div class="section-pane" data-spane="archive:observations" hidden><div id="watch-album"></div></div>
   </section>
 
   <!-- LAB -->
@@ -1185,9 +1181,10 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
       <button data-stab="lab:research" aria-pressed="false">再調査</button>
     </div>
     <div class="section-pane" data-spane="lab:upgrade">
+    <div id="observation-lab"></div>
     <div class="labhead">
       <div><span class="eyebrow">調査室</span><b>証拠 <span class="mono" id="evi">0</span></b></div>
-      <p>証拠はガチャで手に入る。新規ファイルは3、黒塗り解除は1、目撃証言は2〜15。</p>
+      <details class="context-help"><summary>証拠の集め方</summary><p>新規ファイル +3、黒塗り解除 +1、目撃証言 +2〜15。</p></details>
     </div>
     <div id="incursion-defense"></div>
     <div class="ups" id="ups"></div>
@@ -1233,7 +1230,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
     </div>
     <div class="stats">
       <div><span>ガチャ回数</span><b id="s-pulls">0</b></div>
-      <div><span>嗅ぎ回った回数</span><b id="s-clicks">0</b></div>
+      <div><span>回収した記録</span><b id="s-clicks">0</b></div>
       <div><span>集めた証言</span><b id="s-testi">0</b></div>
       <div><span>剥がした黒塗り</span><b id="s-layers">0</b></div>
     </div>
@@ -1274,7 +1271,9 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 <dialog id="incursion-dialog" aria-labelledby="incursion-title"></dialog>
 <script src="assets/intro-story.js"></script>
 <script src="assets/incursions.js"></script>
+<script src="assets/observation-model.js"></script>
 <script src="assets/observation.js"></script>
+<script src="assets/menu.js"></script>
 <script>
 /* ---------- 日本語の改行（文節で折り返す） ---------- */
 document.documentElement.lang = "ja";
@@ -1540,7 +1539,7 @@ const BOX_DESC = {
 const KEY = "shinso_gacha_state_v1";
 const LAUNCH = new Date(2026, 9, 1);
 const MISSIONS = [
-  { id:"click10", text:"真相を10回嗅ぎ回る", target:10, reward:15, type:"click" },
+  { id:"click10", text:"観測記録を3件回収する", target:3, reward:15, type:"click" },
   { id:"pull3", text:"ガチャを3回引く", target:3, reward:20, type:"pull" },
   { id:"layer2", text:"黒塗りを2段剥がす", target:2, reward:25, type:"layer" },
   { id:"share1", text:"調査報告を1回シェアする", target:1, reward:15, type:"share" },
@@ -1587,7 +1586,7 @@ const rankEmblem = () => `<span class="rank-emblem" data-tier="${Math.min(3, Mat
 const UPS = [
   { id:"radio", name:"盗聴ラジオ", max:20, base:12, grow:1.32, flavor:"深夜のAM放送の隙間に、ときどき知らない声が混ざる。", eff: L => `放置効率 +${L * 10}%` },
   { id:"phone", name:"留守番電話", max:10, base:20, grow:1.45, flavor:"録音は毎晩1件ずつ増えている。誰も掛けていないのに。", eff: L => `留守中に貯まる上限 ${2 + L}時間` },
-  { id:"lens",  name:"古い虫眼鏡", max:10, base:15, grow:1.40, flavor:"覗くたびに、見える範囲が少しずつ広がる。", eff: L => `嗅ぎ回りの1日上限 ${800 + L * 200}pt` },
+  { id:"lens",  name:"古い虫眼鏡", max:10, base:15, grow:1.40, flavor:"覗くたびに、見える範囲が少しずつ広がる。", eff: L => `観測の獲得pt +${L * 10}%` },
   { id:"map",   name:"書き込みだらけの地図", max:5, base:40, grow:1.80, flavor:"前の持ち主が赤丸をつけた場所は、だいたい当たっている。", eff: L => `天井 −${L}回` },
   { id:"fluid", name:"黒塗り除去液", max:10, base:30, grow:1.50, flavor:"匂いがきつい。使ったあとは窓を開けること。", eff: L => `二重解除 +${L}%` },
   { id:"card",  name:"情報屋の名刺", max:10, base:35, grow:1.55, flavor:"電話番号の最後の一桁だけ、毎回違って見える。", eff: L => `稀 +${L * 3}% ・ 禁 +${L * 5}%` },
@@ -1611,7 +1610,7 @@ function researchOne(id) {
 }
 const pityMax = () => Math.max(5, rank().pity - upLv("map"));
 const critRate = () => rank().crit + .01 * upLv("fluid");
-const sniffFull = () => 400 + 100 * upLv("lens"), sniffHalf = () => 800 + 200 * upLv("lens");
+
 const rarMult = rar => rar === "r" ? rank().r * (1 + .03 * upLv("card")) : rar === "x" ? rank().x * (1 + .05 * upLv("card")) : 1;
 const unlocked = i => (i.minRank || 0) <= rankIdx();
 const TS = {
@@ -2117,22 +2116,7 @@ function openAnomalyEvidence() {
     : `<div class="case-choices"><button data-act="case" data-choice="field"><b>現地確認</b><span>異常へ近づく</span></button><button data-act="case" data-choice="seal"><b>遠隔封鎖</b><span>接触を避ける</span></button><button data-act="case" data-choice="watch"><b>経過観察</b><span>監視を継続</span></button></div>`;
   sheet("異常証拠 / " + e.label, evidenceHTML() + decision);
 }
-function renderRadar() {
-  renderObservation();
-  const blips=$("radar-blips");if(!blips)return;
-  const a=incursionState(),level=a?.level||0,event=a?.event;
-  const stage=level>=70?'close':event?'noticed':level?'trace':'calm';
-  document.querySelector('.thread-radar').dataset.signal=stage;
-  $("radar-state").textContent=event?`異変 Lv.${event.tier}`:'観測状態';
-  $("radar-distance").textContent=level>=70?'接近中':event?'反応あり':level?'微かな反応':'静穏';
-  $("radar-place").textContent=level>=70?'こちらの動きに、反応している。':event?'同じ反応が、消えずに残る。':level?'記録にはない気配がある。':'今は、こちらを見ていない。';
-  const pts=event?[[51,43],[68,25],[32,70]].slice(0,event.tier):level?[[68,25]]:[];
-  blips.innerHTML=pts.map(p=>`<i class="radar-blip ${level>=70?'danger':'warn'}" style="left:${p[0]}%;top:${p[1]}%"></i>`).join('');
-  const button=document.querySelector('.radar-head button');
-  button.textContent=event?'異変に対処する':'検知記録を見る';
-  if(event){delete button.dataset.desk;button.dataset.inc='open';}
-  else{delete button.dataset.inc;button.dataset.desk='evidence';}
-}
+function renderRadar() { renderObservation(); }
 function renderDeskEvent() {
   const e = deskEventData(), card = $("desk-event");
   if (!card) return;
@@ -2169,6 +2153,7 @@ function animatePt() {
   requestAnimationFrame(step);
 }
 function render() {
+  renderMenuBadge();
   renderSniffCap();
   renderIncursion();
   animatePt();
@@ -2240,6 +2225,7 @@ function renderMissions() {
   $("dot-home").hidden = !claimable && !(S.freeDate !== dayKey() && lv(todayItem().id) < 5);
 }
 function renderArchive() {
+  renderObservationAlbum();
   const got = ITEMS.filter(i => lv(i.id) > 0).length, five = ITEMS.filter(i => lv(i.id) === 5).length;
   const layers = ITEMS.reduce((a, i) => a + lv(i.id), 0), rate = Math.round(layers / (ITEMS.length * 5) * 100);
   $("rate").textContent = rate + "%"; $("rate-bar").style.width = rate + "%";
@@ -2271,6 +2257,7 @@ function renderArchive() {
   }).join("");
 }
 function renderLab() {
+  renderObservationLab();
   renderIncursionDefense();
   $("evi").textContent = S.evi || 0;
   let any = false;
@@ -2281,7 +2268,7 @@ function renderLab() {
       <div class="up-h"><b>${u.name}</b><span class="mono">LV ${L}/${u.max}</span></div>
       <div class="pips up-pips">${Array.from({ length: u.max }, (_, i) => `<i class="${i < L ? "on" : ""}"></i>`).join("")}</div>
       <p class="up-eff">${u.eff(L)}${maxed ? "" : `<span> → ${u.eff(L + 1)}</span>`}</p>
-      <span class="note">${u.flavor}</span>
+      <details class="context-help"><summary>装備の記録</summary><p>${u.flavor}</p></details>
       <button class="btn-ink" data-act="upgrade" data-id="${u.id}" ${ok ? "" : "disabled"}>${maxed ? "これ以上は強化できない" : `強化する（証拠 ${cost}）`}</button>
     </article>`;
   }).join("");
@@ -2431,37 +2418,9 @@ $("share-report").addEventListener("click", () => sheet("今日の調査報告",
 $("share-diag").addEventListener("click", () => { const [n, d] = diagnosis(); sheet("信者度診断", shareBlock(`真相ガチャの信者度診断\n私は「${n}」でした。\n${d}\n#真相ガチャ`)); });
 
 let combo = 0, comboTimer;
-// 1日の嗅ぎ回り獲得：400ptまで+2、800ptまで+1、それ以降は0。1秒12回を超える連打は無視
-let tapTimes = [];
-function sniffGain() {
-  if (!S.sniffDay || S.sniffDay.d !== dayKey()) S.sniffDay = { d: dayKey(), pts: 0 };
-  return S.sniffDay.pts < sniffFull() ? 2 : S.sniffDay.pts < sniffHalf() ? 1 : 0;
-}
-function renderSniffCap() {
-  const gain=sniffGain();
-  $("sniff").disabled=gain===0 || observationPreview !== null;
-  $("combo").textContent=gain?`+${gain}pt`:"本日完了";
-  $("sniff-sub").textContent=gain?"タップと放置で疑念ptを集める":"本日の探索は完了。放置獲得は継続します";
-  const p = S.sniffDay.pts, el = $("cap-text");
-  const F = sniffFull(), H = sniffHalf();
-  $("cap-bar").style.width = Math.min(100, p / H * 100) + "%";
-  el.textContent = p < F ? `今日の嗅ぎ回り ${p}/${H}pt（${F}ptまでは1タップ+2）`
-    : p < H ? `今日の嗅ぎ回り ${p}/${H}pt（ここからは1タップ+1）`
-    : "今日はもう十分嗅ぎ回った。これ以上は、こちらが噂になる";
-  if(observationPreview!==null){$("combo").textContent="試写中";$("sniff-sub").textContent="観測へ戻るとptを獲得できます";}
-}
-$("sniff").addEventListener("click", e => {
-  if (observationPreview !== null) return;
-  const now = Date.now();
-  tapTimes = tapTimes.filter(t => now - t < 1000); tapTimes.push(now);
-  if (tapTimes.length > 12) return;
-  const gain = sniffGain();
-  if(!gain||isLite())return renderSniffCap();
-  S.currency += gain; S.sniffDay.pts += gain; S.clicks++; bump("click"); observationAdvance(); markDirty(); render(); renderSniffCap();
-  $("combo").textContent=`+${gain}pt獲得`;
-  buzz(8);
 
-});
+/* Observation rewards now come from the held record, never from repeated taps. */
+function renderSniffCap() { renderObservation(); }
 
 /* ---------- 怪異 ---------- */
 const hour = () => new Date().getHours();
@@ -3141,6 +3100,7 @@ function openAgentRecord() {
 $("agent-record").addEventListener("click",openAgentRecord);
 function tick() {
   if (isLite()) { S.lastTick = Date.now(); return; }
+  observationTick();
   const step = idleStep(), el = Date.now() - S.lastTick;
   if (el >= step) { const g = Math.floor(el / step); S.currency += g; S.lastTick += g * step; save(); render(); }
   $("ring").style.setProperty("--p", Math.min(100, (Date.now() - S.lastTick) / step * 100));
@@ -3172,7 +3132,7 @@ if (!isLite() && !S.onboarded) setTimeout(() => sheet("調査員の皆さまへ"
   <article class="doc paper aged con" style="--sx:86%;--sy:80%">
     <div class="formhead"><span>機密区分 極秘</span><span>着任通知</span><span>配布 本人のみ</span></div>
     <h2 style="margin-top:10px">真相ガチャ 調査手順</h2>
-    <div class="lyr"><div class="lab">手順 1 ／ 封筒を引く</div><p>疑念ptを使って封筒を開けると、都市伝説や陰謀論の資料が手に入る。ptは放置と「嗅ぎ回る」で貯まる。</p></div>
+    <div class="lyr"><div class="lab">手順 1 ／ 封筒を引く</div><p>疑念ptを使って封筒を開けると、都市伝説や陰謀論の資料が手に入る。ptは放置と観測記録の回収で貯まる。</p></div>
     <div class="lyr"><div class="lab">手順 2 ／ 黒塗りを剥がす</div><p>同じネタを引くたびに黒塗りが1段剥がれる。5段目が「真相」。</p></div>
     <div class="lyr"><div class="lab">手順 3 ／ 真相は言わない</div><p>共有できるのは剥がれ具合だけ。真相の中身は、自分の目で確かめてもらうこと。</p><span class="note">※ 本日の噂は、毎朝どこからか届く</span></div>
   </article>
