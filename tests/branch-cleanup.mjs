@@ -18,3 +18,12 @@ assert.deepEqual(await check(pr('feat/done',{base:{ref:'develop'}})),[]);
 assert.deepEqual(await check(pr('feat/done',{head:{ref:'feat/done',sha:'merged',repo:{full_name:'fork/game'}}})),[]);
 assert(!yaml.includes('actions/checkout'));assert(yaml.includes('types: [closed]'));
 console.log('Cleanup preserves protected/default/environment, changed, dependent, fork and unmerged branches');
+// Installation/manual sweeps use closed PRs, deduplicate heads and keep a reused head.
+for(const eventName of ['push','workflow_dispatch']){
+ const deleted=[],list=()=>{};
+ const candidates=[pr('feat/old',{number:2}),pr('feat/old'),pr('feat/reused',{merged_at:null}),pr('feat/reused'),pr('release/1')];
+ const github={paginate:async(fn,args)=>args.state==='closed'?candidates:[],rest:{repos:{get:async()=>({data:repo}),getBranch:async()=>({data:{protected:false,commit:{sha:'merged'}}})},pulls:{list},git:{getRef:async()=>({data:{object:{sha:'merged'}}}),deleteRef:async x=>deleted.push(x.ref)}}};
+ await run(github,{repo:{owner:'test',repo:'game'},eventName,payload:{}},{info(){},warning(){}});
+ assert.deepEqual(deleted,['heads/feat/old']);
+}
+console.log('Initial installation and manual sweeps deduplicate and preserve reused branches');
