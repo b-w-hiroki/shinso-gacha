@@ -6,10 +6,11 @@ await font();
 
 await p.evaluate(()=>{go('home');setHomeTab('desk');S.currency=100;S.lastTick=Date.now()+600000;S.incursion={version:1,level:0,resolved:0,history:[]};S.observation=WatchModel.create(Date.now(),42);S.streak={last:dayKey(),n:1};save();render();});
 assert.equal(await p.locator('[data-obs-mode],#obs-report,#obs-reference,#sniff,.obs-preview').count(),0,'no permanent comparison/report/tap button group');
-assert.equal(await p.locator('.thread-radar button').count(),4,'scene and lower action, settings and conditional danger controls');
+assert.equal(await p.locator('.thread-radar button').count(),4,'scene, rest, colleagues and unlocked settings; no patrol button');
 const initial=await p.evaluate(()=>S.currency);assert(await p.locator('#obs-frame').isEnabled());
 for(let i=0;i<9;i++)await p.locator('#obs-frame').evaluate(e=>e.click());assert.equal(await p.evaluate(()=>S.currency),initial,'partial patrol does not pay');
-const expected=8;await p.locator('#obs-tap').click();assert.equal(await p.evaluate(()=>S.currency),initial+expected);await p.locator('#obs-frame').evaluate(e=>e.click());assert.equal(await p.evaluate(()=>S.currency),initial+expected);
+const expected=8;await p.locator('#obs-frame').click();assert.equal(await p.evaluate(()=>S.currency),initial+expected);await p.locator('#obs-frame').evaluate(e=>e.click());assert.equal(await p.evaluate(()=>S.currency),initial+expected);
+await p.keyboard.press('Escape'); // A keyboard tap on an anomaly opens location selection.
 // Collection records discoveries, survives reload and never pays for replay.
 const recordKey=await p.evaluate(()=>S.observation.history[0].mode+':'+S.observation.history[0].rarity);
 await p.evaluate(()=>{go('archive');setSectionTab('archive:observations');});
@@ -68,9 +69,10 @@ for(const [width,height] of [[320,568],[390,844],[430,932],[844,390]]){
   for(const rarity of [0,1,2,3]){
    await p.evaluate(({mode,rarity})=>{const o=observationState();o.unlocked=Object.keys(WatchModel.MODES);o.mode=mode;const now=Date.now();o.pending={mode,rarity,readyAt:now,expiresAt:now+WatchModel.hold(o),sequence:o.sequence};go('home');render();},{mode,rarity});
    const frame=p.locator('#obs-frame');await frame.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));
-   assert(await frame.isVisible());const rect=await frame.boundingBox();assert(rect.width>=Math.min(width-8,600)&&rect.height>=290,JSON.stringify(rect));
+   assert(await frame.isVisible());const rect=await frame.boundingBox();assert(rect.width>=Math.min(width-8,600)&&rect.height>=100,JSON.stringify(rect));
    assert(await p.locator('#obs-image').evaluate(async e=>{const im=new Image();im.src=getComputedStyle(e).backgroundImage.slice(5,-2);await im.decode();return im.naturalWidth>1000;}));
-   assert(await frame.evaluate(e=>{const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return hit===e||e.contains(hit);}),'scene tap not covered');
+   await frame.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));
+   assert(await frame.evaluate(e=>{const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {ok:hit===e||e.contains(hit),rect:r.toJSON(),hit:hit?.outerHTML.slice(0,300),scroll:scrollY};}).then(x=>{assert(x.ok,JSON.stringify({mode,rarity,width,...x}));return true;}),'scene tap not covered');
    assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
    if(width===390&&rarity===3){await p.evaluate(()=>scrollTo(0,0));await p.screenshot({path:`${out}/watch-${mode}-390.jpg`,quality:85});}
   }

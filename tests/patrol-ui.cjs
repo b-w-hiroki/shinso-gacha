@@ -18,7 +18,7 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  assert.equal(await p.locator('[data-watch-auto]').count(),0);
  assert(!/\d+タップ/.test(await p.locator('.watch-settings').innerText()));
  await p.keyboard.press('Escape');
- await p.locator('#obs-tap').click();assert.equal(await p.evaluate(()=>S.currency),before.pt+80,'manual suppression still rewards');
+ await p.locator('#obs-frame').press('Enter');assert.equal(await p.evaluate(()=>S.currency),before.pt,'patrol button never suppresses');await p.locator('[data-watch-region="4"]').click();assert.equal(await p.evaluate(()=>S.currency),before.pt+80,'targeted manual suppression still rewards');
  assert(await p.evaluate(()=>{save();const saved=JSON.parse(localStorage.getItem(KEY));return saved.observation.upgrades.patrol===3&&saved.observation.upgrades.suppression===3;}),'saved purchases preserved');
  assert(await p.locator('.logo .bar').evaluate(e=>{const c=getComputedStyle(e);return c.color==='rgba(0, 0, 0, 0)'&&c.backgroundColor!=='rgba(0, 0, 0, 0)';}),'title redaction restored');
  for(const mode of ['cctv','photo','vision','dash']){
@@ -28,10 +28,10 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
   await p.screenshot({path:`${out}/peek-${mode}-390.jpg`,quality:85});
  }
  await p.evaluate(()=>{S.observation.mode='cctv';renderObservation();});
- assert(await p.evaluate(()=>{const stamp=S.updatedAt;watchLastTick=0;observationTick();return S.updatedAt===stamp;}),'idle tick must not restart the cloud save debounce');
+ assert(await p.evaluate(()=>{S.observation.mind.load=0;S.observation.mind.lastInput=0;const stamp=S.updatedAt;watchLastTick=0;observationTick();return S.updatedAt===stamp;}),'idle tick must not restart the cloud save debounce');
  for(const [width,height] of [[320,568],[390,844],[844,390]]){
   await p.setViewportSize({width,height});
-  for(const selector of ['#obs-tap','[data-watch="settings"]','#game-menu']){const el=p.locator(selector);await el.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));assert(await el.evaluate(e=>{const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.width>=44&&r.height>=44&&e.scrollWidth<=e.clientWidth&&(e===hit||e.contains(hit));}),selector+' accessible at '+width);}
+  for(const selector of ['#obs-rest','#obs-colleagues','[data-watch="settings"]','#game-menu']){const el=p.locator(selector);await el.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));assert(await el.evaluate(e=>{const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.width>=44&&r.height>=44&&e.scrollWidth<=e.clientWidth&&(e===hit||e.contains(hit));}),selector+' accessible at '+width);}
   await p.evaluate(()=>scrollTo(0,0));await p.screenshot({path:`${out}/patrol-${width}.jpg`,quality:85});
   await p.evaluate(()=>{const it=ITEMS.find(i=>i.id==='u2');runStage([{item:it,before:4,after:5,opened:true}]);advance();});await p.locator('#st-card.truthy').waitFor();await p.locator('.ghost').waitFor({state:'hidden'});assert.equal(await p.locator('#stage').evaluate(e=>getComputedStyle(e,'::after').opacity),'0','reduced motion flash cannot cover the document');
   assert(await p.locator('#st-card').evaluate(e=>{const stamp=e.querySelector('.truth').getBoundingClientRect(),text=e.querySelector('.lyr').getBoundingClientRect();return stamp.top>=text.bottom+4&&stamp.left>=e.getBoundingClientRect().left;}),'truth stamp has its own space');
@@ -46,9 +46,10 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  for(const mode of ['cctv','photo','vision','dash']){
   await p.evaluate(mode=>{const o=observationState();o.mode=mode;o.pending=null;o.quiet=false;o.tapProgress=0;watchPaint='';renderObservation();scrollTo(0,0);},mode);
   await p.locator('#obs-image').evaluate(async e=>{const im=new Image();im.src=getComputedStyle(e).backgroundImage.slice(5,-2);await im.decode();});
-  for(const selector of ['#obs-frame','#obs-tap']){
+  for(const selector of ['#obs-frame']){
    await p.locator(selector).click();
-   assert(await p.locator('#obs-frame').evaluate(e=>{const c=getComputedStyle(e,'::before');return c.opacity==='1'&&c.backgroundImage.includes('repeating-linear-gradient')&&c.pointerEvents==='none';}),'contact texture '+mode+' '+selector);
+   assert(await p.locator('#obs-frame').evaluate(e=>{const c=getComputedStyle(e,'::before');return c.opacity==='1'&&!c.backgroundImage.includes('repeating-linear-gradient')&&c.backgroundColor!=='rgba(0, 0, 0, 0)'&&c.pointerEvents==='none';}),'brief dark contact '+mode+' '+selector);
+   assert(await p.locator('#obs-image').evaluate(e=>e.getAnimations().some(a=>a.playState==='running')),'physical tap jolt');
    await p.clock.runFor(300);
    assert(await p.locator('#obs-frame').evaluate(e=>!e.classList.contains('obs-touched')),'contact clears');
   }
@@ -59,17 +60,19 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
   }
  }
  await p.evaluate(()=>{const o=observationState(),t=Date.now();o.mode='photo';o.pending={mode:'photo',rarity:1,readyAt:t,expiresAt:t+3600000,sequence:o.sequence,suppression:0};renderObservation();});
- await p.locator('#obs-frame').click({position:{x:110,y:170}});
- assert.deepEqual(await p.locator('#obs-frame').evaluate(e=>({strike:e.classList.contains('obs-strike'),x:e.style.getPropertyValue('--touch-x'),y:e.style.getPropertyValue('--touch-y'),suppression:S.observation.pending.suppression})),{strike:true,x:'110px',y:'170px',suppression:1},'attack responds at touch location');
+ const contact=await p.locator('#obs-image').evaluate(e=>{const im=e.getBoundingClientRect(),f=document.getElementById('obs-frame').getBoundingClientRect();return {x:im.left-f.left+im.width*.4,y:im.top-f.top+im.height*.36};});
+ await p.locator('#obs-frame').click({position:contact});
+ assert(await p.evaluate(()=>S.observation.pending.suppression===1),'attack responds only at anomaly');
+ assert(await p.locator('#obs-frame').evaluate((e,point)=>e.classList.contains('obs-strike')&&Math.abs(parseFloat(e.style.getPropertyValue('--touch-x'))-point.x)<2&&Math.abs(parseFloat(e.style.getPropertyValue('--touch-y'))-point.y)<2,contact),'contact follows touch');
  await p.clock.runFor(100);
- await p.locator('#obs-frame').click({position:{x:125,y:175}});
+ await p.locator('#obs-frame').click({position:contact});
  await p.clock.runFor(100);
  assert(await p.locator('#obs-frame').evaluate(e=>e.classList.contains('obs-strike')),'repeated contact extends one effect');
  await p.evaluate(()=>scrollTo(0,0));await p.screenshot({path:`${out}/tap-suppression-390.jpg`,quality:85});
  await p.clock.runFor(300);
  assert(await p.locator('#obs-frame').evaluate(e=>!e.classList.contains('obs-touched')&&!e.classList.contains('obs-strike')),'no stuck contact');
  await p.evaluate(()=>{S.observation.pending.suppression=5;});
- await p.locator('#obs-tap').click();
+ await p.locator('#obs-frame').press('Enter');await p.locator('[data-watch-region="4"]').click();
  assert(await p.locator('#obs-frame').evaluate(e=>e.classList.contains('obs-strike')),'finishing hit retains feedback');
  await p.clock.runFor(300);
  await p.evaluate(()=>{S.observation.pending=null;});

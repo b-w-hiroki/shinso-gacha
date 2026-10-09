@@ -5,6 +5,13 @@
  const RETENTION=[3,6,12,24],INTERVAL=[10,8,6,5],TAPS=[10,8,6,4],SUPPRESS=[0,6,10,15],AUTO_SECONDS=[0,5,3,1],ANOMALY_REWARDS=[8,80,200,480];
  const UPGRADES={retention:{name:'記録保持',costs:[80,240,600],max:3},interval:{name:'巡回効率',costs:[100,300,800],max:3},sensitivity:{name:'異常感度',costs:[200,500],max:2},patrol:{name:'自動巡回',costs:[300,900,2400],max:3},suppression:{name:'自動鎮静',costs:[600,1800,4000],max:3}};
  const RARITY=[{name:'N',reward:8},{name:'R',reward:20},{name:'SR',reward:60},{name:'SSR',reward:180}];
+ // Native-image coordinates, never viewport coordinates. No target is shown before contact.
+ const TARGETS={
+  cctv:{1:[[.51,.34,.17,.20]],2:[[.66,.64,.25,.22]],3:[[.22,.65,.22,.20]]},
+  photo:{1:[[.40,.36,.13,.15]],2:[[.70,.82,.25,.18]],3:[[.59,.065,.15,.12]]},
+  vision:{1:[[.50,.28,.16,.10]],2:[[.28,.38,.12,.16],[.54,.36,.10,.14],[.76,.36,.12,.16]],3:[[.28,.44,.12,.22],[.77,.44,.12,.22]]},
+  dash:{1:[[.20,.29,.11,.15]],2:[[.43,.42,.16,.17]],3:[[.59,.54,.22,.16]]}
+ };
  const RESEARCH_COST=48;
  const SET_REWARDS={cctv:80,photo:100,vision:120,dash:160};
  const int=(v,max=Number.MAX_SAFE_INTEGER)=>Math.max(0,Math.min(max,Math.floor(Number(v)||0)));
@@ -23,7 +30,9 @@
   for(const [k,u] of Object.entries(UPGRADES))o.upgrades[k]=int(o.upgrades[k],u.max);
   for(const k of ['sequence','collected','missed','dueAt','lastSeen'])o[k]=int(o[k]);
   o.tapProgress=int(o.tapProgress,TAPS[o.upgrades.interval]-1);o.patrols=int(o.patrols);o.autoLastAt=int(o.autoLastAt);o.autoEnabled=o.autoEnabled!==false;
-  if(o.pending)o.pending.suppression=int(o.pending.suppression,14);
+  if(o.pending){o.pending.suppression=int(o.pending.suppression,14);o.pending.strain=Math.max(0,Math.min(90,Number(o.pending.strain)||0));}
+  const m=o.mind&&typeof o.mind==='object'?o.mind:{};
+  o.mind={load:Math.max(0,Math.min(100,Number(m.load)||0)),lastAt:int(m.lastAt),lastInput:int(m.lastInput),closed:!!m.closed,talkAt:int(m.talkAt),talks:m.talks&&typeof m.talks==='object'?m.talks:{}};
   o.seed=int(o.seed,0xffffffff)||1;o.quiet=!!o.quiet;
   o.history=Array.isArray(o.history)?o.history.filter(x=>x&&MODES[x.mode]&&Number.isInteger(x.rarity)&&RARITY[x.rarity]).slice(-12):[];
   o.collection=o.collection&&typeof o.collection==='object'?o.collection:{};
@@ -60,14 +69,48 @@
   sync(o,now);if(!o.pending)return null;
   const p={...o.pending,reward:reward(o.pending)};o.pending=null;o.collected++;o.sequence++;o.dueAt=o.lastSeen+interval(o);const key=p.mode+':'+p.rarity;p.first=!o.collection[key];o.collection[key]=(o.collection[key]||0)+1;o.history.push(p);o.history=o.history.slice(-12);return p;
  }
+ function mindTick(o,time,{viewing=false,visible=true}={}){
+  normalize(o);const m=o.mind,now=Math.max(int(time),m.lastAt),previous=m.lastAt;
+  m.lastAt=now;if(!previous)return false;
+  const elapsed=now-previous,shortGap=elapsed<=5000;
+  const engaged=visible&&!m.closed&&shortGap?Math.max(0,Math.min(elapsed,m.lastInput+30000-previous)):0;
+  const rest=elapsed-engaged,old=m.load,oldStrain=o.pending?.strain||0;
+  if(o.pending?.rarity>0){
+   o.pending.strain=Math.max(0,Math.min(90,oldStrain+(viewing?engaged/1000:0)-rest/1000*.7));
+  }
+  m.load=Math.max(0,Math.min(100,old+engaged/1000*(.025+(viewing&&o.pending?.strain>=20?.12:0))-rest/1000*(m.closed?.5:.25)));
+  return m.load!==old||(o.pending?.strain||0)!==oldStrain;
+ }
+ function pursue(o,time,amount=.18){normalize(o);const m=o.mind;m.lastInput=Math.max(int(time),m.lastAt);m.lastAt=m.lastAt||m.lastInput;m.load=Math.min(100,m.load+amount);}
+ function closeMonitor(o,time,closed=true){mindTick(o,time);o.mind.closed=closed;o.mind.lastInput=closed?0:Math.max(int(time),o.mind.lastAt);}
+ function contamination(o){normalize(o);return Math.max(o.mind.load>=70?3:o.mind.load>=45?2:o.mind.load>=20?1:0,o.pending?.strain>=75?3:o.pending?.strain>=45?2:o.pending?.strain>=20?1:0);}
+ function hit(o,point){
+  if(!point||!Number.isFinite(point.x)||!Number.isFinite(point.y)||point.x<0||point.x>1||point.y<0||point.y>1)return false;
+  return (TARGETS[o.mode]?.[o.pending?.rarity]||[]).some(([x,y,rx,ry])=>((point.x-x)/rx)**2+((point.y-y)/ry)**2<=1);
+ }
+ function suppress(o,time,point){
+  normalize(o);sync(o,time);if(o.mind.closed||!o.pending?.rarity)return null;
+  pursue(o,time,.08);if(!hit(o,point))return null;
+  const p=o.pending;p.suppression++;o.mind.load=Math.min(100,o.mind.load+.35);
+  if(p.suppression<SUPPRESS[p.rarity])return null;
+  const record=claim(o,time);record.reward=Math.round(ANOMALY_REWARDS[record.rarity]*MODES[record.mode].mult);
+  o.tapProgress=0;o.mind.load=Math.max(0,o.mind.load-6);return {kind:'anomaly',record};
+ }
+ function suppressRegion(o,time,region){
+  const t=(TARGETS[o.mode]?.[o.pending?.rarity]||[]).find(([x,y])=>Math.floor(y*3)*3+Math.floor(x*3)===region);
+  return suppress(o,time,t?{x:t[0],y:t[1]}:{x:-1,y:-1});
+ }
+ function talk(o,time,member){
+  normalize(o);if(!['records','equipment','senior'].includes(member))return false;
+  closeMonitor(o,time,true);o.mind.talks[member]=int(o.mind.talks[member],9999)+1;
+  const now=Math.max(int(time),o.mind.lastAt),available=!o.mind.talkAt||now-o.mind.talkAt>=120000;
+  if(available){o.mind.load=Math.max(0,o.mind.load-5);o.mind.talkAt=now;}return available;
+ }
  function tap(o,time){
   normalize(o);sync(o,time);
-  if(o.pending?.rarity>0){
-   const p=o.pending;p.suppression=(p.suppression||0)+1;
-   if(p.suppression<SUPPRESS[p.rarity])return null;
-   const record=claim(o,time);record.reward=Math.round(ANOMALY_REWARDS[record.rarity]*MODES[record.mode].mult);
-   o.tapProgress=0;return {kind:'anomaly',record};
-  }
+  // Patrol cannot suppress anomalies, regardless of click count or input source.
+  if(o.mind.closed||o.pending?.rarity>0)return null;
+  pursue(o,time);
   o.tapProgress++;
   if(o.tapProgress<TAPS[o.upgrades.interval])return null;
   o.tapProgress=0;
@@ -86,7 +129,7 @@
   // No catch-up bursts: a visible tick can advance at most one real tap.
   if(elapsed<seconds*1000)return null;
   o.autoLastAt=now;sync(o,now);
-  if(o.pending?.rarity>0){if(o.upgrades.suppression<o.pending.rarity)return null;}
+  if(o.pending?.rarity>0)return null; // Targeted suppression is manual until unlock design is agreed.
   else if(!o.upgrades.patrol)return null;
   return tap(o,now);
  }
@@ -122,5 +165,5 @@
   if(id==='interval'&&!o.pending)o.dueAt=Math.min(o.dueAt,o.lastSeen+interval(o));
   return cost;
  }
- return {MINUTE,HOUR,MODES,RETENTION,INTERVAL,TAPS,SUPPRESS,AUTO_SECONDS,ANOMALY_REWARDS,UPGRADES,RARITY,SET_REWARDS,RESEARCH_COST,create,normalize,interval,hold,roll,sync,reward,claim,tap,automate,equip,unlock,upgrade,setProgress,claimSet,researchStatus,research};
+ return {TARGETS,mindTick,pursue,closeMonitor,contamination,hit,suppress,suppressRegion,talk,MINUTE,HOUR,MODES,RETENTION,INTERVAL,TAPS,SUPPRESS,AUTO_SECONDS,ANOMALY_REWARDS,UPGRADES,RARITY,SET_REWARDS,RESEARCH_COST,create,normalize,interval,hold,roll,sync,reward,claim,tap,automate,equip,unlock,upgrade,setProgress,claimSet,researchStatus,research};
 });

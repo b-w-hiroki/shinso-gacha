@@ -18,6 +18,7 @@ jobs:
           node-version: 22
       - run: node tests/smoke.mjs
       - run: node tests/observation-model.cjs
+      - run: node tests/contamination-model.cjs
       - run: node tests/branch-cleanup.mjs
 
   browser:
@@ -49,6 +50,9 @@ jobs:
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/observation.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/contamination-ui.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/patrol-ui.cjs

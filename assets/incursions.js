@@ -30,6 +30,7 @@ function incursionBlocked() {
 }
 function incursionInvestigate(count=1) {
   if (typeof introActive==='function'&&introActive()) return;
+  if(typeof watchPursue==='function')watchPursue(count>1?5:2);
   const a=incursionState(true);
   if(a.autoWait>0)a.autoWait--;
   if(a.cooldown>0)a.cooldown--;

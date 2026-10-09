@@ -48,11 +48,6 @@ body:has(.agent-home:not([hidden])) main{padding-bottom:calc(84px + env(safe-are
 
 .watch-research{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;color:#d7cbb1;font-size:14px}.watch-research button{min-height:44px;min-width:92px;border:1px solid #9c8655;background:#29392d;color:#fff0cf;font:700 14px var(--f-body);padding:10px;scroll-margin-block:90px}.watch-research button:disabled{background:transparent;color:#bdb39c;border-color:#625a48;opacity:1}.watch-research-confirm h2{font-size:20px}.watch-research-confirm p{font-size:15px;line-height:1.8;color:#eddfc3}.watch-research-confirm button{display:block;min-height:48px;width:100%;margin:12px 0;white-space:normal}
 
-.obs-controls{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 8px}
-.obs-controls button{min-height:48px;padding:10px 14px;border:1px solid #676b5b;background:#1b211b;color:#dddccb;font:14px/1.5 var(--f-body);touch-action:manipulation}
-.obs-controls #obs-tap{flex:1;min-width:140px;background:#2a3127}
-.obs-controls #obs-danger{color:#d6c5a6}
-.obs-controls button:focus-visible{outline:2px solid #d9d1b9;outline-offset:3px}
 .obs-topline{min-height:32px}
 #obs-feedback{color:#b8bcaf;font:12px/1.8 var(--f-body);min-height:44px;text-align:left;margin:4px 3px 0}
 .obs-frame{--obs-height:clamp(290px,48dvh,560px)}
@@ -67,14 +62,40 @@ body:has(.agent-home:not([hidden])) main{padding-bottom:calc(84px + env(safe-are
 .obs-frame[data-mode=dash]::after{background:radial-gradient(ellipse 78% 53% at 50% 44%,transparent 38%,#03050444 65%,#030504d9 100%)}
 .obs-alert,.obs-timer,#obs-first-hint{z-index:2}
 
-/* A brief contact texture, contained inside the view. Repeated taps extend it
-   instead of replaying flashes; quiet/reduced-motion uses a static edge cue. */
-.obs-frame::before{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity 100ms ease-out;background:repeating-linear-gradient(3deg,#c6ccbc26 0 1px,transparent 1px 4px),repeating-linear-gradient(93deg,transparent 0 3px,#05070533 3px 5px);box-shadow:inset 0 0 0 2px #a5ac9470}
+/* Contact uses a small physical jolt and one dark pulse, never a camera-noise grid. */
+.obs-frame::before{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity 100ms ease-out;background:#0003}
 .obs-frame.obs-touched::before{opacity:1;transition:none}
+.obs-frame.obs-strike::before{background:radial-gradient(circle 75px at var(--touch-x) var(--touch-y),#0009,transparent 100%);box-shadow:none}
 .obs-frame[data-quiet=true]::before{background:none;transition:none;box-shadow:inset 0 0 0 2px #a5ac9470}
-@media(prefers-reduced-motion:reduce){.obs-frame::before{background:none;transition:none;box-shadow:inset 0 0 0 2px #a5ac9470}}
+@media(prefers-reduced-motion:reduce){.obs-frame::before{background:none!important;transition:none;box-shadow:inset 0 0 0 2px #a5ac9470}}
+/* Keep all clues reachable in every viewport; dark margins remain part of the aperture. */
+#obs-image{width:min(100%,calc(var(--obs-height) * var(--obs-ratio)))}
+.obs-frame[data-closed=true] #obs-image,.obs-frame[data-closed=true] .obs-effect{visibility:hidden}
+.obs-frame[data-closed=true]::before,.obs-frame[data-closed=true]::after{display:none}
+#obs-closed{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:#c5c7b9;background:#090c0a;font:16px/1.8 var(--f-body);padding:24px}
+#obs-closed[hidden]{display:none}#obs-closed small{font-size:13px;max-width:24em}
+.obs-secondary{display:flex;gap:8px;margin:8px 0 12px}.obs-secondary button{flex:1;min-height:44px;padding:10px 8px;color:#d3cfbd;border:1px solid #514f43;background:#121611;font:13px/1.5 var(--f-body)}
+.watch-target-regions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:20px 0}
+.watch-target-regions button{min-height:56px;border:1px solid #8b826a;background:#232920;color:#f1e8d1;font:15px var(--f-body)}
+.watch-target-copy{min-height:3.6em;font:16px/1.8 var(--f-body);color:#eee5cd}
+.watch-colleagues{display:grid;gap:14px}.watch-colleagues button{min-height:52px}.watch-colleagues small{display:block;font-size:12px;margin-top:4px}
+.watch-conversation blockquote{margin:20px 0;padding:18px;border-left:2px solid #8b826a;background:#1c211a;color:#f1e7cf;font:16px/1.9 var(--f-body)}
+.watch-room-note{color:#d4ccbb;font:14px/1.8 var(--f-body)}.watch-dialogue-actions{display:grid;gap:12px}.watch-dialogue-actions button{min-height:48px;white-space:normal}
+#watch-veil{position:fixed;inset:0;z-index:25;pointer-events:none;opacity:0;box-shadow:inset 0 0 28px #40150c55;background:radial-gradient(ellipse at 0 15%,#45201b38,transparent 18%),radial-gradient(ellipse at 100% 85%,#211f1c88,transparent 12%)}
+body[data-watch-mind='1'] .obs-frame{box-shadow:0 0 15px #562c1940}
+body[data-watch-mind='2'] #watch-veil{opacity:.55}
+body[data-watch-mind='3'] #watch-veil{opacity:1;box-shadow:inset 0 0 35px #58211988}
+body[data-watch-mind='2'] .top,body[data-watch-mind='3'] .top{border-bottom-color:#715340}
+body[data-watch-mind='3'] .nav-in{box-shadow:0 -8px 28px #56291c55}
+.obs-frame[data-seep='1'] .obs-effect{box-shadow:inset 0 0 35px #392b1999}
+.obs-frame[data-seep='2'] .obs-effect{box-shadow:inset 0 0 65px #39251baa}
+.obs-frame[data-seep='3'] .obs-effect{box-shadow:inset 0 0 90px #39231abb}
+body.watch-mind-quiet #watch-veil{display:none}
+@media(prefers-reduced-motion:reduce){#watch-veil{display:none}}
 
-/* Suppression feels like contact at the finger, without an enemy HUD or target marker. */
-.obs-frame.obs-strike::before{background:radial-gradient(circle at var(--touch-x) var(--touch-y),#ddd6bf80 0 2px,#080a0877 3px 11px,#c6c6b54d 12px 14px,transparent 15px),repeating-linear-gradient(7deg,#c6ccbc40 0 1px,transparent 1px 4px),repeating-linear-gradient(97deg,transparent 0 3px,#05070555 3px 5px);-webkit-mask-image:radial-gradient(circle 76px at var(--touch-x) var(--touch-y),#000 20%,transparent 100%);mask-image:radial-gradient(circle 76px at var(--touch-x) var(--touch-y),#000 20%,transparent 100%);box-shadow:none}
-.obs-frame.obs-strike[data-quiet=true]::before{background:radial-gradient(circle at var(--touch-x) var(--touch-y),transparent 0 10px,#c6c6b570 11px 12px,transparent 13px)}
-@media(prefers-reduced-motion:reduce){.obs-frame.obs-strike::before{background:radial-gradient(circle at var(--touch-x) var(--touch-y),transparent 0 10px,#c6c6b570 11px 12px,transparent 13px)}}
+.obs-secondary button[hidden]{display:none}
+#obs-feedback{min-height:22px;max-height:44px;overflow:hidden;margin:4px 3px 0}
+.obs-secondary{margin:4px 0 0}
+@media(max-height:500px){.agent-home>.home-tabs{margin:0}.obs-topline{min-height:24px}.obs-secondary button{padding:6px;font-size:12px}}
+@media(max-height:500px){body:has(.agent-home:not([hidden])) main{padding-top:4px}.agent-home{gap:2px}.obs-topline{min-height:20px}}
+.watch-quiet-setting{display:flex;align-items:center;gap:10px;min-height:48px;margin:8px 0 16px;color:#e9dfca;font:14px/1.6 var(--f-body)}
