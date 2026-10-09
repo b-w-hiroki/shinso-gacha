@@ -1083,10 +1083,9 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
         <div class="obs-topline"><span id="obs-source"></span><span id="obs-name"></span></div>
         <button id="obs-frame" class="obs-frame" data-mode="cctv" aria-label="観測映像を確認">
           <span id="obs-closed" hidden>回線を遮断しました<small>画面から目を離し、しばらく休んでください。</small></span><span id="obs-image" aria-hidden="true"></span><span class="obs-effect" aria-hidden="true"></span>
-          <span id="obs-ready" class="obs-alert" hidden aria-hidden="true">受信</span>
-          <span id="obs-timer" class="obs-timer" aria-hidden="true"></span>
-          <span id="obs-first-hint">映像または下のボタンをタップ</span>
         </button>
+        <div class="obs-status"><span id="obs-ready" hidden>記録を受信</span><span id="obs-first-hint">映像に触れて観測する</span><span id="obs-timer"></span></div>
+        <p id="obs-atmosphere" aria-live="off"></p>
         <p id="obs-feedback" role="status" aria-live="polite"></p>
         <div class="obs-secondary"><button id="obs-rest" type="button">モニタを閉じる</button><button id="obs-colleagues" type="button">課内で話す</button><button data-watch="settings" type="button" hidden>観測設定</button></div>
       </section>
