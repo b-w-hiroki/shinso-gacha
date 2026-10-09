@@ -17,6 +17,24 @@ await p.evaluate(()=>{go('archive');setSectionTab('archive:observations');});
 assert.equal(await p.locator('[data-watch-record]:enabled').count(),1);assert.equal(await p.locator('[data-watch-record]:disabled').count(),15);
 await p.locator(`[data-watch-record="${recordKey}"]`).click();assert(await p.locator('.watch-record-image').isVisible());assert.equal(await p.evaluate(()=>S.currency),initial+expected);await p.keyboard.press('Escape');
 await p.evaluate(()=>save());await p.reload();await font();assert.equal(await p.evaluate(k=>S.observation.collection[k],recordKey),1);
+// Album comparison never reveals an uncollected normal image; completion pays once.
+await p.evaluate(()=>{S.lastTick=Date.now()+600000;S.observation=WatchModel.create(Date.now(),42);S.observation.collection={'cctv:1':1};go('archive');setSectionTab('archive:observations');render();});
+await p.locator('[data-watch-record="cctv:1"]').click();assert.equal(await p.locator('[data-watch-compare]').count(),0);await p.keyboard.press('Escape');
+await p.evaluate(()=>{S.observation.collection={'cctv:0':1,'cctv:1':3,'cctv:2':1,'cctv:3':1};renderObservationAlbum();});
+const beforeSet=await p.evaluate(()=>S.currency);
+await p.locator('[data-watch-record="cctv:3"]').click();
+await p.locator('[data-watch-compare]').click();assert.equal(await p.locator('[data-watch-compare]').getAttribute('aria-pressed'),'true');assert.equal(await p.locator('.watch-record-image').getAttribute('aria-label'),'日中の公園');
+await p.locator('[data-watch-compare]').click();assert.equal(await p.locator('.watch-record-image').getAttribute('aria-label'),'砂場の整列');assert((await p.locator('.watch-record-image').getAttribute('style')).includes('cctv-variants.webp'));assert.equal(await p.evaluate(()=>S.currency),beforeSet);await p.keyboard.press('Escape');
+for(const [width,height] of [[320,568],[390,844],[844,390]]){
+ await p.setViewportSize({width,height});await p.locator('[data-watch-set="cctv"]').evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));
+ assert(await p.locator('[data-watch-set="cctv"]').evaluate(e=>{const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {ok:r.height>=44&&e.scrollWidth<=e.clientWidth&&(hit===e||e.contains(hit)),height:r.height,scroll:e.scrollWidth,client:e.clientWidth,hit:hit?.outerHTML.slice(0,200),y:r.y};}).then(x=>{assert(x.ok,JSON.stringify(x));return true;}));
+ assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+ if(width===390)await p.screenshot({path:`${out}/album-completion-390.jpg`,quality:85});
+}
+await p.locator('[data-watch-set="cctv"]').click();assert.equal(await p.evaluate(()=>S.currency),beforeSet+80);
+await p.locator('[data-watch-set="cctv"]').evaluate(e=>e.click());assert.equal(await p.evaluate(()=>S.currency),beforeSet+80);assert(await p.locator('[data-watch-set="photo"]').isDisabled());
+await p.reload();await font();await p.evaluate(()=>{go('archive');setSectionTab('archive:observations');});assert(await p.locator('[data-watch-set="cctv"]').isDisabled());assert(await p.evaluate(()=>S.observation.completedSets.cctv));
+await p.setViewportSize({width:390,height:844});
 // Genuine growth flow: locked source -> unlock -> equip, with point deductions.
 await p.evaluate(()=>{S.currency=1000;S.observation.collected=5;go('lab');render();});
 await p.locator('[data-watch-unlock="photo"]').click();assert.equal(await p.evaluate(()=>S.currency),900);await p.locator('[data-watch-equip="photo"]').click();assert.equal(await p.evaluate(()=>S.observation.mode),'photo');assert(await p.locator('[data-watch-unlock="vision"]').isDisabled());
