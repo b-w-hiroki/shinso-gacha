@@ -1,0 +1,60 @@
+{
+  "assumptions": "One medium, consecutive claimed records, no missed windows; not a measured retention or economy result.",
+  "cost": 48,
+  "rows": [
+    {
+      "sensitivity": 0,
+      "research": false,
+      "samples": 10000,
+      "medianCollections": 36,
+      "p90Collections": 114,
+      "maxCollections": 525,
+      "meanResearchUses": 0
+    },
+    {
+      "sensitivity": 0,
+      "research": true,
+      "samples": 10000,
+      "medianCollections": 36,
+      "p90Collections": 51,
+      "maxCollections": 98,
+      "meanResearchUses": 0.3583
+    },
+    {
+      "sensitivity": 1,
+      "research": false,
+      "samples": 10000,
+      "medianCollections": 24,
+      "p90Collections": 75,
+      "maxCollections": 354,
+      "meanResearchUses": 0
+    },
+    {
+      "sensitivity": 1,
+      "research": true,
+      "samples": 10000,
+      "medianCollections": 24,
+      "p90Collections": 51,
+      "maxCollections": 53,
+      "meanResearchUses": 0.2087
+    },
+    {
+      "sensitivity": 2,
+      "research": false,
+      "samples": 10000,
+      "medianCollections": 15,
+      "p90Collections": 45,
+      "maxCollections": 172,
+      "meanResearchUses": 0
+    },
+    {
+      "sensitivity": 2,
+      "research": true,
+      "samples": 10000,
+      "medianCollections": 15,
+      "p90Collections": 45,
+      "maxCollections": 51,
+      "meanResearchUses": 0.0704
+    }
+  ]
+}

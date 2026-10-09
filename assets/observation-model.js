@@ -5,6 +5,7 @@
  const RETENTION=[3,6,12,24],INTERVAL=[10,8,6,5];
  const UPGRADES={retention:{name:'記録保持',costs:[80,240,600],max:3},interval:{name:'観測加速',costs:[100,300,800],max:3},sensitivity:{name:'異常感度',costs:[200,500],max:2}};
  const RARITY=[{name:'N',reward:8},{name:'R',reward:20},{name:'SR',reward:60},{name:'SSR',reward:180}];
+ const RESEARCH_COST=48;
  const SET_REWARDS={cctv:80,photo:100,vision:120,dash:160};
  const int=(v,max=Number.MAX_SAFE_INTEGER)=>Math.max(0,Math.min(max,Math.floor(Number(v)||0)));
  const interval=o=>INTERVAL[o.upgrades.interval]*MINUTE,hold=o=>RETENTION[o.upgrades.retention]*HOUR;
@@ -24,6 +25,8 @@
   o.seed=int(o.seed,0xffffffff)||1;o.quiet=!!o.quiet;
   o.history=Array.isArray(o.history)?o.history.filter(x=>x&&MODES[x.mode]&&Number.isInteger(x.rarity)&&RARITY[x.rarity]).slice(-12):[];
   o.collection=o.collection&&typeof o.collection==='object'?o.collection:{};
+  o.researchSpent=Object.fromEntries(Object.keys(MODES).map(mode=>[mode,int(o.researchSpent?.[mode],3999996)]));
+  o.reconstructed=Object.fromEntries(Object.keys(MODES).flatMap(mode=>[0,1,2,3].filter(r=>o.reconstructed?.[mode+':'+r]===true).map(r=>[mode+':'+r,true])));
   o.completedSets=Object.fromEntries(Object.keys(MODES).map(mode=>[mode,o.completedSets?.[mode]===true]));
   for(const mode of Object.keys(MODES))for(let rarity=0;rarity<4;rarity++){const key=mode+':'+rarity;o.collection[key]=int(o.collection[key],999999);}
   if(o.pending&&(!MODES[o.pending.mode]||o.pending.mode!==o.mode||!Number.isInteger(o.pending.rarity)||!RARITY[o.pending.rarity]||!Number.isFinite(o.pending.readyAt)||!Number.isFinite(o.pending.expiresAt)||o.pending.expiresAt<=o.pending.readyAt))o.pending=null;
@@ -61,6 +64,24 @@
   if(!Object.hasOwn(SET_REWARDS,mode)||setProgress(o,mode)!==4||o.completedSets?.[mode])return null;
   o.completedSets=o.completedSets||{};o.completedSets[mode]=true;return SET_REWARDS[mode];
  }
+ function researchStatus(o,mode){
+  if(!Object.hasOwn(MODES,mode))return null;
+  const missing=[0,1,2,3].filter(r=>!o.collection[mode+':'+r]);
+  const spent=int(o.researchSpent?.[mode],3999996);
+  const duplicates=[0,1,2,3].reduce((n,r)=>n+Math.max(0,(o.collection[mode+':'+r]||0)-1),0);
+  const available=Math.max(0,duplicates-spent);
+  return {missing,spent,available,ready:o.unlocked.includes(mode)&&missing.length>0&&available>=RESEARCH_COST};
+ }
+ function research(o,mode,expectedSpent){
+  const status=researchStatus(o,mode);
+  if(!status?.ready||status.spent!==expectedSpent)return null;
+  // Dedicated stable seed: opening/cancelling/reloading cannot reroll or affect the live watch.
+  const n=(Math.imul(o.seed^0x27d4eb2d,31)+Math.imul(status.spent+1,0x85ebca6b)+Object.keys(MODES).indexOf(mode))>>>0;
+  const rarity=status.missing[n%status.missing.length],key=mode+':'+rarity;
+  o.researchSpent=o.researchSpent||{};o.researchSpent[mode]=status.spent+RESEARCH_COST;
+  o.reconstructed=o.reconstructed||{};o.reconstructed[key]=true;o.collection[key]=1;
+  return {mode,rarity};
+ }
  function unlock(o,mode,balance){const m=MODES[mode];if(!m||o.unlocked.includes(mode)||o.collected<m.need||balance<m.cost)return null;o.unlocked.push(mode);return m.cost;}
  function upgrade(o,id,balance,now){
   sync(o,now);const u=UPGRADES[id];if(!u)return null;const lv=o.upgrades[id],cost=u.costs[lv];if(lv>=u.max||balance<cost)return null;
@@ -69,5 +90,5 @@
   if(id==='interval'&&!o.pending)o.dueAt=Math.min(o.dueAt,o.lastSeen+interval(o));
   return cost;
  }
- return {MINUTE,HOUR,MODES,RETENTION,INTERVAL,UPGRADES,RARITY,SET_REWARDS,create,normalize,interval,hold,roll,sync,reward,claim,equip,unlock,upgrade,setProgress,claimSet};
+ return {MINUTE,HOUR,MODES,RETENTION,INTERVAL,UPGRADES,RARITY,SET_REWARDS,RESEARCH_COST,create,normalize,interval,hold,roll,sync,reward,claim,equip,unlock,upgrade,setProgress,claimSet,researchStatus,research};
 });

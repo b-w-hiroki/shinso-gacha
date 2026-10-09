@@ -34,3 +34,22 @@ o=M.normalize(JSON.parse(JSON.stringify(o)));assert.equal(M.claimSet(o,'cctv'),n
 for(const mode of ['photo','vision','dash']){for(let r=0;r<4;r++)o.collection[mode+':'+r]=1;assert.equal(M.claimSet(o,mode),M.SET_REWARDS[mode]);}
 assert.equal(Object.values(o.completedSets).filter(Boolean).length,4);
 console.log('Set completion: partial, repeats, all media, saved one-time claims passed');
+// Duplicate research preserves original records and the live observation transaction.
+o=M.normalize(M.create(T,123));o.collection['cctv:0']=48;
+assert.equal(M.researchStatus(o,'cctv').available,47);assert.equal(M.research(o,'cctv',0),null);
+o.collection['cctv:0']=49;M.sync(o,T+I);
+const watchBefore=JSON.stringify({pending:o.pending,sequence:o.sequence,dueAt:o.dueAt,collected:o.collected,history:o.history});
+const saveBefore=JSON.parse(JSON.stringify(o));const found=M.research(o,'cctv',0);assert(found&&found.rarity!==0);
+assert.equal(o.collection['cctv:0'],49);assert.equal(M.researchStatus(o,'cctv').available,0);assert.equal(M.research(o,'cctv',0),null);
+assert.equal(JSON.stringify({pending:o.pending,sequence:o.sequence,dueAt:o.dueAt,collected:o.collected,history:o.history}),watchBefore);
+assert.deepEqual(M.research(saveBefore,'cctv',0),found,'reload has the same reconstruction');
+assert.equal(M.research(M.normalize(JSON.parse(JSON.stringify(o))),'cctv',0),null);
+assert.equal(M.research(o,'toString',0),null);assert.equal(M.research(o,'photo',0),null);
+// Three reconstructions use 144 actual duplicates, then stop without consuming more.
+o=M.normalize(M.create(T,987));o.collection['cctv:0']=145;
+for(const spent of [0,48,96]){assert(M.research(o,'cctv',spent));assert.equal(M.research(o,'cctv',spent),null,'stale confirmation rejected even with enough duplicates');}
+assert.equal(M.setProgress(o,'cctv'),4);assert.equal(M.researchStatus(o,'cctv').available,0);assert.equal(M.research(o,'cctv',144),null);assert.equal(M.claimSet(o,'cctv'),80);assert.equal(M.claimSet(o,'cctv'),null);
+assert.equal(o.collected,0);assert.equal(o.history.length,0);assert.equal(Object.keys(o.reconstructed).length,3);
+const firstPending={mode:'cctv',rarity:Number(Object.keys(o.reconstructed)[0].split(':')[1]),readyAt:T,expiresAt:T+3*H,sequence:0};o.pending=firstPending;
+assert.equal(M.claim(o,T).first,false,'restored record is already known');assert.equal(M.researchStatus(o,'cctv').available,1);
+console.log('Duplicate research: cost boundary, original preservation, stale confirmation, reload, unseen result, live state isolation and completion passed');
