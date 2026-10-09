@@ -16,7 +16,7 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  assert.equal(await p.evaluate(()=>S.observation.pending.suppression),0);assert((await p.locator('#obs-feedback').innerText()).includes('反応がない'));
  const hit=async()=>{const point=await p.locator('#obs-image').evaluate(e=>{const r=e.getBoundingClientRect();return{x:r.x+r.width*.51,y:r.y+r.height*.34};});await p.mouse.click(point.x,point.y);};
  await hit();assert((await p.locator('#obs-feedback').innerText()).includes('輪郭が揺らいだ'));
- for(let i=0;i<5;i++)await hit();assert.equal(await p.evaluate(()=>S.currency),before+80);
+ for(let i=0;i<5;i++)await hit();assert.equal(await p.evaluate(()=>S.currency),before+89);
  await p.evaluate(()=>{watchMessage='';watchMessageUntil=0;S.observation.mind.load=0;renderObservation();});
  await p.locator('[data-trail="latest"]').click();assert((await p.locator('.investigation-memo').innerText()).includes('風速計'));assert(await p.evaluate(()=>S.observation.mind.closed));
  assert(await p.evaluate(()=>S.observation.investigation.read['cctv:1']));
@@ -28,7 +28,7 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  await p.screenshot({path:'docs/qa-incursions/trail-witness-390.jpg',quality:85});
  await p.keyboard.press('Escape');await p.reload();
  if(process.env.QA_FONT){await p.addStyleTag({content:"@font-face{font-family:QAJP;src:url('/font.otf')} :root{--f-body:QAJP;--f-display:QAJP;--f-mono:QAJP;--f-hand:QAJP}"});await p.evaluate(()=>document.fonts.load('16px QAJP'));}
- assert(await p.evaluate(()=>S.observation.investigation.discussed['cctv:1']));assert(await p.evaluate(()=>S.observation.mind.closed));assert.equal(await p.evaluate(()=>S.currency),before+80);
+ assert(await p.evaluate(()=>S.observation.investigation.discussed['cctv:1']));assert(await p.evaluate(()=>S.observation.mind.closed));assert.equal(await p.evaluate(()=>S.currency),before+89);
  assert.equal(await p.evaluate(()=>investigationRecord('photo:3')),null);assert.equal(await p.evaluate(()=>investigationRecord('__proto__')),null);
  await p.evaluate(()=>{showWatchRecord('photo',3);});assert(await p.locator('#sheet-bg').isHidden(),'unseen record stays hidden');
  await p.locator('#obs-rest').click();assert(!(await p.evaluate(()=>S.observation.mind.closed)));

@@ -6,6 +6,8 @@ Each evidence case specifies an original record, three candidate records, one in
 
 Scene fitting uses actual header, alert and navigation heights on viewport changes. The 1回 / 5回 buttons have equal columns and prices; the existing five-draw benefit stays in optional opening help. Camera source labels and initial on-screen camera guidance are removed. List and long-reading screens can still scroll. CSS touch-action and Safari gesture handlers prevent accidental control zoom while preserving text zoom. Real iPhone gesture behavior still requires device verification.
 
+Every active observation tap awards 1pt, including missed anomaly contacts; only target contacts advance suppression. Region-picker inputs pay the same 1pt, while opening help, closed-monitor clicks, background time and auto ticks do not. Patrol/clearing bonuses remain additional. The wallet updates quietly and invalidates stale counter animations; currency-dependent screens refresh on navigation.
+
 Truth completion awards 50pt once per acquired normal dossier. New completions are credited in the draw transaction; already-completed records expose a claim in the dossier. It is stored in truthRewards and cannot be claimed twice. Existing duplicate testimony remains unchanged. The human-faced dog (u9) has five populated layers and passed opening/dossier rendering checks; the user-reported blank state was not reproduced. A second tap now completes a delayed opening animation synchronously. It is a recovery path, not a confirmed root-cause fix.
 
 ## Validation

@@ -2164,13 +2164,15 @@ function setWalletText(value) {
   $("wallet").setAttribute("aria-label", `疑念 ${value.toLocaleString("ja-JP")}pt。獲得詳細を見る`);
   $("wallet").title = value.toLocaleString("ja-JP") + "pt";
 }
-let shownPt = 0;
-function animatePt() {
-  const target = Math.floor(S.currency);
+let shownPt = 0,ptAnimation=0;
+function animatePt(instant=false) {
+  const target = Math.floor(S.currency),animation=++ptAnimation;
+  if(instant){shownPt=target;setWalletText(target);$("wallet").classList.remove("pop");return;}
   if (shownPt === target) return;
   const from = shownPt, t0 = performance.now(), dur = REDUCED ? 0 : 350;
   $("wallet").classList.add("pop");
   const step = now => {
+    if(animation!==ptAnimation)return;
     const k = dur ? Math.min(1, (now - t0) / dur) : 1;
     shownPt = Math.round(from + (target - from) * k);
     setWalletText(shownPt);
@@ -2361,6 +2363,7 @@ function defaultSectionTab(view) {
   if (map[view]) setSectionTab(map[view]);
 }
 function go(view) {
+  if(typeof watchCurrencyDirty!=='undefined'&&watchCurrencyDirty){watchCurrencyDirty=false;render();}
   if (isLite() && view !== "menu") view = "lite";
   if (view === "home" && !isLite()) setHomeTab("desk");
   if (!isLite()) defaultSectionTab(view);

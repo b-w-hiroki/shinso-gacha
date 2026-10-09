@@ -75,7 +75,10 @@ function observationReward(result,auto=false){
  watchMessage=`${result.kind==='anomaly'?'干渉停止。観測を継続してください。':'記録を転送しました。'} +${record.reward}pt`;watchMessageUntil=Date.now()+4500;
  markDirty();save();render();if(!auto)buzz(result.kind==='anomaly'?30:8);
 }
-let watchTouchTimer,watchJolt,watchMisses=0;
+let watchTouchTimer,watchJolt,watchMisses=0,watchCurrencyDirty=false;
+function observationTapReward(){
+ S.currency+=1;watchCurrencyDirty=true;animatePt(true);
+}
 function observationTouchFeedback(event,strike){
  const frame=document.getElementById('obs-frame');
  // Extend one low-contrast pulse during repeated input; never stack flashes.
@@ -96,6 +99,7 @@ function observationCollect(event){
  const o=observationSync();if(o.mind.closed)return;
  const strike=!!o.pending&&o.pending.rarity>0;
  if(strike&&(event?.currentTarget!==document.getElementById('obs-frame')||!event.detail))return observationTargetPicker();
+ observationTapReward();
  let point=null;
  if(strike){const r=document.getElementById('obs-image').getBoundingClientRect();point={x:(event.clientX-r.left)/r.width,y:(event.clientY-r.top)/r.height};}
  const contact=strike&&WatchModel.hit(o,point);
@@ -104,7 +108,7 @@ function observationCollect(event){
   if(strike){watchMisses=contact?0:watchMisses+1;
    if(contact||watchMisses>=3){watchMessage=contact?'輪郭が揺らいだ。まだ、そこにいる。':'この場所からは反応がない。';watchMessageUntil=Date.now()+2200;}
   }
-  markDirty();renderObservation();
+  markDirty();save();renderObservation();
  }
  observationTouchFeedback(event,contact);
 }
@@ -280,7 +284,9 @@ document.addEventListener('click',e=>{
  if(b.dataset.watchTalk)return observationConversation(b.dataset.watchTalk,b.dataset.topic);
  if(b.dataset.watchRegion!==undefined){
   const o=observationState();if(o.mind.closed||!o.pending?.rarity)return;
-  const before=o.pending.suppression,result=WatchModel.suppressRegion(o,Date.now(),Number(b.dataset.watchRegion));
+  const region=Number(b.dataset.watchRegion);if(!Number.isInteger(region)||region<0||region>8)return;
+  observationTapReward();
+  const before=o.pending.suppression,result=WatchModel.suppressRegion(o,Date.now(),region);
   if(result){document.getElementById('sheet-bg').hidden=true;observationReward(result);observationTouchFeedback(null,true);document.getElementById('obs-frame').focus();}
   else {markDirty();save();renderWatchMind();document.querySelector('.watch-target-copy').textContent=o.pending.suppression>before?'指先に抵抗がある。まだ、そこにいる。':'そこには、手応えがない。';}
  }
