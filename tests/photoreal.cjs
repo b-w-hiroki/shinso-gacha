@@ -48,6 +48,8 @@ const server = http.createServer((req,res) => {
     assert(imgs.every(i=>i.width>0),'all ten images must decode in Chromium');
     for(const [w,h] of [[390,844],[375,667],[320,568],[430,932],[1280,900]]){
       await page.setViewportSize({width:w,height:h});
+      // ResizeObserver settles the illustration on the next paint; measure the rendered layout.
+      await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
       const layout=await page.evaluate(()=>({width:document.documentElement.scrollWidth,height:document.documentElement.scrollHeight,viewport:innerHeight,buttons:[...document.querySelectorAll('[data-pull]')].filter(e=>!e.hidden).map(e=>{const r=e.getBoundingClientRect();return {w:r.width,h:r.height,bottom:r.bottom}}),nav:document.querySelector('.nav').getBoundingClientRect().top}));
       assert(layout.width<=w,`horizontal overflow ${w}`);
       assert(layout.buttons.every(b=>b.w>=44&&b.h>=44&&b.bottom<=layout.nav),`CTA hit area/occlusion ${w}: ${JSON.stringify(layout)}`);
