@@ -4,6 +4,12 @@ UI principle: observe → recognize a discrepancy → intervene or disconnect. K
 
 Horror comes from uncertain testimony and ordinary routines with one wrong detail, rather than progress meters or more visual noise. Three colleagues have four topics with three variants each, six greeting/return lines and one conditional contradiction (43 authored dialogue lines). Topic counters and the contradiction clue survive saves. Opening a conversation does not advance topic variants. Conversation retains the existing global 120-second recovery cooldown; dialogue never adds mental load. Long-term narrative pacing remains to be playtested.
 
+## Conversation navigation
+
+The room and conversations use the dedicated `colleagues` view. The roster explains each person’s role and what to ask them. First contact is saved in `observation.contacts`, separately from recovery counts; each colleague introduces themself, including when entered directly from acquired evidence. Opening or changing topics does not award points or trigger recovery. Existing dialogue variants and the global recovery cooldown are unchanged.
+
+First read the introduction, then choose a topic, read the reply, and explicitly choose another topic. The selected topic remains above the reply. Record testimony offers a direct comparison return. Speaker selection is above the conversation; leaving is below it and keeps the monitor closed. Escape dismisses a modal first, then returns to the roster, then observation. This is in-app navigation, not native browser history. Small or landscape screens can scroll for readable text; all controls remain reachable above the bottom navigation.
+
 ## Portrait assets
 
 Generated with built-in imagegen, one generation per portrait; converted to 512px-wide WebP for delivery. No fallback CLI or image editing. Original PNGs preserved in the generation output. Dark facial detail is intentional, while names, roles and distinct outlines identify the speaker.

@@ -50,7 +50,7 @@ function investigationTestimony(id){
  return r.data.testimony[r.rarity];
 }
 function investigationTopic(id){
- const s=investigationState(),r=investigationRecord(s.lastRead);return r&&s.read[r.key]&&r.data.member===id?'<button class="watch-choice" data-trail="witness" data-key="'+r.key+'">この記録について</button>':'';
+ const s=investigationState(),r=investigationRecord(s.lastRead);return r&&s.read[r.key]&&r.data.member===id?'<button class="watch-choice" data-trail="witness" data-key="'+r.key+'">「'+OBSERVATIONS[r.mode].records[r.rarity]+'」について聞く</button>':'';
 }
 function investigationReturn(id){
  const s=investigationState(),r=investigationRecord(s.lastRead);return r&&s.read[r.key]&&r.data.member===id?'<button class="btn-line investigation-return" data-trail="record" data-key="'+r.key+'">記録へ戻って照合する</button>':'';
