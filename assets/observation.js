@@ -45,7 +45,7 @@ function renderObservation(){
  const hint=document.getElementById('obs-first-hint');hint.hidden=o.mind.closed||o.collected>0;hint.textContent=danger?'違和感のある場所に触れる':'映像に触れて観測を進める';
 
  if(Date.now()>watchMessageUntil)watchMessage='';document.getElementById('obs-feedback').textContent=watchMessage;
- renderWatchMind();requestAnimationFrame(fitObservation);
+ renderWatchMind();fitObservation();
  // The screen reader can request the timer; normal viewing stays quiet.
 }
 function observationTick(){
@@ -238,5 +238,5 @@ function fitObservation(){
  const height=Math.max(100,Math.min(560,f.height+Math.min(innerHeight,navTop)-bottom-18));
  if(Math.abs(height-f.height)>1)frame.style.setProperty('--obs-height',`${Math.floor(height)}px`);
 }
-addEventListener('resize',()=>requestAnimationFrame(fitObservation));
+addEventListener('resize',fitObservation);
 new ResizeObserver(()=>requestAnimationFrame(fitObservation)).observe(document.querySelector('.thread-radar'));
