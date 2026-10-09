@@ -1,9 +1,9 @@
-/* Pure clock model: one equipped source, one held record, no background rewards. */
+/* One live observation: tap patrols, held anomalies and foreground automation. */
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.WatchModel=api;})(typeof globalThis!=='undefined'?globalThis:this,()=>{
  const MINUTE=60000,HOUR=60*MINUTE;
  const MODES={cctv:{label:'監視カメラ',need:0,cost:0,mult:1},photo:{label:'写真',need:5,cost:100,mult:1.25},vision:{label:'視界ジャック',need:15,cost:300,mult:1.5},dash:{label:'車載カメラ',need:30,cost:800,mult:2}};
- const RETENTION=[3,6,12,24],INTERVAL=[10,8,6,5];
- const UPGRADES={retention:{name:'記録保持',costs:[80,240,600],max:3},interval:{name:'観測加速',costs:[100,300,800],max:3},sensitivity:{name:'異常感度',costs:[200,500],max:2}};
+ const RETENTION=[3,6,12,24],INTERVAL=[10,8,6,5],TAPS=[10,8,6,4],SUPPRESS=[0,6,10,15],AUTO_SECONDS=[0,5,3,1],ANOMALY_REWARDS=[8,80,200,480];
+ const UPGRADES={retention:{name:'記録保持',costs:[80,240,600],max:3},interval:{name:'巡回効率',costs:[100,300,800],max:3},sensitivity:{name:'異常感度',costs:[200,500],max:2},patrol:{name:'自動巡回',costs:[300,900,2400],max:3},suppression:{name:'自動鎮静',costs:[600,1800,4000],max:3}};
  const RARITY=[{name:'N',reward:8},{name:'R',reward:20},{name:'SR',reward:60},{name:'SSR',reward:180}];
  const RESEARCH_COST=48;
  const SET_REWARDS={cctv:80,photo:100,vision:120,dash:160};
@@ -11,7 +11,7 @@
  const interval=o=>INTERVAL[o.upgrades.interval]*MINUTE,hold=o=>RETENTION[o.upgrades.retention]*HOUR;
  function create(now,seed,old){
   const mode=MODES[old?.mode]?old.mode:'cctv';
-  const o={version:2,mode,unlocked:['cctv',...(mode!=='cctv'?[mode]:[])],upgrades:{retention:0,interval:0,sensitivity:0},seed:int(seed,0xffffffff)||1,sequence:0,collected:0,missed:0,dueAt:now+10*MINUTE,lastSeen:now,pending:null,quiet:!!old?.quiet,history:[],collection:{}};
+  const o={version:2,mode,unlocked:['cctv',...(mode!=='cctv'?[mode]:[])],tapProgress:0,patrols:0,autoEnabled:true,autoLastAt:now,upgrades:{retention:0,interval:0,sensitivity:0,patrol:0,suppression:0},seed:int(seed,0xffffffff)||1,sequence:0,collected:0,missed:0,dueAt:now+10*MINUTE,lastSeen:now,pending:null,quiet:!!old?.quiet,history:[],collection:{}};
   if(old?.anomaly){o.pending={mode,rarity:2,readyAt:now,expiresAt:now+hold(o),sequence:0};o.dueAt=now;}
   return o;
  }
@@ -22,6 +22,8 @@
   o.upgrades=o.upgrades&&typeof o.upgrades==='object'?o.upgrades:{};
   for(const [k,u] of Object.entries(UPGRADES))o.upgrades[k]=int(o.upgrades[k],u.max);
   for(const k of ['sequence','collected','missed','dueAt','lastSeen'])o[k]=int(o[k]);
+  o.tapProgress=int(o.tapProgress,TAPS[o.upgrades.interval]-1);o.patrols=int(o.patrols);o.autoLastAt=int(o.autoLastAt);o.autoEnabled=o.autoEnabled!==false;
+  if(o.pending)o.pending.suppression=int(o.pending.suppression,14);
   o.seed=int(o.seed,0xffffffff)||1;o.quiet=!!o.quiet;
   o.history=Array.isArray(o.history)?o.history.filter(x=>x&&MODES[x.mode]&&Number.isInteger(x.rarity)&&RARITY[x.rarity]).slice(-12):[];
   o.collection=o.collection&&typeof o.collection==='object'?o.collection:{};
@@ -48,7 +50,7 @@
    o.sequence+=skipped;o.missed+=skipped;o.dueAt+=skipped*period;
    const expiresAt=o.dueAt+hold(o);
    if(now>=expiresAt){o.missed++;o.sequence++;o.dueAt=expiresAt+interval(o);}
-   else o.pending={mode:o.mode,rarity:roll(o,o.sequence),readyAt:o.dueAt,expiresAt,sequence:o.sequence};
+   else o.pending={mode:o.mode,rarity:roll(o,o.sequence),readyAt:o.dueAt,expiresAt,sequence:o.sequence,suppression:0};
    changed=true;
   }
   return changed;
@@ -58,7 +60,37 @@
   sync(o,now);if(!o.pending)return null;
   const p={...o.pending,reward:reward(o.pending)};o.pending=null;o.collected++;o.sequence++;o.dueAt=o.lastSeen+interval(o);const key=p.mode+':'+p.rarity;p.first=!o.collection[key];o.collection[key]=(o.collection[key]||0)+1;o.history.push(p);o.history=o.history.slice(-12);return p;
  }
- function equip(o,mode,now){sync(o,now);if(o.pending||!o.unlocked.includes(mode)||o.mode===mode)return false;o.mode=mode;o.sequence++;o.dueAt=o.lastSeen+interval(o);return true;}
+ function tap(o,time){
+  normalize(o);sync(o,time);
+  if(o.pending?.rarity>0){
+   const p=o.pending;p.suppression=(p.suppression||0)+1;
+   if(p.suppression<SUPPRESS[p.rarity])return null;
+   const record=claim(o,time);record.reward=Math.round(ANOMALY_REWARDS[record.rarity]*MODES[record.mode].mult);
+   o.tapProgress=0;return {kind:'anomaly',record};
+  }
+  o.tapProgress++;
+  if(o.tapProgress<TAPS[o.upgrades.interval])return null;
+  o.tapProgress=0;
+  if(!o.pending)o.pending={mode:o.mode,rarity:0,readyAt:o.lastSeen,expiresAt:o.lastSeen+hold(o),sequence:o.sequence};
+  const record=claim(o,time);o.patrols++;
+  const routes=Object.keys(MODES).filter(mode=>o.unlocked.includes(mode));
+  o.mode=routes[(routes.indexOf(o.mode)+1)%routes.length];
+  const rarity=roll(o,o.sequence);
+  if(rarity>0)o.pending={mode:o.mode,rarity,readyAt:o.lastSeen,expiresAt:o.lastSeen+hold(o),sequence:o.sequence,suppression:0};
+  return {kind:'patrol',record};
+ }
+ function automate(o,time,active=true){
+  normalize(o);const now=Math.max(int(time),o.autoLastAt),elapsed=now-o.autoLastAt;
+  const seconds=AUTO_SECONDS[o.upgrades.patrol]||5;
+  if(!active||!o.autoEnabled){o.autoLastAt=now;return null;}
+  // No catch-up bursts: a visible tick can advance at most one real tap.
+  if(elapsed<seconds*1000)return null;
+  o.autoLastAt=now;sync(o,now);
+  if(o.pending?.rarity>0){if(o.upgrades.suppression<o.pending.rarity)return null;}
+  else if(!o.upgrades.patrol)return null;
+  return tap(o,now);
+ }
+ function equip(o,mode,now){sync(o,now);if(o.pending||!o.unlocked.includes(mode)||o.mode===mode)return false;o.mode=mode;o.tapProgress=0;o.sequence++;o.dueAt=o.lastSeen+interval(o);return true;}
  function setProgress(o,mode){return MODES[mode]?[0,1,2,3].filter(r=>o.collection[mode+':'+r]>0).length:0;}
  function claimSet(o,mode){
   if(!Object.hasOwn(SET_REWARDS,mode)||setProgress(o,mode)!==4||o.completedSets?.[mode])return null;
@@ -90,5 +122,5 @@
   if(id==='interval'&&!o.pending)o.dueAt=Math.min(o.dueAt,o.lastSeen+interval(o));
   return cost;
  }
- return {MINUTE,HOUR,MODES,RETENTION,INTERVAL,UPGRADES,RARITY,SET_REWARDS,RESEARCH_COST,create,normalize,interval,hold,roll,sync,reward,claim,equip,unlock,upgrade,setProgress,claimSet,researchStatus,research};
+ return {MINUTE,HOUR,MODES,RETENTION,INTERVAL,TAPS,SUPPRESS,AUTO_SECONDS,ANOMALY_REWARDS,UPGRADES,RARITY,SET_REWARDS,RESEARCH_COST,create,normalize,interval,hold,roll,sync,reward,claim,tap,automate,equip,unlock,upgrade,setProgress,claimSet,researchStatus,research};
 });

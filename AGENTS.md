@@ -7,3 +7,5 @@
 - When a local checkout exists, switch to updated main, verify there are no uncommitted or unmerged changes, remove the finished local branch, and run `git fetch --prune`. A squash merge alone is not proof that a local branch is disposable; compare its tip with the merged PR's head. Do not force-delete unknown work.
 - Include PR/CI status, remaining limitations and branch cleanup results in the completion report.
 - Keep the observation UI focused on one large scene. Preserve the existing world and game loop, save compatibility, point accounting, and mobile readability. Unseen records must not reveal their names or images.
+
+- Preserve horror, unease and tension over arcade presentation. Keep patrol/growth rewards understated, avoid combo/speed pressure and celebratory overlays, and leave the scene legible. Put primary controls below content or in the existing lower navigation; never cover text with stamps.

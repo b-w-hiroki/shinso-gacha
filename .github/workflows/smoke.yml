@@ -51,6 +51,9 @@ jobs:
       - run: node tests/observation.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/patrol-ui.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/information-ui.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
