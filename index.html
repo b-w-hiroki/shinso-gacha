@@ -1005,7 +1005,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 
 <header class="top">
   <div class="top-in">
-    <div class="logo">真相<span class="bar">ガチ</span>ャ<small id="issue">UNVERIFIED ARCHIVE #001</small></div>
+    <div class="logo" aria-label="真相ガチャ">真相<span class="bar">ガチ</span>ャ<small id="issue">UNVERIFIED ARCHIVE #001</small></div>
     <button class="wallet" id="wallet" type="button" aria-label="疑念ptの獲得詳細を見る">
       <span class="ring" id="ring" aria-hidden="true"></span>
       <b id="pt">0</b><span>疑念pt</span>
@@ -1086,7 +1086,6 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
           <span id="obs-timer" class="obs-timer" aria-hidden="true"></span>
           <span id="obs-first-hint">映像または下のボタンをタップ</span>
         </button>
-        <div class="obs-progress"><div><span id="obs-action-label"></span><b id="obs-progress-count"></b></div><progress id="obs-progress" max="10" value="0" aria-label="観測の進捗"></progress><small id="obs-auto-status"></small></div>
         <p id="obs-feedback" role="status" aria-live="polite"></p>
         <div class="obs-controls"><button id="obs-tap" type="button">観測を進める</button><button data-watch="settings" type="button">観測設定</button><button id="obs-danger" data-inc="open" aria-label="別件の異変に対処" hidden>対処記録</button></div>
       </section>
