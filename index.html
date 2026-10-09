@@ -1074,9 +1074,6 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
       <button data-htab="desk" aria-pressed="true">異変の観測</button>
       <button data-htab="tasks" aria-pressed="false">本日の任務</button>
     </div>
-    <div class="agent-footer">
-      <button class="agent-primary" id="agent-primary" data-desk="gacha">封筒を調査する</button>
-    </div>
 
     <div class="home-pane" data-hpane="desk">
       <section class="thread-radar" aria-label="観測映像">
@@ -1089,10 +1086,14 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
         <p id="obs-feedback" role="status" aria-live="polite"></p>
         <div class="obs-secondary"><button id="obs-rest" type="button">モニタを閉じる</button><button id="obs-colleagues" type="button">課内で話す</button><button data-watch="settings" type="button" hidden>観測設定</button></div>
       </section>
+      <div class="cap home-cap" hidden><span id="cap-text"></span><div class="rk-bar"><i id="cap-bar" style="width:0%"></i></div></div>
+    </div>
+
+    <div class="home-pane" data-hpane="tasks" hidden>
       <p class="streak" id="streak" hidden></p>
       <div class="pursuer-signal" id="pursuer-signal" hidden></div>
       <div class="ushi" id="ushi" hidden><b>丑三つ時</b><span>異常探知感度が上がっています。</span></div>
-      <details class="home-dispatch"><summary>調査デスク <span aria-hidden="true">↗</span></summary><article class="desk-event paper aged urban" id="desk-event" aria-live="polite">
+      <div class="home-dispatch"><article class="desk-event paper aged urban" id="desk-event" aria-live="polite">
         <span class="clip" aria-hidden="true"></span>
         <span class="stamp-sm" id="desk-stamp">投函済</span>
         <div class="eyebrow" id="desk-eye">調査デスク</div>
@@ -1100,12 +1101,10 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
         <p id="desk-body"></p>
         <div class="actions" id="desk-actions"></div>
         <span class="crowd" id="today-crowd" hidden></span>
-      </article></details>
-
-      <div class="cap home-cap" hidden><span id="cap-text"></span><div class="rk-bar"><i id="cap-bar" style="width:0%"></i></div></div>
-    </div>
-
-    <div class="home-pane" data-hpane="tasks" hidden>
+      </article>
+      <div class="agent-footer">
+        <button class="agent-primary" id="agent-primary" data-desk="gacha">封筒を調査する</button>
+      </div></div>
       <div>
         <div class="sec-h"><h3>本日の任務</h3><small>0時にリセット</small></div>
         <button class="btn-paper" id="claim-all" data-act="claim-all" hidden>受取可能な報酬を一括受取</button><div class="mis" id="missions"></div>
@@ -1957,8 +1956,7 @@ function setHomeTab(tab) {
   document.querySelectorAll("[data-hpane]").forEach(p => p.hidden = p.dataset.hpane !== tab);
   const primary = $("agent-primary");
   if (primary) {
-    primary.hidden = tab !== "desk";
-    if (tab === "desk") renderDeskEvent();
+    renderDeskEvent();
   }
   window.scrollTo({top:0, behavior:REDUCED ? "auto" : "smooth"});
   if(tab==='desk'&&typeof fitObservation==='function')fitObservation();
@@ -2131,6 +2129,7 @@ function renderDeskEvent() {
   if (primary) {
     primary.textContent = e.label;
     primary.dataset.desk = e.action;
+    primary.hidden = e.action === "tasks";
   }
   renderRadar();
 }

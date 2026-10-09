@@ -26,3 +26,32 @@
 .gacha-scene .context-help[open] .odds,.gacha-scene .context-help[open] [data-act=odds]{display:block}
 @media(max-width:599px){.gacha-scene .cab-desc{margin:0;line-height:1.5}.gacha-scene .cabinet{gap:8px}}
 @media(max-width:599px) and (max-height:600px){.gacha-scene .big-env{margin-top:4px}.gacha-scene .cab-desc{font-size:13px}}
+
+/* Tabs describe the current content; they must never float over that content. */
+.agent-home > .home-tabs,.dossier-view .section-tabs{position:static;top:auto;z-index:auto}
+/* Observation has no below-the-fold dispatch or second navigation CTA. */
+body:has(.agent-home:not([hidden]) [data-hpane="desk"]:not([hidden])) main{padding-top:8px;padding-bottom:calc(var(--watch-nav-height,70px) + 8px)}
+.agent-home:has([data-hpane="desk"]:not([hidden])){gap:8px}
+.agent-home .home-pane[data-hpane="desk"]{gap:0}
+.agent-home .thread-radar{padding-block:0}
+.agent-home .obs-topline{padding-inline:0}
+.agent-home .obs-secondary{margin-bottom:0}
+.agent-home [data-hpane="tasks"] .home-dispatch{margin:0}
+.agent-home [data-hpane="tasks"] .desk-event{padding:0 0 12px;background:transparent;color:#e5d8be;filter:none;box-shadow:none}
+.agent-home [data-hpane="tasks"] .desk-event .eyebrow{display:none}
+.agent-home [data-hpane="tasks"] .desk-event h2{font-size:20px;line-height:1.6;margin:0 0 8px}
+.agent-home [data-hpane="tasks"] .desk-event p{color:#c9bea8;margin:0}
+.agent-home [data-hpane="tasks"] .agent-footer{display:block;position:static;transform:none;width:100%;margin:8px 0 0}
+.agent-home [data-hpane="tasks"] .agent-footer:has(button[hidden]){display:none}
+.agent-home [data-hpane="tasks"] #agent-primary{width:100%}
+
+.agent-home [data-hpane="tasks"] > .home-dispatch{background:none;padding:0}
+/* Temporary action feedback replaces ambience instead of adding another text row. */
+.thread-radar:has(#obs-feedback:not(:empty)) #obs-atmosphere{display:none}
+
+/* Mission content uses normal rows, not a stretched clipboard around every div. */
+.agent-home [data-hpane="tasks"] > div{background:none;padding:0}
+.agent-home [data-hpane="tasks"] .sec-h :is(h3,small){color:#e5d8be}
+.agent-home [data-hpane="tasks"] .mi{color:#e5d8be;border-bottom:1px solid #645945;padding:14px 0}
+.agent-home [data-hpane="tasks"] .mi .r,.agent-home [data-hpane="tasks"] .mi.done .t{color:#c4b89e}
+.agent-home [data-hpane="tasks"] .ushi{padding:12px;border:1px solid #806342;color:#dac8a4;font-size:13px;line-height:1.7}

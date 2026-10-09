@@ -117,7 +117,7 @@ body:has(.agent-home:not([hidden])) main { padding-bottom:calc(154px + env(safe-
 .agent-home > .home-tabs::before { display:none; }
 .agent-footer { bottom:calc(var(--nav-h) + 8px + env(safe-area-inset-bottom,0px)); padding:0; background:transparent; border:0; border-radius:0; box-shadow:none; backdrop-filter:none; width:min(608px,calc(100% - 26px)); }
 .agent-primary { min-height:62px; border:solid transparent; border-width:10px 13px; border-image:url("button-red.png") 25 35 stretch; border-radius:0; background:linear-gradient(#962e23,#651d16); background-clip:padding-box; color:#fff0d1; padding:4px 18px; box-shadow:0 7px 25px #000b; font-size:17px; }
-.agent-home:has([data-hpane="tasks"]:not([hidden])) .agent-footer { display:none; }
+
 body:has(.agent-home [data-hpane="tasks"]:not([hidden])) main { padding-bottom:calc(84px + env(safe-area-inset-bottom,0px)); }
 .agent-home .thread-radar { border:8px solid #292820; border-radius:7px; outline:1px solid #80765d; background:#121610; box-shadow:inset 0 0 0 1px #050604,0 5px 0 #12100b,0 13px 26px #0009; }
 .agent-home .radar-head { background:linear-gradient(#333228,#202019); padding:9px 9px; border-color:#474835; color:#d4c9a6; }

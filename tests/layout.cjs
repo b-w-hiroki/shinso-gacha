@@ -11,7 +11,7 @@ for(const [widthPx,height] of [[320,568],[360,640],[390,844],[430,932],[844,390]
  await p.setViewportSize({width:widthPx,height});
  for(const view of ['home','gacha','archive','lab','report']){
   await p.locator(`.nav [data-nav="${view}"]`).click();await width(view);await hit('#incursion-status',view+' status '+widthPx);await hit('#wallet',view+' wallet '+widthPx);await amountLine();
-  if(view==='home')await hit('#agent-primary','home CTA '+widthPx);
+  if(view==='home')await hit('#obs-rest','monitor closure '+widthPx);
   if(view==='gacha')for(const n of [1,5,10,100])await hit(`[data-pull="${n}"]`,'draw '+n+' '+widthPx);
   if(view==='archive')await hit('[data-act="dossier"][data-id="u1"]','archive file '+widthPx);
   if(view==='lab')await hit('[data-act="upgrade"]','upgrade '+widthPx);

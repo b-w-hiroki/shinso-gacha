@@ -24,7 +24,7 @@ const server=http.createServer((req,res)=>{
   await p.goto(origin);await font();
   assert(await p.locator('.nav').isVisible(),'home navigation must be available');
   await shot('home-390');
-  await p.locator('[data-htab="tasks"]').click();assert(!(await p.locator('.agent-footer').isVisible()),'no unrelated large action on tasks');await shot('tasks-390');
+  await p.locator('[data-htab="tasks"]').click();assert(await p.locator('#desk-event').isVisible(),'dispatch belongs to tasks');await shot('tasks-390');
   for(const [w,h] of [[390,844],[320,568],[1280,900]]){
    await p.setViewportSize({width:w,height:h});
    for(const v of ['home','archive','lab','report']){
@@ -32,7 +32,8 @@ const server=http.createServer((req,res)=>{
     if(w===390||w===320)await shot(v+'-'+w);
     const nav=await p.locator('.nav').boundingBox();assert(nav.y+nav.height<=h+1,'nav fits viewport');
     if(v==='home'){
-     await p.locator('#agent-primary').evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));const btn=await p.locator('#agent-primary').boundingBox();assert(btn&&btn.height>=44&&btn.y+btn.height<=nav.y,'home CTA must sit above nav '+JSON.stringify({w,h,btn,nav}));
+     assert(await p.locator('#agent-primary').isHidden(),'observation has no duplicate navigation CTA');
+     const btn=await p.locator('#obs-colleagues').boundingBox();assert(btn&&btn.height>=44&&btn.y+btn.height<=nav.y,'observation controls above nav '+JSON.stringify({w,h,btn,nav}));
     }
    }
   }
