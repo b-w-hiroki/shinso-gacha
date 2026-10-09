@@ -1,5 +1,6 @@
 // Exercise the public buttons for each shared grammar; do not mutate event progress.
 async function compareEvidence(page){
+ if(await page.locator('[data-inc="inspect"]').count())await page.locator('[data-inc="inspect"]').click();
  if(await page.locator('[data-inc="original"]').count()){
   await page.locator('[data-inc="original"]').click();await page.locator('[data-inc="current"]').click();
  }

@@ -1,6 +1,6 @@
 # 100 anomaly cases and scene interaction update
 
-The catalog has 100 stable case IDs: the three existing photo/radio/seal cases, three initial evidence cases, and 94 authored additions in assets/incursions.js. The 97 evidence cases now use seven material treatments and four interaction grammars: ordered containment, two-way disconnection, repeated contact, and before/current testimony comparison. The original three photo/radio/seal cases remain intact. These are 100 distinct authored events sharing interaction grammars, not 100 image assets or 100 unrelated mechanics. Existing saved event IDs 0–2 retain their meanings. IDs must remain append-only. Rotation visits all 100 before repeating and interleaves the families after the introductory seven cases. Tier/recovery/reward rules remain unchanged.
+The catalog has 100 stable case IDs: the three existing photo/radio/seal cases, three initial evidence cases, and 94 authored additions in assets/incursions.js. The 97 evidence cases now use seven material treatments and four interaction grammars: ordered containment, two-way disconnection, repeated contact, and before/current testimony comparison. The original three photo/radio/seal cases remain intact. These are 100 distinct authored events sharing interaction grammars, with 100 unique dedicated image assets in assets/incursions/cases/000.webp through 099.webp. They are not 100 unrelated mechanics. Existing saved event IDs 0–2 retain their meanings. IDs must remain append-only. Rotation visits all 100 before repeating and interleaves the families after the introductory seven cases. Tier/recovery/reward rules remain unchanged.
 
 Each evidence case specifies an original record, three candidate records, one inconsistent candidate and its aftermath. The answer position varies; selecting the inconsistent candidate starts the relevant containment procedure; only finishing that procedure enables the final completion button. Photo comparison and ordered sealing now explicitly describe the next action. Observation offers a “対処方法” route to the existing accessible region picker; no target markers or tap-count gauges were added.
 
@@ -16,7 +16,7 @@ Truth completion awards 50pt once per acquired normal dossier. New completions a
 
 ## New visual asset
 
-Built-in imagegen was used, not the fallback CLI. Project asset: assets/incursions/doorway.webp. Original generated PNG retained in the generation output. WebP is resized for delivery. Three compatible doorway scenarios reuse this static image. They first show the image and a visible “原本と照合して対処する” action, then show the choice/confirmation stage. Quiet mode hides the image. Reduced-motion/quiet mode also suppresses the older transient word apparition.
+Built-in imagegen was used, not the fallback CLI. Project asset: assets/incursions/doorway.webp. Original generated PNG retained in the generation output. WebP is resized for delivery. This original is retained for case 6; every other case now has its own dedicated photograph. See INCIDENT-VISUAL-PROMPTS.md for the 100-image generation method and inputs. They first show the image and a visible “原本と照合して対処する” action, then show the choice/confirmation stage. Quiet mode hides the image. Reduced-motion/quiet mode also suppresses the older transient word apparition.
 
 Prompt:
 

@@ -22,12 +22,12 @@ for(const [kind,action,value,field,expected] of [[7,'procedure',0,'work',1],[48,
  await p.evaluate(()=>incursionAction('quarantine',0));assert.equal(await p.evaluate(()=>S.incursion.samples),1);
 }
 // Actual photograph target geometry, misses, and reduced/quiet path.
-for(const kind of [6,91,92,96]){
+for(const kind of [6,...Array.from({length:14},(_,i)=>34+i),...Array.from({length:10},(_,i)=>90+i)]){
  await setup(kind);await select(kind);const photo=p.locator('.inc-contact-photo');await photo.locator('img').evaluate(im=>im.decode());
- if(kind===91){await photo.scrollIntoViewIfNeeded();await p.screenshot({path:'docs/qa-incursions/experience-contact-390.jpg',quality:85});}
+ if([34,91,99].includes(kind)){await photo.scrollIntoViewIfNeeded();await p.screenshot({path:`docs/qa-incursions/experience-contact-${kind}-390.jpg`,quality:85});}
  await photo.click({position:{x:3,y:3}});assert.equal(await p.evaluate(()=>S.incursion.event.contacts),0);
- const target=await p.evaluate(kind=>INC_VISUALS[INCURSIONS[kind].visual].target,kind);
- for(let i=0;i<5;i++){const box=await photo.boundingBox();await photo.click({position:{x:box.width*target[0],y:box.height*target[1]}});}
+ const targets=await p.evaluate(kind=>{const v=INC_VISUALS[INCURSIONS[kind].visual];return v.targets||[v.target];},kind);
+ for(let i=0;i<5;i++){const box=await photo.locator('img').boundingBox(),target=targets[i%targets.length];await p.mouse.click(box.x+box.width*target[0],box.y+box.height*target[1]);}
  assert(await p.locator('[data-inc="quarantine"]').isEnabled());await p.locator('[data-inc="quarantine"]').click();
 }
 // Every family is readable/reachable at narrow portrait and short landscape sizes.
