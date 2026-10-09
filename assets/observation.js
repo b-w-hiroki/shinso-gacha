@@ -48,6 +48,7 @@ function renderObservation(){
  if(Date.now()>watchMessageUntil)watchMessage='';document.getElementById('obs-feedback').textContent=watchMessage;
  const pressure=WatchModel.contamination(o);
  document.getElementById('obs-atmosphere').textContent=o.mind.closed?'切った回線の向こうは、もう確認しない。':pressure>=3?'画面を閉じても、この輪郭が残りそうだ。':pressure===2?'映像の外側にも、視線を感じる。':pressure===1?'さっきから、部屋の気配が変わらない。':['映っていない場所が、気になる。','誰もいない。そう記録されている。','こちらの様子は、映っていないはずだ。'][o.sequence%3];
+ if(typeof investigationHome==='function')investigationHome();
  renderWatchMind();fitObservation();
  // The screen reader can request the timer; normal viewing stays quiet.
 }
@@ -73,7 +74,7 @@ function observationReward(result,auto=false){
  watchMessage=`${result.kind==='anomaly'?'干渉停止。観測を継続してください。':'記録を転送しました。'} +${record.reward}pt`;watchMessageUntil=Date.now()+4500;
  markDirty();save();render();if(!auto)buzz(result.kind==='anomaly'?30:8);
 }
-let watchTouchTimer,watchJolt;
+let watchTouchTimer,watchJolt,watchMisses=0;
 function observationTouchFeedback(event,strike){
  const frame=document.getElementById('obs-frame');
  // Extend one low-contrast pulse during repeated input; never stack flashes.
@@ -98,7 +99,12 @@ function observationCollect(event){
  if(strike){const r=document.getElementById('obs-image').getBoundingClientRect();point={x:(event.clientX-r.left)/r.width,y:(event.clientY-r.top)/r.height};}
  const contact=strike&&WatchModel.hit(o,point);
  const result=strike?WatchModel.suppress(o,Date.now(),point):WatchModel.tap(o,Date.now());
- if(result)observationReward(result);else {markDirty();renderObservation();}
+ if(result){watchMisses=0;observationReward(result);}else {
+  if(strike){watchMisses=contact?0:watchMisses+1;
+   if(contact||watchMisses>=3){watchMessage=contact?'輪郭が揺らいだ。まだ、そこにいる。':'この場所からは反応がない。';watchMessageUntil=Date.now()+2200;}
+  }
+  markDirty();renderObservation();
+ }
  observationTouchFeedback(event,contact);
 }
 function watchSettingsUnlocked(){return Object.values(observationState().upgrades).some(level=>level>0);}
@@ -130,7 +136,7 @@ document.addEventListener('visibilitychange',()=>{if(typeof S!=='undefined'&&!is
 function renderObservationAlbum(){
  const root=document.getElementById('watch-album');if(!root||isLite())return;
  const o=observationState(),count=Object.keys(OBSERVATIONS).reduce((n,mode)=>n+WatchModel.setProgress(o,mode),0);
- root.innerHTML=`<div class="watch-album-count"><b>観測記録</b><span>${count} / 16</span></div>${Object.entries(OBSERVATIONS).map(([mode,m])=>`<section class="watch-album-group"><h3>${m.title} <small>${WatchModel.setProgress(o,mode)}/4</small></h3><div class="watch-album-grid">${[0,1,2,3].map(r=>{const n=o.collection[mode+':'+r]||0;return `<button data-watch-record="${mode}:${r}" ${n?'':'disabled'}><b>${WatchModel.RARITY[r].name}</b><span>${n?m.records[r]:'未観測'}</span><small>${n?'×'+n:'―'}</small></button>`;}).join('')}</div><button class="watch-set-reward" data-watch-set="${mode}" ${WatchModel.setProgress(o,mode)!==4||o.completedSets[mode]?'disabled':''}>${o.completedSets[mode]?'✓ 全4種・達成報酬受取済み':WatchModel.setProgress(o,mode)===4?`全4種達成 · ${WatchModel.SET_REWARDS[mode]}ptを受け取る`:`全4種で ${WatchModel.SET_REWARDS[mode]}pt`}</button>${watchResearchHTML(o,mode)}</section>`).join('')}`;
+ root.innerHTML=`<div class="watch-album-count"><b>観測記録</b><span>${count} / 16</span></div>${Object.entries(OBSERVATIONS).map(([mode,m])=>`<section class="watch-album-group"><h3>${m.title} <small>${WatchModel.setProgress(o,mode)}/4</small></h3><div class="watch-album-grid">${[0,1,2,3].map(r=>{const n=o.collection[mode+':'+r]||0;return `<button data-watch-record="${mode}:${r}" ${n?'':'disabled'}><b>${WatchModel.RARITY[r].name}</b><span>${n?m.records[r]:'未観測'}</span><small>${n?'×'+n+(investigationState().read[mode+':'+r]?'':' · 未読'):'―'}</small></button>`;}).join('')}</div><button class="watch-set-reward" data-watch-set="${mode}" ${WatchModel.setProgress(o,mode)!==4||o.completedSets[mode]?'disabled':''}>${o.completedSets[mode]?'✓ 全4種・達成報酬受取済み':WatchModel.setProgress(o,mode)===4?`全4種達成 · ${WatchModel.SET_REWARDS[mode]}ptを受け取る`:`全4種で ${WatchModel.SET_REWARDS[mode]}pt`}</button>${watchResearchHTML(o,mode)}</section>`).join('')}`;
 }
 function watchResearchHTML(o,mode){
  const r=WatchModel.researchStatus(o,mode);if(!o.unlocked.includes(mode)||!r.missing.length)return '';
@@ -139,7 +145,8 @@ function watchResearchHTML(o,mode){
 function showWatchRecord(mode,rarity,restored=false){
  const o=observationState(),key=mode+':'+rarity,m=OBSERVATIONS[mode];if(!m||!o.collection[key])return;
  const advanced=rarity===1||rarity===3,side=rarity===2||rarity===3?'right':'left';
- sheet(restored?'未発見の記録を復元':'観測資料',`<div class="watch-record-image" role="img" aria-label="${m.records[rarity]}" style="aspect-ratio:${m.ratio};background-image:url('assets/observation/${mode}${advanced?'-variants':''}.webp');background-position:${side} center"></div><div class="watch-record-caption"><b>${WatchModel.RARITY[rarity].name} ／ ${m.records[rarity]}</b><span>記録 ${o.collection[key]}件${o.reconstructed[key]?' · 照合で復元':''}</span></div>${rarity>0&&o.collection[mode+':0']?`<div class="watch-compare"><p id="watch-compare-status" aria-live="polite">発見した記録：${m.records[rarity]}</p><button class="btn-paper" data-watch-compare="${mode}:${rarity}" aria-pressed="false">平常の記録と見比べる</button></div>`:''}`);
+ WatchModel.closeMonitor(o,Date.now(),true);
+ sheet(restored?'未発見の記録を復元':'観測資料',`<div class="watch-record-image" role="img" aria-label="${m.records[rarity]}" style="aspect-ratio:${m.ratio};background-image:url('assets/observation/${mode}${advanced?'-variants':''}.webp');background-position:${side} center"></div><div class="watch-record-caption"><b>${WatchModel.RARITY[rarity].name} ／ ${m.records[rarity]}</b><span>記録 ${o.collection[key]}件${o.reconstructed[key]?' · 照合で復元':''}</span></div>${rarity>0&&o.collection[mode+':0']?`<div class="watch-compare"><p id="watch-compare-status" aria-live="polite">発見した記録：${m.records[rarity]}</p><button class="btn-paper" data-watch-compare="${mode}:${rarity}" aria-pressed="false">平常の記録と見比べる</button></div>`:''}${investigationMemo(mode,rarity)}`);
 }
 document.addEventListener('click',e=>{
  const study=e.target.closest('[data-watch-research],[data-watch-research-confirm]');
@@ -236,7 +243,8 @@ function observationConversation(id,topic){
   if(id==='records'&&topic==='office'&&o.mind.clues.absent){line='榊さんが、そう言ったんですか。欠勤届は私が預かっています。……私の分ではありません。';o.mind.clues.absent=false;}
   WatchModel.talk(o,Date.now(),id);markDirty();save();renderWatchMind();
  }
- sheet('休憩室 ／ 会話',`<div class="watch-conversation"><header class="watch-speaker">${watchPortrait(member)}<div><small>${member.role}</small><h2>${member.name}</h2><p>${troubled?'こちらを見ている。目が合ったかは、わからない。':'声は近い。表情までは、よく見えない。'}</p></div></header><blockquote aria-live="polite">${line}</blockquote><div class="watch-dialogue-actions"><div class="watch-topics">${Object.entries(WATCH_TOPICS).map(([key,label])=>`<button class="watch-choice" data-watch-talk="${id}" data-topic="${key}">${label}</button>`).join('')}</div><div class="watch-exits"><button class="btn-line" data-watch="colleagues">ほかの人に話す</button><button class="btn-line" data-act="close">席へ戻る</button></div></div></div>`);
+ if(topic==='record')line=investigationTestimony(id)||line;
+ sheet('休憩室 ／ 会話',`<div class="watch-conversation"><header class="watch-speaker">${watchPortrait(member)}<div><small>${member.role}</small><h2>${member.name}</h2><p>${troubled?'こちらを見ている。目が合ったかは、わからない。':'声は近い。表情までは、よく見えない。'}</p></div></header><blockquote aria-live="polite">${line}</blockquote><div class="watch-dialogue-actions"><div class="watch-topics">${Object.entries(WATCH_TOPICS).map(([key,label])=>`<button class="watch-choice" data-watch-talk="${id}" data-topic="${key}">${label}</button>`).join('')}${investigationTopic(id)}</div>${investigationReturn(id)}<div class="watch-exits"><button class="btn-line" data-watch="colleagues">ほかの人に話す</button><button class="btn-line" data-act="close">席へ戻る</button></div></div></div>`);
 }
 document.getElementById('obs-rest').addEventListener('click',observationRest);
 document.getElementById('obs-colleagues').addEventListener('click',observationColleagues);
@@ -254,6 +262,7 @@ document.addEventListener('click',e=>{
 });
 
 function fitObservation(){
+ if(typeof S==='undefined')return;
  const frame=document.getElementById('obs-frame');if(!frame.getClientRects().length)return;
  const controls=document.querySelector('.obs-secondary'),nav=document.querySelector('.nav-in');
  const f=frame.getBoundingClientRect(),bottom=controls.getBoundingClientRect().bottom+scrollY;

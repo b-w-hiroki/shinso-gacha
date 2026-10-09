@@ -28,7 +28,7 @@ function renderMenuBadge(){
 }
 function openGameMenu(){
  const n=renderMenuBadge();
- sheet('メニュー',`<div class="game-menu-list"><button data-menu="news"><span>運営からのお知らせ</span><small>${n.news?'● '+n.news:'›'}</small></button><button data-menu="inbox"><span>受信ボックス</span><small>${n.mail?'● '+n.mail:'›'}</small></button><button data-menu="settings"><span>設定・記録の引き継ぎ</span><small>›</small></button></div>`);
+ sheet('メニュー',`<div class="game-menu-list">${!isLite()?'<button data-trail="guide"><span>調査の進め方</span><small>›</small></button>':''}<button data-menu="news"><span>運営からのお知らせ</span><small>${n.news?'● '+n.news:'›'}</small></button><button data-menu="inbox"><span>受信ボックス</span><small>${n.mail?'● '+n.mail:'›'}</small></button><button data-menu="settings"><span>設定・記録の引き継ぎ</span><small>›</small></button></div>`);
 }
 function menuBack(target='home'){return `<button class="menu-back" data-menu="${target}">‹ ${target==='home'?'メニュー':target==='news'?'お知らせ一覧':'受信ボックス'}</button>`;}
 function openGameNews(){const c=menuState();sheet('運営からのお知らせ',menuBack()+`<div class="game-message-list">${GAME_NOTICES.map(n=>`<button data-notice="${n.id}"><small>${n.date}${c.readNotices.includes(n.id)?'':' · 未読'}</small><b>${n.title}</b></button>`).join('')}</div>`);}
