@@ -6,7 +6,8 @@ await font();
 
 await p.evaluate(()=>{go('home');setHomeTab('desk');S.currency=100;S.lastTick=Date.now()+600000;S.incursion={version:1,level:0,resolved:0,history:[]};S.observation=WatchModel.create(Date.now(),42);S.streak={last:dayKey(),n:1};save();render();});
 assert.equal(await p.locator('[data-obs-mode],#obs-report,#obs-reference,#sniff,.obs-preview').count(),0,'no permanent comparison/report/tap button group');
-assert.equal(await p.locator('.thread-radar button').count(),4,'scene, rest, colleagues and unlocked settings; no patrol button');
+assert.equal(await p.locator('.thread-radar #obs-frame,.thread-radar .obs-secondary button').count(),4,'scene, rest, colleagues and unlocked settings; no patrol button');
+assert.equal(await p.locator('#obs-atmosphere .investigation-link').count(),1,'one contextual lead replaces ambient copy');
 const initial=await p.evaluate(()=>S.currency);assert(await p.locator('#obs-frame').isEnabled());
 for(let i=0;i<9;i++)await p.locator('#obs-frame').evaluate(e=>e.click());assert.equal(await p.evaluate(()=>S.currency),initial,'partial patrol does not pay');
 const expected=8;await p.locator('#obs-frame').click();assert.equal(await p.evaluate(()=>S.currency),initial+expected);await p.locator('#obs-frame').evaluate(e=>e.click());assert.equal(await p.evaluate(()=>S.currency),initial+expected);
