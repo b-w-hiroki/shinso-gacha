@@ -40,7 +40,7 @@ function renderObservation(){
  f.setAttribute('aria-label',o.mind.closed?'観測モニタは閉じています':`${m.title}。${danger?'違和感のある場所をタップ。キーボードでは場所を選んで対処':'タップで観測を進める'}`);
  document.getElementById('obs-source').textContent=m.source;
  document.getElementById('obs-name').textContent=m.title;
- document.getElementById('obs-ready').hidden=!p||o.mind.closed;
+ document.getElementById('obs-ready').hidden=!danger||o.mind.closed;
  document.getElementById('obs-ready').textContent=danger?'異変付近に触れる':'記録を受信';
  document.getElementById('obs-timer').textContent=p&&!o.mind.closed?`保持 ${watchDuration(p.expiresAt-o.lastSeen)}`:'';
  const hint=document.getElementById('obs-first-hint');hint.hidden=o.mind.closed||!!p||o.collected>0;hint.textContent=danger?'違和感のある場所に触れる':'映像に触れて観測する';
@@ -110,7 +110,7 @@ function observationSettings(){
 function renderObservationLab(){
  const root=document.getElementById('observation-lab');if(!root)return;if(isLite()){root.innerHTML='';return;}
  const o=observationState();
- root.innerHTML=`<section class="watch-lab"><div class="watch-lab-heading"><h2>観測装備</h2><span>${o.collected}件</span></div><div class="watch-equipment">${Object.entries(WatchModel.MODES).map(([id,m])=>{const owned=o.unlocked.includes(id),active=id===o.mode,eligible=o.collected>=m.need&&S.currency>=m.cost;return `<article class="watch-mode ${active?'equipped':''}"><div><b>${m.label}</b><small>${OBSERVATIONS[id].title} · pt ×${m.mult}</small></div><button type="button" data-watch-${owned?'equip':'unlock'}="${id}" ${owned?(active||o.pending?'disabled':''):eligible?'':'disabled'}>${active?'● 設置中':owned?'設置':o.collected<m.need?`🔒 ${o.collected}/${m.need}件`:`解放 ${m.cost}pt`}</button></article>`;}).join('')}</div>${o.pending?'<p class="watch-note">記録を保持中。タップで観測・鎮静を終えると装備を変更できます。</p>':''}<details class="watch-upgrades"><summary>観測を強化 <span>${WatchModel.RETENTION[o.upgrades.retention]}h</span></summary>${Object.entries(WatchModel.UPGRADES).filter(([id])=>WATCH_AUTOMATION_AVAILABLE||!['patrol','suppression'].includes(id)).map(([id,u])=>{const lv=o.upgrades[id],max=lv===u.max;const values=id==='retention'?WatchModel.RETENTION.map(x=>x+'時間'):id==='interval'?['標準','短縮 I','短縮 II','短縮 III']:id==='patrol'?['手動','5秒に1回','3秒に1回','1秒に1回']:id==='suppression'?['手動','Rまで自動','SRまで自動','SSRまで自動']:['SSR 2%','SSR 3%','SSR 5%'];return `<article><div><b>${u.name}</b><small>${values[lv]}${max?'':` → ${values[lv+1]}`}</small></div><button data-watch-upgrade="${id}" ${max||S.currency<u.costs[lv]?'disabled':''}>${max?'最大':`${u.costs[lv]}pt`}</button></article>`;}).join('')}<p class="watch-note">観測装備を1段階育成すると観測設定を利用可能。保持強化は受取待ちの記録にも適用。巡回効率は定時観測の間隔も短縮。</p></details></section>`;
+ root.innerHTML=`<section class="watch-lab"><div class="watch-lab-heading"><h2>観測装備</h2><span>${o.collected}件</span></div><div class="watch-equipment">${Object.entries(WatchModel.MODES).map(([id,m])=>{const owned=o.unlocked.includes(id),active=id===o.mode,eligible=o.collected>=m.need&&S.currency>=m.cost;return `<article class="watch-mode ${active?'equipped':''}"><div><b>${m.label}</b><small>${OBSERVATIONS[id].title} · pt ×${m.mult}</small></div><button type="button" data-watch-${owned?'equip':'unlock'}="${id}" ${owned?(active||o.pending?'disabled':''):eligible?'':'disabled'}>${active?'● 設置中':owned?'設置':o.collected<m.need?`${o.collected}/${m.need}件`:`解放 ${m.cost}pt`}</button></article>`;}).join('')}</div>${o.pending?'<p class="watch-note">記録を保持中。タップで観測・鎮静を終えると装備を変更できます。</p>':''}<details class="watch-upgrades"><summary>観測を強化 <span>${WatchModel.RETENTION[o.upgrades.retention]}h</span></summary>${Object.entries(WatchModel.UPGRADES).filter(([id])=>WATCH_AUTOMATION_AVAILABLE||!['patrol','suppression'].includes(id)).map(([id,u])=>{const lv=o.upgrades[id],max=lv===u.max;const values=id==='retention'?WatchModel.RETENTION.map(x=>x+'時間'):id==='interval'?['標準','短縮 I','短縮 II','短縮 III']:id==='patrol'?['手動','5秒に1回','3秒に1回','1秒に1回']:id==='suppression'?['手動','Rまで自動','SRまで自動','SSRまで自動']:['SSR 2%','SSR 3%','SSR 5%'];return `<article><div><b>${u.name}</b><small>${values[lv]}${max?'':` → ${values[lv+1]}`}</small></div><button data-watch-upgrade="${id}" ${max||S.currency<u.costs[lv]?'disabled':''}>${max?'最大':`${u.costs[lv]}pt`}</button></article>`;}).join('')}<p class="watch-note">観測装備を1段階育成すると観測設定を利用可能。保持強化は受取待ちの記録にも適用。巡回効率は定時観測の間隔も短縮。</p></details></section>`;
 }
 document.getElementById('obs-frame').addEventListener('click',observationCollect);
 document.addEventListener('click',e=>{
@@ -258,10 +258,13 @@ function fitObservation(){
  const controls=document.querySelector('.obs-secondary'),nav=document.querySelector('.nav-in');
  const f=frame.getBoundingClientRect(),bottom=controls.getBoundingClientRect().bottom+scrollY;
  const navTop=nav?.getBoundingClientRect().top||innerHeight-60;
+ const navHeight=document.querySelector('.nav')?.getBoundingClientRect().height||60;
+ document.documentElement.style.setProperty('--watch-nav-height',`${navHeight}px`);
  const nativeHeight=f.width/OBSERVATIONS[observationState().mode].ratio;
  const available=f.height+Math.min(innerHeight,navTop)-bottom-18;
  const height=Math.max(180,Math.min(nativeHeight,560,available));
  if(Math.abs(height-f.height)>1)frame.style.setProperty('--obs-height',`${Math.floor(height)}px`);
 }
 addEventListener('resize',fitObservation);
+window.visualViewport?.addEventListener('resize',fitObservation);
 new ResizeObserver(()=>requestAnimationFrame(fitObservation)).observe(document.querySelector('.thread-radar'));

@@ -55,6 +55,9 @@ jobs:
       - run: node tests/contamination-ui.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/screen-purpose.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/patrol-ui.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
