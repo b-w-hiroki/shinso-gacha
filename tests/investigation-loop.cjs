@@ -41,7 +41,7 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  for(const [width,height] of [[320,568],[390,680],[844,390]]){
   await p.setViewportSize({width,height});await p.evaluate(()=>openInvestigationGuide());
   for(const button of await p.locator('.investigation-guide .game-menu-list button').all()){await button.scrollIntoViewIfNeeded();assert(await button.evaluate(e=>{const r=e.getBoundingClientRect();return r.height>=44&&e.scrollWidth<=e.clientWidth;}));}
-  await p.keyboard.press('Escape');await p.evaluate(()=>{S.observation.mind.load=80;S.observation.mind.closed=false;S.observation.quiet=false;renderObservation();});await p.emulateMedia({reducedMotion:'no-preference'});
+  await p.locator('[data-trail="home"]').click();await p.evaluate(()=>{S.observation.mind.load=80;S.observation.mind.closed=false;S.observation.quiet=false;renderObservation();});await p.emulateMedia({reducedMotion:'no-preference'});
   assert(await p.locator('#watch-veil').evaluate(e=>getComputedStyle(e,'::after').content!=='none'));assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));if(width===390)await p.screenshot({path:'docs/qa-incursions/trail-intrusion-390.jpg',quality:85});
   await p.evaluate(()=>{S.observation.quiet=true;renderObservation();});assert(await p.locator('#watch-veil').isHidden());
   await p.evaluate(()=>{const o=observationState();WatchModel.closeMonitor(o,Date.now(),true);WatchModel.mindTick(o,o.mind.lastAt+300000,{visible:false});renderObservation();});assert.equal(await p.locator('body').getAttribute('data-watch-mind'),'0');

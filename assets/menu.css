@@ -15,3 +15,8 @@
 .lite-tabs button{grid-template-columns:1fr;gap:3px;padding:5px 2px;font-size:11px}
 .lite-tabs #game-menu::before{display:none}
 .top-in .menu-label{display:none}
+
+/* Reading, mailbox and preferences are destinations, not stacked bottom sheets. */
+.menu-scene{gap:18px;min-width:0}.menu-page-heading{display:grid;gap:6px;border-bottom:1px solid #66583e;padding-bottom:16px}.menu-page-heading h1{font:600 25px/1.5 var(--f-body);margin:0;color:#eddfc4}.menu-page-heading h1:focus{outline:none}.menu-page-heading .menu-back{width:fit-content;min-height:44px;margin:0}
+.menu-scene .game-menu-list>button{min-height:76px;padding:18px 0;font:16px/1.7 var(--f-body);color:#e4d8be}.menu-scene .game-menu-list small{font-size:13px}.menu-scene .game-message-list{gap:0}.menu-scene .game-message-list>button{color:#e4d8be;padding-block:20px}.menu-scene .game-message{padding:4px 0}.menu-scene .game-message button{width:100%;white-space:normal}.menu-scene .watch-quiet-setting{align-items:flex-start;line-height:1.8}.menu-scene .watch-quiet-setting input{margin-top:5px;flex-shrink:0}
+.nav-in #game-menu[aria-current=page]{color:#fff0cf;border-top:2px solid #ad4b39;background:#6d593b22}
