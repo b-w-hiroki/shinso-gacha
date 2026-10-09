@@ -11,7 +11,7 @@ const server=http.createServer((q,r)=>{try{if(q.url.startsWith('/assets/incursio
  assert.equal(await p.locator('.inc-record-list button').count(),0);
  assert.equal(requested.size,0,'Empty collection never loads unseen photos');
  await p.evaluate(()=>{S.incursion={version:1,level:40,resolved:2,discovered:{34:true,99:true},history:[],event:{kind:6,tier:1,step:0,seen:0,round:0}};openIncursionRecords();});
- const before=await p.evaluate(()=>JSON.stringify({a:incursionState(),pt:S.pt}));
+ const before=await p.evaluate(()=>JSON.stringify({a:incursionState(),pt:S.currency}));
  assert.equal(await p.locator('.inc-record-list button').count(),2);
  assert.equal(requested.size,0,'List does not preload any photos');
  await p.evaluate(()=>openIncursionRecords(91));assert.equal(await p.locator('.inc-record-list button').count(),2,'Unowned records cannot be opened directly');
@@ -30,7 +30,7 @@ const server=http.createServer((q,r)=>{try{if(q.url.startsWith('/assets/incursio
  }
  await p.locator('#incursion-dialog [data-inc="records"]').click();
  assert.equal(await p.evaluate(()=>document.activeElement.dataset.value),'99','Back restores the selected record focus');
- assert.equal(await p.evaluate(()=>JSON.stringify({a:incursionState(),pt:S.pt})),before,'Reading does not change danger, contact, rewards or discovery');
+ assert.equal(await p.evaluate(()=>JSON.stringify({a:incursionState(),pt:S.currency})),before,'Reading does not change danger, contact, rewards or discovery');
  await p.locator('#incursion-dialog [data-inc="open"]').click();assert.equal(await p.evaluate(()=>S.incursion.event.kind),6);
  await p.evaluate(()=>{S.incursion.quiet=true;openIncursionRecords(34);});assert.equal(await p.locator('.inc-record-photo img').count(),0);
  await p.keyboard.press('Escape');assert.equal(await p.locator('#incursion-dialog').evaluate(d=>d.open),false);
