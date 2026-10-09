@@ -47,15 +47,15 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  await p.locator('.watch-person img').evaluateAll(imgs=>Promise.all(imgs.map(i=>i.decode())));
  assert.equal(await p.locator('.watch-person').count(),3);
  await p.clock.runFor(400);await p.screenshot({path:'docs/qa-incursions/colleague-roster-390.jpg',quality:85});
- await p.locator('[data-watch-member="records"]').click();await p.locator('[data-watch-talk="records"][data-topic="rest"]').click();assert.equal(await p.evaluate(()=>S.observation.mind.talks.records),1);assert(await p.evaluate(()=>S.observation.mind.closed));
+ await p.locator('[data-watch-member="records"]').click();await p.locator('[data-watch-next]').click();await p.locator('[data-watch-talk="records"][data-topic="rest"]').click();assert.equal(await p.evaluate(()=>S.observation.mind.talks.records),1);assert(await p.evaluate(()=>S.observation.mind.closed));
  await p.screenshot({path:'docs/qa-incursions/colleagues-390.jpg',quality:85});
  await p.locator('[data-watch="colleagues"]').click();await p.locator('[data-watch-member="records"]').click();assert((await p.locator('.watch-conversation').innerText()).includes('この前の記録'));
  for(const [width,height] of [[320,568],[844,390]]){await p.setViewportSize({width,height});for(const el of await p.locator('.watch-dialogue-actions button').all()){await el.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));assert(await el.evaluate(e=>{const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.height>=44&&e.scrollWidth<=e.clientWidth&&(hit===e||e.contains(hit));}));}assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}
  await p.locator('[data-watch-talk="records"][data-topic="strange"]').click();const first=await p.locator('.watch-conversation blockquote').innerText();
- await p.locator('[data-watch-talk="records"][data-topic="strange"]').click();assert.notEqual(await p.locator('.watch-conversation blockquote').innerText(),first);
+ await p.locator('[data-watch-next="records"]').click();await p.locator('[data-watch-talk="records"][data-topic="strange"]').click();assert.notEqual(await p.locator('.watch-conversation blockquote').innerText(),first);
  const count=await p.evaluate(()=>S.observation.mind.dialogue['records:strange']);
  await p.locator('[data-watch="colleagues"]').click();await p.locator('[data-watch-member="records"]').click();assert.equal(await p.evaluate(()=>S.observation.mind.dialogue['records:strange']),count,'opening does not advance dialogue');
- await p.locator('[data-watch="colleagues"]').click();await p.locator('[data-watch-member="equipment"]').click();await p.locator('[data-watch-talk="equipment"][data-topic="office"]').click();
+ await p.locator('[data-watch="colleagues"]').click();await p.locator('[data-watch-member="equipment"]').click();await p.locator('[data-watch-next]').click();await p.locator('[data-watch-talk="equipment"][data-topic="office"]').click();
  assert(await p.evaluate(()=>S.observation.mind.clues.absent));await p.locator('[data-watch="colleagues"]').click();await p.locator('[data-watch-member="records"]').click();await p.locator('[data-watch-talk="records"][data-topic="office"]').click();assert((await p.locator('.watch-conversation blockquote').innerText()).includes('欠勤届'));
  const talks=await p.evaluate(()=>S.observation.mind.talks.records);
  await p.keyboard.press('Escape');await p.reload();assert(await p.evaluate(()=>S.observation.mind.closed));assert.equal(await p.evaluate(()=>S.observation.mind.talks.records),talks);assert.equal(await p.evaluate(()=>S.observation.mind.dialogue['records:strange']),count);

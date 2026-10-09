@@ -210,17 +210,17 @@ function observationTargetPicker(message='映像を見て、違和感のある�
  sheet('異変の対処',`<p class="watch-target-copy" role="status">${message}</p><div class="watch-target-regions">${WATCH_REGIONS.map((name,i)=>`<button data-watch-region="${i}">${name}</button>`).join('')}</div><p class="hint">同じ付近に繰り返し触れて干渉を抑える。映像へ戻って直接タップすることもできます。</p><button class="btn-line" data-act="close">映像へ戻る</button>`);
 }
 const WATCH_COLLEAGUES={
- records:{name:'白瀬',role:'記録係',portrait:'shirose',greeting:'席、空いています。見たものを、順番に話してください。',again:'この前の記録は、私が持っています。今日は続きを急がなくていい。',
+ records:{name:'白瀬',role:'記録係',portrait:'shirose',description:'観測記録の受領と保管。記録の食い違いを相談できる。',greeting:'記録係の白瀬です。あなたの報告を受け取ります。席は空いています。見たものを、順番に話してください。',again:'この前の記録は、私が持っています。今日は続きを急がなくていい。',
  strange:['記録にないものは、すぐ名前を付けなくていいんです。名前の欄だけ、先に埋まることがあります。','同じ写真でも、余白が減っていることがあります。中のものが増えたとは限りません。','あなたの報告書、筆跡は合っています。ただ、提出日は明日になっています。'],
  rest:['資料は伏せておきます。お茶が冷めるまで、何も確かめなくて大丈夫。','ここでは仕事の話をしなくてもいいんです。……時計も、見なくていい。','窓の外より、この机を見ていてください。傷の数は、昨日と同じです。'],
  office:['紙コップは人数分です。ひとつ余っていても、捨てないことになっています。','内線表の空欄には、何も書かないでください。前の係の申し送りです。','出勤簿は私が閉じます。あなたの隣の欄は、気にしなくていい。'],
  past:['前任者の引継ぎは、目次だけ残っています。本文は、読んだ人が持って帰ったそうです。','古い職員証の写真は、裏返して保管しています。退職後も更新されるので。','この課ができた日ですか。設置より古い受領印があるので、確認中です。']},
- equipment:{name:'榊',role:'設備担当',portrait:'sakaki',greeting:'回線は切ってあります。まだ映っていても、触らないでください。',again:'さっき抜いたケーブルは、まだ抜いたままです。確かめに戻る必要はありません。',
+ equipment:{name:'榊',role:'設備担当',portrait:'sakaki',description:'モニタと回線の保守。映像や機材の異常を相談できる。',greeting:'設備担当の榊です。モニタと回線は私が見ています。回線は切ってあります。まだ映っていても、触らないでください。',again:'さっき抜いたケーブルは、まだ抜いたままです。確かめに戻る必要はありません。',
  strange:['映像全部に触れても止まりません。おかしい場所、その付近だけです。長く見続けないで。','故障なら、毎回同じように壊れます。今のは、こちらの操作を待っていました。','音声のない機材です。声が聞こえたら、音量を探さず回線を切ってください。'],
  rest:['モニタは私が見ておきます。……いえ、電源を抜いておきます。少し離れて。','工具を片付ける間、座っていてください。今は何もしなくていい。','手、冷えていますね。湯のみを持っていてください。機材は後でいいです。'],
  office:['白瀬さんと話した？　今日は休みの連絡を受けています。……確認は、明日にしましょう。','休憩室の呼び鈴、線が来ていないんです。鳴っても誰も立たないでしょう。','机の下のコードは数えないでください。必要な本数は、私が覚えています。'],
  past:['撤去したモニタの番号が、今朝の接続一覧にありました。予備機ということにしています。','前の担当が残した工具箱、鍵が内側にあります。開けた記録はありません。','この部屋の図面は取り寄せません。前に届いたものには、出口がありませんでした。']},
- senior:{name:'三輪',role:'先輩調査員',portrait:'miwa',greeting:'追うほど向こうにも道ができる。戻ってきたなら、まず座ろう。',again:'また来たな。ちゃんと、戻る場所を覚えていたか。',
+ senior:{name:'三輪',role:'先輩調査員',portrait:'miwa',description:'現場調査を知る先輩。調査の進め方や以前の出来事を聞ける。',greeting:'三輪だ。ここでは少し先輩になる。調べ方に迷ったら聞いてくれ。追うほど向こうにも道ができる。まず座ろう。',again:'また来たな。ちゃんと、戻る場所を覚えていたか。',
  strange:['画面の外まで違和感が残るなら、深追いしないことだ。真相は逃げない。こちらを待っている。','見つけた、とすぐ口にしないほうがいい。向こうも、そう思うかもしれない。','何も映らない時間を覚えておけ。異変のほうが、普通に見え始める前に。'],
  rest:['何も調べない時間も仕事のうちだ。急ぐな。普通の話をしていこう。','帰りに何を食べる？　思いつくまで、ここにいていい。','椅子はそのままでいい。背中を預けろ。今は誰の報告にも答えなくていい。'],
  office:['名前で呼べる相手がいるうちは、ここへ戻ってこい。席の番号だけになったら、休め。','廊下ですれ違っても、返事をしないことがある。ここで会ったときに話してくれ。','空いている席は、空けておく。それだけ覚えていればいい。'],
@@ -228,14 +228,32 @@ const WATCH_COLLEAGUES={
 };
 const WATCH_TOPICS={strange:'見たものについて',rest:'少し休みたい',office:'課内のこと',past:'以前のこと'};
 function watchPortrait(m){return `<img src="assets/colleagues/${m.portrait}.webp" alt="" width="90" height="120">`;}
+function watchContacts(){
+ const o=observationState();if(!o.contacts||typeof o.contacts!=='object'||Array.isArray(o.contacts))o.contacts={};return o.contacts;
+}
+function watchConversationPage(html,member=''){
+ hideSheet();go('colleagues');const page=document.querySelector('[data-view="colleagues"]');
+ page.dataset.member=member;page.innerHTML=html;page.querySelector('[tabindex="-1"]')?.focus({preventScroll:true});
+}
 function observationColleagues(){
  WatchModel.closeMonitor(observationState(),Date.now(),true);markDirty();save();renderObservation();
- sheet('第六文書課 ／ 休憩室',`<div class="watch-colleagues"><p class="watch-room-note">回線を切って、課内へ戻った。<br>誰かが、まだ残っている。</p><div class="watch-people">${Object.entries(WATCH_COLLEAGUES).map(([id,m])=>`<button class="watch-person" data-watch-member="${id}">${watchPortrait(m)}<b>${m.name}</b><small>${m.role}</small></button>`).join('')}</div><p class="watch-room-note">話す相手を選ぶ</p><button class="btn-line" data-act="close">席へ戻る</button></div>`);
+ const contacts=watchContacts();
+ watchConversationPage(`<div class="watch-colleagues"><header><small>第六文書課 ／ 休憩室</small><h1 tabindex="-1">課内で話す</h1><p class="watch-room-note">相談する相手を選ぶ。回線は切ってあります。</p></header><div class="watch-people">${Object.entries(WATCH_COLLEAGUES).map(([id,m])=>`<button class="watch-person" data-watch-member="${id}">${watchPortrait(m)}<span><small>${m.role} · ${contacts[id]?'面識あり':'初めて話す'}</small><b>${m.name}</b><span class="watch-person-description">${m.description}</span><span class="watch-person-action">${m.name}に声をかける ›</span></span></button>`).join('')}</div><button class="btn-line watch-leave" data-watch="leave">観測へ戻る</button></div>`);
 }
+function watchTopicChoices(id){
+ return `<div class="watch-topic-selection"><p class="watch-action-label">話題を選ぶ</p>${investigationTopic(id)}<div class="watch-topics">${Object.entries(WATCH_TOPICS).map(([key,label])=>`<button class="watch-choice" data-watch-talk="${id}" data-topic="${key}">${label}</button>`).join('')}</div></div>`;
+}
+function watchChooseTopics(id){
+ if(!Object.hasOwn(WATCH_COLLEAGUES,id))return;
+ const actions=document.querySelector('.watch-dialogue-actions');if(!actions)return;
+ actions.innerHTML=watchTopicChoices(id);actions.querySelector('button')?.focus({preventScroll:true});
+}
+function watchLeaveConversation(){hideSheet();go('home');setHomeTab('desk');renderObservation();document.getElementById('obs-colleagues').focus({preventScroll:true});}
 function observationConversation(id,topic){
- const member=WATCH_COLLEAGUES[id];if(!member)return;
+ if(!Object.hasOwn(WATCH_COLLEAGUES,id))return;const member=WATCH_COLLEAGUES[id];
  const o=observationState(),seen=!!o.mind.talks[id],troubled=WatchModel.contamination(o)>=2;
- let line=seen?member.again:member.greeting;
+ const first=!watchContacts()[id];
+ let line=first?member.greeting:(seen?member.again:'どうしましたか。話を聞きます。');
  if(Object.hasOwn(WATCH_TOPICS,topic)){
   const key=id+':'+topic,n=Math.max(0,Math.floor(Number(o.mind.dialogue[key])||0));
   line=member[topic][n%member[topic].length];o.mind.dialogue[key]=n+1;
@@ -244,12 +262,17 @@ function observationConversation(id,topic){
   WatchModel.talk(o,Date.now(),id);markDirty();save();renderWatchMind();
  }
  if(topic==='record')line=investigationTestimony(id)||line;
- sheet('休憩室 ／ 会話',`<div class="watch-conversation"><header class="watch-speaker">${watchPortrait(member)}<div><small>${member.role}</small><h2>${member.name}</h2><p>${troubled?'こちらを見ている。目が合ったかは、わからない。':'声は近い。表情までは、よく見えない。'}</p></div></header><blockquote aria-live="polite">${line}</blockquote><div class="watch-dialogue-actions"><div class="watch-topics">${Object.entries(WATCH_TOPICS).map(([key,label])=>`<button class="watch-choice" data-watch-talk="${id}" data-topic="${key}">${label}</button>`).join('')}${investigationTopic(id)}</div>${investigationReturn(id)}<div class="watch-exits"><button class="btn-line" data-watch="colleagues">ほかの人に話す</button><button class="btn-line" data-act="close">席へ戻る</button></div></div></div>`);
+ WatchModel.closeMonitor(o,Date.now(),true);watchContacts()[id]=true;markDirty();save();
+ const replied=Object.hasOwn(WATCH_TOPICS,topic)||topic==='record';
+ watchConversationPage(`<div class="watch-conversation"><button class="menu-back" data-watch="colleagues">‹ 話す相手を選び直す</button><header class="watch-speaker">${watchPortrait(member)}<div><small>${member.role}${first?' ／ 初対面':''}</small><h1 tabindex="-1">${member.name}</h1><p>${member.description}</p></div></header>${first&&topic==='record'?`<p class="watch-introduction">${member.greeting}</p>`:''}<p class="watch-conversation-cue">${troubled?'こちらを見ている。目が合ったかは、わからない。':'向かいの席から、声がする。'}</p>${replied?`<p class="watch-selected-topic">あなた：${topic==='record'?'この記録について聞く':WATCH_TOPICS[topic]}</p>`:''}<blockquote tabindex="-1" aria-label="${member.name}の返答">${line}</blockquote><div class="watch-dialogue-actions">${replied?`${topic==='record'?investigationReturn(id):''}<button class="watch-choice watch-next" data-watch-next="${id}">別の話題を選ぶ</button>`:first?`<button class="watch-choice watch-next" data-watch-next="${id}">話題を選ぶ</button>`:watchTopicChoices(id)}</div><footer class="watch-conversation-footer"><button class="btn-line watch-leave" data-watch="leave">会話を終えて観測へ戻る</button></footer></div>`,id);
+ if(replied)document.querySelector('.watch-conversation blockquote').focus({preventScroll:true});
 }
 document.getElementById('obs-rest').addEventListener('click',observationRest);
 document.getElementById('obs-colleagues').addEventListener('click',observationColleagues);
 document.addEventListener('click',e=>{
- const b=e.target.closest('[data-watch-region],[data-watch-member],[data-watch-talk],[data-watch="colleagues"]');if(!b||isLite())return;
+ const b=e.target.closest('[data-watch-region],[data-watch-member],[data-watch-talk],[data-watch-next],[data-watch="colleagues"],[data-watch="leave"]');if(!b||isLite())return;
+ if(b.dataset.watch==='leave')return watchLeaveConversation();
+ if(b.dataset.watchNext)return watchChooseTopics(b.dataset.watchNext);
  if(b.dataset.watch==='colleagues')return observationColleagues();
  if(b.dataset.watchMember)return observationConversation(b.dataset.watchMember);
  if(b.dataset.watchTalk)return observationConversation(b.dataset.watchTalk,b.dataset.topic);
@@ -277,3 +300,11 @@ function fitObservation(){
 addEventListener('resize',fitObservation);
 window.visualViewport?.addEventListener('resize',fitObservation);
 new ResizeObserver(()=>requestAnimationFrame(fitObservation)).observe(document.querySelector('.thread-radar'));
+
+// Only handle page navigation when no modal is being dismissed.
+document.addEventListener('keydown',e=>{
+ const page=document.querySelector('[data-view="colleagues"]');
+ if(e.key!=='Escape'||page.hidden||!document.getElementById('sheet-bg').hidden)return;
+ e.stopImmediatePropagation();e.preventDefault();
+ if(page.dataset.member)observationColleagues();else watchLeaveConversation();
+},true);

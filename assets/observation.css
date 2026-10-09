@@ -76,3 +76,39 @@ body.watch-mind-quiet #watch-veil{display:none}
 @media(max-width:350px){.watch-people{gap:7px}.watch-person b,.watch-person small{margin-inline:7px}.watch-person small{font-size:11px}.watch-speaker{gap:14px}.watch-conversation blockquote{font-size:15px}}
 /* A quiet secondary route; the red raster frame used to compete with the scene. */
 .agent-home #agent-primary{min-height:50px;border:1px solid #76634b;border-image:none;border-radius:2px;background:#30271e;color:#e5d5b8;padding:12px 18px;box-shadow:none;font:500 15px/1.6 var(--f-body)}
+
+/* Conversation is a reading page. Choices, replies and navigation have separate places. */
+.colleague-scene{max-width:640px;margin:0 auto;padding:8px 0 16px}
+.colleague-scene h1{margin:6px 0 12px;font:500 23px/1.4 var(--f-body);letter-spacing:.08em}
+.colleague-scene .watch-people{grid-template-columns:1fr;gap:12px;margin:18px 0}
+.colleague-scene .watch-person{display:grid;grid-template-columns:74px minmax(0,1fr);gap:14px;padding:12px;align-items:center}
+.colleague-scene .watch-person img{width:74px;height:100px;object-fit:cover}
+.colleague-scene .watch-person b,.colleague-scene .watch-person small{margin:0 0 5px}
+.watch-person-description{display:block;font:13px/1.7 var(--f-body);color:#c9bfac}
+.watch-person-action{display:block;margin-top:7px;font:13px/1.5 var(--f-body);color:#ece0c5}
+.colleague-scene .watch-speaker{gap:16px;padding:12px 0}
+.colleague-scene .watch-speaker img{width:72px;height:96px}
+.colleague-scene .watch-speaker h1{font-size:24px;margin:3px 0 6px}
+.colleague-scene .watch-conversation blockquote{min-height:0;margin:16px 0 24px;font:16px/1.95 var(--f-body)}
+.watch-conversation-cue{color:#afa58f;font:12px/1.6 var(--f-body);margin:12px 0}
+.watch-selected-topic,.watch-action-label{font:13px/1.6 var(--f-body);color:#cec0a2;margin:12px 0 8px}
+.watch-selected-topic{border-left:2px solid #75654b;padding-left:10px}
+.watch-introduction{padding:12px;background:#191b16;font:14px/1.8 var(--f-body);color:#d8ceb9}
+.watch-topic-selection>.watch-choice{width:100%;margin:0 0 8px}
+.watch-next,.watch-leave{width:100%;min-height:46px;white-space:normal}
+.watch-conversation-footer{border-top:1px solid #4c483c;margin-top:20px;padding-top:14px}
+.colleague-scene .investigation-return{width:100%;min-height:48px;margin:0 0 10px;background:#292a20;color:#f0e4cc}
+.colleague-scene button:focus-visible{outline:2px solid #d8c28e;outline-offset:3px}
+@media(max-width:350px){.colleague-scene .watch-person{padding:10px;gap:12px}.colleague-scene .watch-conversation blockquote{font-size:15px}}
+
+.colleague-scene .watch-conversation{display:flex;flex-direction:column;min-height:calc(100dvh - 176px)}
+.colleague-scene .watch-dialogue-actions{margin-top:auto}
+.colleague-scene .watch-conversation>.menu-back{align-self:flex-start;min-height:44px}
+
+.colleague-scene button,.colleague-scene blockquote{scroll-margin-block:90px}
+
+.colleague-scene .watch-person{padding:10px}
+.colleague-scene .watch-person b{font:500 19px/1.3 var(--f-body);margin-bottom:3px}
+.colleague-scene .watch-person small{font:12px/1.5 var(--f-body);margin-bottom:3px}
+.colleague-scene .watch-person-description{font:13px/1.6 var(--f-body)}
+.colleague-scene .watch-room-note{font:13px/1.7 var(--f-body);margin:10px 0}
