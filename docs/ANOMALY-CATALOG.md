@@ -1,6 +1,6 @@
 # 100 anomaly cases and scene interaction update
 
-The catalog has 100 stable case IDs: the three existing photo/radio/seal cases, three initial evidence cases, and 94 authored additions in assets/incursion-cases.js. The 97 evidence cases share compare → select → seal interaction; they are distinct written scenarios, not 100 unique mechanics or 100 image assets. Existing saved event IDs 0–2 retain their meanings. IDs must remain append-only. Rotation visits all 100 before repeating. Tier/recovery/reward rules remain unchanged.
+The catalog has 100 stable case IDs: the three existing photo/radio/seal cases, three initial evidence cases, and 94 authored additions in assets/incursions.js. The 97 evidence cases share compare → select → seal interaction; they are distinct written scenarios, not 100 unique mechanics or 100 image assets. Existing saved event IDs 0–2 retain their meanings. IDs must remain append-only. Rotation visits all 100 before repeating. Tier/recovery/reward rules remain unchanged.
 
 Each evidence case specifies an original record, three candidate records, one inconsistent candidate and its aftermath. The answer position varies; selecting the inconsistent candidate enables and focuses the completion button. Photo comparison and ordered sealing now explicitly describe the next action. Observation offers a “対処方法” route to the existing accessible region picker; no target markers or tap-count gauges were added.
 

@@ -63,8 +63,10 @@ const server = http.createServer((req,res) => {
     assert(await page.locator('#stage').isVisible(),'envelope opening stage');
     await page.locator('#st-scene').click();await page.locator('#st-card.reveal').waitFor({state:'visible'});
     await page.keyboard.press('Escape');
+    const beforeFive=await page.evaluate(()=>({truths:ITEMS.filter(i=>lv(i.id)===5).length,testimonies:S.tcount||0}));
     await page.locator('[data-pull="5"]').click();
-    assert.deepEqual(await page.evaluate(()=>({pt:S.currency,pulls:S.pulls})),{pt:445,pulls:6});
+    const afterFive=await page.evaluate(()=>({pt:S.currency,pulls:S.pulls,truths:ITEMS.filter(i=>lv(i.id)===5).length,testimonies:S.tcount||0}));
+    assert.equal(afterFive.pulls,6);assert.equal(afterFive.pt,445+50*(afterFive.truths-beforeFive.truths)+3*(afterFive.testimonies-beforeFive.testimonies));
     await page.keyboard.press('Escape');
     await page.keyboard.press('Escape');
     for(const [pulls,ten,hundred] of [[74,false,false],[75,true,false],[949,true,false],[950,true,true]]){
@@ -73,9 +75,9 @@ const server = http.createServer((req,res) => {
       assert.equal(await page.locator('[data-pull="100"]').isVisible(),hundred);
     }
     for(const [n,cost] of [[10,90],[100,850]]){
-      await page.evaluate(()=>{S.currency=2000;S.lastTick=Date.now();render()});const before=await page.evaluate(()=>({pulls:S.pulls,levels:totalLv()}));await page.evaluate(()=>Math.random=()=>0.5);
+      await page.evaluate(()=>{S.currency=2000;S.lastTick=Date.now();render()});const before=await page.evaluate(()=>({pulls:S.pulls,levels:totalLv(),truths:ITEMS.filter(i=>lv(i.id)===5).length}));await page.evaluate(()=>Math.random=()=>0.5);
       await page.locator(`[data-pull="${n}"]`).click();
-      const after=await page.evaluate(()=>({pt:S.currency,pulls:S.pulls,levels:totalLv()}));assert.equal(after.pulls,before.pulls+n);assert.equal(after.pt,2000-cost+3*(n-(after.levels-before.levels)));
+      const after=await page.evaluate(()=>({pt:S.currency,pulls:S.pulls,levels:totalLv(),truths:ITEMS.filter(i=>lv(i.id)===5).length}));assert.equal(after.pulls,before.pulls+n);assert.equal(after.pt,2000-cost+3*(n-(after.levels-before.levels))+50*(after.truths-before.truths));
       await page.keyboard.press('Escape');
     }
     await page.evaluate(()=>{S.currency=0;render()});

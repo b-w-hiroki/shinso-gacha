@@ -42,7 +42,7 @@ function renderObservation(){
  document.getElementById('obs-name').textContent=m.title;
  document.getElementById('obs-ready').hidden=!danger||o.mind.closed;
  document.getElementById('obs-ready').textContent=danger?'異変の場所を繰り返しタップ':'記録を受信';
- document.getElementById('obs-help').hidden=!danger||o.mind.closed;
+ const help=document.getElementById('obs-help');if(help)help.hidden=!danger||o.mind.closed;
  document.getElementById('obs-timer').textContent=p&&!danger&&!o.mind.closed?`保持 ${watchDuration(p.expiresAt-o.lastSeen)}`:'';
  const hint=document.getElementById('obs-first-hint');hint.hidden=true;hint.textContent=danger?'違和感のある場所に触れる':'映像に触れて観測する';
 
