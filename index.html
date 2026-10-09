@@ -1962,6 +1962,7 @@ function setHomeTab(tab) {
     if (tab === "desk") renderDeskEvent();
   }
   window.scrollTo({top:0, behavior:REDUCED ? "auto" : "smooth"});
+  if(tab==='desk'&&typeof fitObservation==='function')fitObservation();
 }
 function claimableMission() {
   return MISSIONS.find(m => {
@@ -2342,6 +2343,9 @@ function go(view) {
   document.querySelectorAll("[data-view]").forEach(v => v.hidden = v.dataset.view !== view);
   document.querySelectorAll("[data-nav]").forEach(b => { if (b.dataset.nav === view) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
   window.scrollTo(0, 0);
+  // A hidden observation cannot be measured on resize. Settle it on reveal,
+  // before the user can scroll to the investigation action below the scene.
+  if(view==='home'&&typeof fitObservation==='function')fitObservation();
 }
 
 /* ---------- events ---------- */
