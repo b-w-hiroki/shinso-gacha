@@ -40,5 +40,45 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
   const folder=p.locator('.folder.truth').first();assert(await folder.count());assert(await folder.evaluate(e=>getComputedStyle(e).position==='relative'&&getComputedStyle(e,'::after').position==='static'),'archive truth marker stays in document flow');
   await p.evaluate(()=>go('home'));
  }
+ await p.setViewportSize({width:390,height:844});
+ await p.emulateMedia({reducedMotion:'no-preference'});
+ await p.clock.install();await p.clock.pauseAt(new Date(Date.now()+1000));
+ for(const mode of ['cctv','photo','vision','dash']){
+  await p.evaluate(mode=>{const o=observationState();o.mode=mode;o.pending=null;o.quiet=false;o.tapProgress=0;watchPaint='';renderObservation();scrollTo(0,0);},mode);
+  await p.locator('#obs-image').evaluate(async e=>{const im=new Image();im.src=getComputedStyle(e).backgroundImage.slice(5,-2);await im.decode();});
+  for(const selector of ['#obs-frame','#obs-tap']){
+   await p.locator(selector).click();
+   assert(await p.locator('#obs-frame').evaluate(e=>{const c=getComputedStyle(e,'::before');return c.opacity==='1'&&c.backgroundImage.includes('repeating-linear-gradient')&&c.pointerEvents==='none';}),'contact texture '+mode+' '+selector);
+   await p.clock.runFor(300);
+   assert(await p.locator('#obs-frame').evaluate(e=>!e.classList.contains('obs-touched')),'contact clears');
+  }
+  if(mode==='photo'){
+   await p.locator('#obs-frame').click();await p.evaluate(()=>scrollTo(0,0));
+   await p.screenshot({path:`${out}/tap-photo-390.jpg`,quality:85});
+   await p.clock.runFor(300);
+  }
+ }
+ await p.evaluate(()=>{const o=observationState(),t=Date.now();o.mode='photo';o.pending={mode:'photo',rarity:1,readyAt:t,expiresAt:t+3600000,sequence:o.sequence,suppression:0};renderObservation();});
+ await p.locator('#obs-frame').click({position:{x:110,y:170}});
+ assert.deepEqual(await p.locator('#obs-frame').evaluate(e=>({strike:e.classList.contains('obs-strike'),x:e.style.getPropertyValue('--touch-x'),y:e.style.getPropertyValue('--touch-y'),suppression:S.observation.pending.suppression})),{strike:true,x:'110px',y:'170px',suppression:1},'attack responds at touch location');
+ await p.clock.runFor(100);
+ await p.locator('#obs-frame').click({position:{x:125,y:175}});
+ await p.clock.runFor(100);
+ assert(await p.locator('#obs-frame').evaluate(e=>e.classList.contains('obs-strike')),'repeated contact extends one effect');
+ await p.evaluate(()=>scrollTo(0,0));await p.screenshot({path:`${out}/tap-suppression-390.jpg`,quality:85});
+ await p.clock.runFor(300);
+ assert(await p.locator('#obs-frame').evaluate(e=>!e.classList.contains('obs-touched')&&!e.classList.contains('obs-strike')),'no stuck contact');
+ await p.evaluate(()=>{S.observation.pending.suppression=5;});
+ await p.locator('#obs-tap').click();
+ assert(await p.locator('#obs-frame').evaluate(e=>e.classList.contains('obs-strike')),'finishing hit retains feedback');
+ await p.clock.runFor(300);
+ await p.evaluate(()=>{S.observation.pending=null;});
+ for(const reduced of [false,true]){
+  await p.emulateMedia({reducedMotion:reduced?'reduce':'no-preference'});
+  await p.evaluate(reduced=>{S.observation.quiet=!reduced;renderObservation();},reduced);
+  await p.locator('#obs-frame').click();
+  assert(await p.locator('#obs-frame').evaluate(e=>{const c=getComputedStyle(e,'::before');return c.opacity==='1'&&c.backgroundImage==='none'&&c.transitionDuration==='0s';}),'quiet contact without noise');
+  await p.clock.runFor(300);
+ }
  assert.deepEqual(errors,[]);console.log('Hidden automation, preserved purchases, redacted title, aperture, lower controls and truth stamp separation passed');
 }finally{await b.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});
