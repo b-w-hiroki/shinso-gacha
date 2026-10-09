@@ -35,16 +35,19 @@ function renderObservation(){
  f.dataset.quiet=String(quiet);f.dataset.ready=String(!o.mind.closed);f.dataset.closed=String(o.mind.closed);f.disabled=o.mind.closed;f.setAttribute('aria-disabled',String(o.mind.closed));
  const danger=!!p&&p.rarity>0;
  document.querySelector('[data-watch="settings"]').hidden=!watchSettingsUnlocked();
- document.getElementById('obs-rest').textContent=o.mind.closed?'モニタを開く':'モニタを閉じる';
+ document.getElementById('obs-rest').textContent=o.mind.closed?'観測を再開':'回線を切る';
  document.getElementById('obs-closed').hidden=!o.mind.closed;
  f.setAttribute('aria-label',o.mind.closed?'観測モニタは閉じています':`${m.title}。${danger?'違和感のある場所をタップ。キーボードでは場所を選んで対処':'タップで観測を進める'}`);
  document.getElementById('obs-source').textContent=m.source;
  document.getElementById('obs-name').textContent=m.title;
  document.getElementById('obs-ready').hidden=!p||o.mind.closed;
- document.getElementById('obs-timer').textContent=p&&!o.mind.closed?`◷ ${watchDuration(p.expiresAt-o.lastSeen)}`:'';
- const hint=document.getElementById('obs-first-hint');hint.hidden=o.mind.closed||o.collected>0;hint.textContent=danger?'違和感のある場所に触れる':'映像に触れて観測を進める';
+ document.getElementById('obs-ready').textContent=danger?'異変付近に触れる':'記録を受信';
+ document.getElementById('obs-timer').textContent=p&&!o.mind.closed?`保持 ${watchDuration(p.expiresAt-o.lastSeen)}`:'';
+ const hint=document.getElementById('obs-first-hint');hint.hidden=o.mind.closed||!!p||o.collected>0;hint.textContent=danger?'違和感のある場所に触れる':'映像に触れて観測する';
 
  if(Date.now()>watchMessageUntil)watchMessage='';document.getElementById('obs-feedback').textContent=watchMessage;
+ const pressure=WatchModel.contamination(o);
+ document.getElementById('obs-atmosphere').textContent=o.mind.closed?'切った回線の向こうは、もう確認しない。':pressure>=3?'画面を閉じても、この輪郭が残りそうだ。':pressure===2?'映像の外側にも、視線を感じる。':pressure===1?'さっきから、部屋の気配が変わらない。':['映っていない場所が、気になる。','誰もいない。そう記録されている。','こちらの様子は、映っていないはずだ。'][o.sequence%3];
  renderWatchMind();fitObservation();
  // The screen reader can request the timer; normal viewing stays quiet.
 }
@@ -200,20 +203,40 @@ function observationTargetPicker(message='映像を見て、違和感のある�
  sheet('異変の対処',`<p class="watch-target-copy" role="status">${message}</p><div class="watch-target-regions">${WATCH_REGIONS.map((name,i)=>`<button data-watch-region="${i}">${name}</button>`).join('')}</div><p class="hint">同じ付近に繰り返し触れて干渉を抑える。映像へ戻って直接タップすることもできます。</p><button class="btn-line" data-act="close">映像へ戻る</button>`);
 }
 const WATCH_COLLEAGUES={
- records:{name:'白瀬 ／ 記録係',greeting:'席、空いています。見たものを、順番に話してください。',strange:'記録にないものは、今すぐ名前を付けなくていいんです。あなたの名前まで書き込まれる前に、いったん閉じましょう。',rest:'その資料は預かります。窓の外を見ていてください。ここにあるものを、三つ数えて。',again:'この前の記録は、私が持っています。今日は続きを急がなくていい。'},
- equipment:{name:'榊 ／ 設備担当',greeting:'回線は切ってあります。まだ映っていても、触らないでください。',strange:'映像全体を叩いても信号は止まりません。おかしい場所、その付近だけに干渉してください。長く見続けるのは避けて。',rest:'モニタは私が見ておきます。……いえ、電源を抜いておきます。あなたも少し離れて。',again:'さっき抜いたケーブルは、まだ抜いたままです。確かめに戻る必要はありません。'},
- senior:{name:'三輪 ／ 先輩調査員',greeting:'追うほど向こうにも道ができる。戻ってきたなら、まず座ろう。',strange:'画面の外まで違和感が残るなら、今日は深追いしないことだ。真相は逃げない。こちらを待っている。',rest:'何も調べない時間も仕事のうちだ。急ぐな。普通の話をしていこう。',again:'また来たな。ちゃんと、戻る場所を覚えていたか。'}
+ records:{name:'白瀬',role:'記録係',portrait:'shirose',greeting:'席、空いています。見たものを、順番に話してください。',again:'この前の記録は、私が持っています。今日は続きを急がなくていい。',
+ strange:['記録にないものは、すぐ名前を付けなくていいんです。名前の欄だけ、先に埋まることがあります。','同じ写真でも、余白が減っていることがあります。中のものが増えたとは限りません。','あなたの報告書、筆跡は合っています。ただ、提出日は明日になっています。'],
+ rest:['資料は伏せておきます。お茶が冷めるまで、何も確かめなくて大丈夫。','ここでは仕事の話をしなくてもいいんです。……時計も、見なくていい。','窓の外より、この机を見ていてください。傷の数は、昨日と同じです。'],
+ office:['紙コップは人数分です。ひとつ余っていても、捨てないことになっています。','内線表の空欄には、何も書かないでください。前の係の申し送りです。','出勤簿は私が閉じます。あなたの隣の欄は、気にしなくていい。'],
+ past:['前任者の引継ぎは、目次だけ残っています。本文は、読んだ人が持って帰ったそうです。','古い職員証の写真は、裏返して保管しています。退職後も更新されるので。','この課ができた日ですか。設置より古い受領印があるので、確認中です。']},
+ equipment:{name:'榊',role:'設備担当',portrait:'sakaki',greeting:'回線は切ってあります。まだ映っていても、触らないでください。',again:'さっき抜いたケーブルは、まだ抜いたままです。確かめに戻る必要はありません。',
+ strange:['映像全部に触れても止まりません。おかしい場所、その付近だけです。長く見続けないで。','故障なら、毎回同じように壊れます。今のは、こちらの操作を待っていました。','音声のない機材です。声が聞こえたら、音量を探さず回線を切ってください。'],
+ rest:['モニタは私が見ておきます。……いえ、電源を抜いておきます。少し離れて。','工具を片付ける間、座っていてください。今は何もしなくていい。','手、冷えていますね。湯のみを持っていてください。機材は後でいいです。'],
+ office:['白瀬さんと話した？　今日は休みの連絡を受けています。……確認は、明日にしましょう。','休憩室の呼び鈴、線が来ていないんです。鳴っても誰も立たないでしょう。','机の下のコードは数えないでください。必要な本数は、私が覚えています。'],
+ past:['撤去したモニタの番号が、今朝の接続一覧にありました。予備機ということにしています。','前の担当が残した工具箱、鍵が内側にあります。開けた記録はありません。','この部屋の図面は取り寄せません。前に届いたものには、出口がありませんでした。']},
+ senior:{name:'三輪',role:'先輩調査員',portrait:'miwa',greeting:'追うほど向こうにも道ができる。戻ってきたなら、まず座ろう。',again:'また来たな。ちゃんと、戻る場所を覚えていたか。',
+ strange:['画面の外まで違和感が残るなら、深追いしないことだ。真相は逃げない。こちらを待っている。','見つけた、とすぐ口にしないほうがいい。向こうも、そう思うかもしれない。','何も映らない時間を覚えておけ。異変のほうが、普通に見え始める前に。'],
+ rest:['何も調べない時間も仕事のうちだ。急ぐな。普通の話をしていこう。','帰りに何を食べる？　思いつくまで、ここにいていい。','椅子はそのままでいい。背中を預けろ。今は誰の報告にも答えなくていい。'],
+ office:['名前で呼べる相手がいるうちは、ここへ戻ってこい。席の番号だけになったら、休め。','廊下ですれ違っても、返事をしないことがある。ここで会ったときに話してくれ。','空いている席は、空けておく。それだけ覚えていればいい。'],
+ past:['前任の話は、記録と本人で少し違う。どちらも嘘をついているつもりはないんだろう。','初日に言われたことは忘れない。「着任、おめでとう」ではなく「お帰り」だった。','この課を出た人のことも覚えている。顔より先に、名前が思い出せなくなる。']}
 };
+const WATCH_TOPICS={strange:'見たものについて',rest:'少し休みたい',office:'課内のこと',past:'以前のこと'};
+function watchPortrait(m){return `<img src="assets/colleagues/${m.portrait}.webp" alt="" width="90" height="120">`;}
 function observationColleagues(){
  WatchModel.closeMonitor(observationState(),Date.now(),true);markDirty();save();renderObservation();
- sheet('第六文書課 ／ 休憩室',`<div class="watch-colleagues"><p>回線を切って、課内へ戻った。</p>${Object.entries(WATCH_COLLEAGUES).map(([id,m])=>`<button class="btn-paper" data-watch-member="${id}">${m.name}<small>${observationState().mind.talks[id]?'もう一度、話す':'声をかける'}</small></button>`).join('')}<button class="btn-line" data-act="close">席へ戻る</button></div>`);
+ sheet('第六文書課 ／ 休憩室',`<div class="watch-colleagues"><p class="watch-room-note">回線を切って、課内へ戻った。<br>誰かが、まだ残っている。</p><div class="watch-people">${Object.entries(WATCH_COLLEAGUES).map(([id,m])=>`<button class="watch-person" data-watch-member="${id}">${watchPortrait(m)}<b>${m.name}</b><small>${m.role}</small></button>`).join('')}</div><p class="watch-room-note">話す相手を選ぶ</p><button class="btn-line" data-act="close">席へ戻る</button></div>`);
 }
 function observationConversation(id,topic){
  const member=WATCH_COLLEAGUES[id];if(!member)return;
  const o=observationState(),seen=!!o.mind.talks[id],troubled=WatchModel.contamination(o)>=2;
  let line=seen?member.again:member.greeting;
- if(topic==='strange'||topic==='rest'){line=member[topic];WatchModel.talk(o,Date.now(),id);markDirty();save();renderWatchMind();}
- sheet(member.name,`<div class="watch-conversation"><p class="watch-room-note">${troubled?'廊下の足音が、ここでは聞こえない。':'紙コップの温かさが、指先に残る。'}</p><blockquote>${line}</blockquote><div class="watch-dialogue-actions"><button class="btn-paper" data-watch-talk="${id}" data-topic="strange">見たものについて話す</button><button class="btn-paper" data-watch-talk="${id}" data-topic="rest">少し休みたい</button><button class="btn-line" data-watch="colleagues">ほかの人に話す</button><button class="btn-line" data-act="close">席へ戻る</button></div></div>`);
+ if(Object.hasOwn(WATCH_TOPICS,topic)){
+  const key=id+':'+topic,n=Math.max(0,Math.floor(Number(o.mind.dialogue[key])||0));
+  line=member[topic][n%member[topic].length];o.mind.dialogue[key]=n+1;
+  if(id==='equipment'&&topic==='office'&&n%3===0)o.mind.clues.absent=true;
+  if(id==='records'&&topic==='office'&&o.mind.clues.absent){line='榊さんが、そう言ったんですか。欠勤届は私が預かっています。……私の分ではありません。';o.mind.clues.absent=false;}
+  WatchModel.talk(o,Date.now(),id);markDirty();save();renderWatchMind();
+ }
+ sheet('休憩室 ／ 会話',`<div class="watch-conversation"><header class="watch-speaker">${watchPortrait(member)}<div><small>${member.role}</small><h2>${member.name}</h2><p>${troubled?'こちらを見ている。目が合ったかは、わからない。':'声は近い。表情までは、よく見えない。'}</p></div></header><blockquote aria-live="polite">${line}</blockquote><div class="watch-dialogue-actions"><div class="watch-topics">${Object.entries(WATCH_TOPICS).map(([key,label])=>`<button class="watch-choice" data-watch-talk="${id}" data-topic="${key}">${label}</button>`).join('')}</div><div class="watch-exits"><button class="btn-line" data-watch="colleagues">ほかの人に話す</button><button class="btn-line" data-act="close">席へ戻る</button></div></div></div>`);
 }
 document.getElementById('obs-rest').addEventListener('click',observationRest);
 document.getElementById('obs-colleagues').addEventListener('click',observationColleagues);
@@ -235,7 +258,9 @@ function fitObservation(){
  const controls=document.querySelector('.obs-secondary'),nav=document.querySelector('.nav-in');
  const f=frame.getBoundingClientRect(),bottom=controls.getBoundingClientRect().bottom+scrollY;
  const navTop=nav?.getBoundingClientRect().top||innerHeight-60;
- const height=Math.max(100,Math.min(560,f.height+Math.min(innerHeight,navTop)-bottom-18));
+ const nativeHeight=f.width/OBSERVATIONS[observationState().mode].ratio;
+ const available=f.height+Math.min(innerHeight,navTop)-bottom-18;
+ const height=Math.max(180,Math.min(nativeHeight,560,available));
  if(Math.abs(height-f.height)>1)frame.style.setProperty('--obs-height',`${Math.floor(height)}px`);
 }
 addEventListener('resize',fitObservation);

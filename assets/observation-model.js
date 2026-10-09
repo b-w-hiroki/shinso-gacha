@@ -32,7 +32,7 @@
   o.tapProgress=int(o.tapProgress,TAPS[o.upgrades.interval]-1);o.patrols=int(o.patrols);o.autoLastAt=int(o.autoLastAt);o.autoEnabled=o.autoEnabled!==false;
   if(o.pending){o.pending.suppression=int(o.pending.suppression,14);o.pending.strain=Math.max(0,Math.min(90,Number(o.pending.strain)||0));}
   const m=o.mind&&typeof o.mind==='object'?o.mind:{};
-  o.mind={load:Math.max(0,Math.min(100,Number(m.load)||0)),lastAt:int(m.lastAt),lastInput:int(m.lastInput),closed:!!m.closed,talkAt:int(m.talkAt),talks:m.talks&&typeof m.talks==='object'?m.talks:{}};
+  o.mind={load:Math.max(0,Math.min(100,Number(m.load)||0)),lastAt:int(m.lastAt),lastInput:int(m.lastInput),closed:!!m.closed,talkAt:int(m.talkAt),talks:m.talks&&typeof m.talks==='object'?m.talks:{},dialogue:m.dialogue&&typeof m.dialogue==='object'?m.dialogue:{},clues:m.clues&&typeof m.clues==='object'?m.clues:{}};
   o.seed=int(o.seed,0xffffffff)||1;o.quiet=!!o.quiet;
   o.history=Array.isArray(o.history)?o.history.filter(x=>x&&MODES[x.mode]&&Number.isInteger(x.rarity)&&RARITY[x.rarity]).slice(-12):[];
   o.collection=o.collection&&typeof o.collection==='object'?o.collection:{};

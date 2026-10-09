@@ -69,7 +69,7 @@ for(const [width,height] of [[320,568],[390,844],[430,932],[844,390]]){
   for(const rarity of [0,1,2,3]){
    await p.evaluate(({mode,rarity})=>{const o=observationState();o.unlocked=Object.keys(WatchModel.MODES);o.mode=mode;const now=Date.now();o.pending={mode,rarity,readyAt:now,expiresAt:now+WatchModel.hold(o),sequence:o.sequence};go('home');render();},{mode,rarity});
    const frame=p.locator('#obs-frame');await frame.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));
-   assert(await frame.isVisible());const rect=await frame.boundingBox();assert(rect.width>=Math.min(width-8,600)&&rect.height>=100,JSON.stringify(rect));
+   assert(await frame.isVisible());const rect=await frame.boundingBox();assert(rect.width>=Math.min(width-32,576)&&rect.height>=100,JSON.stringify(rect));
    assert(await p.locator('#obs-image').evaluate(async e=>{const im=new Image();im.src=getComputedStyle(e).backgroundImage.slice(5,-2);await im.decode();return im.naturalWidth>1000;}));
    await frame.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));
    assert(await frame.evaluate(e=>{const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {ok:hit===e||e.contains(hit),rect:r.toJSON(),hit:hit?.outerHTML.slice(0,300),scroll:scrollY};}).then(x=>{assert(x.ok,JSON.stringify({mode,rarity,width,...x}));return true;}),'scene tap not covered');

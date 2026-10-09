@@ -24,7 +24,7 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
   }
   await p.evaluate(()=>{scrollTo(0,0);document.activeElement?.blur();});await p.clock.runFor(80);
   await p.screenshot({path:`docs/qa-incursions/firstview-${width}.jpg`,quality:85});
-  for(const control of await p.locator('.obs-secondary button:visible').all())assert(await control.evaluate(e=>{const r=e.getBoundingClientRect(),nav=document.querySelector('.nav-in').getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.height>=44&&r.bottom<=nav.top&&r.top>=0&&(e===hit||e.contains(hit));}),'first-view controls '+width);
+  for(const control of await p.locator('.obs-secondary button:visible').all()){if(width>height)await control.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));assert(await control.evaluate(e=>{const r=e.getBoundingClientRect(),nav=document.querySelector('.nav-in').getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.height>=44&&r.bottom<=nav.top&&r.top>=0&&(e===hit||e.contains(hit));}),'reachable controls '+width);}
   await p.screenshot({path:`docs/qa-incursions/firstview-${width}.jpg`,quality:85});
   assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  }
@@ -43,10 +43,21 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  await p.locator('#obs-rest').click();assert(await p.evaluate(()=>S.observation.mind.closed));assert(await p.locator('#obs-frame').isDisabled());assert.equal(await p.locator('#obs-tap').count(),0);assert(await p.locator('#obs-closed').isVisible());
  const old=await p.evaluate(()=>S.observation.mind.load);await p.evaluate(()=>{const o=observationState();WatchModel.mindTick(o,o.mind.lastAt+240000,{visible:false});renderObservation();save();});assert.equal(await p.evaluate(()=>S.observation.mind.load),0);assert(old>0);assert.equal(await p.locator('body').getAttribute('data-watch-mind'),'0');
  await p.screenshot({path:'docs/qa-incursions/rest-390.jpg',quality:85});
- await p.locator('#obs-colleagues').click();await p.locator('[data-watch-member="records"]').click();await p.locator('[data-watch-talk="records"][data-topic="rest"]').click();assert.equal(await p.evaluate(()=>S.observation.mind.talks.records),1);assert(await p.evaluate(()=>S.observation.mind.closed));
+ await p.locator('#obs-colleagues').click();
+ await p.locator('.watch-person img').evaluateAll(imgs=>Promise.all(imgs.map(i=>i.decode())));
+ assert.equal(await p.locator('.watch-person').count(),3);
+ await p.clock.runFor(400);await p.screenshot({path:'docs/qa-incursions/colleague-roster-390.jpg',quality:85});
+ await p.locator('[data-watch-member="records"]').click();await p.locator('[data-watch-talk="records"][data-topic="rest"]').click();assert.equal(await p.evaluate(()=>S.observation.mind.talks.records),1);assert(await p.evaluate(()=>S.observation.mind.closed));
  await p.screenshot({path:'docs/qa-incursions/colleagues-390.jpg',quality:85});
  await p.locator('[data-watch="colleagues"]').click();await p.locator('[data-watch-member="records"]').click();assert((await p.locator('.watch-conversation').innerText()).includes('この前の記録'));
  for(const [width,height] of [[320,568],[844,390]]){await p.setViewportSize({width,height});for(const el of await p.locator('.watch-dialogue-actions button').all()){await el.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));assert(await el.evaluate(e=>{const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.height>=44&&e.scrollWidth<=e.clientWidth&&(hit===e||e.contains(hit));}));}assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}
- await p.keyboard.press('Escape');await p.reload();assert(await p.evaluate(()=>S.observation.mind.closed));assert.equal(await p.evaluate(()=>S.observation.mind.talks.records),1);
+ await p.locator('[data-watch-talk="records"][data-topic="strange"]').click();const first=await p.locator('.watch-conversation blockquote').innerText();
+ await p.locator('[data-watch-talk="records"][data-topic="strange"]').click();assert.notEqual(await p.locator('.watch-conversation blockquote').innerText(),first);
+ const count=await p.evaluate(()=>S.observation.mind.dialogue['records:strange']);
+ await p.locator('[data-watch="colleagues"]').click();await p.locator('[data-watch-member="records"]').click();assert.equal(await p.evaluate(()=>S.observation.mind.dialogue['records:strange']),count,'opening does not advance dialogue');
+ await p.locator('[data-watch="colleagues"]').click();await p.locator('[data-watch-member="equipment"]').click();await p.locator('[data-watch-talk="equipment"][data-topic="office"]').click();
+ assert(await p.evaluate(()=>S.observation.mind.clues.absent));await p.locator('[data-watch="colleagues"]').click();await p.locator('[data-watch-member="records"]').click();await p.locator('[data-watch-talk="records"][data-topic="office"]').click();assert((await p.locator('.watch-conversation blockquote').innerText()).includes('欠勤届'));
+ const talks=await p.evaluate(()=>S.observation.mind.talks.records);
+ await p.keyboard.press('Escape');await p.reload();assert(await p.evaluate(()=>S.observation.mind.closed));assert.equal(await p.evaluate(()=>S.observation.mind.talks.records),talks);assert.equal(await p.evaluate(()=>S.observation.mind.dialogue['records:strange']),count);
  assert.deepEqual(errors,[]);console.log('All 12 targets at 3 sizes, missed hits, location selector, outside-screen contamination, monitor rest, conversations and persistence passed');
 }finally{await b.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});
