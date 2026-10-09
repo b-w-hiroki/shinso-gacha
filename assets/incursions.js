@@ -44,7 +44,7 @@ function incursionInvestigate(count=1) {
 function renderIncursion() {
   const b=document.getElementById('incursion-status');if(!b)return;
   const a=incursionState(),visible=!!a&&!(typeof introActive==='function'&&introActive());
-  b.hidden=!visible;
+  b.hidden=!visible||!a.event;
   const stage=!visible||!a.level?'calm':a.level<36?'trace':a.level<70?'noticed':a.level<100?'close':'breach';
   document.body.dataset.incursion=stage;
   document.body.classList.toggle('incursion-quiet',!!a?.quiet);

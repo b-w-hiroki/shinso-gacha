@@ -42,13 +42,13 @@ has(/id="agent-primary"/, "agent event primary CTA missing");
 has(/primary\.textContent = e\.label;[\s\S]*primary\.dataset\.desk = e\.action;/, "agent primary CTA must follow the current event");
 has(/body:has\(\.agent-home:not\(\[hidden\]\)\) \.nav \{ display:none; \}/, "global nav must not compete with the agent first view");
 
-has(/id="radar-distance"/, "radar distance indicator missing");
+has(/id="obs-ready"/, "observation ready marker missing");
 has(/function radarSignal\(\)/, "functional radar signal model missing");
 has(/架空の観測地点/, "radar location must be explicitly fictional in-world observation");
 has(/renderRadar\(\);/, "radar must update with the current desk event");
 has(/DANGER \/ 接近中/, "danger radar state missing");
 
-has(/data-desk="evidence"/, "radar evidence entry point missing");
+assert(fs.readFileSync("assets/observation.js","utf8").includes('data-desk="evidence"'), "evidence must remain accessible from observation details");
 has(/function openAnomalyEvidence\(\)/, "anomaly evidence sheet missing");
 has(/架空の観測地点/, "evidence location must remain explicitly fictional");
 
@@ -75,7 +75,7 @@ has(/const AFTERMATH = \{/, "varied aftermath table missing");
 has(/FOLLOW \/ 追随/, "field aftermath variety missing");
 has(/SHIFT \/ 境界変位/, "seal aftermath variety missing");
 has(/SPLIT \/ 分岐/, "watch aftermath variety missing");
-has(/気配を探る/, "home tap-to-earn action must be available");
+has(/id="obs-frame"/, "scene tap collection must be available");
 
 has(/class="wallet-summary"/, "wallet must present a compact currency summary");
 has(/駅の時計、1台だけ4分遅れてる/, "expanded everyday-horror thread corpus missing");
@@ -154,3 +154,9 @@ console.log('Incursion module syntax and entry points verified');
 
 new Function(fs.readFileSync("assets/observation.js","utf8"));
 for (const mode of ["photo","cctv","vision","dash"]) assert(fs.statSync(`assets/observation/${mode}.webp`).size>10000);
+
+new Function(fs.readFileSync("assets/observation-model.js","utf8"));
+
+new Function(fs.readFileSync("assets/menu.js","utf8"));
+for (const mode of ["photo","cctv","vision","dash"]) assert(fs.statSync(`assets/observation/${mode}-variants.webp`).size>10000);
+has(/id="game-menu"/, "header menu missing");

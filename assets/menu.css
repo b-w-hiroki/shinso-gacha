@@ -1,0 +1,9 @@
+.top-in{gap:8px}.top-in .logo{flex:1;min-width:0}.logo small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+#game-menu{position:relative;flex:0 0 44px;width:44px;height:44px;display:grid;place-items:center;padding:10px;color:#eaddc2}
+#game-menu svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6}
+#menu-dot{position:absolute;right:6px;top:5px;width:6px;height:6px;border-radius:50%;background:#d6b86d}
+.game-menu-list,.game-message-list{display:grid}.game-menu-list>button{display:flex;align-items:center;justify-content:space-between;gap:16px;text-align:left;min-height:64px;border-bottom:1px solid #66583e66;padding:16px 4px}
+.game-menu-list small{color:#d6b86d;white-space:nowrap}.game-message-list>button{display:grid;gap:7px;text-align:left;min-height:76px;padding:18px 4px;border-bottom:1px solid #66583e66}
+.game-message-list small,.game-message small,.menu-muted{color:#c5bca8;font-size:12px;line-height:1.6}.game-message-list b{font-size:16px;font-weight:600;line-height:1.6}
+.menu-back{min-height:44px;display:block;padding:8px 0;font-size:13px;color:#d2c8b4}.game-message{padding:12px 0 8px;display:grid;gap:16px;overflow-wrap:anywhere}.game-message h2{font-size:22px;line-height:1.5;margin:0}.game-message p{font-size:15px;line-height:1.9;margin:0}.game-message button{min-height:48px}.menu-empty{padding:24px 0;color:#c5bca8;text-align:center}
+@media(max-width:380px){.top-in{padding-inline:10px;gap:4px}.top-in .logo{font-size:16px}.top-in .logo small{font-size:7px;letter-spacing:0}.wallet{gap:4px;padding-inline:6px}.wallet b{font-size:18px}.wallet .ring{display:none}.wallet span{font-size:10px}#game-menu{flex-basis:44px}}

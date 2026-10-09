@@ -17,6 +17,7 @@ jobs:
         with:
           node-version: 22
       - run: node tests/smoke.mjs
+      - run: node tests/observation-model.cjs
 
   browser:
     runs-on: ubuntu-latest
