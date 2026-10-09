@@ -1117,6 +1117,8 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
     </article>
   </section>
 
+  <section class="view dossier-view menu-scene" data-view="menu" hidden><header class="menu-page-heading"></header><div id="menu-page-content"></div></section>
+
   <!-- GACHA -->
   <section class="view gacha-scene" data-view="gacha" hidden>
     <div class="scene-props" aria-hidden="true"><i class="prop-files"></i><i class="prop-photo"></i><i class="prop-lamp"></i><i class="prop-tape"></i><i class="prop-film"></i></div>
@@ -2336,11 +2338,13 @@ function defaultSectionTab(view) {
   if (map[view]) setSectionTab(map[view]);
 }
 function go(view) {
-  if (isLite()) view = "lite";
+  if (isLite() && view !== "menu") view = "lite";
   if (view === "home" && !isLite()) setHomeTab("desk");
   if (!isLite()) defaultSectionTab(view);
   document.querySelectorAll("[data-view]").forEach(v => v.hidden = v.dataset.view !== view);
   document.querySelectorAll("[data-nav]").forEach(b => { if (b.dataset.nav === view) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
+  const menuButton=document.getElementById("game-menu");
+  if(view==="menu")menuButton.setAttribute("aria-current","page");else menuButton.removeAttribute("aria-current");
   window.scrollTo(0, 0);
   // A hidden observation cannot be measured on resize. Settle it on reveal,
   // before the user can scroll to the investigation action below the scene.
