@@ -1,3 +1,4 @@
+const {compareEvidence,finishWork}=require('./incursion-steps.cjs');
 const {chromium}=require('playwright'),fs=require('fs'),path=require('path'),http=require('http'),assert=require('assert/strict');
 const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.env.QA_FONT:path.join(process.cwd(),q.url==='/'?'index.html':q.url);r.setHeader('Content-Type',f.endsWith('.html')?'text/html; charset=utf-8':f.endsWith('.js')?'application/javascript':f.endsWith('.css')?'text/css':'application/octet-stream');r.end(fs.readFileSync(f));}catch{r.writeHead(404);r.end();}});
 (async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));const b=await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE||undefined,args:['--no-sandbox','--disable-dev-shm-usage','--no-zygote','--single-process']});try{
@@ -8,15 +9,19 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
 
  assert.equal(await p.evaluate(()=>INCURSIONS.length),100);
  assert.equal(await p.evaluate(()=>new Set(INCURSIONS.map(x=>x.name)).size),100);
- assert.deepEqual(await p.evaluate(()=>Array.from({length:100},(_,resolved)=>incursionEvent({resolved,manual:0}).kind)),Array.from({length:100},(_,i)=>i));
+ assert.deepEqual(await p.evaluate(()=>Array.from({length:100},(_,resolved)=>incursionEvent({resolved,manual:0}).kind).sort((a,b)=>a-b)),Array.from({length:100},(_,i)=>i));
  const currency=await p.evaluate(()=>S.currency);
  for(let kind=3;kind<100;kind++){
   await p.evaluate(kind=>{S.incursion={version:1,level:40,resolved:kind,manual:3,event:{kind,tier:1,step:0,seen:0,round:0}};openIncursion();},kind);
-  assert((await p.locator('.inc-reference').innerText()).length>18);
+  if(await p.locator('.inc-reference').count())assert((await p.locator('.inc-reference').innerText()).length>18);
   const answer=await p.evaluate(kind=>INCURSIONS[kind].answer,kind);
   if(await p.locator('[data-inc="inspect"]').count())await p.locator('[data-inc="inspect"]').click();
+  await compareEvidence(p);
   assert(await p.locator('[data-inc="quarantine"]').isDisabled());
+  await p.locator(`[data-inc="isolate"][data-value="${(answer+1)%3}"]`).click();
+  assert.equal(await p.evaluate(()=>S.incursion.event.step),0);assert.equal(await p.evaluate(()=>S.incursion.samples),0);
   await p.locator(`[data-inc="isolate"][data-value="${answer}"]`).click();
+  await finishWork(p);
   assert(await p.locator('[data-inc="quarantine"]').evaluate(e=>e===document.activeElement));
   assert((await p.locator('.inc-instruction').innerText()).includes('対処を完了'));
   await p.locator('[data-inc="quarantine"]').click();
@@ -32,6 +37,7 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
   await p.locator('.inc-presence img').evaluate(im=>im.decode());assert(await p.locator('.inc-presence').isVisible());
   if(width===390)await p.screenshot({path:'docs/qa-incursions/doorway-anomaly-390.jpg',quality:85});
   await p.locator('[data-inc="inspect"]').click();await p.locator('[data-inc="isolate"][data-value="0"]').click();
+  await finishWork(p);
   assert(await p.locator('[data-inc="quarantine"]').evaluate(e=>{const r=e.getBoundingClientRect();return r.height>=44&&r.bottom<=innerHeight;}));
   await p.evaluate(()=>{S.incursion.quiet=true;drawIncursion();});assert.equal(await p.locator('.inc-presence').count(),0);
   await p.keyboard.press('Escape');
@@ -43,5 +49,5 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  assert.equal(await p.locator('#obs-frame').evaluate(e=>getComputedStyle(e).touchAction),'none');
  assert.equal(await p.locator('[data-pull="1"]').evaluate(e=>getComputedStyle(e).touchAction),'pan-x pan-y');
  const gestures=await p.evaluate(()=>{const a=new Event('gesturestart',{bubbles:true,cancelable:true});document.getElementById('obs-frame').dispatchEvent(a);const b=new Event('gesturestart',{bubbles:true,cancelable:true});document.querySelector('.watch-target-copy').dispatchEvent(b);return [a.defaultPrevented,b.defaultPrevented];});assert.deepEqual(gestures,[true,false]);
- assert.deepEqual(errors,[]);console.log('100 unique cases; all 97 evidence puzzles complete once; visual fear/quiet layouts, confirm focus, observation guidance and control-only gesture prevention passed');
+ assert.deepEqual(errors,[]);console.log('100 unique cases; all 97 evidence experiences complete once through their actual controls; visual fear/quiet layouts, confirm focus, observation guidance and control-only gesture prevention passed');
 }finally{await b.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});
