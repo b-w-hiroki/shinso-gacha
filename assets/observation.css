@@ -1,0 +1,39 @@
+/* Images, capture metadata and controls occupy separate layout rows. */
+.agent-home .thread-radar{background:#141714;overflow:hidden;box-shadow:none}
+.obs-modes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:8px}
+.obs-modes button{min-width:0;min-height:44px;padding:8px 3px;font:700 12px/1.4 var(--f-body);color:#e7e5d7;border:1px solid #555c4c;background:#20251e;border-radius:4px;overflow-wrap:anywhere}
+.obs-modes button[aria-pressed=true]{background:#d3c7a7;color:#1a211a;border-color:#d3c7a7}
+.obs-meta{display:flex;justify-content:space-between;gap:8px;padding:6px 12px;font:12px/1.5 var(--f-mono);color:#d4ddca;flex-wrap:wrap}
+.obs-frame{position:relative;height:clamp(180px,26vh,220px);overflow:hidden;background:#080a08;isolation:isolate}
+#obs-image{position:absolute;inset:0;margin:auto;width:min(100%,calc(clamp(180px,26vh,220px) * var(--obs-ratio)));height:100%;background-size:200% 100%;background-position:left center;background-repeat:no-repeat}
+.obs-frame[data-observation-view=after] #obs-image{background-position:right center}
+.obs-frame[data-mode=photo]{background:#191b18;padding:8px}
+.obs-frame[data-mode=photo] #obs-image{inset:8px;height:calc(100% - 16px);width:calc((min(26vh,220px) - 16px) * .75);max-width:calc(100% - 16px);border:5px solid #e4dcc4;border-bottom-width:18px;box-sizing:border-box}
+.obs-frame[data-mode=cctv] #obs-image{filter:saturate(.58) contrast(1.07)}
+.obs-effect{position:absolute;inset:0;pointer-events:none}
+.obs-frame[data-mode=cctv] .obs-effect{background:repeating-linear-gradient(0deg,#0002 0px,#0002 1px,transparent 1px,transparent 4px)}
+.obs-frame[data-mode=vision] .obs-effect{box-shadow:inset 0 0 45px 12px #0007;border-radius:40%}
+.obs-frame[data-disconnected=true] #obs-image,.obs-frame[data-disconnected=true] .obs-effect{visibility:hidden}
+#obs-disconnected{position:absolute;inset:0;display:grid;place-items:center;color:#e9dfc8;padding:20px;text-align:center}
+#obs-disconnected[hidden]{display:none}
+.obs-capture[data-mode=vision]:not([data-quiet=true]) .obs-effect{animation:obs-blink .65s ease-out}
+.obs-capture[data-mode=photo]:not([data-quiet=true]) #obs-image{animation:obs-develop .65s ease-out}
+.obs-capture[data-mode=dash]:not([data-quiet=true]) #obs-image{animation:obs-road .65s ease-out}
+@keyframes obs-blink{0%{background:#050605}100%{background:transparent}}
+@keyframes obs-develop{0%{filter:sepia(.7) brightness(.4)}100%{filter:none}}
+@keyframes obs-road{25%{transform:translateY(1px)}75%{transform:translateY(-1px)}}
+.obs-caption{padding:10px 12px;color:#eee4cf;font-size:12px;line-height:1.5}
+.obs-caption>b{display:block;font-size:17px}.obs-caption p{margin:5px 0;font-size:14px;line-height:1.6;min-height:2lh;overflow-wrap:anywhere}
+.obs-actions{display:flex;gap:8px;padding:0 12px 8px;flex-wrap:wrap}
+.obs-actions button{flex:1;min-height:44px;padding:9px;color:#f3e8d0;background:#28372f;border:1px solid #77806a;font:700 14px/1.5 var(--f-body);border-radius:4px}
+#obs-feedback{margin:0;padding:0 12px;color:#f1d394;font-size:13px;line-height:1.6}#obs-feedback:not(:empty){padding-block:8px}
+.obs-preview{padding:8px 12px;color:#d8d3c3;font-size:12px;border-top:1px solid #414637}
+.obs-preview summary{min-height:32px;cursor:pointer;padding:7px 0}.obs-preview p{line-height:1.6}.obs-preview .obs-actions{padding:0}.obs-preview label{display:flex;gap:8px;align-items:center;min-height:44px}
+@media(max-width:360px){.obs-modes{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-height:740px){.obs-frame{height:180px}#obs-image{width:min(100%,calc(180px * var(--obs-ratio)))}.obs-frame[data-mode=photo] #obs-image{width:123px}}
+@media(prefers-reduced-motion:reduce){.obs-capture #obs-image,.obs-capture .obs-effect{animation:none!important}}
+/* Observation is the primary home action; the draw CTA follows the document. */
+.agent-home > .home-tabs{grid-row:1}
+.agent-home > .home-pane{grid-row:2}
+.agent-home > .agent-footer{grid-row:3;position:relative;inset:auto;transform:none;width:100%;margin-top:4px}
+body:has(.agent-home:not([hidden])) main{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}

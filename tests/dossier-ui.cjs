@@ -32,7 +32,7 @@ const server=http.createServer((req,res)=>{
     if(w===390||w===320)await shot(v+'-'+w);
     const nav=await p.locator('.nav').boundingBox();assert(nav.y+nav.height<=h+1,'nav fits viewport');
     if(v==='home'){
-     if(h<740)await p.locator('#agent-primary').evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));const btn=await p.locator('#agent-primary').boundingBox();assert(btn&&btn.height>=44&&btn.y+btn.height<=nav.y,'home CTA must sit above nav '+JSON.stringify({w,h,btn,nav}));
+     await p.locator('#agent-primary').evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));const btn=await p.locator('#agent-primary').boundingBox();assert(btn&&btn.height>=44&&btn.y+btn.height<=nav.y,'home CTA must sit above nav '+JSON.stringify({w,h,btn,nav}));
     }
    }
   }
