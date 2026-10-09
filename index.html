@@ -602,7 +602,8 @@ body:has(.agent-home:not([hidden])) .nav { display:none; }
 .ev-audio { min-height:155px; display:grid; place-items:center; padding:18px; background:#101518; }
 .wave { width:100%; height:64px; display:flex; align-items:center; gap:3px; }
 .wave i { flex:1; min-width:2px; height:var(--h); background:#7f9e92; opacity:.82; }
-.transit-mark { position:absolute; left:12px; bottom:12px; padding:6px 8px; background:#0e1515; border:1px solid #657970; font:700 11px var(--f-mono); color:#b9cbc4; }\n.ev-transcript { padding:10px 12px; border-top:1px solid #424b54; font-size:14px; line-height:1.65; }
+.transit-mark { position:absolute; left:12px; bottom:12px; padding:6px 8px; background:#0e1515; border:1px solid #657970; font:700 11px var(--f-mono); color:#b9cbc4; }
+.ev-transcript { padding:10px 12px; border-top:1px solid #424b54; font-size:14px; line-height:1.65; }
 .ev-status { display:flex; gap:6px; flex-wrap:wrap; }
 .ev-status span { padding:5px 8px; border:1px solid #59636d; font:800 10px var(--f-mono); letter-spacing:.06em; }
 .ev-status .danger { color:#e0a19a; border-color:#8d4e48; }
@@ -1086,6 +1087,11 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
           </div>
           <div class="radar-posts" id="radar-posts" hidden></div>
         </div>
+      <button class="pad home-sniff" id="sniff">
+        <span class="lens" aria-hidden="true"></span>
+        <span><b>気配を探る</b><small id="sniff-sub">タップと放置で疑念ptを集める</small></span>
+        <span class="combo" id="combo">+2pt</span>
+      </button>
       </section>
       <p class="streak" id="streak" hidden></p>
       <div class="pursuer-signal" id="pursuer-signal" hidden></div>
@@ -1099,11 +1105,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
         <div class="actions" id="desk-actions"></div>
         <span class="crowd" id="today-crowd" hidden></span>
       </article>
-      <button class="pad home-sniff" id="sniff">
-        <span class="lens" aria-hidden="true"></span>
-        <span><b>周辺を探知する</b><small id="sniff-sub">疑念ptを集める</small></span>
-        <span class="combo" id="combo">×1</span>
-      </button>
+
       <div class="cap home-cap" hidden><span id="cap-text"></span><div class="rk-bar"><i id="cap-bar" style="width:0%"></i></div></div>
     </div>
 
@@ -2163,6 +2165,7 @@ function animatePt() {
   requestAnimationFrame(step);
 }
 function render() {
+  renderSniffCap();
   renderIncursion();
   animatePt();
   const n = dayNo(), t = todayItem(), tl = lv(t.id), used = S.freeDate === dayKey();
@@ -2431,7 +2434,10 @@ function sniffGain() {
   return S.sniffDay.pts < sniffFull() ? 2 : S.sniffDay.pts < sniffHalf() ? 1 : 0;
 }
 function renderSniffCap() {
-  sniffGain();
+  const gain=sniffGain();
+  $("sniff").disabled=gain===0;
+  $("combo").textContent=gain?`+${gain}pt`:"本日完了";
+  $("sniff-sub").textContent=gain?"タップと放置で疑念ptを集める":"本日の探索は完了。放置獲得は継続します";
   const p = S.sniffDay.pts, el = $("cap-text");
   const F = sniffFull(), H = sniffHalf();
   $("cap-bar").style.width = Math.min(100, p / H * 100) + "%";
@@ -2444,20 +2450,11 @@ $("sniff").addEventListener("click", e => {
   tapTimes = tapTimes.filter(t => now - t < 1000); tapTimes.push(now);
   if (tapTimes.length > 12) return;
   const gain = sniffGain();
+  if(!gain||isLite())return renderSniffCap();
   S.currency += gain; S.sniffDay.pts += gain; S.clicks++; bump("click"); markDirty(); render(); renderSniffCap();
-  combo++; clearTimeout(comboTimer);
-  const c = $("combo"); c.textContent = "×" + combo; c.classList.toggle("on", combo > 1);
-  comboTimer = setTimeout(() => { combo = 0; c.classList.remove("on"); }, 700);
-  const btn = $("sniff"), r = btn.getBoundingClientRect(), f = document.createElement("span");
-  f.className = "float"; f.textContent = gain ? "+" + gain : "…";
-  f.style.left = ((e.clientX || r.left + r.width / 2) - r.left) + "px"; f.style.top = ((e.clientY || r.top + r.height / 2) - r.top - 10) + "px";
-  btn.appendChild(f); setTimeout(() => f.remove(), 800);
+  $("combo").textContent=`+${gain}pt獲得`;
   buzz(8);
-  if (Math.random() < 1 / 15) {
-    const sub = $("sniff-sub");
-    sub.textContent = EERIE[Math.floor(Math.random() * EERIE.length)]; sub.classList.add("eerie");
-    clearTimeout(sub._t); sub._t = setTimeout(() => { sub.textContent = "タップで疑念ptが貯まる ／ 近づく保証はない"; sub.classList.remove("eerie"); }, 2200);
-  }
+
 });
 
 /* ---------- 怪異 ---------- */

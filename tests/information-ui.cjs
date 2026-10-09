@@ -19,5 +19,31 @@ for(const [width,height] of [[320,568],[390,700],[430,932]]){
  await p.evaluate(()=>go('report'));await p.locator('#agent-record').click();assert(await p.locator('#rk-lv').isVisible());await p.keyboard.press('Escape');await p.evaluate(()=>go('home'));
 }
 await p.setViewportSize({width:390,height:700});await p.screenshot({path:`${out}/home-clean.jpg`,quality:85});
+
+for(const width of [320,390]){
+ await p.setViewportSize({width,height:700});
+ for(const type of ['cctv','map','audio','intercom','transit','photo']){
+  await p.evaluate(type=>{for(let i=0;i<1000;i++){S.pulls=i;if(anomalyEvidence().type===type)break;}openAnomalyEvidence();},type);
+  assert.equal(await p.locator('.evidence-view').getAttribute('data-kind'),type);
+  const caption=await p.locator('.ev-transcript').evaluate(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e),range=document.createRange();range.selectNodeContents(e);const text=range.getBoundingClientRect();return {left:parseFloat(s.paddingLeft),right:parseFloat(s.paddingRight),inside:text.left>=r.left+12&&text.right<=r.right-12,overflow:e.scrollWidth>e.clientWidth};});
+  assert(caption.left>=12&&caption.right>=12&&caption.inside&&!caption.overflow,JSON.stringify({width,type,caption}));
+  assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  if(type==='transit'&&width===390)await p.screenshot({path:out+'/evidence-spacing-390.jpg',quality:85});
+  await p.keyboard.press('Escape');
+ }
+}
+
+await p.evaluate(()=>{go('home');S.currency=100;S.sniffDay={d:dayKey(),pts:0};S.lastTick=Date.now()+600000;tapTimes=[];render();});
+for(const width of [320,390,430]){
+ await p.setViewportSize({width,height:700});const tap=p.locator('#sniff');await tap.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));
+ assert(await tap.evaluate(e=>{const r=e.getBoundingClientRect(),t=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.height>=44&&(t===e||e.contains(t));}));
+ const before=await p.evaluate(()=>S.currency);await tap.click();assert.equal(await p.evaluate(()=>S.currency),before+2);
+}
+await p.evaluate(()=>{S.sniffDay.pts=sniffFull();tapTimes=[];render();});const half=await p.evaluate(()=>S.currency);await p.locator('#sniff').click();assert.equal(await p.evaluate(()=>S.currency),half+1);
+await p.evaluate(()=>{S.sniffDay.pts=sniffHalf();render();});assert(await p.locator('#sniff').isDisabled());
+const capped=await p.evaluate(()=>S.currency);await p.evaluate(()=>{S.lastTick=Date.now()-idleStep()*2;tick();});assert.equal(await p.evaluate(()=>S.currency),capped+2,'idle still earns after tap cap');
+await p.evaluate(()=>{S.sniffDay.d='2000-1-1';render();});assert(!(await p.locator('#sniff').isDisabled()));
+await p.setViewportSize({width:390,height:700});await p.evaluate(()=>go('home'));await p.screenshot({path:out+'/tap-home-390.jpg',quality:85});
+await p.evaluate(()=>{S.lastTick=Date.now()+600000;S.streak={last:dayKey(),n:1};save();});const saved=await p.evaluate(()=>S.currency);await p.reload();assert.equal(await p.evaluate(()=>S.currency),saved);
 assert.deepEqual(errors,[]);console.log('Information hierarchy checks passed');
 }finally{await b.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});

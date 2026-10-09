@@ -51,3 +51,20 @@ body.incursion-quiet .radar-sweep { display:none; }
 .agent-home .home-pane[data-hpane='desk'] .desk-event { min-height:0; }
 .agent-home .desk-event h2 { padding-right:0; }
 .agent-home #agent-primary { scroll-margin-block:90px; }
+
+/* Evidence captions need their own inset, separate from the image border. */
+.sheet .ev-transcript { padding:14px 16px; font-size:15px; line-height:1.8; overflow-wrap:anywhere; background:#181c1b; color:#f0e9da; }
+.sheet .evidence-view::after { display:none; }
+.sheet .ev-status span { border:0; padding:5px 0; margin-right:10px; font-size:12px; }
+.sheet .ev-head { padding:10px 14px; font-size:12px; }
+.sheet .case-choices button { padding:12px; gap:6px; }
+.sheet .case-choices span { font-size:12px; }
+
+.agent-home .thread-radar .home-sniff { display:flex; align-items:center; gap:10px; width:100%; min-height:60px; padding:12px; margin:0; border:0; border-top:1px solid #52614b; border-radius:0; background:#263324; color:#f5ecd8; opacity:1; text-align:left; }
+.agent-home .thread-radar .home-sniff .lens { display:none; }
+.agent-home .thread-radar .home-sniff > span:nth-child(2) { flex:1; min-width:0; }
+.agent-home .thread-radar .home-sniff small { display:block; font-size:12px; line-height:1.5; color:#dedbc8; }
+.agent-home .thread-radar .home-sniff .combo { font-size:16px; white-space:nowrap; transform:none; color:#f8e1a8; opacity:1; flex-shrink:0; }
+.agent-home .thread-radar .home-sniff:disabled { background:#252620; color:#c7c7b7; }
+.agent-home .thread-radar .home-sniff:active:not(:disabled) { background:#3e4a32; }
+.agent-home .thread-radar .home-sniff .float { pointer-events:none; }
