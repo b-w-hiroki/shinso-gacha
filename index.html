@@ -1077,11 +1077,11 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 
     <div class="home-pane" data-hpane="desk">
       <section class="thread-radar" aria-label="観測映像">
-        <div class="obs-topline"><span id="obs-source"></span><span id="obs-name"></span></div>
+        <div class="obs-topline"><span id="obs-source" hidden></span><span id="obs-name"></span></div>
         <button id="obs-frame" class="obs-frame" data-mode="cctv" aria-label="観測映像を確認">
           <span id="obs-closed" hidden>回線を遮断しました<small>画面から目を離し、しばらく休んでください。</small></span><span id="obs-image" aria-hidden="true"></span><span class="obs-effect" aria-hidden="true"></span>
         </button>
-        <div class="obs-status"><span id="obs-ready" hidden>記録を受信</span><span id="obs-first-hint">映像に触れて観測する</span><span id="obs-timer"></span></div>
+        <div class="obs-status"><span id="obs-ready" hidden>記録を受信</span><span id="obs-first-hint" hidden>映像に触れて観測する</span><span id="obs-timer"></span><button id="obs-help" data-watch="target" hidden>対処方法</button></div>
         <p id="obs-atmosphere" aria-live="off"></p>
         <p id="obs-feedback" role="status" aria-live="polite"></p>
         <div class="obs-secondary"><button id="obs-rest" type="button">モニタを閉じる</button><button id="obs-colleagues" type="button">課内で話す</button><button data-watch="settings" type="button" hidden>観測設定</button></div>
@@ -1132,8 +1132,8 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
       <div class="big-env" id="big-env" aria-hidden="true"><span class="tie"></span><span class="lab" id="env-lab">CASE FILE / URBAN</span><span class="seal" id="env-seal">極秘</span></div>
       <p class="cab-desc" id="cab-desc"></p>
       <div class="pulls">
-        <button class="btn-paper" data-pull="1">1回引く<span>10pt</span></button>
-        <button class="btn-paper five" data-pull="5">5連で引く<span>45pt（必ず1段は剥がれる）</span></button>
+        <button class="btn-paper" data-pull="1">1回<span>10pt</span></button>
+        <button class="btn-paper five" data-pull="5">5回<span>45pt</span></button>
         <button class="btn-paper bulk" data-pull="10" hidden>10連で引く<span id="lbl-10">90pt</span></button>
         <button class="btn-paper bulk" data-pull="100" hidden>100連で引く<span id="lbl-100">850pt</span></button>
       </div>
@@ -1272,11 +1272,13 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 
 <dialog id="incursion-dialog" aria-labelledby="incursion-title"></dialog>
 <script src="assets/intro-story.js"></script>
+<script src="assets/incursion-cases.js"></script>
 <script src="assets/incursions.js"></script>
 <script src="assets/observation-model.js"></script>
 <script src="assets/observation.js"></script>
 <script src="assets/investigation.js"></script>
 <script src="assets/menu.js"></script>
+<script src="assets/scene-fit.js"></script>
 <script>
 /* ---------- 日本語の改行（文節で折り返す） ---------- */
 document.documentElement.lang = "ja";
@@ -1634,6 +1636,19 @@ function testimony(item) {
   S.tstat = S.tstat || { n: 0, r: 0, x: 0 }; S.tstat[rar]++;
   return t;
 }
+function claimTruthReward(id,persist=true){
+  if(!byId(id)||lv(id)!==5||S.truthRewards?.[id])return 0;
+  if(!S.truthRewards||typeof S.truthRewards!=='object'||Array.isArray(S.truthRewards))S.truthRewards={};
+  S.truthRewards[id]=true;S.currency+=50;if(persist){markDirty();save();}return 50;
+}
+function truthRewardHTML(id){
+  if(lv(id)!==5)return '';
+  return S.truthRewards?.[id]?'<p class="truth-reward-note">真相到達報酬 50pt 受取済み</p>':`<button class="btn-paper" data-truth-reward="${id}">真相到達報酬を受け取る<span>50pt ／ 初回限定</span></button>`;
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-truth-reward]');if(!b)return;
+  const id=b.dataset.truthReward;if(!claimTruthReward(id))return;render();openDossier(id);
+});
 function levelUp(item, crit = false) {
   const before = lv(item.id), after = Math.min(5, before + (crit ? 2 : 1)), opened = after > before;
   S.levels[item.id] = after;
@@ -1641,7 +1656,8 @@ function levelUp(item, crit = false) {
   if (!opened) { S.currency += 3; testi = testimony(item); }
   const evi = opened ? (before === 0 ? 3 : 1) + (crit ? 1 : 0) : testi.rar === "x" ? 15 : testi.rar === "r" ? 5 : 2;
   S.evi = (S.evi || 0) + evi;
-  return { item, before, after, opened, crit: crit && opened, testi, evi };
+  const truthReward=opened&&after===5?claimTruthReward(item.id,false):0;
+  return { item, before, after, opened, crit: crit && opened, testi, evi, truthReward };
 }
 const COST = { 1: 10, 5: 45, 10: 90, 100: 850 };
 const BULK_RANK = { 10: 4, 100: 10 };
@@ -1781,7 +1797,7 @@ function cardHTML(r) {
     <div class="pips">${pips(L)}</div>
     <div class="lyr"><div class="lab">LEVEL ${show + 1} ／ ${lab}</div><p>${txt}<span class="wipe"></span></p>${note(it, show)}</div>
     ${L < 5 ? `<p class="hint" style="text-align:left;margin-top:4px">あと${5 - L}回で、最後の黒塗りが剥がれる。</p>` : ""}
-    <span class="truth">真相</span>`;
+    <span class="truth">真相</span>${r.truthReward?'<p class="truth-reward-note">真相到達報酬 +50pt ／ 受取済み</p>':''}`;
 }
 function advance() {
   const r = Q[qi], env = $("st-env"), card = $("st-card");
@@ -1794,6 +1810,12 @@ function advance() {
     if (r.item.box === "urban" && Math.random() < (hour() === 2 ? .5 : .2)) later(haunt, 1150);
     if (r.after === 5 && r.opened) later(() => { card.classList.add("truthy"); $("stage").classList.add("flash", "shake"); buzz([40, 30, 80]); }, 2050);
     later(() => { phase = "shown"; finishButtons(); }, r.after === 5 && r.opened ? 2400 : 1700);
+  } else if (phase === "opening") {
+    // A second tap completes the reveal even if an animation/timer is delayed.
+    timers.forEach(clearTimeout);timers=[];
+    env.classList.add('gone');card.classList.add('up','reveal');
+    if(r.after===5&&r.opened)card.classList.add('truthy');
+    phase='shown';finishButtons();
   } else if (phase === "shown") next();
 }
 function finishButtons() {
@@ -1852,6 +1874,7 @@ function openDossier(id, freshLv = 0) {
     </article>
     ${L === 5 ? (() => { const ts = (S.tlog || []).filter(t => t.id === id).slice(-3).reverse(); return `<div class="testis"><div class="sec-h" style="margin:0"><h3>目撃証言</h3><small>${(S.tby || {})[id] || 0}件</small></div>${ts.length ? ts.map(t => `<p class="testi t-${t.rar}"><span class="mono">#${t.no}</span> ${t.text}</p>`).join("") : `<p class="hint" style="text-align:left">真相到達後にこのネタを引くと、目撃証言が集まる。</p>`}</div>`; })() : ""}
     <p class="hint">${L < 5 ? `あと${5 - L}回引けば、最後の黒塗りが剥がれる。` : "真相に到達。ただし中身は共有できない。"}</p>
+    ${truthRewardHTML(id)}
     <div class="actions"><button class="btn-paper" data-act="card" data-id="${id}">黒塗りカードを作る</button><button class="btn-line" data-act="close">閉じる</button></div>`);
 }
 function openResults(res) {
@@ -2350,6 +2373,7 @@ function go(view) {
   // A hidden observation cannot be measured on resize. Settle it on reveal,
   // before the user can scroll to the investigation action below the scene.
   if(view==='home'&&typeof fitObservation==='function')fitObservation();
+  if(view==='gacha')fitGacha();
 }
 
 /* ---------- events ---------- */
@@ -2435,6 +2459,7 @@ function renderSniffCap() { renderObservation(); }
 const hour = () => new Date().getHours();
 const EERIE = ["誰かも同じ場所を嗅いでいる", "さっきより近い", "今、後ろで音がしなかった？", "嗅ぎ回っているのは、本当にあなた？", "そこはもう調べた。3回目だ"];
 function haunt() {
+  if(REDUCED||S.incursion?.quiet||S.observation?.quiet)return;
   const words = ["みつけた", "うしろ", "みてるよ", "あけたね"];
   const g = document.createElement("div"); g.className = "ghost"; g.textContent = words[Math.floor(Math.random() * words.length)];
   $("st-scene").appendChild(g); buzz([10, 40, 10]);

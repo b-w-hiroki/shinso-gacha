@@ -66,3 +66,24 @@ body:has(.agent-home:not([hidden]) [data-hpane="desk"]:not([hidden])) main{paddi
 /* The late intrusion stays at the edge and cannot cover or intercept a control. */
 body[data-watch-mind='3'] #watch-veil::after{content:'';position:absolute;right:-26px;bottom:13%;width:120px;height:200px;background:url('colleagues/shirose.webp') center/cover;opacity:.24;mask-image:linear-gradient(90deg,transparent,#000 75%);pointer-events:none}
 #watch-veil{overflow:hidden}
+
+/* One illustrated screen with equal, compact draw actions. */
+body:has(.gacha-scene:not([hidden])) main{padding-top:8px;padding-bottom:calc(var(--scene-nav-height,70px) + 8px)}
+.gacha-scene{min-height:0;gap:8px}
+.gacha-scene .section-pane,.gacha-scene .cabinet{gap:8px}
+.gacha-scene .big-env{height:var(--envelope-height,240px);width:100%;min-height:0;aspect-ratio:auto;margin:0;transform:none;animation:none}
+.gacha-scene .pulls{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.gacha-scene .pulls .btn-paper{width:100%;min-height:68px;font-size:19px}
+.gacha-scene .pulls button span,.gacha-scene .pulls .five span{font-size:12px}
+.gacha-scene .cab-desc{width:100%;max-width:none;margin:0;padding:8px 10px}
+#obs-source,#obs-first-hint{display:none}
+.evidence-view[data-kind="cctv"]::before,.evidence-view[data-kind="photo"]::before{display:none}
+.truth-reward-note{font:14px/1.6 var(--f-body);color:#64462a;padding:10px;border-top:1px solid #927757}
+#sheet>.truth-reward-note{color:#ded0b5}
+[data-truth-reward]{display:flex;flex-direction:column;gap:4px;width:100%;min-height:52px}
+
+button,.gacha-scene,.thread-radar,#st-scene,.inc-photo,.inc-presence{touch-action:pan-x pan-y}
+#obs-frame{touch-action:none}
+#obs-help{flex:0 0 auto;min-height:44px;padding:8px;color:#ded0b4;border:1px solid #78674d;background:#181810;font:13px/1.5 var(--f-body)}
+#obs-help[hidden]{display:none}
+.inc-presence{margin:12px 0}.inc-presence img{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover}.inc-presence figcaption{font-size:12px;line-height:1.5;color:#cbbb9c;padding-top:6px}

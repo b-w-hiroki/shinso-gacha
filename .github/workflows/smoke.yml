@@ -64,6 +64,12 @@ jobs:
       - run: node tests/investigation-loop.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/incursion-catalog.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/scene-fit-variety.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/screen-purpose.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf

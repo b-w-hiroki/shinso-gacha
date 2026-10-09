@@ -41,9 +41,10 @@ function renderObservation(){
  document.getElementById('obs-source').textContent=m.source;
  document.getElementById('obs-name').textContent=m.title;
  document.getElementById('obs-ready').hidden=!danger||o.mind.closed;
- document.getElementById('obs-ready').textContent=danger?'異変付近に触れる':'記録を受信';
- document.getElementById('obs-timer').textContent=p&&!o.mind.closed?`保持 ${watchDuration(p.expiresAt-o.lastSeen)}`:'';
- const hint=document.getElementById('obs-first-hint');hint.hidden=o.mind.closed||!!p||o.collected>0;hint.textContent=danger?'違和感のある場所に触れる':'映像に触れて観測する';
+ document.getElementById('obs-ready').textContent=danger?'異変の場所を繰り返しタップ':'記録を受信';
+ document.getElementById('obs-help').hidden=!danger||o.mind.closed;
+ document.getElementById('obs-timer').textContent=p&&!danger&&!o.mind.closed?`保持 ${watchDuration(p.expiresAt-o.lastSeen)}`:'';
+ const hint=document.getElementById('obs-first-hint');hint.hidden=true;hint.textContent=danger?'違和感のある場所に触れる':'映像に触れて観測する';
 
  if(Date.now()>watchMessageUntil)watchMessage='';document.getElementById('obs-feedback').textContent=watchMessage;
  const pressure=WatchModel.contamination(o);
@@ -121,6 +122,7 @@ function renderObservationLab(){
 document.getElementById('obs-frame').addEventListener('click',observationCollect);
 document.addEventListener('click',e=>{
  const b=e.target.closest('[data-watch],[data-watch-equip],[data-watch-unlock],[data-watch-upgrade]');if(!b||b.disabled)return;
+ if(b.dataset.watch==='target')return observationTargetPicker();
  if(b.dataset.watch==='settings')return observationSettings();
  if(b.dataset.watch==='lab'){document.getElementById('sheet-bg').hidden=true;go('lab');return;}
  const o=observationSync();let cost=null;
@@ -205,7 +207,7 @@ function observationRest(){
  markDirty();save();renderObservation();
 }
 const WATCH_REGIONS=['左上','中央上','右上','左中央','中央','右中央','左下','中央下','右下'];
-function observationTargetPicker(message='映像を見て、違和感のある場所を選んでください。'){
+function observationTargetPicker(message='異変が見えた場所を選ぶ。同じ枠を繰り返し押すと対処できます。'){
  const o=observationState();if(o.mind.closed||!o.pending?.rarity)return;
  sheet('異変の対処',`<p class="watch-target-copy" role="status">${message}</p><div class="watch-target-regions">${WATCH_REGIONS.map((name,i)=>`<button data-watch-region="${i}">${name}</button>`).join('')}</div><p class="hint">同じ付近に繰り返し触れて干渉を抑える。映像へ戻って直接タップすることもできます。</p><button class="btn-line" data-act="close">映像へ戻る</button>`);
 }

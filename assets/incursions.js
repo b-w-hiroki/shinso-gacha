@@ -2,7 +2,11 @@
 const INCURSIONS = [
   {name:'写真の中から、こちらを見ている',short:'写真の照合',after:'ベンチ横の人影が消えた。駅の時計だけが動き始めた。'},
   {name:'切ったはずの回線が鳴っている',short:'通信の遮断',after:'受信ランプが消えた。いつもの室内音が戻ってきた。'},
-  {name:'宛名が、内側から書き換わる',short:'資料の封印',after:'赤い封印が定着した。封筒の内側の筆音が止まった。'}
+  {name:'宛名が、内側から書き換わる',short:'資料の封印',after:'赤い封印が定着した。封筒の内側の筆音が止まった。'},
+  {name:'提出していない報告が、受領されている',short:'受領時刻の照合',after:'受領印が薄れた。あなたの署名も、まだ書かれていない。',reference:'提出簿：報告書の作成は 10月9日 02:14。受領は作成後に行う。',records:['10月9日 02:18 受領','10月8日 23:57 受領','10月9日 02:20 受領'],clue:'作成より先に受領された記録を隔離する。',answer:1},
+  {name:'無人の部屋から、応答が届く',short:'内線の照合',after:'内線が黙った。扉の向こうで、受話器を置く音がした。',reference:'夜間使用簿：資料室は白瀬、設備室は榊が使用中。旧会議室は閉鎖済み。',records:['旧会議室 ／ 通話応答あり','資料室 ／ 通話応答あり','設備室 ／ 通話応答あり'],clue:'使用簿と矛盾する内線を隔離する。',answer:0},
+  {name:'出勤簿に、一人多い',short:'職員名簿の照合',after:'余分な欄が消えた。隣の椅子には、まだ温度が残っている。',reference:'当直名簿：白瀬、榊の二名。三輪は非番。来訪予定なし。',records:['白瀬 ／ 在室','榊 ／ 在室','あなたの後ろ ／ 在室'],clue:'名簿にない在室記録を隔離する。',answer:2},
+  ...EXTRA_INCURSIONS
 ];
 function incursionState(create=false) {
   if (!S.incursion && !create) return null;
@@ -21,7 +25,7 @@ function incursionState(create=false) {
 }
 function incursionEvent(a) {
   const unlocked=a.manual>=8?3:a.manual>=3?2:1;
-  return {kind:a.resolved%3,step:0,seen:0,tier:1+(a.resolved%unlocked),round:0};
+  return {kind:a.resolved%INCURSIONS.length,step:0,seen:0,tier:1+(a.resolved%unlocked),round:0};
 }
 function incursionBlocked() {
   const a=incursionState();
@@ -71,11 +75,14 @@ function drawIncursion(message='') {
   const heading=e?INCURSIONS[e.kind].name:a.level?'まだ、違和感だけ。':'日常に、戻った。';
   let content='';
   if(e?.kind===0){
-    content=`<figure class="inc-photo"><img src="assets/intro/station-${e.view==='before'?'before':'after'}.webp" alt="${e.view==='before'?'記録写真。左の柱に1人。':'現在の写真。右のベンチ横に人物が増えている。'}"><figcaption>${e.view==='before'?'記録写真：左の柱に1人':'現在：右のベンチ横にもう1人'} ／ 02:14</figcaption></figure><div class="inc-grid"><button data-inc="before" aria-pressed="${e.view==='before'}">記録を見る</button><button data-inc="after" aria-pressed="${e.view!=='before'}">現在を見る</button></div><p class="inc-instruction">両方の写真を見て、増えた人影の場所を照合。</p><div class="inc-grid three">${['左の柱','右のベンチ','駅の時計'].map((s,i)=>`<button data-inc="identify" data-value="${i}" ${e.seen===3?'':'disabled'}>${s}</button>`).join('')}</div>`;
+    content=`<figure class="inc-photo"><img src="assets/intro/station-${e.view==='before'?'before':'after'}.webp" alt="${e.view==='before'?'記録写真。左の柱に1人。':'現在の写真。右のベンチ横に人物が増えている。'}"><figcaption>${e.view==='before'?'記録写真：左の柱に1人':'現在：右のベンチ横にもう1人'} ／ 02:14</figcaption></figure><div class="inc-grid"><button data-inc="before" aria-pressed="${e.view==='before'}">記録を見る</button><button data-inc="after" aria-pressed="${e.view!=='before'}">現在を見る</button></div><p class="inc-instruction">${e.seen===3?'② 増えた人影の場所を下から選ぶと、対処が進みます。':'① 「記録を見る」「現在を見る」の両方を押して見比べる。'}</p><div class="inc-grid three">${['左の柱','右のベンチ','駅の時計'].map((s,i)=>`<button data-inc="identify" data-value="${i}" ${e.seen===3?'':'disabled'}>${s}</button>`).join('')}</div>`;
   }else if(e?.kind===1){
-    content=`<div class="inc-radio" aria-hidden="true"><i></i><i></i><i></i><span>02:14 / INCOMING</span></div><p class="inc-instruction">送信元が「不明」の回線を選び、接続を切る。</p><div class="inc-channels">${['管理室','不明','第六文書課'].map((s,i)=>`<button data-inc="channel" data-value="${i}" aria-pressed="${e.step===1&&i===1}"><span>CH.0${i+1}</span><strong>${s}</strong><small>${i===1?'切断後も受信中':'認証済み'}</small></button>`).join('')}</div><button class="inc-primary" data-inc="disconnect" ${e.step===1?'':'disabled'}>CH.02の接続を遮断</button>`;
+    content=`<div class="inc-radio" aria-hidden="true"><i></i><i></i><i></i><span>02:14 / INCOMING</span></div><p class="inc-instruction">${e.step===1?'② 下の「CH.02の接続を遮断」を押して完了。':'① 送信元が「不明」の回線を選ぶ。選択後に遮断できます。'}</p><div class="inc-channels">${['管理室','不明','第六文書課'].map((s,i)=>`<button data-inc="channel" data-value="${i}" aria-pressed="${e.step===1&&i===1}"><span>CH.0${i+1}</span><strong>${s}</strong><small>${i===1?'切断後も受信中':'認証済み'}</small></button>`).join('')}</div><button class="inc-primary" data-inc="disconnect" ${e.step===1?'':'disabled'}>CH.02の接続を遮断</button>`;
   }else if(e?.kind===2){
-    content=`<div class="inc-envelope"><span>封緘手順 ／ ${e.step} / 3</span><p>差出人 → 宛名 → 本文</p><div class="inc-seals">${['差出人','宛名','本文'].map((s,i)=>`<button data-inc="seal" data-value="${i}" ${i<e.step?'disabled':''}><b>${i<e.step?'封済':i+1}</b><span>${s}</span></button>`).join('')}</div></div><p class="inc-instruction">順番に3か所を押して、内側からの書き換えを止める。</p>`;
+    content=`<div class="inc-envelope"><span>封緘手順 ／ ${e.step} / 3</span><p>差出人 → 宛名 → 本文</p><div class="inc-seals">${['差出人','宛名','本文'].map((s,i)=>`<button data-inc="seal" data-value="${i}" ${i<e.step?'disabled':''}><b>${i<e.step?'封済':i+1}</b><span>${s}</span></button>`).join('')}</div></div><p class="inc-instruction">次は「${['差出人','宛名','本文'][e.step]}」を押す。差出人 → 宛名 → 本文の順に封印します。</p>`;
+  }else if(e&&INCURSIONS[e.kind].records){
+    const pattern=INCURSIONS[e.kind],shift=(a.resolved*17+Math.floor(a.resolved/3)+e.round)%3;
+    content=`${pattern.visual&&!a.quiet&&!e.inspect?'<figure class="inc-presence"><img src="assets/incursions/doorway.webp" alt="無人のはずの廊下。扉の上から長い首を曲げた人影がこちらを覗いている。"><figcaption>無人区画の記録 ／ 確認者なし</figcaption></figure>':''}<article class="inc-reference"><h3>保管された原本</h3><p>${pattern.reference}</p></article>${pattern.visual&&!a.quiet&&!e.inspect?'<button class="inc-primary" data-inc="inspect">原本と照合して対処する</button>':`<p class="inc-instruction">${e.step===1?'選択済み。下の「選んだ記録を封鎖する」で対処を完了。':'① 原本を読む　② '+pattern.clue}</p><div class="inc-records">${pattern.records.map((_,i)=>{const ix=(i+shift)%3;return `<button data-inc="isolate" data-value="${ix}" aria-pressed="${e.step===1&&ix===pattern.answer}">${pattern.records[ix]}</button>`;}).join('')}</div><button class="inc-primary" data-inc="quarantine" ${e.step===1?'':'disabled'}>選んだ記録を封鎖する</button>`}`;
   }else{
     const last=a.history.at(-1);
     content=`<div class="inc-settled"><span>${a.level?'異変の兆候を観測中':'接続は安定しています'}</span><strong>${a.resolved}件 対処済み</strong><p>${last?INCURSIONS[last.kind].after:'調査を進めると、写真・通信・資料に異変が現れます。'}</p></div><p class="inc-instruction">${a.cooldown?`次の${a.cooldown}回の開封までは保護区間。`:'異変は開封を進めたときだけ蓄積します。'}<br>時間の経過や留守中には悪化しません。</p><button class="inc-primary" data-inc="close">調査に戻る</button>`;
@@ -119,14 +126,22 @@ document.addEventListener('change',e=>{if(e.target.matches('[data-inc-auto]')){i
 function incursionAction(action,value) {
   const a=incursionState(),e=a?.event;if(!e)return;
   let message='',wrong=false;
+  if(INCURSIONS[e.kind]?.visual&&action==='inspect'){e.inspect=true;markDirty();drawIncursion('原本と違う記録を一つ選び、最後に封鎖してください。');return;}
   if(e.kind===0&&['before','after'].includes(action)){e.view=action;e.seen|=action==='before'?1:2;}
   else if(e.kind===0&&action==='identify'&&e.seen===3){if(value===1)return incursionResolve();wrong=true;}
   else if(e.kind===1&&action==='channel'){if(value===1){e.step=1;message='未認証回線を隔離しました。遮断してください。';}else wrong=true;}
   else if(e.kind===1&&action==='disconnect'&&e.step===1)return incursionResolve();
   else if(e.kind===2&&action==='seal'){if(value===e.step){if(e.step===2)return incursionResolve();e.step++;message=`${e.step}か所を封印。次の場所を押してください。`;}else if(value>e.step)wrong=true;}
+  else if(INCURSIONS[e.kind]?.records&&action==='isolate'){
+    if(value===INCURSIONS[e.kind].answer){e.step=1;message='原本と一致しない。記録を封鎖してください。';}else {e.step=0;wrong=true;}
+  }
+  else if(INCURSIONS[e.kind]?.records&&action==='quarantine'&&e.step===1)return incursionResolve();
   else return;
   if(wrong){a.level=Math.min(100,a.level+6*e.tier);message=`異変が近づいた（危険度 +${6*e.tier}）。手掛かりを確認して、もう一度。`;}
   markDirty();renderIncursion();drawIncursion(message);
+  const next=e.kind===0&&e.seen===3?'[data-inc="identify"]':e.kind===2?`[data-inc="seal"][data-value="${e.step}"]`:e.step===1?'.inc-primary:not(:disabled)':null;
+  if(next){const button=document.querySelector('#incursion-dialog '+next);button?.focus({preventScroll:true});button?.scrollIntoView({block:'nearest',behavior:'instant'});}
+
 }
 document.addEventListener('click',event=>{
   const b=event.target.closest('[data-inc]');if(!b||b.disabled)return;
