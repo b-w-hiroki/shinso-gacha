@@ -65,10 +65,23 @@ function observationReward(result,auto=false){
  watchMessage=`${result.kind==='anomaly'?'干渉停止。観測を継続してください。':'記録を転送しました。'} +${record.reward}pt`;watchMessageUntil=Date.now()+4500;
  markDirty();save();render();if(!auto)buzz(result.kind==='anomaly'?30:8);
 }
-function observationCollect(){
+let watchTouchTimer;
+function observationTouchFeedback(event,strike){
+ const frame=document.getElementById('obs-frame');
+ // Extend one low-contrast pulse during repeated input; never stack flashes.
+ const rect=frame.getBoundingClientRect(),onImage=event?.currentTarget===frame&&event.detail>0;
+ const x=onImage?Math.max(0,Math.min(rect.width,event.clientX-rect.left)):rect.width/2;
+ const y=onImage?Math.max(0,Math.min(rect.height,event.clientY-rect.top)):rect.height/2;
+ frame.style.setProperty('--touch-x',`${x}px`);frame.style.setProperty('--touch-y',`${y}px`);
+ clearTimeout(watchTouchTimer);frame.classList.toggle('obs-strike',strike);frame.classList.add('obs-touched');
+ watchTouchTimer=setTimeout(()=>frame.classList.remove('obs-touched','obs-strike'),180);
+}
+function observationCollect(event){
  if(isLite())return;
- const result=WatchModel.tap(observationState(),Date.now());
+ const o=observationSync(),strike=!!o.pending&&o.pending.rarity>0;
+ const result=WatchModel.tap(o,Date.now());
  if(result)observationReward(result);else {markDirty();renderObservation();}
+ observationTouchFeedback(event,strike);
 }
 function observationSettings(){
  const o=observationSync(),p=o.pending;
