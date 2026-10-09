@@ -9,7 +9,7 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
 
  assert.equal(await p.evaluate(()=>INCURSIONS.length),100);
  assert.equal(await p.evaluate(()=>new Set(INCURSIONS.map(x=>x.name)).size),100);
- assert.deepEqual(await p.evaluate(()=>Array.from({length:100},(_,resolved)=>incursionEvent({resolved,manual:0}).kind).sort((a,b)=>a-b)),Array.from({length:100},(_,i)=>i));
+ assert.deepEqual(await p.evaluate(()=>INC_RARITIES.flatMap(r=>r.cases).sort((a,b)=>a-b)),Array.from({length:100},(_,i)=>i));
  const currency=await p.evaluate(()=>S.currency);
  for(let kind=3;kind<100;kind++){
   await p.evaluate(kind=>{S.incursion={version:1,level:40,resolved:kind,manual:3,event:{kind,tier:1,step:0,seen:0,round:0}};openIncursion();},kind);

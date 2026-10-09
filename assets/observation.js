@@ -203,7 +203,9 @@ function renderWatchMind(){
  const o=observationState(),stage=isLite()?0:WatchModel.contamination(o);
  document.body.dataset.watchMind=String(stage);
  document.body.classList.toggle('watch-mind-quiet',o.quiet||!!S.incursion?.quiet);
- document.getElementById('obs-frame').dataset.seep=String(o.mind.closed?0:stage);
+ const frame=document.getElementById('obs-frame');
+ frame.dataset.seep=String(o.mind.closed?0:stage);
+ frame.dataset.anomaly=String(!isLite()&&!o.mind.closed&&o.pending?.rarity>0?Math.max(1,stage):0);
 }
 function observationRest(){
  const o=observationState();WatchModel.closeMonitor(o,Date.now(),!o.mind.closed);

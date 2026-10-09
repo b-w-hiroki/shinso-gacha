@@ -17,6 +17,7 @@ jobs:
         with:
           node-version: 22
       - run: node tests/smoke.mjs
+      - run: node tests/incursion-rarity.cjs
       - run: node tests/observation-model.cjs
       - run: node tests/contamination-model.cjs
       - run: node tests/branch-cleanup.mjs
@@ -65,6 +66,9 @@ jobs:
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/investigation-loop.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/anomaly-cues.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/incursion-records.cjs

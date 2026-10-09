@@ -112,3 +112,15 @@ body.watch-mind-quiet #watch-veil{display:none}
 .colleague-scene .watch-person small{font:12px/1.5 var(--f-body);margin-bottom:3px}
 .colleague-scene .watch-person-description{font:13px/1.6 var(--f-body)}
 .colleague-scene .watch-room-note{font:13px/1.7 var(--f-body);margin:10px 0}
+
+/* An active anomaly is visible immediately; strain deepens the edge bleed.
+   Only the image scales, so native-image hit coordinates remain valid. */
+.obs-frame[data-anomaly]:not([data-anomaly='0']):not([data-quiet='true']){--anomaly-bleed:.45;outline:1px solid #98543f;outline-offset:-1px}
+.obs-frame[data-anomaly='2']{--anomaly-bleed:.7!important}
+.obs-frame[data-anomaly='3']{--anomaly-bleed:.95!important}
+.obs-frame[data-anomaly]:not([data-anomaly='0']):not([data-quiet='true']) #obs-image{filter:sepia(.28) hue-rotate(325deg) saturate(.8) contrast(1.16);animation:obs-anomaly-warp 6s ease-in-out infinite alternate}
+.obs-frame[data-anomaly]:not([data-anomaly='0']):not([data-quiet='true']) #obs-image::after{content:'';position:absolute;inset:0;background-image:inherit;background-size:inherit;background-position:inherit;mask-image:linear-gradient(90deg,#000,transparent 28%,transparent 72%,#000);filter:blur(1.8px) hue-rotate(155deg);transform:translateX(4px);opacity:.65;pointer-events:none}
+.obs-frame[data-anomaly]:not([data-anomaly='0']):not([data-quiet='true']) .obs-effect::after{content:'';position:absolute;inset:-12px;pointer-events:none;background:radial-gradient(ellipse at 0 25%,#a43c2abb,transparent 36%),radial-gradient(ellipse at 100% 75%,#296e7188,transparent 32%);filter:blur(12px);opacity:var(--anomaly-bleed);animation:obs-edge-seep 8s ease-in-out infinite alternate}
+@keyframes obs-anomaly-warp{from{transform:translate(-50%,-50%) scale(1,1)}to{transform:translate(-50%,-50%) scale(.984,.995)}}
+@keyframes obs-edge-seep{from{transform:scale(1,.93)}to{transform:scale(1,1.08)}}
+@media(prefers-reduced-motion:reduce){.obs-frame #obs-image,.obs-frame .obs-effect::after{animation:none!important}}
