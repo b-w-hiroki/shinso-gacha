@@ -1237,6 +1237,89 @@ const INCURSIONS = [
   {name:'出勤簿に、一人多い',short:'職員名簿の照合',after:'余分な欄が消えた。隣の椅子には、まだ温度が残っている。',reference:'当直名簿：白瀬、榊の二名。三輪は非番。来訪予定なし。',records:['白瀬 ／ 在室','榊 ／ 在室','あなたの後ろ ／ 在室'],clue:'名簿にない在室記録を隔離する。',answer:2},
   ...EXTRA_INCURSIONS
 ];
+
+/* Shared interaction grammar; each stable case keeps its own evidence and aftermath. */
+const INC_FAMILIES={
+ time:{label:'時系列の逆流',material:'時刻記録',method:'sequence',steps:['記録を固定','基準時刻を照合','時系列を閉じる'],seal:'時系列を確定する'},
+ space:{label:'空間の矛盾',material:'区画記録',method:'sequence',steps:['入口を封鎖','接続を断つ','出口を封鎖'],seal:'区画を閉鎖する'},
+ body:{label:'人の形の異常',material:'目撃記録',method:'contact',seal:'痕跡を隔離する'},
+ device:{label:'切れない通信',material:'受信記録',method:'disconnect',seal:'切断を確認する'},
+ paper:{label:'原本の侵食',material:'受領記録',method:'sequence',steps:['複製を隔離','原本を固定','封印を押す'],seal:'資料を保管する'},
+ memory:{label:'記憶の混入',material:'証言記録',method:'compare',seal:'証言を確定する'},
+ presence:{label:'こちらへ来るもの',material:'接触記録',method:'contact',seal:'接触を断つ'}
+};
+function incursionProfile(kind){
+ const family=kind===4?'device':kind===5?'memory':kind===6||kind>=90?'presence':kind>=76?'memory':kind>=62||kind===3?'paper':kind>=48?'device':kind>=34?'body':kind>=20?'space':'time';
+ return {family,...INC_FAMILIES[family]};
+}
+const INC_ORDER=(()=>{
+ const order=[0,1,2,3,4,5,6],groups=[[7,19],[20,33],[34,47],[48,61],[62,75],[76,89],[90,99]].map(([a,b])=>Array.from({length:b-a+1},(_,i)=>a+i));
+ while(groups.some(g=>g.length))for(const g of groups)if(g.length)order.push(g.shift());
+ return order;
+})();
+const INC_VISUALS={
+ doorway:{alt:'扉の上から長い首を曲げた人影が覗いている。',target:[.5,.42]},
+ peephole:{alt:'覗き穴の向こうを巨大な目が塞いでいる。',target:[.5,.5]},
+ ceiling:{alt:'人の形をしたものが、床ではなく天井を這っている。',target:[.53,.24]},
+ 'under-chair':{alt:'椅子の座面と床の狭い隙間から、人の顔が見上げている。',target:[.51,.69]}
+};
+// Every stable event owns one unique photograph. Keep legacy target metadata.
+const INC_TARGETS={6:[.5,.42],34:[.72,.55],35:[.48,.28],36:[.45,.44],37:[.25,.79],38:[.62,.64],39:[.5,.28],40:[.49,.69],41:[.59,.52],43:[.42,.48],44:[.65,.49],45:[.54,.47],47:[.5,.68],90:[.5,.48],93:[.36,.49],94:[.34,.25],95:[.58,.46],97:[.6,.24],98:[.5,.5],99:[.22,.32],91:[.5,.5],92:[.53,.24],96:[.51,.69]};
+INCURSIONS.forEach((p,id)=>{
+ const key='cases/'+String(id).padStart(3,'0');
+ INC_VISUALS[key]={alt:p.records?p.records[p.answer]:p.name,target:INC_TARGETS[id]||[.5,.5],targets:id===94?[[.34,.25],[.75,.23]]:id===99?[[.22,.32],[.8,.32]]:null};
+ p.visual=key;
+});
+function incursionVariant(a,e){
+ if(a.quiet)return 'still';
+ let seed=((a.resolved+1)*2654435761+e.kind*104729+(e.round||0)*8191)>>>0;
+ seed^=seed>>>16;seed=Math.imul(seed,2246822507)>>>0;seed^=seed>>>13;
+ return ['cold','dusk','hollow','still'][seed>>>0&3];
+}
+function incursionMotion(a,e){
+ if(a.quiet||typeof REDUCED!=='undefined'&&REDUCED)return 'still';
+ if(['paper','time','device','memory'].includes(incursionProfile(e.kind).family))return 'still';
+ return ['still','drift','breathe'][(a.resolved+e.kind+(e.round||0))%3];
+}
+function incursionPhoto(a,e,contact=false){
+ const p=INCURSIONS[e.kind],v=INC_VISUALS[p.visual],variant=incursionVariant(a,e);
+ const img=`<img src="assets/incursions/${p.visual}.webp" alt="${contact?'':v.alt}" decoding="async">`;
+ if(contact)return `<button class="inc-contact-photo inc-case-photo" data-variant="${variant}" data-motion="${incursionMotion(a,e)}" data-contacted="${(e.contacts||0)>0}" data-inc="contact-photo" aria-label="${v.alt} 異変の付近を繰り返しタップ。キーボードでは下の痕跡ボタンから対処。">${img}</button>`;
+ return `<figure class="inc-presence inc-case-photo" data-variant="${variant}" data-motion="${incursionMotion(a,e)}">${img}<figcaption>現地から届いた記録 ／ 撮影者の記載なし</figcaption></figure>`;
+}
+
+function incursionEvidenceHTML(a,e){
+ const p=INCURSIONS[e.kind],profile=incursionProfile(e.kind),shift=(a.resolved*17+Math.floor(a.resolved/3)+e.round)%3;
+ const visual=p.visual&&INC_VISUALS[p.visual],preview=visual&&!a.quiet&&!e.inspect;
+ const reference=`<article class="inc-reference"><h3>保管された原本</h3><p>${p.reference}</p></article>`;
+ if(preview)return `${incursionPhoto(a,e)}${reference}<button class="inc-primary" data-inc="inspect">原本と照合して対処する</button>`;
+ const comparing=profile.method==='compare',view=e.compare||'current';
+ const compare=comparing?`<div class="inc-grid"><button data-inc="original" aria-pressed="${view==='original'}">保管された証言</button><button data-inc="current" aria-pressed="${view==='current'}">現在の証言</button></div>`:'';
+ if(e.step===0){
+ const choices=`<div class="inc-experience inc-experience-${profile.family}" data-case="${e.kind}"><div class="inc-material">${profile.material} ／ ${String(e.kind+1).padStart(3,'0')}</div><div class="inc-records">${p.records.map((_,i)=>{const ix=(i+shift)%3;return `<button data-inc="isolate" data-value="${ix}" ${comparing&&e.seen!==3?'disabled':''}><span class="inc-record-number" aria-hidden="true">${String(i+1).padStart(2,'0')}</span><span>${p.records[ix]}</span></button>`;}).join('')}</div></div>`;
+ return `${compare}${comparing&&view==='current'?'':reference}<p class="inc-instruction">${comparing&&e.seen!==3?'保管された証言と現在の証言を両方開いて見比べる。':p.clue}</p>${comparing&&view==='original'?'':choices}<button class="inc-primary" data-inc="quarantine" disabled>${profile.seal}</button>`;
+ }
+ let controls='',instruction='';
+ if(profile.method==='sequence'){
+  instruction=`封鎖手順：${profile.steps.join(' → ')}。次は「${profile.steps[e.work||0]||'最終確認'}」。`;
+  controls=`<div class="inc-procedure">${profile.steps.map((label,i)=>`<button data-inc="procedure" data-value="${i}" ${i<(e.work||0)?'disabled':''}>${i<(e.work||0)?'封済 ／ ':''}${label}</button>`).join('')}</div>`;
+ }else if(profile.method==='disconnect'){
+  instruction='入力と出力の両方を切る。片方だけでは、応答が戻ってくる。';
+  controls=`<div class="inc-grid">${['入力を切断','出力を切断'].map((label,i)=>`<button data-inc="wire" data-value="${i}" ${(e.wires||0)&(1<<i)?'disabled':''}>${(e.wires||0)&(1<<i)?'切断済み':label}</button>`).join('')}</div>`;
+ }else if(profile.method==='contact'){
+  instruction='残っている異変を繰り返しタップする。手応えが消えたら、下のボタンで対処を完了。';
+  controls=visual&&!a.quiet?incursionPhoto(a,e,true):'';
+  controls+=`<button class="inc-contact-trace" data-inc="contact">${visual&&!a.quiet?'痕跡に触れる':p.records[p.answer]}<small>${e.contacts>=5?'手応えが消えた':'この痕跡に繰り返し触れる'}</small></button>`;
+ }else instruction='両方の証言と食い違う箇所を照合しました。下のボタンで対処を完了。';
+ const ready=incursionWorkDone(e);
+ return `<div class="inc-selected"><span>${profile.material} ／ 隔離中</span><p>${p.records[p.answer]}</p></div><p class="inc-instruction">${ready?'干渉が止まった。下の「'+profile.seal+'」で対処を完了。':instruction}</p>${ready?'':controls}<button class="inc-primary" data-inc="quarantine" ${ready?'':'disabled'}>${profile.seal}</button>`;
+}
+function incursionWorkDone(e){
+ if(e.step!==1)return false;
+ const method=incursionProfile(e.kind).method;
+ return method==='sequence'?(e.work||0)>=3:method==='disconnect'?e.wires===3:method==='contact'?(e.contacts||0)>=5:true;
+}
+
 function incursionState(create=false) {
   if (!S.incursion && !create) return null;
   let a=S.incursion;
@@ -1248,13 +1331,15 @@ function incursionState(create=false) {
   for(const [id,max] of [['ward',3],['recovery',3],['guardian',2]])a.defense[id]=int(a.defense[id],max);
   a.autoWait=int(a.autoWait,6);a.autoEnabled=a.autoEnabled!==false;
   a.history=Array.isArray(a.history)?a.history.filter(h=>h&&Number.isInteger(h.kind)&&INCURSIONS[h.kind]).slice(-8):[];
-  if(a.event){if(!Number.isInteger(a.event.kind)||!INCURSIONS[a.event.kind])a.event=null;else {a.event.step=int(a.event.step,2);a.event.seen=int(a.event.seen,3);a.event.tier=Math.max(1,int(a.event.tier||1,3));a.event.round=int(a.event.round,2);}}
+  a.discovered=Object.fromEntries(Object.entries(a.discovered&&typeof a.discovered==='object'&&!Array.isArray(a.discovered)?a.discovered:{}).filter(([k,v])=>/^\d+$/.test(k)&&Number(k)<INCURSIONS.length&&v===true));
+  for(const h of a.history)a.discovered[h.kind]=true;
+  if(a.event){if(!Number.isInteger(a.event.kind)||!INCURSIONS[a.event.kind])a.event=null;else {a.event.step=int(a.event.step,2);a.event.seen=int(a.event.seen,3);a.event.tier=Math.max(1,int(a.event.tier||1,3));a.event.round=int(a.event.round,2);a.event.work=int(a.event.work,3);a.event.wires=int(a.event.wires,3);a.event.contacts=int(a.event.contacts,5);}}
   if(a.level>=36&&!a.event)a.event=incursionEvent(a);
   return a;
 }
 function incursionEvent(a) {
   const unlocked=a.manual>=8?3:a.manual>=3?2:1;
-  return {kind:a.resolved%INCURSIONS.length,step:0,seen:0,tier:1+(a.resolved%unlocked),round:0};
+  return {kind:INC_ORDER[a.resolved%INC_ORDER.length],step:0,seen:0,tier:1+(a.resolved%unlocked),round:0};
 }
 function incursionBlocked() {
   const a=incursionState();
@@ -1310,23 +1395,24 @@ function drawIncursion(message='') {
   }else if(e?.kind===2){
     content=`<div class="inc-envelope"><span>封緘手順 ／ ${e.step} / 3</span><p>差出人 → 宛名 → 本文</p><div class="inc-seals">${['差出人','宛名','本文'].map((s,i)=>`<button data-inc="seal" data-value="${i}" ${i<e.step?'disabled':''}><b>${i<e.step?'封済':i+1}</b><span>${s}</span></button>`).join('')}</div></div><p class="inc-instruction">次は「${['差出人','宛名','本文'][e.step]}」を押す。差出人 → 宛名 → 本文の順に封印します。</p>`;
   }else if(e&&INCURSIONS[e.kind].records){
-    const pattern=INCURSIONS[e.kind],shift=(a.resolved*17+Math.floor(a.resolved/3)+e.round)%3;
-    content=`${pattern.visual&&!a.quiet&&!e.inspect?'<figure class="inc-presence"><img src="assets/incursions/doorway.webp" alt="無人のはずの廊下。扉の上から長い首を曲げた人影がこちらを覗いている。"><figcaption>無人区画の記録 ／ 確認者なし</figcaption></figure>':''}<article class="inc-reference"><h3>保管された原本</h3><p>${pattern.reference}</p></article>${pattern.visual&&!a.quiet&&!e.inspect?'<button class="inc-primary" data-inc="inspect">原本と照合して対処する</button>':`<p class="inc-instruction">${e.step===1?'選択済み。下の「選んだ記録を封鎖する」で対処を完了。':'① 原本を読む　② '+pattern.clue}</p><div class="inc-records">${pattern.records.map((_,i)=>{const ix=(i+shift)%3;return `<button data-inc="isolate" data-value="${ix}" aria-pressed="${e.step===1&&ix===pattern.answer}">${pattern.records[ix]}</button>`;}).join('')}</div><button class="inc-primary" data-inc="quarantine" ${e.step===1?'':'disabled'}>選んだ記録を封鎖する</button>`}`;
+    content=incursionEvidenceHTML(a,e);
   }else{
     const last=a.history.at(-1);
-    content=`<div class="inc-settled"><span>${a.level?'異変の兆候を観測中':'接続は安定しています'}</span><strong>${a.resolved}件 対処済み</strong><p>${last?INCURSIONS[last.kind].after:'調査を進めると、写真・通信・資料に異変が現れます。'}</p></div><p class="inc-instruction">${a.cooldown?`次の${a.cooldown}回の開封までは保護区間。`:'異変は開封を進めたときだけ蓄積します。'}<br>時間の経過や留守中には悪化しません。</p><button class="inc-primary" data-inc="close">調査に戻る</button>`;
+    content=`<div class="inc-settled"><span>${a.level?'異変の兆候を観測中':'接続は安定しています'}</span><strong>${Object.keys(a.discovered).filter(k=>INCURSIONS[k]).length} / 100種類 鎮静済み</strong><p>${last?INCURSIONS[last.kind].after:'調査を進めると、写真・通信・資料に異変が現れます。'}</p></div><p class="inc-instruction">${a.cooldown?`次の${a.cooldown}回の開封までは保護区間。`:'異変は開封を進めたときだけ蓄積します。'}<br>時間の経過や留守中には悪化しません。</p><button class="inc-primary" data-inc="close">調査に戻る</button>`;
   }
-  d.innerHTML=`<div class="inc-heading"><span>第六文書課 ／ 異変対処</span><button data-inc="close" aria-label="異変対処を閉じる">×</button></div><h2 id="incursion-title" tabindex="-1">${heading}</h2><div class="inc-meter"><span>危険度 <b>${a.level} / 100</b></span><meter min="0" max="100" low="36" high="70" optimum="0" value="${a.level}" aria-label="危険度"></meter></div>${e?`<p class="inc-tier">異変 Lv.${e.tier} ／ ${['局所的な異変','反復する干渉','深層からの侵入'][e.tier-1]}<br>鎮静手順 ${e.round+1} / ${e.tier} ・ 手動完了で対策資料 +${e.tier}</p>`:''}${content}<p class="inc-feedback" role="status">${message|| (a.level>=100?'対処すると新しい開封を再開できます。資料・ptは失われません。':e?'対処で危険度を0に戻す。見送って調査を続けると上昇します。':'対処記録を保管しました。')}</p>${incursionDefenseHTML(a)}<details class="inc-details"><summary>演出と対処記録</summary><label><input type="checkbox" data-inc="quiet" ${a.quiet?'checked':''}> 異変の画面演出を控えめにする</label><p>ゲーム内の異変です。この対処演出には点滅・大音量・放置中の悪化はありません。</p><ol>${a.history.slice().reverse().map(h=>`<li>${INCURSIONS[h.kind].short} Lv.${h.tier||1}：${h.auto?'自動':'手動'}鎮静</li>`).join('')||'<li>対処記録はまだありません。</li>'}</ol></details>`;
+  if(e&&e.kind<3&&!a.quiet&&!e.seen&&!e.step)content=incursionPhoto(a,e)+content;
+  d.innerHTML=`<div class="inc-heading"><span>第六文書課 ／ 異変対処</span><button data-inc="close" aria-label="異変対処を閉じる">×</button></div><h2 id="incursion-title" tabindex="-1">${heading}</h2><div class="inc-meter"><span>危険度 <b>${a.level} / 100</b></span><meter min="0" max="100" low="36" high="70" optimum="0" value="${a.level}" aria-label="危険度"></meter></div>${e?`<p class="inc-tier">異変 Lv.${e.tier} ／ ${['局所的な異変','反復する干渉','深層からの侵入'][e.tier-1]}<br>鎮静手順 ${e.round+1} / ${e.tier} ・ 手動完了で対策資料 +${e.tier}</p>`:''}${content}<p class="inc-feedback" role="status">${message|| (a.level>=100?'対処すると新しい開封を再開できます。資料・ptは失われません。':e?'対処で危険度を0に戻す。見送って調査を続けると上昇します。':'対処記録を保管しました。')}</p>${incursionDefenseHTML(a)}<details class="inc-details"><summary>演出と対処記録</summary><label><input type="checkbox" data-inc="quiet" ${a.quiet?'checked':''}> 異変の画面演出を控えめにする</label><p>ゲーム内の異変です。この対処演出には点滅・大音量・放置中の悪化はありません。</p><ol>${a.history.slice().reverse().map(h=>`<li>${INCURSIONS[h.kind].short} Lv.${h.tier||1}：${h.auto?'自動':'手動'}鎮静</li>`).join('')||'<li>対処記録はまだありません。</li>'}</ol><p>鎮静済み ${Object.keys(a.discovered).filter(k=>INCURSIONS[k]).length} / 100種類</p><ul>${Object.keys(a.discovered).filter(k=>INCURSIONS[k]).map(k=>`<li>${INCURSIONS[k].short}</li>`).join('')}</ul></details>`;
   d.querySelector('h2').focus({preventScroll:true});
 }
 function incursionResolve(auto=false) {
   const a=incursionState();if(!a?.event)return;
   const e=a.event;
   if(!auto&&e.round+1<e.tier){
-    e.round++;e.step=0;e.seen=0;delete e.view;
+    e.round++;e.step=0;e.seen=0;delete e.view;delete e.work;delete e.wires;delete e.contacts;delete e.compare;
     markDirty();drawIncursion(`干渉が戻ってきた。残り${e.tier-e.round}手順で完全鎮静。`);return;
   }
   if(!auto){a.samples=Math.min(999999,a.samples+e.tier);a.manual++;}
+  a.discovered[e.kind]=true;
   a.history.push({kind:e.kind,tier:e.tier,auto});a.history=a.history.slice(-8);a.resolved++;a.event=null;a.level=0;a.cooldown=2+a.defense.recovery;
   markDirty();renderIncursion();renderIncursionDefense();
   if(!auto)drawIncursion(`異変を鎮めました。対策資料 +${e.tier}。危険度が0に戻りました。`);
@@ -1352,7 +1438,7 @@ function upgradeIncursionDefense(id) {
 }
 document.addEventListener('click',e=>{const b=e.target.closest('[data-inc-up]');if(b&&!b.disabled)upgradeIncursionDefense(b.dataset.incUp);});
 document.addEventListener('change',e=>{if(e.target.matches('[data-inc-auto]')){incursionState(true).autoEnabled=e.target.checked;markDirty();renderIncursionDefense();}});
-function incursionAction(action,value) {
+function incursionAction(action,value,source='') {
   const a=incursionState(),e=a?.event;if(!e)return;
   let message='',wrong=false;
   if(INCURSIONS[e.kind]?.visual&&action==='inspect'){e.inspect=true;markDirty();drawIncursion('原本と違う記録を一つ選び、最後に封鎖してください。');return;}
@@ -1361,15 +1447,28 @@ function incursionAction(action,value) {
   else if(e.kind===1&&action==='channel'){if(value===1){e.step=1;message='未認証回線を隔離しました。遮断してください。';}else wrong=true;}
   else if(e.kind===1&&action==='disconnect'&&e.step===1)return incursionResolve();
   else if(e.kind===2&&action==='seal'){if(value===e.step){if(e.step===2)return incursionResolve();e.step++;message=`${e.step}か所を封印。次の場所を押してください。`;}else if(value>e.step)wrong=true;}
-  else if(INCURSIONS[e.kind]?.records&&action==='isolate'){
-    if(value===INCURSIONS[e.kind].answer){e.step=1;message='原本と一致しない。記録を封鎖してください。';}else {e.step=0;wrong=true;}
+  else if(INCURSIONS[e.kind]?.records&&['original','current'].includes(action)&&incursionProfile(e.kind).method==='compare'){
+    e.compare=action;e.seen|=action==='original'?1:2;
   }
-  else if(INCURSIONS[e.kind]?.records&&action==='quarantine'&&e.step===1)return incursionResolve();
+  else if(INCURSIONS[e.kind]?.records&&action==='procedure'&&e.step===1&&incursionProfile(e.kind).method==='sequence'){
+    if(value===(e.work||0)){e.work=(e.work||0)+1;message='封鎖が定着した。';}else if(value>(e.work||0)){wrong=true;message='順番が違う。原本の手順へ戻る。';}
+  }
+  else if(INCURSIONS[e.kind]?.records&&action==='wire'&&e.step===1&&incursionProfile(e.kind).method==='disconnect'&&[0,1].includes(value)){
+    e.wires=(e.wires||0)|(1<<value);message=e.wires===3?'両方の回線が黙った。':'もう片方から、まだ応答がある。';
+  }
+  else if(INCURSIONS[e.kind]?.records&&action==='contact'&&e.step===1&&incursionProfile(e.kind).method==='contact'){
+    e.contacts=Math.min(5,(e.contacts||0)+1);message=e.contacts===5?'指先の抵抗が消えた。':'指先に抵抗がある。まだ、そこにいる。';
+  }
+  else if(INCURSIONS[e.kind]?.records&&action==='isolate'){
+    if(incursionProfile(e.kind).method==='compare'&&e.seen!==3)return;
+    if(value===INCURSIONS[e.kind].answer){e.step=1;message='原本と一致しない。残った干渉を止めてください。';}else {e.step=0;wrong=true;}
+  }
+  else if(INCURSIONS[e.kind]?.records&&action==='quarantine'&&incursionWorkDone(e))return incursionResolve();
   else return;
   if(wrong){a.level=Math.min(100,a.level+6*e.tier);message=`異変が近づいた（危険度 +${6*e.tier}）。手掛かりを確認して、もう一度。`;}
   markDirty();renderIncursion();drawIncursion(message);
-  const next=e.kind===0&&e.seen===3?'[data-inc="identify"]':e.kind===2?`[data-inc="seal"][data-value="${e.step}"]`:e.step===1?'.inc-primary:not(:disabled)':null;
-  if(next){const button=document.querySelector('#incursion-dialog '+next);button?.focus({preventScroll:true});button?.scrollIntoView({block:'nearest',behavior:'instant'});}
+  const next=e.kind===0&&e.seen===3?'[data-inc="identify"]':e.kind===2?`[data-inc="seal"][data-value="${e.step}"]`:e.step===1?'.inc-primary:not(:disabled),.inc-procedure button:not(:disabled),[data-inc=wire]:not(:disabled),.inc-contact-trace':null;
+  if(next){const selector=source==='photo'&&!incursionWorkDone(e)?'.inc-contact-photo':next;const button=document.querySelector('#incursion-dialog '+selector);button?.focus({preventScroll:true});if(source!=='photo'||incursionWorkDone(e))button?.scrollIntoView({block:'nearest',behavior:'instant'});}
 
 }
 document.addEventListener('click',event=>{
@@ -1377,8 +1476,15 @@ document.addEventListener('click',event=>{
   if(b.dataset.inc==='open')return openIncursion();
   if(b.dataset.inc==='close')return closeIncursion();
   if(b.dataset.inc==='quiet')return;
+  if(b.dataset.inc==='contact-photo'){
+    const a=incursionState(),e=a?.event,v=e&&INC_VISUALS[INCURSIONS[e.kind]?.visual];if(!v||event.detail===0)return;
+    const r=b.querySelector('img').getBoundingClientRect(),x=(event.clientX-r.left)/r.width,y=(event.clientY-r.top)/r.height;
+    if((v.targets||[v.target]).some(t=>((x-t[0])/.24)**2+((y-t[1])/.3)**2<=1))incursionAction('contact',0,'photo');
+    else {const feedback=document.querySelector('.inc-feedback');if(feedback)feedback.textContent='そこには手応えがない。異変の付近に触れてください。';}
+    return;
+  }
   incursionAction(b.dataset.inc,Number(b.dataset.value));
 });
-document.addEventListener('change',event=>{if(event.target.matches('[data-inc="quiet"]')){incursionState(true).quiet=event.target.checked;markDirty();renderIncursion();}});
+document.addEventListener('change',event=>{if(event.target.matches('[data-inc="quiet"]')){incursionState(true).quiet=event.target.checked;markDirty();renderIncursion();drawIncursion();}});
 // Keep Escape local to the top-layer dialog; do not close a result sheet underneath it.
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&document.getElementById('incursion-dialog')?.open){event.preventDefault();event.stopImmediatePropagation();closeIncursion();}},true);

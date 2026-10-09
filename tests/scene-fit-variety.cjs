@@ -1,3 +1,4 @@
+const {compareEvidence,finishWork}=require('./incursion-steps.cjs');
 const {chromium}=require('playwright'),fs=require('fs'),path=require('path'),http=require('http'),assert=require('assert/strict');
 const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.env.QA_FONT:path.join(process.cwd(),q.url==='/'?'index.html':q.url);r.setHeader('Content-Type',f.endsWith('.html')?'text/html; charset=utf-8':f.endsWith('.js')?'application/javascript':f.endsWith('.css')?'text/css':'application/octet-stream');r.end(fs.readFileSync(f));}catch{r.writeHead(404);r.end();}});
 (async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));const b=await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE||undefined,args:['--no-sandbox','--disable-dev-shm-usage','--no-zygote','--single-process']});try{
@@ -23,11 +24,13 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  // Each new anomaly has evidence, a wrong choice, saved intermediate progress and idempotent completion.
  for(const kind of [3,4,5]){
   await p.evaluate(kind=>{S.incursion={version:1,level:40,resolved:kind,manual:3,event:{kind,tier:1,step:0,seen:0,round:0}};openIncursion();},kind);
+  await compareEvidence(p);
   const answer=await p.evaluate(kind=>INCURSIONS[kind].answer,kind);
   await p.locator(`[data-inc="isolate"][data-value="${(answer+1)%3}"]`).click();assert.equal(await p.evaluate(()=>S.incursion.level),46);
   await p.locator(`[data-inc="isolate"][data-value="${answer}"]`).click();await p.evaluate(()=>save());
   if(kind===3)await p.screenshot({path:'docs/qa-incursions/receipt-anomaly-390.jpg',quality:85});
   await p.reload();await p.evaluate(()=>openIncursion());assert.equal(await p.evaluate(()=>S.incursion.event.step),1);
+  await finishWork(p);
   const money=await p.evaluate(()=>S.currency);
   await p.locator('[data-inc="quarantine"]').click();await p.evaluate(()=>incursionAction('quarantine',0));
   assert.equal(await p.evaluate(()=>S.incursion.resolved),kind+1);assert.equal(await p.evaluate(()=>S.currency),money);await p.keyboard.press('Escape');

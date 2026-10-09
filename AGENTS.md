@@ -17,3 +17,5 @@
 
 - Keep anomaly catalog IDs stable and append-only. Evidence cases must present enough information for one answer, enable/focus explicit completion, and preserve progress on reload. Truth-completion rewards are one-time per acquired dossier, including retroactive claims, without changing duplicate testimony rewards. Prevent gesture zoom on game controls while keeping reading text zoomable.
 - Award 1pt per active observation/region input in addition to patrol or suppression bonuses. A missed contact must not advance suppression; opening help, a closed monitor, passive ticks and automation are not taps. Persist the input result and keep the wallet current without per-tap celebratory effects.
+
+- Incursion case IDs are shared by saves, resolved-case discovery and the interleaved 100-case rotation. Preserve their meaning. Ordered work, wire isolation, contact and testimony comparison must survive reload; photo misses never advance contact. Keep quiet/keyboard trace alternatives playable, final confirmation explicit and materials idempotent across tiers.
