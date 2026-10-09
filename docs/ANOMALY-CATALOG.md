@@ -126,3 +126,9 @@ Use case: stylized-concept. Asset type: in-game evidence photograph for a Japane
 | 97 | 近づく長い首 |
 | 98 | 水面の歯列 |
 | 99 | 背後の拍手 |
+
+## Follow-up: opening and reading controls
+
+Opening now has a named bottom action; shown text never advances on an incidental tap or Enter. Multi-draw advancement uses “次の封筒へ”, while the final item has explicit close/results and dossier actions. Each card resets its scroll position. Fast-opening callbacks are canceled on close. Invisible envelopes no longer intercept controls after their exit animation. The shared `.up` class no longer applies the laboratory card positioning or its label to revealed documents. Stage height leaves controls reachable in short landscape viewports. Reading cards allow browser zoom; observation gesture cancellation now explicitly includes the observation surface. Real iPhone gesture behavior and the original reported blank state remain unverified.
+
+Regression coverage: all five human-faced dog layers in a five-result sequence at 390×680, 320×568 and 844×390, accidental reading taps/Enter, next-card scroll reset, reachable controls, canceled fast-open callbacks and scoped gesture handling. Screenshot: docs/qa-incursions/opening-reading-390.jpg.

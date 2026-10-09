@@ -1257,7 +1257,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 
 <div class="stage" id="stage" hidden>
   <div class="st-wrap">
-    <div class="st-top"><span class="eyebrow" id="st-count">1 / 1</span><button class="eyebrow" id="st-skip" style="color:var(--muted)">スキップ</button></div>
+    <div class="st-top"><span class="eyebrow" id="st-count">1 / 1</span><button class="eyebrow" id="st-skip" style="color:var(--muted)">結果一覧へ</button></div>
     <div class="st-scene" id="st-scene">
       <div class="st-card paper" id="st-card"></div>
       <div class="st-env" id="st-env"><span class="lab" id="st-lab">CASE FILE</span><span class="seal" id="st-seal">極秘</span></div>
@@ -1771,11 +1771,12 @@ function prepare() {
   $("st-lab").textContent = urb ? "開封厳禁" : "CASE FILE / CONSPIRACY";
   $("st-seal").textContent = urb ? "封" : "極秘";
   $("st-count").textContent = (qi + 1) + " / " + Q.length;
-  $("st-skip").hidden = Q.length === 1;
+  $("st-skip").hidden = qi === Q.length - 1;
   $("st-tip").textContent = "タップして封を切る";
-  $("st-btns").innerHTML = "";
+  $("st-btns").innerHTML = `<button class="btn-paper" data-act="stage-open">封を切る</button>`;
   card.innerHTML = cardHTML(r);
-  if (S.fast) setTimeout(advance, 60);
+  card.scrollTop = 0;
+  if (S.fast) timers.push(setTimeout(advance, 60));
 }
 function cardHTML(r) {
   const it = r.item, L = r.after, show = Math.min(L, 5) - 1;
@@ -1802,6 +1803,7 @@ function advance() {
   const r = Q[qi], env = $("st-env"), card = $("st-card");
   if (phase === "sealed") {
     phase = "opening"; $("st-tip").textContent = "";
+    $("st-btns").innerHTML = `<button class="btn-line" data-act="stage-open">演出を省略して読む</button>`;
     env.classList.add("shake"); buzz(30);
     later(() => env.classList.add("open"), 550);
     later(() => { env.classList.add("gone"); card.classList.add("up"); }, 800);
@@ -1819,10 +1821,11 @@ function advance() {
 }
 function finishButtons() {
   const last = qi === Q.length - 1, r = Q[qi];
-  $("st-tip").textContent = last ? "" : "タップで次の封筒へ";
+  $("st-tip").textContent = "";
   $("st-btns").innerHTML = last
     ? `<button class="btn-paper" data-act="stage-done">${Q.length > 1 ? "結果一覧へ" : "閉じる"}</button><button class="btn-line" data-act="stage-file" data-id="${r.item.id}">資料を開く</button>`
-    : "";
+    : `<button class="btn-paper" data-act="stage-next">次の封筒へ</button>`;
+  $("st-btns").querySelector("button")?.focus({preventScroll:true});
 }
 function next() { if (qi < Q.length - 1) { qi++; prepare(); } else closeStage(); }
 function closeStage() {
@@ -1840,9 +1843,11 @@ function notify() {
 $("stage").addEventListener("click", e => {
   const b = e.target.closest("button");
   if (b && b.id === "st-skip") { e.stopPropagation(); return closeStage(); }
+  if (b && b.dataset.act === "stage-open" && (phase === "sealed" || phase === "opening")) return advance();
+  if (b && b.dataset.act === "stage-next" && phase === "shown") return next();
   if (b && b.dataset.act === "stage-done") return closeStage();
   if (b && b.dataset.act === "stage-file") { const id = b.dataset.id; Q = []; closeStage(); return openDossier(id); }
-  if (!b) advance();
+  if (!b && (phase === "sealed" || phase === "opening")) advance();
 });
 
 /* ---------- sheets ---------- */
@@ -2446,7 +2451,7 @@ document.addEventListener("click", e => {
 });
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") { if (!$("stage").hidden) closeStage(); else hideSheet(); }
-  if ((e.key === " " || e.key === "Enter") && !$("stage").hidden && !e.target.closest("button")) { e.preventDefault(); advance(); }
+  if ((e.key === " " || e.key === "Enter") && !$("stage").hidden && phase !== "shown" && !e.target.closest("button")) { e.preventDefault(); advance(); }
 });
 $("free").addEventListener("click", postScene);
 $("share-report").addEventListener("click", () => sheet("今日の調査報告", `<p class="hint" style="text-align:left">⬛未発見 🟫Lv1-2 🟧Lv3-4 🟥真相到達</p>` + shareBlock(reportText())));
@@ -2454,7 +2459,7 @@ $("share-diag").addEventListener("click", () => { const [n, d] = diagnosis(); sh
 
 let combo = 0, comboTimer;
 
-/* Observation rewards now come from the held record, never from repeated taps. */
+/* Observation owns per-input points and separate held-record bonuses. */
 function renderSniffCap() { renderObservation(); }
 
 /* ---------- 怪異 ---------- */

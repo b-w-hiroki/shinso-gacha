@@ -70,6 +70,9 @@ jobs:
       - run: node tests/incursion-catalog.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/opening-reading.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/scene-fit-variety.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf

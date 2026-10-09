@@ -82,8 +82,19 @@ body:has(.gacha-scene:not([hidden])) main{padding-top:8px;padding-bottom:calc(va
 #sheet>.truth-reward-note{color:#ded0b5}
 [data-truth-reward]{display:flex;flex-direction:column;gap:4px;width:100%;min-height:52px}
 
-button,.gacha-scene,.thread-radar,#st-scene,.inc-photo,.inc-presence{touch-action:pan-x pan-y}
+button,.gacha-scene,.thread-radar,.st-env,.inc-photo,.inc-presence{touch-action:pan-x pan-y}
 #obs-frame{touch-action:none}
 #obs-help{flex:0 0 auto;min-height:44px;padding:8px;color:#ded0b4;border:1px solid #78674d;background:#181810;font:13px/1.5 var(--f-body)}
 #obs-help[hidden]{display:none}
 .inc-presence{margin:12px 0}.inc-presence img{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover}.inc-presence figcaption{font-size:12px;line-height:1.5;color:#cbbb9c;padding-top:6px}
+
+/* Keep reading separate from advancement, including short mobile viewports. */
+.stage .st-scene{max-height:min(62vh,calc(100dvh - 200px))}
+.stage .st-btns{width:100%;justify-content:center}
+.stage .st-btns button{flex:1;min-height:48px}
+.stage .st-card{position:absolute;inset:0;min-height:0;overscroll-behavior:contain;touch-action:auto}
+
+.stage .st-env.gone{pointer-events:none}
+body:not(.lite) .stage .st-card.up::before{display:none}
+
+.stage .st-tip:empty{display:none}

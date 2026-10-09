@@ -16,7 +16,7 @@ new ResizeObserver(()=>requestAnimationFrame(fitGacha)).observe(document.querySe
 new ResizeObserver(()=>requestAnimationFrame(fitGacha)).observe(document.querySelector('.top'));
 
 // Prevent unintended zoom only on game controls. Reading text still permits browser zoom.
-const GAME_TOUCH_SURFACES='button,.thread-radar,.gacha-scene,#st-scene,.inc-photo,.inc-presence';
+const GAME_TOUCH_SURFACES='button,.thread-radar,.gacha-scene,.st-env,#obs-frame,.inc-photo,.inc-presence';
 document.addEventListener('touchstart',e=>{
  if(e.touches.length>1&&[...e.touches].some(t=>t.target instanceof Element&&t.target.closest(GAME_TOUCH_SURFACES)))e.preventDefault();
 },{passive:false});
