@@ -999,6 +999,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 <link rel="stylesheet" href="assets/incursions.css">
 <link rel="stylesheet" href="assets/layout-safety.css">
 <link rel="stylesheet" href="assets/information-ui.css">
+<link rel="stylesheet" href="assets/observation.css">
 
 <header class="top">
   <div class="top-in">
@@ -1076,22 +1077,23 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
     <div class="home-pane" data-hpane="desk">
       <section class="thread-radar" aria-label="異常探知スレッド">
         <div class="radar-head"><span>異変の観測</span><button type="button" data-desk="evidence">検知記録を見る</button></div>
-        <div class="radar-screen"><div class="radar-sector" aria-hidden="true"><span>SECTOR-A7 / SIM</span><span>STATUS: MONITORING</span></div>
-          <div class="radar-grid" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-          <div class="radar-sweep" aria-hidden="true"></div>
-          <div class="radar-blips" id="radar-blips" aria-hidden="true"></div>
-          <div class="radar-contact" id="radar-contact">
-            <small id="radar-state">MONITORING</small>
-            <b id="radar-distance">---</b>
-            <span id="radar-place">反応を走査中</span>
-          </div>
-          <div class="radar-posts" id="radar-posts" hidden></div>
+        <div class="obs-modes" aria-label="観測方法">
+          <button data-obs-mode="cctv">監視カメラ</button><button data-obs-mode="photo">写真</button><button data-obs-mode="vision">視界ジャック</button><button data-obs-mode="dash">車載カメラ</button>
+        </div>
+        <div class="obs-meta"><b id="obs-source"></b><span id="obs-time"></span></div>
+        <div id="obs-frame" class="obs-frame" data-mode="cctv" data-observation-view="before">
+          <div id="obs-image" role="img"></div><div class="obs-effect" aria-hidden="true"></div><span id="obs-disconnected" hidden>接続を切断しました</span>
         </div>
       <button class="pad home-sniff" id="sniff">
         <span class="lens" aria-hidden="true"></span>
         <span><b>気配を探る</b><small id="sniff-sub">タップと放置で疑念ptを集める</small></span>
         <span class="combo" id="combo">+2pt</span>
       </button>
+        <div class="obs-caption"><b id="obs-title"></b><p id="obs-caption"></p><span id="radar-state"></span> · <span id="radar-distance"></span><span id="radar-place" hidden></span><span id="radar-blips" hidden></span></div>
+        <div class="obs-actions"><button id="obs-reference" data-obs="reference">前の記録</button><button id="obs-report" data-obs="report">異変を報告</button></div>
+        <p id="obs-feedback" role="status"></p>
+        <details class="obs-preview"><summary>4方式を試写する</summary><p>試写中はpt・危険度に影響しません。</p><div class="obs-actions"><button data-obs="preview-before">平常を試写</button><button data-obs="preview-after">異変を試写</button><button data-obs="preview-exit">観測へ戻る</button></div><label><input id="obs-quiet" type="checkbox"> 揺れ・瞬きの演出を抑える</label></details>
+
       </section>
       <p class="streak" id="streak" hidden></p>
       <div class="pursuer-signal" id="pursuer-signal" hidden></div>
@@ -1272,6 +1274,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 <dialog id="incursion-dialog" aria-labelledby="incursion-title"></dialog>
 <script src="assets/intro-story.js"></script>
 <script src="assets/incursions.js"></script>
+<script src="assets/observation.js"></script>
 <script>
 /* ---------- 日本語の改行（文節で折り返す） ---------- */
 document.documentElement.lang = "ja";
@@ -2115,6 +2118,7 @@ function openAnomalyEvidence() {
   sheet("異常証拠 / " + e.label, evidenceHTML() + decision);
 }
 function renderRadar() {
+  renderObservation();
   const blips=$("radar-blips");if(!blips)return;
   const a=incursionState(),level=a?.level||0,event=a?.event;
   const stage=level>=70?'close':event?'noticed':level?'trace':'calm';
@@ -2435,7 +2439,7 @@ function sniffGain() {
 }
 function renderSniffCap() {
   const gain=sniffGain();
-  $("sniff").disabled=gain===0;
+  $("sniff").disabled=gain===0 || observationPreview !== null;
   $("combo").textContent=gain?`+${gain}pt`:"本日完了";
   $("sniff-sub").textContent=gain?"タップと放置で疑念ptを集める":"本日の探索は完了。放置獲得は継続します";
   const p = S.sniffDay.pts, el = $("cap-text");
@@ -2444,14 +2448,16 @@ function renderSniffCap() {
   el.textContent = p < F ? `今日の嗅ぎ回り ${p}/${H}pt（${F}ptまでは1タップ+2）`
     : p < H ? `今日の嗅ぎ回り ${p}/${H}pt（ここからは1タップ+1）`
     : "今日はもう十分嗅ぎ回った。これ以上は、こちらが噂になる";
+  if(observationPreview!==null){$("combo").textContent="試写中";$("sniff-sub").textContent="観測へ戻るとptを獲得できます";}
 }
 $("sniff").addEventListener("click", e => {
+  if (observationPreview !== null) return;
   const now = Date.now();
   tapTimes = tapTimes.filter(t => now - t < 1000); tapTimes.push(now);
   if (tapTimes.length > 12) return;
   const gain = sniffGain();
   if(!gain||isLite())return renderSniffCap();
-  S.currency += gain; S.sniffDay.pts += gain; S.clicks++; bump("click"); markDirty(); render(); renderSniffCap();
+  S.currency += gain; S.sniffDay.pts += gain; S.clicks++; bump("click"); observationAdvance(); markDirty(); render(); renderSniffCap();
   $("combo").textContent=`+${gain}pt獲得`;
   buzz(8);
 

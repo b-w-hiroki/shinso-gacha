@@ -32,8 +32,8 @@ has(/aria-label="調査デスクの表示切替"/, "investigation desk accessibl
 console.log("shinso-gacha smoke checks passed");
 
 has(/class="thread-radar"/, "thread radar must be on the agent first view");
-has(/id="radar-posts"/, "thread radar feed missing");
-has(/radar\.prepend\(line\)/, "thread posts must feed the radar");
+has(/id="obs-frame"/, "observation scene missing");
+has(/assets\/observation.js/, "observation behavior missing");
 has(/body:not\(\.lite\) #pursuer-signal \{ display:none !important; \}/, "pursuer count must not occupy the agent home");
 assert(!/aid\.innerHTML[^\n]*pursuerNo/.test(html), "pursuer ordinal must not remain in the persistent report card");
 
@@ -85,7 +85,7 @@ has(/data-kind="\$\{e\.type\}"/, "evidence visual kind hook missing");
 assert(!html.includes('data-htab="comms"'), "obsolete log tab must stay removed");
 assert(!html.includes('data-hpane="comms"'), "obsolete log pane must stay removed");
 has(/ANOMALY DETECTION SYSTEM/, "radar terminal HUD missing");
-has(/SECTOR-A7 \/ SIM/, "fictional radar sector HUD missing");
+has(/id="obs-source"/, "capture medium metadata missing");
 has(/grid-template-columns:1fr 1fr/, "agent footer must stay two-tab after log removal");
 
 assert(!html.includes('data-stab="gacha:rank"'), "rank must not remain a gacha mode");
@@ -151,3 +151,6 @@ console.log('Seven story assets and introduction script are present');
 new Function(fs.readFileSync('assets/incursions.js','utf8'));
 assert(html.includes('assets/incursions.js') && html.includes('assets/incursions.css'));
 console.log('Incursion module syntax and entry points verified');
+
+new Function(fs.readFileSync("assets/observation.js","utf8"));
+for (const mode of ["photo","cctv","vision","dash"]) assert(fs.statSync(`assets/observation/${mode}.webp`).size>10000);
