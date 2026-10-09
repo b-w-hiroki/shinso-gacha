@@ -5,18 +5,29 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  const p=await b.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'}),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.route('https://**/*',r=>r.abort());await p.goto('http://127.0.0.1:'+server.address().port);
  if(process.env.QA_FONT){await p.addStyleTag({content:"@font-face{font-family:QAJP;src:url('/font.otf')} :root{--f-body:QAJP;--f-display:QAJP;--f-mono:QAJP;--f-hand:QAJP}body,button{font-family:QAJP}"});await p.evaluate(()=>document.fonts.load('16px QAJP'));}
  await p.evaluate(()=>{S.role='agent';S.onboarded=true;S.lite={intro:{done:true}};S.lastTick=Date.now()+600000;S.incursion={version:1,level:0,resolved:0,history:[]};S.streak={last:dayKey(),n:1};S.observation=WatchModel.create(Date.now(),42);S.currency=5000;applyMode();go('lab');render();});
- await p.locator('.watch-upgrades summary').click();await p.locator('[data-watch-upgrade="patrol"]').click();await p.locator('[data-watch-upgrade="suppression"]').click();assert.equal(await p.evaluate(()=>S.currency),4100);
- await p.evaluate(()=>{go('home');setHomeTab('desk');scrollTo(0,0);const o=observationState(),t=Date.now();o.pending={mode:'cctv',rarity:1,readyAt:t,expiresAt:t+3600000,sequence:0,suppression:5};o.autoLastAt=t;renderObservation();});
- const before=await p.evaluate(()=>({pt:S.currency,clicks:S.clicks}));
- await p.evaluate(()=>{S.observation.autoLastAt=Date.now()-6000;watchLastTick=0;observationTick();});
- assert.deepEqual(await p.evaluate(()=>({pt:S.currency,clicks:S.clicks})),{pt:before.pt+80,clicks:before.clicks},'auto reward does not farm manual missions');
- for(const place of ['settings','archive','stage']){
-  await p.evaluate(place=>{if(place==='settings')observationSettings();else if(place==='archive')go('archive');else document.getElementById('stage').hidden=false;S.observation.tapProgress=0;S.observation.autoLastAt=Date.now()-6000;watchLastTick=0;observationTick();},place);
-  assert.equal(await p.evaluate(()=>S.observation.tapProgress),0,'pause in '+place);
-  await p.evaluate(()=>{document.getElementById('sheet-bg').hidden=true;document.getElementById('stage').hidden=true;go('home');scrollTo(0,0);});
+ await p.locator('.watch-upgrades summary').click();
+ assert.equal(await p.locator('[data-watch-upgrade="patrol"],[data-watch-upgrade="suppression"]').count(),0,'automation purchases hidden');
+ // Existing purchases remain saved, but cannot operate before unlock conditions exist.
+ await p.evaluate(()=>{go('home');setHomeTab('desk');scrollTo(0,0);const o=observationState(),t=Date.now();o.upgrades.patrol=3;o.upgrades.suppression=3;o.pending={mode:'cctv',rarity:1,readyAt:t,expiresAt:t+3600000,sequence:0,suppression:5};o.autoLastAt=t-60000;renderObservation();});
+ const before=await p.evaluate(()=>({pt:S.currency,progress:S.observation.pending.suppression}));
+ await p.evaluate(()=>{watchLastTick=0;observationTick();});
+ assert.deepEqual(await p.evaluate(()=>({pt:S.currency,progress:S.observation.pending.suppression})),before,'saved automation is paused');
+ assert.equal(await p.locator('#obs-progress,#obs-progress-count,#obs-auto-status').count(),0);
+ assert(!/\d+\/\d+/.test(await p.locator('#obs-frame').getAttribute('aria-label')));
+ await p.locator('[data-watch="settings"]').click();
+ assert.equal(await p.locator('[data-watch-auto]').count(),0);
+ assert(!/\d+タップ/.test(await p.locator('.watch-settings').innerText()));
+ await p.keyboard.press('Escape');
+ await p.locator('#obs-tap').click();assert.equal(await p.evaluate(()=>S.currency),before.pt+80,'manual suppression still rewards');
+ assert(await p.evaluate(()=>{save();const saved=JSON.parse(localStorage.getItem(KEY));return saved.observation.upgrades.patrol===3&&saved.observation.upgrades.suppression===3;}),'saved purchases preserved');
+ assert(await p.locator('.logo .bar').evaluate(e=>{const c=getComputedStyle(e);return c.color==='rgba(0, 0, 0, 0)'&&c.backgroundColor!=='rgba(0, 0, 0, 0)';}),'title redaction restored');
+ for(const mode of ['cctv','photo','vision','dash']){
+  await p.evaluate(mode=>{S.observation.mode=mode;S.observation.unlocked.push(mode);S.observation.pending=null;watchPaint='';renderObservation();},mode);
+  assert(await p.locator('#obs-frame').evaluate(e=>{const c=getComputedStyle(e,'::after');return c.backgroundImage.includes('radial-gradient')&&c.pointerEvents==='none';}),'non-blocking aperture: '+mode);
+  await p.locator('#obs-image').evaluate(async e=>{const im=new Image();im.src=getComputedStyle(e).backgroundImage.slice(5,-2);await im.decode();});
+  await p.screenshot({path:`${out}/peek-${mode}-390.jpg`,quality:85});
  }
- await p.locator('[data-watch="settings"]').click();await p.locator('[data-watch-auto]').uncheck();await p.keyboard.press('Escape');
- await p.evaluate(()=>{S.observation.autoLastAt=Date.now()-6000;watchLastTick=0;observationTick();});assert.equal(await p.evaluate(()=>S.observation.tapProgress),0);
+ await p.evaluate(()=>{S.observation.mode='cctv';renderObservation();});
  assert(await p.evaluate(()=>{const stamp=S.updatedAt;watchLastTick=0;observationTick();return S.updatedAt===stamp;}),'idle tick must not restart the cloud save debounce');
  for(const [width,height] of [[320,568],[390,844],[844,390]]){
   await p.setViewportSize({width,height});
@@ -29,5 +40,5 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
   const folder=p.locator('.folder.truth').first();assert(await folder.count());assert(await folder.evaluate(e=>getComputedStyle(e).position==='relative'&&getComputedStyle(e,'::after').position==='static'),'archive truth marker stays in document flow');
   await p.evaluate(()=>go('home'));
  }
- assert.deepEqual(errors,[]);console.log('Foreground automation, reward accounting, lower controls and truth stamp separation passed');
+ assert.deepEqual(errors,[]);console.log('Hidden automation, preserved purchases, redacted title, aperture, lower controls and truth stamp separation passed');
 }finally{await b.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});

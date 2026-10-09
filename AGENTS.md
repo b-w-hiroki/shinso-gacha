@@ -9,3 +9,4 @@
 - Keep the observation UI focused on one large scene. Preserve the existing world and game loop, save compatibility, point accounting, and mobile readability. Unseen records must not reveal their names or images.
 
 - Preserve horror, unease and tension over arcade presentation. Keep patrol/growth rewards understated, avoid combo/speed pressure and celebratory overlays, and leave the scene legible. Put primary controls below content or in the existing lower navigation; never cover text with stamps.
+- Do not expose observation tap counts, progress gauges or patrol counters. Keep the title redaction. Observation automation stays hidden and inactive until unlock conditions are agreed; preserve saved upgrade levels.

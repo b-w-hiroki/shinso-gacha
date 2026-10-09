@@ -1,5 +1,5 @@
 /* One physical surface per component; no extra picture frames around props. */
-.logo .bar { background:transparent; color:inherit; box-shadow:none; }
+.logo .bar { background:var(--redact); color:transparent; box-shadow:0 0 0 1px #4d4b43; }
 .logo { animation:none; }
 .dossier-view .scene-heading { padding:8px 0 12px; min-height:0; border-bottom:0; }
 .dossier-view .scene-heading::after { display:none; }
