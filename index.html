@@ -1003,6 +1003,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 <link rel="stylesheet" href="assets/focus-ui.css">
 <link rel="stylesheet" href="assets/menu.css">
 
+<div id="watch-veil" aria-hidden="true"></div>
 <header class="top">
   <div class="top-in">
     <div class="logo" aria-label="真相ガチャ">真相<span class="bar">ガチ</span>ャ<small id="issue">UNVERIFIED ARCHIVE #001</small></div>
@@ -1081,13 +1082,13 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
       <section class="thread-radar" aria-label="観測映像">
         <div class="obs-topline"><span id="obs-source"></span><span id="obs-name"></span></div>
         <button id="obs-frame" class="obs-frame" data-mode="cctv" aria-label="観測映像を確認">
-          <span id="obs-image" aria-hidden="true"></span><span class="obs-effect" aria-hidden="true"></span>
+          <span id="obs-closed" hidden>回線を遮断しました<small>画面から目を離し、しばらく休んでください。</small></span><span id="obs-image" aria-hidden="true"></span><span class="obs-effect" aria-hidden="true"></span>
           <span id="obs-ready" class="obs-alert" hidden aria-hidden="true">受信</span>
           <span id="obs-timer" class="obs-timer" aria-hidden="true"></span>
           <span id="obs-first-hint">映像または下のボタンをタップ</span>
         </button>
         <p id="obs-feedback" role="status" aria-live="polite"></p>
-        <div class="obs-controls"><button id="obs-tap" type="button">観測を進める</button><button data-watch="settings" type="button">観測設定</button><button id="obs-danger" data-inc="open" aria-label="別件の異変に対処" hidden>対処記録</button></div>
+        <div class="obs-secondary"><button id="obs-rest" type="button">モニタを閉じる</button><button id="obs-colleagues" type="button">課内で話す</button><button data-watch="settings" type="button" hidden>観測設定</button></div>
       </section>
       <p class="streak" id="streak" hidden></p>
       <div class="pursuer-signal" id="pursuer-signal" hidden></div>

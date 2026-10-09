@@ -7,10 +7,10 @@ await font();
 await p.evaluate(()=>{S.incursion={version:1,level:0,resolved:0,history:[]};S.currency=543;S.lastTick=Date.now()+600000;go("home");setHomeTab("desk");render();});
 for(const [level,tier,label] of [[0,1,'静穏'],[12,1,'微かな反応'],[36,2,'反応あり'],[90,3,'接近中']]){
  await p.evaluate(({level,tier})=>{S.incursion.level=level;S.incursion.event=level>=36?{kind:2,tier,round:0,step:0}:null;renderIncursion();},{level,tier});
- assert.equal(await p.locator('#obs-danger').isVisible(),level>=36);
- if(level>=36){await p.locator('#obs-danger').click();assert(await p.locator('#incursion-dialog').isVisible());await p.keyboard.press('Escape');}
+ assert.equal(await p.locator('#incursion-status').isVisible(),level>=36);
+ if(level>=36){await p.locator('#incursion-status').click();assert(await p.locator('#incursion-dialog').isVisible());await p.keyboard.press('Escape');}
 }
-await p.evaluate(()=>{S.incursion.level=0;S.incursion.event=null;render();});
+await p.evaluate(()=>{S.incursion.level=0;S.incursion.event=null;observationState().upgrades.retention=1;render();});
 await p.locator('[data-watch="settings"]').click();await p.locator('.watch-settings [data-desk="evidence"]').click();assert(await p.locator('.evidence-stack').isVisible());assert.equal(await p.locator('.case-choices button').count(),3);await p.keyboard.press('Escape');
 for(const [width,height] of [[320,568],[390,700],[430,932]]){
  await p.setViewportSize({width,height});await p.locator('#wallet').click();assert.equal(await p.locator('.wallet-rank').count(),0);assert.equal(await p.locator('#wallet-current').innerText(),'543pt');

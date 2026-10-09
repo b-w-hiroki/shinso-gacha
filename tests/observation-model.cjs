@@ -61,8 +61,9 @@ let patrol=M.tap(o,T);assert.equal(patrol.kind,'patrol');assert.equal(patrol.rec
 assert.equal(M.tap(o,T),null,'next click cannot pay twice');
 for(const mode of Object.keys(M.MODES))for(const rarity of [1,2,3]){
  o=M.create(T,42);o.unlocked=Object.keys(M.MODES);o.mode=mode;o.pending={mode,rarity,readyAt:T,expiresAt:T+3*H,sequence:0};
- for(let i=0;i<M.SUPPRESS[rarity]-1;i++){assert.equal(M.tap(o,T),null);o=JSON.parse(JSON.stringify(o));}
- const result=M.tap(o,T);assert.equal(result.kind,'anomaly');assert.equal(result.record.reward,Math.round(M.ANOMALY_REWARDS[rarity]*M.MODES[mode].mult));assert.equal(o.collected,1);assert.equal(o.history[0].reward,result.record.reward);assert.equal(M.tap(o,T),null);
+ const [x,y]=M.TARGETS[mode][rarity][0];
+ for(let i=0;i<M.SUPPRESS[rarity]-1;i++){assert.equal(M.suppress(o,T,{x,y}),null);o=JSON.parse(JSON.stringify(o));}
+ const result=M.suppress(o,T,{x,y});assert.equal(result.kind,'anomaly');assert.equal(result.record.reward,Math.round(M.ANOMALY_REWARDS[rarity]*M.MODES[mode].mult));assert.equal(o.collected,1);assert.equal(o.history[0].reward,result.record.reward);assert.equal(M.tap(o,T),null);
 }
 // Automation is purchased separately, foreground-only and never catches up in bursts.
 o=M.create(T,42);M.automate(o,T+5000);assert.equal(o.tapProgress,0);
@@ -73,6 +74,6 @@ o.autoEnabled=false;M.automate(o,T+20000);assert.equal(o.tapProgress,1);o.autoEn
 M.automate(o,T+100000);assert.equal(o.tapProgress,2,'one tick even after a large gap');
 o.pending={mode:'cctv',rarity:2,readyAt:T,expiresAt:T+3*H,sequence:0};o.upgrades.suppression=1;
 M.automate(o,T+105000);assert.equal(o.pending.suppression,0,'R automation cannot suppress SR');o.upgrades.suppression=2;
-M.automate(o,T+110000);assert.equal(o.pending.suppression,1);
+M.automate(o,T+110000);assert.equal(o.pending.suppression,0,'automatic suppression cannot bypass targeting');
 const legacy=M.create(T,42);delete legacy.tapProgress;delete legacy.autoLastAt;delete legacy.upgrades.patrol;delete legacy.upgrades.suppression;legacy.collection={'cctv:3':2};M.normalize(legacy);assert.equal(legacy.tapProgress,0);assert.equal(legacy.upgrades.patrol,0);assert.equal(legacy.collection['cctv:3'],2);
 console.log('Tap thresholds, normal/rare payouts, rotation, saved progress, foreground automation and migration passed');

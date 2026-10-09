@@ -10,3 +10,5 @@
 
 - Preserve horror, unease and tension over arcade presentation. Keep patrol/growth rewards understated, avoid combo/speed pressure and celebratory overlays, and leave the scene legible. Put primary controls below content or in the existing lower navigation; never cover text with stamps.
 - Do not expose observation tap counts, progress gauges or patrol counters. Keep the title redaction. Observation automation stays hidden and inactive until unlock conditions are agreed; preserve saved upgrade levels.
+- Anomalies require contact near their image-space target (or the accessible region picker); normal patrol must never suppress them. Contamination grows during active pursuit and recedes with idle time, monitor closure or conversation. Preserve controls, saved progress and offline recovery.
+- Keep observation input on the image, without a separate patrol button. Unlock observation settings after training, but keep reduced-motion preferences always available. Fit the scene and rest/conversation controls above the bottom navigation on phone viewports.
