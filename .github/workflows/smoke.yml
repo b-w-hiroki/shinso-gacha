@@ -67,6 +67,9 @@ jobs:
       - run: node tests/investigation-loop.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/incursion-records.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/incursion-images.cjs
       - run: node tests/incursion-experiences.cjs
         env:

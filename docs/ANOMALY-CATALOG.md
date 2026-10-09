@@ -140,3 +140,9 @@ All stable case IDs 0–99 retain their original names, evidence and aftermath. 
 Partially completed procedures persist as `work`, `wires`, `contacts`, and `seen` on the existing event. Each higher-tier round resets procedure progress; materials are awarded only after the final round. Existing saves without these fields resume safely. `discovered` records resolved IDs, backfills only known recent history, and never reveals undiscovered titles. The 100-case order is a permutation with different families interleaved, while an already-active saved event keeps its ID.
 
 New tests cover full completion of all 97 enhanced cases plus the original three, partial-save reload for each grammar, failed premature completion, exact photograph hit/miss behavior for four visual assets, repeated-tier rewards, quiet presentation, and seven family layouts at 320×568, 390×680 and 844×390. Screenshots use `experience-*-390.jpg`. Automated checks establish operation and rendering; fear effectiveness and long-term balance still require player feedback.
+
+## 保管された異変の閲覧
+
+「資料 → 観測 → 封筒の異変記録を見る」、または異変対処後の「保管された異変を見る」から開く。鎮静済みの保存IDだけを一覧に出し、写真・原本・鎮静後の記録を見返せる。写真は個別に読み込む。前後移動も取得済みの記録だけを対象とし、未取得の名前・画像は出さない。
+
+閲覧は進行中の対処、危険度、対策資料、ptを変更しない。画面演出を控えめにしている場合は写真を伏せる。閉じる／前後移動／一覧へ戻るは画面内に残し、長文のみ内部スクロール。自動検証は tests/incursion-records.cjs。

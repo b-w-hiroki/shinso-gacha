@@ -1386,6 +1386,7 @@ function closeIncursion() {
 }
 function drawIncursion(message='') {
   const a=incursionState(true),e=a.event,d=document.getElementById('incursion-dialog');
+  d.classList.remove('inc-record-mode');
   const heading=e?INCURSIONS[e.kind].name:a.level?'まだ、違和感だけ。':'日常に、戻った。';
   let content='';
   if(e?.kind===0){
@@ -1401,8 +1402,26 @@ function drawIncursion(message='') {
     content=`<div class="inc-settled"><span>${a.level?'異変の兆候を観測中':'接続は安定しています'}</span><strong>${Object.keys(a.discovered).filter(k=>INCURSIONS[k]).length} / 100種類 鎮静済み</strong><p>${last?INCURSIONS[last.kind].after:'調査を進めると、写真・通信・資料に異変が現れます。'}</p></div><p class="inc-instruction">${a.cooldown?`次の${a.cooldown}回の開封までは保護区間。`:'異変は開封を進めたときだけ蓄積します。'}<br>時間の経過や留守中には悪化しません。</p><button class="inc-primary" data-inc="close">調査に戻る</button>`;
   }
   if(e&&e.kind<3&&!a.quiet&&!e.seen&&!e.step)content=incursionPhoto(a,e)+content;
-  d.innerHTML=`<div class="inc-heading"><span>第六文書課 ／ 異変対処</span><button data-inc="close" aria-label="異変対処を閉じる">×</button></div><h2 id="incursion-title" tabindex="-1">${heading}</h2><div class="inc-meter"><span>危険度 <b>${a.level} / 100</b></span><meter min="0" max="100" low="36" high="70" optimum="0" value="${a.level}" aria-label="危険度"></meter></div>${e?`<p class="inc-tier">異変 Lv.${e.tier} ／ ${['局所的な異変','反復する干渉','深層からの侵入'][e.tier-1]}<br>鎮静手順 ${e.round+1} / ${e.tier} ・ 手動完了で対策資料 +${e.tier}</p>`:''}${content}<p class="inc-feedback" role="status">${message|| (a.level>=100?'対処すると新しい開封を再開できます。資料・ptは失われません。':e?'対処で危険度を0に戻す。見送って調査を続けると上昇します。':'対処記録を保管しました。')}</p>${incursionDefenseHTML(a)}<details class="inc-details"><summary>演出と対処記録</summary><label><input type="checkbox" data-inc="quiet" ${a.quiet?'checked':''}> 異変の画面演出を控えめにする</label><p>ゲーム内の異変です。この対処演出には点滅・大音量・放置中の悪化はありません。</p><ol>${a.history.slice().reverse().map(h=>`<li>${INCURSIONS[h.kind].short} Lv.${h.tier||1}：${h.auto?'自動':'手動'}鎮静</li>`).join('')||'<li>対処記録はまだありません。</li>'}</ol><p>鎮静済み ${Object.keys(a.discovered).filter(k=>INCURSIONS[k]).length} / 100種類</p><ul>${Object.keys(a.discovered).filter(k=>INCURSIONS[k]).map(k=>`<li>${INCURSIONS[k].short}</li>`).join('')}</ul></details>`;
+  d.innerHTML=`<div class="inc-heading"><span>第六文書課 ／ 異変対処</span><button data-inc="close" aria-label="異変対処を閉じる">×</button></div><h2 id="incursion-title" tabindex="-1">${heading}</h2><div class="inc-meter"><span>危険度 <b>${a.level} / 100</b></span><meter min="0" max="100" low="36" high="70" optimum="0" value="${a.level}" aria-label="危険度"></meter></div>${e?`<p class="inc-tier">異変 Lv.${e.tier} ／ ${['局所的な異変','反復する干渉','深層からの侵入'][e.tier-1]}<br>鎮静手順 ${e.round+1} / ${e.tier} ・ 手動完了で対策資料 +${e.tier}</p>`:''}${content}<p class="inc-feedback" role="status">${message|| (a.level>=100?'対処すると新しい開封を再開できます。資料・ptは失われません。':e?'対処で危険度を0に戻す。見送って調査を続けると上昇します。':'対処記録を保管しました。')}</p><button class="inc-primary" data-inc="records">保管された異変を見る</button>${incursionDefenseHTML(a)}<details class="inc-details"><summary>演出設定・直近の対処</summary><label><input type="checkbox" data-inc="quiet" ${a.quiet?'checked':''}> 異変の画面演出を控えめにする</label><p>ゲーム内の異変です。この対処演出には点滅・大音量・放置中の悪化はありません。</p><ol>${a.history.slice().reverse().map(h=>`<li>${INCURSIONS[h.kind].short} Lv.${h.tier||1}：${h.auto?'自動':'手動'}鎮静</li>`).join('')||'<li>対処記録はまだありません。</li>'}</ol></details>`;
   d.querySelector('h2').focus({preventScroll:true});
+}
+// Read-only collection: only resolved cases are addressable, with no encounter mutation.
+function openIncursionRecords(kind=null, fromList=false) {
+  const a=incursionState(true), d=document.getElementById('incursion-dialog');
+  const owned=Object.keys(a.discovered).map(Number).filter(k=>INCURSIONS[k]).sort((a,b)=>a-b);
+  if(kind!==null&&(!Number.isInteger(kind)||!owned.includes(kind)))return;
+  if(!d.open){incursionReturnFocus=document.activeElement;d.showModal();}
+  const p=kind===null?null:INCURSIONS[kind],at=owned.indexOf(kind);
+  const photo=p&&!a.quiet?`<figure class="inc-record-photo"><img src="assets/incursions/${p.visual}.webp" alt="${INC_VISUALS[p.visual].alt}" decoding="async"><figcaption>保管写真 ／ ${String(kind+1).padStart(3,'0')}</figcaption></figure>`:'';
+  const content=p?`${photo}${a.quiet?'<p>控えめな演出設定のため、写真を伏せています。</p>':''}${p.reference?`<article class="inc-reference"><h3>保管された原本</h3><p>${p.reference}</p></article>`:''}<article class="inc-record-aftermath"><h3>鎮静後の記録</h3><p>${p.after}</p></article>`:
+    `<p>保管済み ${owned.length} / 100件。未遭遇の記録は伏せられています。</p>${owned.length?`<div class="inc-record-list">${owned.map(k=>`<button data-inc="record" data-value="${k}"><span>${String(k+1).padStart(3,'0')}</span><strong>${INCURSIONS[k].short}</strong><span aria-hidden="true">›</span></button>`).join('')}</div>`:'<p class="inc-instruction">まだ保管された記録はありません。封筒の調査中に現れた異変を鎮めると、ここに残ります。</p>'}`;
+  const navigation=p?`<div class="inc-grid"><button data-inc="record" data-value="${owned[at-1]}" ${at===0?'disabled':''}>前の記録</button><button data-inc="record" data-value="${owned[at+1]}" ${at===owned.length-1?'disabled':''}>次の記録</button></div><button class="inc-primary" data-inc="records" data-value="${kind}">記録一覧に戻る</button>`:`<button class="inc-primary" data-inc="open">${a.event?'進行中の異変に戻る':'対処状況を見る'}</button>`;
+  d.classList.add('inc-record-mode');
+  d.innerHTML=`<div class="inc-heading"><span>第六文書課 ／ 異変記録</span><button data-inc="close" aria-label="異変記録を閉じる">×</button></div><h2 id="incursion-title" tabindex="-1">${p?p.name:'保管された異変'}</h2><div class="inc-record-body">${content}</div><footer class="inc-record-nav">${navigation}</footer>`;
+  d.scrollTop=0;
+  const target=fromList?d.querySelector(`[data-inc="record"][data-value="${fromList}"]`):null;
+  (target||d.querySelector('h2')).focus({preventScroll:true});
+  if(target)target.scrollIntoView({block:'nearest',behavior:'instant'});
 }
 function incursionResolve(auto=false) {
   const a=incursionState();if(!a?.event)return;
@@ -1473,6 +1492,8 @@ function incursionAction(action,value,source='') {
 }
 document.addEventListener('click',event=>{
   const b=event.target.closest('[data-inc]');if(!b||b.disabled)return;
+  if(b.dataset.inc==='records')return openIncursionRecords(null,b.dataset.value??false);
+  if(b.dataset.inc==='record')return openIncursionRecords(Number(b.dataset.value));
   if(b.dataset.inc==='open')return openIncursion();
   if(b.dataset.inc==='close')return closeIncursion();
   if(b.dataset.inc==='quiet')return;
