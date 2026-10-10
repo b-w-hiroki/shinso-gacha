@@ -1,0 +1,14 @@
+const assert=require('node:assert/strict'),M=require('../assets/absence-traces-model');
+const now=Date.UTC(2026,9,10,12),hour=3600000;
+assert.equal(M.encounter([], 'cctv',now-15*60000,now),null);
+assert.equal(M.encounter([], 'unknown',now-2*hour,now),null);
+const first=M.encounter([], 'cctv',now-2*hour,now);
+assert(first&&first.text.includes('窓'));assert.equal(first.elapsed,2*hour);
+const records=M.insert([],first);
+assert.equal(M.encounter(records,'cctv',now-4*hour,now),null,'same-day visit does not spam');
+assert.equal(M.insert(records,first).length,1,'no duplicate');
+assert.equal(M.encounter(records,'photo',now-2*hour,now).mode,'photo');
+assert.equal(M.encounter(records,'cctv',now-2*hour,now+24*hour).key,'2026-10-11:cctv');
+assert(M.insert(records,{...first,key:'other',mode:'dash'}).length===2);
+assert.equal(M.insert([],null).length,0);
+console.log('Absence traces threshold, per-location-per-day suppression and deterministic content passed');
