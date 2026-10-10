@@ -36,12 +36,14 @@ function renderObservation(){
  const f=document.getElementById('obs-frame');if(!f||isLite())return;
  const o=observationSync(),p=o.pending,m=OBSERVATIONS[o.mode],r=p?.rarity??0;
  const advanced=r===1||r===3,side=r===2||r===3?'right':'left';
- const src=`assets/observation/${o.mode}${advanced?'-variants':''}.webp`;
+ const alternative=r===0&&o.sequence%2===1;
+ const altLocations={cctv:['地下通路','CAM 12'],photo:['夜の教室','PHOTO 18'],vision:['踏切前','LINK 15'],dash:['海沿いの夜道','DRIVE 19']};
+ const src=alternative?`assets/observation/scene-${o.mode}-alt.svg`:`assets/observation/${o.mode}${advanced?'-variants':''}.webp`;
  const condition=observationCondition(o);
- const paint=`${o.mode}/${p?.sequence??'idle'}/${r}/${condition}`;
+ const paint=`${o.mode}/${p?.sequence??'idle'}/${r}/${condition}/${alternative}`;
  if(paint!==watchPaint){
-  const im=document.getElementById('obs-image');im.style.backgroundImage=`url("${src}")`;im.style.backgroundPosition=`${side} center`;
-  f.style.setProperty('--obs-ratio',m.ratio);f.dataset.mode=o.mode;f.dataset.rarity=r;f.dataset.condition=String(condition);
+  const im=document.getElementById('obs-image');im.style.backgroundImage=`url("${src}")`;im.style.backgroundPosition=alternative?'center':`${side} center`;
+  f.style.setProperty('--obs-ratio',m.ratio);f.dataset.mode=o.mode;f.dataset.rarity=r;f.dataset.condition=String(condition);f.dataset.sceneAlt=String(alternative);
   f.classList.remove('obs-change');if(watchPaint){void f.offsetWidth;f.classList.add('obs-change');}watchPaint=paint;
  }
  const quiet=o.quiet||!!S.incursion?.quiet;
@@ -51,9 +53,9 @@ function renderObservation(){
  document.querySelectorAll('[data-watch="settings"]').forEach(b=>b.hidden=!watchSettingsUnlocked());
  document.getElementById('obs-rest').textContent=o.mind.closed?'観測を再開':'回線を切る';
  document.getElementById('obs-closed').hidden=!o.mind.closed;
- f.setAttribute('aria-label',o.mind.closed?'観測モニタは閉じています':`${m.title}。${danger?'違和感のある場所をタップ。キーボードでは場所を選んで対処':'タップで観測を進める'}`);
- document.getElementById('obs-source').textContent=m.source+' ／ '+OBS_SCENE_CONDITIONS[o.mode][condition];
- document.getElementById('obs-name').textContent=m.title;
+ f.setAttribute('aria-label',o.mind.closed?'観測モニタは閉じています':`${alternative?altLocations[o.mode][0]:m.title}。${danger?'違和感のある場所をタップ。キーボードでは場所を選んで対処':'タップで観測を進める'}`);
+ document.getElementById('obs-source').textContent=(alternative?altLocations[o.mode][1]:m.source)+' ／ '+OBS_SCENE_CONDITIONS[o.mode][condition];
+ document.getElementById('obs-name').textContent=alternative?altLocations[o.mode][0]:m.title;
  document.getElementById('obs-ready').hidden=!danger||o.mind.closed;
  document.getElementById('obs-ready').textContent=danger?'異変の場所を繰り返しタップ':'記録を受信';
  const help=document.getElementById('obs-help');if(help)help.hidden=!danger||o.mind.closed;
