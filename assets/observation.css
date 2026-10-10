@@ -152,3 +152,6 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
 .obs-frame[data-trace="1"] #obs-image{box-shadow:inset 1px 0 rgba(191,168,147,.17)}
 .obs-frame[data-quiet="true"] #obs-image::after{display:none}
 @media(prefers-reduced-motion:reduce){.obs-frame[data-trace="1"] #obs-image::after{display:none}}
+
+/* New locations are complete pictures; legacy anomaly sprites keep their original image-space coordinate system. */
+.obs-frame[data-scene-alt='true'] #obs-image{background-size:cover;background-position:center}
