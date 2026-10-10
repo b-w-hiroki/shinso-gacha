@@ -7,6 +7,12 @@ const OBSERVATIONS={
  vision:{title:'商店街',source:'LINK 07',ratio:.75,records:['巡回中','視線を持つ傘','全員が気づいた','着衣だけの通行人']},
  dash:{title:'県道',source:'DRIVE 11',ratio:1.333333,records:['雨上がり','夜を映す鏡','繰り返す県道','白い横断者']}
 };
+/* Three visual conditions per source, without reclassifying the saved observation IDs. */
+const OBS_SCENE_CONDITIONS={
+ cctv:['定点監視','薄明','夜間記録'],photo:['原本','退色','低照度'],
+ vision:['通常回線','残像','受信不良'],dash:['通常走行','霧雨','暗所']
+};
+function observationCondition(o){return Math.abs(Number(o.sequence)||0)%3;}
 let watchMessage='',watchMessageUntil=0,watchPaint='',watchLastTick=0;
 function observationState(){
  if(!S.observation||![2,3].includes(S.observation.version)){
@@ -30,10 +36,11 @@ function renderObservation(){
  const o=observationSync(),p=o.pending,m=OBSERVATIONS[o.mode],r=p?.rarity??0;
  const advanced=r===1||r===3,side=r===2||r===3?'right':'left';
  const src=`assets/observation/${o.mode}${advanced?'-variants':''}.webp`;
- const paint=`${o.mode}/${p?.sequence??'idle'}/${r}`;
+ const condition=observationCondition(o);
+ const paint=`${o.mode}/${p?.sequence??'idle'}/${r}/${condition}`;
  if(paint!==watchPaint){
   const im=document.getElementById('obs-image');im.style.backgroundImage=`url("${src}")`;im.style.backgroundPosition=`${side} center`;
-  f.style.setProperty('--obs-ratio',m.ratio);f.dataset.mode=o.mode;f.dataset.rarity=r;
+  f.style.setProperty('--obs-ratio',m.ratio);f.dataset.mode=o.mode;f.dataset.rarity=r;f.dataset.condition=String(condition);
   f.classList.remove('obs-change');if(watchPaint){void f.offsetWidth;f.classList.add('obs-change');}watchPaint=paint;
  }
  const quiet=o.quiet||!!S.incursion?.quiet;
@@ -43,7 +50,7 @@ function renderObservation(){
  document.getElementById('obs-rest').textContent=o.mind.closed?'観測を再開':'回線を切る';
  document.getElementById('obs-closed').hidden=!o.mind.closed;
  f.setAttribute('aria-label',o.mind.closed?'観測モニタは閉じています':`${m.title}。${danger?'違和感のある場所をタップ。キーボードでは場所を選んで対処':'タップで観測を進める'}`);
- document.getElementById('obs-source').textContent=m.source;
+ document.getElementById('obs-source').textContent=m.source+' ／ '+OBS_SCENE_CONDITIONS[o.mode][condition];
  document.getElementById('obs-name').textContent=m.title;
  document.getElementById('obs-ready').hidden=!danger||o.mind.closed;
  document.getElementById('obs-ready').textContent=danger?'異変の場所を繰り返しタップ':'記録を受信';
