@@ -1,15 +1,13 @@
 if(process.env.QA_WEBKIT)process.env.DEBUG='pw:browser';
 const {chromium,webkit}=require('playwright'),fs=require('fs'),path=require('path'),http=require('http'),assert=require('assert/strict');
 const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.env.QA_FONT:path.join(process.cwd(),q.url==='/'?'index.html':q.url);r.setHeader('Content-Type',f.endsWith('.html')?'text/html; charset=utf-8':f.endsWith('.js')?'application/javascript':f.endsWith('.css')?'text/css':'application/octet-stream');r.end(fs.readFileSync(f));}catch{r.writeHead(404);r.end();}});
-(async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));const b=await (process.env.QA_WEBKIT?webkit:chromium).launch(process.env.QA_WEBKIT?{env:{...process.env,WEBKIT_DISABLE_COMPOSITING_MODE:'1'}}:{executablePath:process.env.CHROMIUM_EXECUTABLE||undefined,args:['--no-sandbox','--disable-dev-shm-usage','--no-zygote','--single-process']});try{
+(async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));const b=await (process.env.QA_WEBKIT?webkit:chromium).launch(process.env.QA_WEBKIT?{}:{executablePath:process.env.CHROMIUM_EXECUTABLE||undefined,args:['--no-sandbox','--disable-dev-shm-usage','--no-zygote','--single-process']});try{
  const p=await b.newPage({viewport:{width:390,height:680},reducedMotion:'no-preference'}),errors=[];p.on('pageerror',e=>errors.push(e.message));p.on('crash',()=>console.error('Spillover page crashed'));p.on('close',()=>console.log('Spillover page closed'));p.setDefaultTimeout(10000);await p.route('https://**/*',r=>r.abort());await p.goto('http://127.0.0.1:'+server.address().port);
  if(process.env.QA_FONT){await p.addStyleTag({content:"@font-face{font-family:QAJP;src:url('/font.otf')} :root{--f-body:QAJP;--f-display:QAJP;--f-mono:QAJP;--f-hand:QAJP}"});await p.evaluate(()=>document.fonts.load('16px QAJP'));}
  await p.evaluate(()=>{S.role='agent';S.onboarded=true;S.lite={intro:{done:true}};S.lastTick=Date.now()+600000;S.incursion={version:1,level:0,resolved:0,history:[]};S.streak={last:dayKey(),n:1};S.observation=WatchModel.create(Date.now(),42);S.currency=5000;applyMode();go('home');setHomeTab('desk');render();});
 
 
- // Freeze saved event timestamps, but keep animation frames and timers running.
- // WebKit actionability checks need live frames when reduced motion is off.
- await p.clock.setFixedTime(Date.now());
+ // Use real time so normal-motion WebKit rendering is exercised without clock injection.
  // Actual anomaly and actual observation input produce a saved, independent spillover.
  await p.evaluate(()=>{const o=observationState(),t=Date.now();for(let seed=1;seed<1000;seed++){if(SeepageModel.hash(`watch:${seed}:0:cctv`,seed)%100<35){o.seed=seed;break;}}o.pending={mode:'cctv',rarity:1,readyAt:t,expiresAt:t+3600000,sequence:0,suppression:0};o.mind.closed=false;S.playerSeepage={};renderObservation();});
  assert.equal(await p.evaluate(()=>S.playerSeepage.event),null,'idle does not trigger');
@@ -22,7 +20,10 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  await p.mouse.click(hit.x,hit.y);
  assert(await p.evaluate(()=>!!S.playerSeepage.event));assert.equal(await p.evaluate(()=>S.currency),money+1);assert.equal(await p.evaluate(()=>S.observation.pending.suppression),0);
  const chosen=await p.evaluate(()=>JSON.stringify(S.playerSeepage.event));await p.evaluate(()=>renderObservation());assert.equal(await p.evaluate(()=>JSON.stringify(S.playerSeepage.event)),chosen,'render does not redraw event');
- await p.evaluate(()=>go('lab'));await p.locator('.watch-upgrades summary').click();
+ await p.evaluate(()=>go('lab'));
+ console.log('Lab rendering',await p.evaluate(()=>({hidden:document.hidden,animations:document.getAnimations().map(a=>({state:a.playState,time:a.currentTime})),view:getComputedStyle(document.querySelector('[data-view=lab]')).opacity})));
+ await p.screenshot({path:'docs/qa-incursions/seepage-lab-diagnostic.jpg',timeout:10000});
+ await p.locator('.watch-upgrades summary').click();
  assert((await p.locator('.watch-upgrades').innerText()).includes('異変 5% → 異変 8%'));
  await p.locator('[data-watch-upgrade="sensitivity"]').click();assert.equal(await p.evaluate(()=>S.observation.upgrades.sensitivity),1);
  assert((await p.locator('.watch-upgrades').innerText()).includes('異変 8% → 異変 12%'));
