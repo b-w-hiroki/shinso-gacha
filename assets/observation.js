@@ -31,6 +31,7 @@ function observationSync(now=Date.now()){
  if(changed)markDirty();return o;
 }
 function watchDuration(ms){const minutes=Math.max(0,Math.ceil(ms/60000));return minutes>=60?`${Math.floor(minutes/60)}時間${minutes%60?`${minutes%60}分`:''}`:`${minutes}分`;}
+function watchElapsed(ms){const minutes=Math.max(1,Math.floor(ms/60000));return minutes>=60?`${Math.floor(minutes/60)}時間${minutes%60?`${minutes%60}分`:''}`:`${minutes}分`;}
 function renderObservation(){
  const f=document.getElementById('obs-frame');if(!f||isLite())return;
  const o=observationSync(),p=o.pending,m=OBSERVATIONS[o.mode],r=p?.rarity??0;
@@ -55,7 +56,7 @@ function renderObservation(){
  document.getElementById('obs-ready').hidden=!danger||o.mind.closed;
  document.getElementById('obs-ready').textContent=danger?'異変の場所を繰り返しタップ':'記録を受信';
  const help=document.getElementById('obs-help');if(help)help.hidden=!danger||o.mind.closed;
- document.getElementById('obs-timer').textContent=p&&!danger&&!o.mind.closed?`保持 ${watchDuration(p.expiresAt-o.lastSeen)}`:'';
+ document.getElementById('obs-timer').textContent=p&&!danger&&!o.mind.closed?`記録の確認期限まで ${watchDuration(p.expiresAt-o.lastSeen)}`:'';
  const hint=document.getElementById('obs-first-hint');hint.hidden=true;hint.textContent=danger?'違和感のある場所に触れる':'映像に触れて観測する';
 
  if(Date.now()>watchMessageUntil)watchMessage='';document.getElementById('obs-feedback').textContent=watchMessage;
@@ -128,10 +129,10 @@ function watchSettingsUnlocked(){return Object.values(observationState().upgrade
 function observationSettings(){
  if(!watchSettingsUnlocked())return;
  const o=observationSync(),p=o.pending;
- sheet('観測設定',`<div class="watch-settings"><h2>${WatchModel.MODES[o.mode].label} ／ ${OBSERVATIONS[o.mode].title}</h2><p>${p?`受取期限まで ${watchDuration(p.expiresAt-o.lastSeen)}`:`定時観測まで ${watchDuration(o.dueAt-o.lastSeen)}`}</p><p>${WatchModel.RETENTION[o.upgrades.retention]}時間保持</p><p>映像に触れて照合を進め、完了すると4地点のうち別の場所へ移ります。追跡中の噂に関連する場所と未観測の記録を優先します。異変は、映像内の違和感がある付近に繰り返し触れて抑えます。別の場所や通常巡回では除去できません。場所選択からも対処できます。結果は観測ごとに固定され、再読込や育成では引き直されません。</p><p>異変を見続け、真相を追い続けると画面の外へ干渉が広がります。手を止める、モニタを閉じる、課内で話すと落ち着きます。不在中には悪化せず、資料やptも失われません。</p><button class="btn-paper" data-watch="lab">観測装備を変更・育成</button>${WatchModel.automationUnlocked(o,'patrol')&&o.upgrades.patrol?`<label><input type="checkbox" data-watch-auto ${o.autoEnabled?'checked':''}> 自動巡回・鎮静を有効にする</label><p>自動化は調査室で強化。観測映像の表示中だけ進み、別画面・資料閲覧・対処中は停止。留守中の自動pt獲得は継続します。</p>`:''}<label><input type="checkbox" data-watch-quiet ${o.quiet?'checked':''}> 揺れ・瞬きを抑える</label><details><summary>観測記録 ${o.collected}件</summary><ul>${o.history.slice().reverse().map(h=>`<li>${WatchModel.RARITY[h.rarity].name} · ${OBSERVATIONS[h.mode].records[h.rarity]} · +${h.reward}pt</li>`).join('')||'<li>記録はまだありません。</li>'}</ul></details><details><summary>出現率と報酬</summary><p>観測先へ移るときに平常か異変かを抽選。異変の種類は未遭遇と追跡中の噂を優先します。受取前の引き直しはできません。</p><p>平常 ${WatchModel.ODDS[o.upgrades.sensitivity][0]}% ／ 異変 ${100-WatchModel.ODDS[o.upgrades.sensitivity][0]}%（最大12%）</p><p>通常巡回 8pt、異変鎮静 R / SR / SSR は80 / 200 / 480pt。方式倍率：監視×1、写真×1.25、視界×1.5、車載×2。虫眼鏡でさらに1Lvあたり+10%（四捨五入）。</p></details><button class="btn-line" data-desk="evidence">別件の検知記録</button><button class="btn-line" data-inc="open">異変の対処記録</button></div>`);
+ sheet('観測設定',`<div class="watch-settings"><h2>${WatchModel.MODES[o.mode].label} ／ ${OBSERVATIONS[o.mode].title}</h2><p>${p?`受取期限まで ${watchDuration(p.expiresAt-o.lastSeen)}`:`定時観測まで ${watchDuration(o.dueAt-o.lastSeen)}`}</p><p>離れていても記録が残る時間：${WatchModel.RETENTION[o.upgrades.retention]}時間</p><p>映像に触れて照合を進め、完了すると4地点のうち別の場所へ移ります。追跡中の噂に関連する場所と未観測の記録を優先します。異変は、映像内の違和感がある付近に繰り返し触れて抑えます。別の場所や通常巡回では除去できません。場所選択からも対処できます。結果は観測ごとに固定され、再読込や育成では引き直されません。</p><p>異変を見続け、真相を追い続けると画面の外へ干渉が広がります。手を止める、モニタを閉じる、課内で話すと落ち着きます。不在中には悪化せず、資料やptも失われません。</p><button class="btn-paper" data-watch="lab">観測装備を変更・育成</button>${WatchModel.automationUnlocked(o,'patrol')&&o.upgrades.patrol?`<label><input type="checkbox" data-watch-auto ${o.autoEnabled?'checked':''}> 自動巡回・鎮静を有効にする</label><p>自動化は調査室で強化。観測映像の表示中だけ進み、別画面・資料閲覧・対処中は停止。留守中の自動pt獲得は継続します。</p>`:''}<label><input type="checkbox" data-watch-quiet ${o.quiet?'checked':''}> 揺れ・瞬きを抑える</label><details><summary>観測記録 ${o.collected}件</summary><ul>${o.history.slice().reverse().map(h=>`<li>${WatchModel.RARITY[h.rarity].name} · ${OBSERVATIONS[h.mode].records[h.rarity]} · +${h.reward}pt</li>`).join('')||'<li>記録はまだありません。</li>'}</ul></details><details><summary>出現率と報酬</summary><p>観測先へ移るときに平常か異変かを抽選。異変の種類は未遭遇と追跡中の噂を優先します。受取前の引き直しはできません。</p><p>平常 ${WatchModel.ODDS[o.upgrades.sensitivity][0]}% ／ 異変 ${100-WatchModel.ODDS[o.upgrades.sensitivity][0]}%（最大12%）</p><p>通常巡回 8pt、異変鎮静 R / SR / SSR は80 / 200 / 480pt。方式倍率：監視×1、写真×1.25、視界×1.5、車載×2。虫眼鏡でさらに1Lvあたり+10%（四捨五入）。</p></details><button class="btn-line" data-desk="evidence">別件の検知記録</button><button class="btn-line" data-inc="open">異変の対処記録</button></div>`);
 }
 function watchUpgradeValues(id){
- if(id==='retention')return WatchModel.RETENTION.map(x=>x+'時間');
+ if(id==='retention')return WatchModel.RETENTION.map(x=>x+'時間まで記録が残る');
  if(id==='interval')return WatchModel.INTERVAL.map(x=>'照合間隔 '+x+'分');
  if(id==='sensitivity')return WatchModel.ODDS.map(row=>'異変 '+(100-row[0])+'%');
  return WatchModel.AUTO_SECONDS.map((x,lv)=>lv?(id==='suppression'?WatchModel.RARITY[WatchModel.autoTier(lv)].name+'まで・':'')+x+'秒に1回':'手動');
@@ -145,7 +146,7 @@ function watchLeadCopy(o){
 function renderObservationLab(){
  const root=document.getElementById('observation-lab');if(!root)return;if(isLite()){root.innerHTML='';return;}
  const o=observationState();
- root.innerHTML=`<section class="watch-lab"><div class="watch-lab-heading"><h2>観測装備</h2><span>${o.collected}件</span></div><p class="watch-lab-context">${OBSERVATIONS[o.mode].title} ／ 異変 ${(100-WatchModel.ODDS[o.upgrades.sensitivity][0]).toFixed(1).replace(/\.0$/,'')}%<br>${o.focusLegend?'追跡中：'+escapeHTML(legendTitle(o.focusLegend)):'追跡中の噂はありません'}</p><div class="watch-lab-links"><button class="btn-paper" data-watch="return">観測へ戻る</button><button class="btn-line" data-watch="settings" ${watchSettingsUnlocked()?'':'hidden'}>観測設定</button></div><p class="watch-note">4地点を巡回。同じ場所を続けず、追跡中の噂と未観測の場所を優先します。</p><div class="watch-equipment">${Object.entries(WatchModel.MODES).map(([id,m])=>`<article class="watch-mode ${id===o.mode?'equipped':''}"><div><b>${m.label}</b><small>${OBSERVATIONS[id].title} · pt ×${m.mult}</small></div><span>${id===o.mode?'● 観測中':o.focusMode===id?'噂の照合先':'巡回対象'}</span></article>`).join('')}</div>${o.routeCredit?`<p class="watch-note">以前の観測先解放分 ${o.routeCredit}ptを返還済み。育成と記録は引き継いでいます。</p>`:''}<details class="watch-upgrades"><summary>観測を強化 <span>${WatchModel.RETENTION[o.upgrades.retention]}h</span></summary>${Object.entries(WatchModel.UPGRADES).filter(([id])=>!['patrol','suppression'].includes(id)||WatchModel.automationUnlocked(o,id)).map(([id,u])=>{const lv=o.upgrades[id],max=lv===u.max,values=watchUpgradeValues(id);return `<article><div><b>${u.name} · Lv.${lv}/${u.max}</b><small>${values[lv]}${max?'':` → ${values[lv+1]}`}</small></div><button data-watch-upgrade="${id}" ${max||S.currency<u.costs[lv]?'disabled':''}>${max?'最大':`${u.costs[lv]}pt`}</button></article>`;}).join('')}<p class="watch-note">異常感度は0.5ポイントずつ、最大12%。記録保持は最大24時間、巡回効率は最大Lv.6。自動化は最大Lv.9・1秒に1回。自動巡回は記録20件、自動鎮静は手動鎮静10件と自動巡回Lv.1で解放。鎮静Lv.1/5/9でR/SR/SSRまで対応。保持中の抽選結果は育成で変わりません。</p></details></section>`;
+ root.innerHTML=`<section class="watch-lab"><div class="watch-lab-heading"><h2>観測装備</h2><span>${o.collected}件</span></div><p class="watch-lab-context">${OBSERVATIONS[o.mode].title} ／ 異変 ${(100-WatchModel.ODDS[o.upgrades.sensitivity][0]).toFixed(1).replace(/\.0$/,'')}%<br>${o.focusLegend?'追跡中：'+escapeHTML(legendTitle(o.focusLegend)):'追跡中の噂はありません'}</p><div class="watch-lab-links"><button class="btn-paper" data-watch="return">観測へ戻る</button><button class="btn-line" data-watch="settings" ${watchSettingsUnlocked()?'':'hidden'}>観測設定</button></div><p class="watch-note">4地点を巡回。同じ場所を続けず、追跡中の噂と未観測の場所を優先します。</p><div class="watch-equipment">${Object.entries(WatchModel.MODES).map(([id,m])=>`<article class="watch-mode ${id===o.mode?'equipped':''}"><div><b>${m.label}</b><small>${OBSERVATIONS[id].title} · pt ×${m.mult}</small></div><span>${id===o.mode?'● 観測中':o.focusMode===id?'噂の照合先':'巡回対象'}</span></article>`).join('')}</div>${o.routeCredit?`<p class="watch-note">以前の観測先解放分 ${o.routeCredit}ptを返還済み。育成と記録は引き継いでいます。</p>`:''}<details class="watch-upgrades"><summary>観測を強化 <span>${WatchModel.RETENTION[o.upgrades.retention]}h</span></summary>${Object.entries(WatchModel.UPGRADES).filter(([id])=>!['patrol','suppression'].includes(id)||WatchModel.automationUnlocked(o,id)).map(([id,u])=>{const lv=o.upgrades[id],max=lv===u.max,values=watchUpgradeValues(id);return `<article><div><b>${u.name} · Lv.${lv}/${u.max}</b><small>${values[lv]}${max?'':` → ${values[lv+1]}`}</small></div><button data-watch-upgrade="${id}" ${max||S.currency<u.costs[lv]?'disabled':''}>${max?'最大':`${u.costs[lv]}pt`}</button></article>`;}).join('')}<p class="watch-note">異常感度は0.5ポイントずつ、最大12%。離れていても記録が残る時間は最大24時間、巡回効率は最大Lv.6。自動化は最大Lv.9・1秒に1回。自動巡回は記録20件、自動鎮静は手動鎮静10件と自動巡回Lv.1で解放。鎮静Lv.1/5/9でR/SR/SSRまで対応。受取待ちの抽選結果は育成で変わりません。</p></details></section>`;
 }
 document.getElementById('obs-frame').addEventListener('click',observationCollect);
 document.addEventListener('click',e=>{
@@ -234,9 +235,11 @@ function renderWatchMind(){
  if(typeof renderPlayerSeepage==='function')renderPlayerSeepage();
 }
 function observationRest(){
- const o=observationState();WatchModel.closeMonitor(o,Date.now(),!o.mind.closed);
- if(o.mind.closed)calmPlayerSeepage();
- watchMessage=o.mind.closed?'回線を切りました。今は、見なくてかまいません。':'回線を開きました。';watchMessageUntil=Date.now()+4500;
+ const o=observationState(),now=Date.now(),wasClosed=o.mind.closed;
+ const away=wasClosed&&Number.isFinite(o.awaySince)&&o.awaySince>0?Math.max(0,now-o.awaySince):0;
+ WatchModel.closeMonitor(o,now,!wasClosed);
+ if(o.mind.closed){o.awaySince=now;calmPlayerSeepage();}else o.awaySince=0;
+ watchMessage=o.mind.closed?'回線を切りました。今は、見なくてかまいません。':away>=60000?'観測から離れていた時間 '+watchElapsed(away)+'。誰も見ていなかった映像を確認してください。':'回線を開きました。';watchMessageUntil=now+8500;
  markDirty();renderObservation();
 }
 const WATCH_REGIONS=['左上','中央上','右上','左中央','中央','右中央','左下','中央下','右下'];
