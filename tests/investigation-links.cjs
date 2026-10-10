@@ -1,0 +1,18 @@
+const assert=require('node:assert/strict'),M=require('../assets/investigation-links-model'),Legend=require('../assets/legend-model');
+const levels={u1:3,u2:3,u8:3,u3:0},cases=Legend.CASES;
+const s=M.normalize({},levels,cases);
+assert(M.links('u1',levels,cases).includes('u2'));
+assert.deepEqual(M.links('u3',levels,cases),[]);
+assert.equal(M.reappraise(s,'u1',levels,cases,false),false);
+assert.equal(M.reappraise(s,'u1',levels,cases,true),true);
+assert.equal(M.reappraise(s,'u1',levels,cases,true),false);
+assert.equal(M.combine(s,'u1','u3',levels,cases),false);
+assert.equal(M.combine(s,'u1','u2',levels,cases),true);
+assert.equal(M.combine(s,'u2','u1',levels,cases),false);
+const report=M.report('u1',levels,cases,{u1:0},s,{compared:true,linked:false});
+assert.equal(report.hypothesis,0);assert.deepEqual(report.related,['u2']);assert.equal(report.reappraised,true);
+const restored=M.normalize(JSON.parse(JSON.stringify(s)),levels,cases);
+assert.deepEqual(restored,s);
+assert.equal(M.report('u3',levels,cases,{},s,{}),null);
+assert.deepEqual(M.normalize(restored,{u1:0,u2:3},cases).joint,{});
+console.log('Owned-only case links, reappraisal, idempotence and legacy save passed');
