@@ -18,6 +18,8 @@ jobs:
           node-version: 22
       - run: node tests/smoke.mjs
       - run: node tests/incursion-rarity.cjs
+      - run: node tests/legend-model.cjs
+      - run: node tests/player-seepage-model.cjs
       - run: node tests/observation-model.cjs
       - run: node tests/contamination-model.cjs
       - run: node scripts/update-csp.cjs --check
@@ -74,6 +76,12 @@ jobs:
       - run: node tests/anomaly-cues.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/legend-cases.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/player-seepage.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/quieter-loop.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
@@ -126,6 +134,15 @@ jobs:
       - run: npx playwright install --with-deps webkit
       - name: Japanese font
         run: curl --fail --location --retry 2 --output "$RUNNER_TEMP/noto.otf" https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/OTF/Japanese/NotoSansCJKjp-Regular.otf
+      - run: node tests/legend-cases.cjs
+        env:
+          QA_WEBKIT: 1
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: xvfb-run -a node tests/player-seepage.cjs
+        env:
+          QA_HEADED: 1
+          QA_WEBKIT: 1
+          QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/quieter-loop.cjs
         env:
           QA_WEBKIT: 1

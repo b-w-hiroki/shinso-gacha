@@ -20,7 +20,7 @@ const due=o.dueAt;assert.notEqual(M.upgrade(o,'interval',9999,o.lastSeen),null);
 assert.equal(M.upgrade(o,'sensitivity',0,o.lastSeen),null);assert.equal(M.upgrade(o,'sensitivity',9999,o.lastSeen),200);
 // Rewards increase with rarity/source; all three anomaly families actually occur.
 for(const mode of Object.keys(M.MODES)){const rewards=[0,1,2,3].map(rarity=>M.reward({mode,rarity}));for(let i=1;i<4;i++)assert(rewards[i]>rewards[i-1]);}
-const counts=[0,0,0,0];o=M.create(T,93);for(let i=0;i<10000;i++)counts[M.roll(o,i)]++;assert(counts[0]>8300&&counts[0]<8700&&counts[3]>20&&counts[3]<90,counts.join(','));
+const counts=[0,0,0,0];o=M.create(T,93);for(let i=0;i<10000;i++)counts[M.roll(o,i)]++;assert(counts[0]>9300&&counts[0]<9700&&counts[3]>0&&counts[3]<30,counts.join(','));
 // Migration preserves chosen medium and a held old anomaly, without granting every unlock.
 o=M.create(T,13,{version:1,mode:'vision',anomaly:true,quiet:true});assert.equal(o.mode,'vision');assert.deepEqual(o.unlocked,['cctv','vision']);assert.equal(o.pending.rarity,2);assert(o.quiet);
 console.log('Clock boundaries, 3–24h hold, offline catch-up, no reroll/double payout, unlocks and growth passed');

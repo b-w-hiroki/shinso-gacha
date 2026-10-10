@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-tBB3oi1v09WQXrS/FR8O4PPPYcv52QaiO/lgcxiM3NA=' https://www.gstatic.com/firebasejs/ https://cdn.jsdelivr.net/npm/budoux@0.9.3/ https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://shinso-gacha.firebaseapp.com; frame-src https://shinso-gacha.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-G3XZuAjo3cGvdoQovHhdZd6uF0TCSmKtPuKGkynnhsQ=' https://www.gstatic.com/firebasejs/ https://cdn.jsdelivr.net/npm/budoux@0.9.3/ https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://shinso-gacha.firebaseapp.com; frame-src https://shinso-gacha.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>真相ガチャ</title>
@@ -1004,6 +1004,8 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 <link rel="stylesheet" href="assets/observation.css">
 <link rel="stylesheet" href="assets/focus-ui.css">
 <link rel="stylesheet" href="assets/menu.css">
+<link rel="stylesheet" href="assets/player-seepage.css">
+<link rel="stylesheet" href="assets/legend-cases.css">
 
 <div id="watch-veil" aria-hidden="true"></div>
 <header class="top">
@@ -1132,7 +1134,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
     </div>
     <div class="cabinet">
       <div class="big-env" id="big-env" aria-hidden="true"><span class="tie"></span><span class="lab" id="env-lab">CASE FILE / URBAN</span><span class="seal" id="env-seal">極秘</span></div>
-      <p class="cab-desc" id="cab-desc"></p>
+      <button type="button" class="cab-desc" id="cab-desc" data-legend="board"></button>
       <div class="pulls">
         <button class="btn-paper" data-pull="1">1回<span>10pt</span></button>
         <button class="btn-paper five" data-pull="5">5回<span>45pt</span></button>
@@ -1165,6 +1167,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
       <button data-chip="urban" aria-pressed="false">都市伝説</button>
       <button data-chip="conspiracy" aria-pressed="false">陰謀論</button>
     </div>
+    <button class="btn-line legend-link" data-legend="board">都市伝説の証拠を照合する ›</button>
     <div class="files" id="files"></div>
     </div>
     <div class="section-pane" data-spane="archive:testimony" hidden>
@@ -1281,6 +1284,10 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 <script src="assets/observation.js"></script>
 <script src="assets/investigation.js"></script>
 <script src="assets/incursion-collection.js"></script>
+<script src="assets/legend-model.js"></script>
+<script src="assets/legend-cases.js"></script>
+<script src="assets/player-seepage-model.js"></script>
+<script src="assets/player-seepage.js"></script>
 <script src="assets/menu.js"></script>
 <script src="assets/scene-fit.js"></script>
 <script>
@@ -1792,7 +1799,7 @@ function cardHTML(r) {
     return `${docHead(it)}<div class="eyebrow"><span><span class="rar rar-${it.rar}">${RAR[it.rar].label}</span> FILE ${it.id.toUpperCase()}</span><span class="badges"><span class="badge ${t.rar === "x" ? "red" : t.rar === "r" ? "" : "grey"}">${t.rar === "x" ? "禁" : t.rar === "r" ? "稀" : ""}証言 #${escapeHTML(t.no)}</span></span></div>
       <h2>${it.name}</h2>
       <div class="pips">${pips(5)}</div>
-      <div class="lyr"><div class="lab">追加の目撃証言 ／ +3pt</div><p>${escapeHTML(t.text)}<span class="wipe"></span></p>${t.rar === "x" ? `<span class="note">※ この証言は保管庫へ</span>` : ""}</div>`;
+      <div class="lyr"><div class="lab">追加の目撃証言 ／ +3pt</div><p>${escapeHTML(t.text)}<span class="wipe"></span></p>${t.rar === "x" ? `<span class="note">※ この証言は保管庫へ</span>` : ""}</div>${legendCardHTML(r)}`;
   }
   const badge = !r.opened ? `<span class="badge grey">重複 +3pt還元</span>`
     : L === 1 ? `<span class="badge">新規ファイル</span>`
@@ -1804,7 +1811,7 @@ function cardHTML(r) {
     <div class="pips">${pips(L)}</div>
     <div class="lyr"><div class="lab">LEVEL ${show + 1} ／ ${lab}</div><p>${txt}<span class="wipe"></span></p>${note(it, show)}</div>
     ${L < 5 ? `<p class="hint" style="text-align:left;margin-top:4px">あと${5 - L}回で、最後の黒塗りが剥がれる。</p>` : ""}
-    <span class="truth">真相</span>${r.truthReward?'<p class="truth-reward-note">真相到達報酬 +50pt ／ 受取済み</p>':''}`;
+    ${legendCardHTML(r)}<span class="truth">真相</span>${r.truthReward?'<p class="truth-reward-note">真相到達報酬 +50pt ／ 受取済み</p>':''}`;
 }
 function advance() {
   const r = Q[qi], env = $("st-env"), card = $("st-card");
@@ -1885,6 +1892,7 @@ function openDossier(id, freshLv = 0) {
     </article>
     ${L === 5 ? (() => { const ts = (S.tlog || []).filter(t => t.id === id).slice(-3).reverse(); return `<div class="testis"><div class="sec-h" style="margin:0"><h3>目撃証言</h3><small>${escapeHTML((S.tby || {})[id] || 0)}件</small></div>${ts.length ? ts.map(t => `<p class="testi t-${escapeHTML(t.rar)}"><span class="mono">#${escapeHTML(t.no)}</span> ${escapeHTML(t.text)}</p>`).join("") : `<p class="hint" style="text-align:left">真相到達後にこのネタを引くと、目撃証言が集まる。</p>`}</div>`; })() : ""}
     <p class="hint">${L < 5 ? `あと${5 - L}回引けば、最後の黒塗りが剥がれる。` : "真相に到達。ただし中身は共有できない。"}</p>
+    ${legendDossierHTML(id)}
     ${truthRewardHTML(id)}
     <div class="actions"><button class="btn-paper" data-act="card" data-id="${id}">黒塗りカードを作る</button><button class="btn-line" data-act="close">閉じる</button></div>`);
 }
@@ -2211,6 +2219,7 @@ function render() {
   document.querySelectorAll("[data-pull]").forEach(b => { const n = +b.dataset.pull; b.hidden = n > 5 && !bulkOpen(n); b.disabled = !bulkOpen(n) || S.currency < COST[n]; });
   [10, 100].forEach(n => { $("lbl-" + n).textContent = bulkOpen(n) ? `${COST[n]}pt（演出なし）` : `RANK ${BULK_RANK[n] + 1}で解放`; });
   $("cab-desc").textContent = BOX_DESC[box];
+  renderLegendLead();
   // Rank details live in the personnel sheet, separate from currency.
   if($("wallet-current"))$("wallet-current").textContent=Math.floor(S.currency).toLocaleString("ja-JP")+"pt";
   if($("wallet-hour"))$("wallet-hour").textContent="約"+Math.round(3600000/idleStep()).toLocaleString("ja-JP")+"pt / 時間";
@@ -2388,6 +2397,7 @@ function go(view) {
   // before the user can scroll to the investigation action below the scene.
   if(view==='home'&&typeof fitObservation==='function')fitObservation();
   if(view==='gacha')fitGacha();
+  renderPlayerSeepage();
 }
 
 /* ---------- events ---------- */

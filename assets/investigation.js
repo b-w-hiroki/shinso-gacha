@@ -39,7 +39,7 @@ function investigationMemo(mode,rarity){
  const key=mode+':'+rarity,r=investigationRecord(key);if(!r)return '';
  const s=investigationState();s.read[key]=true;s.lastRead=key;markDirty();save();
  const member=WATCH_COLLEAGUES[r.data.member];
- return `<div class="investigation-memo"><p>${r.data.notes[rarity]}</p>${s.discussed[key]?'<p class="investigation-discrepancy">追記：証言と映像の説明が一致しない。原本は訂正されていない。</p>':''}<button class="watch-choice" data-trail="witness" data-key="${key}">${member.name}にこの記録を尋ねる</button><button class="btn-line" data-trail="album">観測資料の一覧へ</button></div>`;
+ return `<div class="investigation-memo"><p>${r.data.notes[rarity]}</p>${s.discussed[key]?'<p class="investigation-discrepancy">追記：証言と映像の説明が一致しない。原本は訂正されていない。</p>':''}<button class="watch-choice" data-trail="witness" data-key="${key}">${member.name}にこの記録を尋ねる</button><button class="btn-line" data-trail="album">観測資料の一覧へ</button>${typeof legendObservationLinks==='function'?legendObservationLinks(mode):''}</div>`;
 }
 function investigationWitness(key){
  const r=investigationRecord(key),s=investigationState();if(!r||!s.read[key])return;
