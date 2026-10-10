@@ -1,0 +1,4 @@
+const assert=require('node:assert/strict'),M=require('../assets/reality-clues-model');
+for(let i=1;i<=12;i++){const id='u'+i;assert.equal(M.clue(id,0,false),null);assert.equal(M.clue(id,2,false),null);const a=M.clue(id,3,false),b=M.clue(id,3,true);assert(a&&b);assert.equal(a.revealed,false);assert.equal(b.revealed,true);assert.equal(a.tag,b.tag);assert.notEqual(a.observed,b.observed);assert.deepEqual(b,M.clue(id,3,true));}
+for(const id of ['u0','u13','__proto__',null])assert.equal(M.clue(id,3,true),null);
+console.log('Reality clue discovery gates, authored variants, stability and locked-case secrecy passed');
