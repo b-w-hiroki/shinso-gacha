@@ -98,12 +98,12 @@ const server = http.createServer((req,res) => {
     // Exercise the existing cloud boundary with a stub; never mutate real Firebase.
     const cloudResult=await page.evaluate(async()=>{
       const writes=[];FB={getCountFromServer:async()=>({data:()=>({count:0})}),collection:()=>({}),db:{}};
-      cloud={canWrite:true,uid:'qa',saveRef:'users/qa',scoutRef:'scouts/qa',setDoc:async(ref,data)=>writes.push({ref,data})};
+      cloud={revision:0,transaction:async fn=>fn({get:async()=>({exists:()=>false}),set:(ref,data)=>writes.push({ref,data})}),canWrite:true,uid:'qa',saveRef:'users/qa',scoutRef:'scouts/qa',setDoc:async(ref,data)=>writes.push({ref,data})};
       markDirty();clearTimeout(flushT);await flush();
       const snapshot=writes.find(w=>w.ref==='users/qa').data.state;
-      FB.getDoc=async()=>({exists:()=>true,data:()=>({state:{...snapshot,currency:777,updatedAt:Date.now()+10000}})});
+      FB.getDoc=async()=>({exists:()=>true,data:()=>({revision:1,state:{...snapshot,currency:777,updatedAt:Date.now()+10000}})});
       await pullRemote();const restored=S.currency;
-      cloud.setDoc=async()=>{throw {code:'permission-denied'}};await flush();
+      cloud.transaction=async()=>{throw {code:'permission-denied'}};await flush();
       return {saved:snapshot.currency,claimed:snapshot.missions.click10.claimed,restored,fallback:!cloud.canWrite,sync:document.querySelector('#sync').textContent};
     });
     assert.deepEqual({saved:cloudResult.saved,claimed:cloudResult.claimed,restored:cloudResult.restored,fallback:cloudResult.fallback},{saved:535,claimed:true,restored:777,fallback:true});

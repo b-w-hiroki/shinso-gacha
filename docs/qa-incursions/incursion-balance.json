@@ -1,0 +1,46 @@
+{
+  "trials": 1000,
+  "assumptions": [
+    "Every anomaly is manually completed; no missed observations or failed contacts.",
+    "Every eligible duplicate reconstruction is claimed immediately.",
+    "No upgrades, passive income, free draws or starting currency.",
+    "Timing is not a measurement of real players."
+  ],
+  "observationOdds": [
+    85,
+    11,
+    3.5,
+    0.5
+  ],
+  "incursionRarity": [
+    60,
+    28,
+    10,
+    2
+  ],
+  "incursionSingleOpenUntilFirst": 9,
+  "incursionSingleOpenAfterSuppression": 11,
+  "firstPhotoUnlockTaps": {
+    "median": 56,
+    "p90": 60
+  },
+  "firstNaturalSSRConditional": {
+    "median": 33,
+    "p90": 110,
+    "min": 1,
+    "max": 319
+  },
+  "noNaturalSSRBeforeCompletion": 3,
+  "fullCollectionEncounters": {
+    "median": 276,
+    "p90": 298,
+    "min": 214,
+    "max": 351
+  },
+  "restoredRecords": {
+    "median": 16,
+    "p90": 18,
+    "min": 10,
+    "max": 22
+  }
+}
