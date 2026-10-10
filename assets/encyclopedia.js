@@ -1,6 +1,15 @@
 /* Catalogs are projections of acquired records: browsing never grants progress. */
 let encyclopediaTab='anomalies',encyclopediaFilter='all';
 const CATALOG_TABS={anomalies:'異変',people:'人物',places:'場所'};
+function catalogObservationHistory(mode,rarity){
+ const o=observationState(),key=mode+':'+rarity;
+ if(!o.collection?.[key])return '';
+ const recent=(o.history||[]).filter(h=>h.mode===mode&&h.rarity===rarity).slice(-5).reverse();
+ const total=o.collection[key];
+ const records=recent.map(h=>{const time=Number(h.readyAt);return Number.isFinite(time)&&time>0?new Date(time).toLocaleString('ja-JP'):'日時不明';});
+ return `<section class="catalog-history"><h3>遭遇履歴</h3><p>回収済み ${total}回 ／ 保存された最近の遭遇 ${recent.length}件</p>${records.length?`<ol>${records.map(d=>`<li>${escapeHTML(d)}</li>`).join('')}</ol>`:'<p>過去の遭遇時刻は保存されていません。</p>'}</section>`;
+}
+
 function catalogEntries(tab){
  const o=observationState(),collection=o.collection||{},contacts=watchContacts();
  if(tab==='people')return Object.entries(WATCH_COLLEAGUES).map(([id,m],i)=>({id,number:i+1,known:!!contacts[id],title:contacts[id]?m.name:'未面識の課員',sub:contacts[id]?m.role:'課内で話すと記録されます'}));
@@ -17,7 +26,7 @@ function openCatalogEntry(id){
  const entry=catalogEntries(encyclopediaTab).find(e=>e.id===id);if(!entry?.known)return;
  if(encyclopediaTab==='anomalies'){
   if(id.startsWith('inc:'))return openIncursionRecords(Number(id.slice(4)));
-  const [mode,r]=id.split(':');return showWatchRecord(mode,Number(r));
+  const [mode,r]=id.split(':');showWatchRecord(mode,Number(r));const detail=document.querySelector('.watch-record-caption');if(detail){detail.insertAdjacentHTML('afterend',catalogObservationHistory(mode,Number(r)));}return;
  }
  if(encyclopediaTab==='people'){
   const m=WATCH_COLLEAGUES[id],o=observationState();
