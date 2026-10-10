@@ -73,7 +73,7 @@ async function accountLogout(){
  finally{accountLock(false);openAccount();}
 }
 function accountDeleteOffer(){
- sheet('アカウントの削除',`<h2>このゲームのアカウントを削除しますか？</h2><p>クラウドの進行・図鑑・集計情報、ログイン情報、この端末の記録と退避データを削除します。取り消せません。</p><p>別端末から記録が戻らないよう、個人情報を含まない削除済みの印を残します。Googleアカウント自体は削除しません。</p><label class="account-confirm"><input id="account-delete-check" type="checkbox"> 削除する内容を確認しました</label><button class="btn-paper" data-account="delete" disabled>本人確認して削除する</button><button class="btn-line" data-act="close">戻る</button>`);
+ sheet('アカウントの削除',`<h2>このゲームのアカウントを削除しますか？</h2><p>クラウドの進行・図鑑・集計情報、ログイン情報、この端末の記録と退避データを削除します。取り消せません。</p><p>別端末から記録が戻らないよう、識別用IDに対応する削除済みの印だけを残します。Googleアカウント自体は削除しません。</p><label class="account-confirm"><input id="account-delete-check" type="checkbox"> 削除する内容を確認しました</label><button class="btn-paper" data-account="delete" disabled>本人確認して削除する</button><button class="btn-line" data-act="close">戻る</button>`);
 }
 async function accountDelete(){
  const user=accountUser();if(!user||accountBusy)return;
