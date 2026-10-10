@@ -56,5 +56,22 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  await p.evaluate(()=>{const t=Date.now();S.playerSeepage={event:{id:6,key:'legend',legendId:'u2',start:t,end:t+90000,glimpsed:true}};legendWitness('u2');});
  assert((await p.locator('.seep-colleague-line').innerText()).includes('車内放送'));await p.screenshot({path:'docs/qa-incursions/legend-witness-390.jpg'});
  await p.evaluate(()=>save());await p.reload();assert.equal(await p.evaluate(()=>S.legends.active),'u2');assert.equal(await p.evaluate(()=>S.legends.conclusions.u2),1);assert.equal(await p.evaluate(()=>LegendModel.count(S.levels,'u2')),3);
+ // V1.1: acquired-only original difference, testimony and three related incidents.
+ await p.evaluate(()=>{S.levels.u2=3;S.legends.testified.u2=true;S.observation.collection['dash:0']=1;S.legendLayers={};openLegendCase('u2');});
+ assert.equal(await p.locator('[data-layer="noticed"]').count(),1);
+ assert.equal(await p.locator('[data-layer="compared"]').count(),0,'contradiction stays gated by noticing');
+ await p.locator('[data-layer="noticed"]').click();
+ assert.equal(await p.locator('[data-layer="compared"]').count(),1);
+ await p.locator('[data-layer="compared"]').click();
+ assert.equal(await p.locator('[data-layer="linked"]').count(),0,'chain requires 3 unique cases');
+ await p.evaluate(()=>{const ks=INCURSIONS.map((_,i)=>i).filter(k=>LegendModel.related('u2',k,incursionProfile)).slice(0,3);for(const k of ks)S.incursion.discovered[k]=true;openLegendCase('u2');});
+ assert.equal(await p.locator('[data-layer="linked"]').count(),1);
+ await p.locator('[data-layer="linked"]').click();
+ assert.equal(await p.evaluate(()=>S.legendLayers.linked.u2),true);
+ const v11wallet=await p.evaluate(()=>S.currency);await p.reload();
+ assert.equal(await p.evaluate(()=>S.legendLayers.linked.u2),true,'progress persists after reload');
+ assert.equal(await p.evaluate(()=>S.currency),v11wallet,'layered reading never mints currency');
+ await p.evaluate(()=>{S.levels.u1=0;openLegendCase('u1');});
+ assert.equal(await p.locator('[data-layer][data-id="u1"]').count(),0,'unowned layers invisible');
  assert.deepEqual(errors,[]);console.log('Paid envelope → 3-fragment migration → acquired proof → colleague → hypothesis → next envelope, themed seepage, persistence and 3 viewport sizes passed');
 }finally{await b.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});
