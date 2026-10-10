@@ -31,9 +31,9 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  assert(await p.evaluate(()=>!!S.playerSeepage.event));assert.equal(await p.evaluate(()=>S.currency),money+1);assert.equal(await p.evaluate(()=>S.observation.pending.suppression),0);
  const chosen=await p.evaluate(()=>JSON.stringify(S.playerSeepage.event));await p.evaluate(()=>renderObservation());assert.equal(await p.evaluate(()=>JSON.stringify(S.playerSeepage.event)),chosen,'render does not redraw event');
  await p.evaluate(()=>go('lab'));await tap(p.locator('.watch-upgrades summary'));
- assert((await p.locator('.watch-upgrades').innerText()).includes('異変 5% → 異変 8%'));
+ assert((await p.locator('.watch-upgrades').innerText()).includes('異変 5% → 異変 5.5%'));
  await tap(p.locator('[data-watch-upgrade="sensitivity"]'));assert.equal(await p.evaluate(()=>S.observation.upgrades.sensitivity),1);
- assert((await p.locator('.watch-upgrades').innerText()).includes('異変 8% → 異変 12%'));
+ assert((await p.locator('.watch-upgrades').innerText()).includes('異変 5.5% → 異変 6%'));
  await tap(p.locator('[data-watch-upgrade="sensitivity"]'));assert.equal(await p.evaluate(()=>S.observation.upgrades.sensitivity),2);
  for(const [width,height] of [[320,568],[390,844],[844,390]]){
   await p.setViewportSize({width,height});

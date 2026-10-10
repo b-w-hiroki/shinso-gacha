@@ -9,11 +9,16 @@ const OBSERVATIONS={
 };
 let watchMessage='',watchMessageUntil=0,watchPaint='',watchLastTick=0;
 function observationState(){
- if(!S.observation||S.observation.version!==2){
+ if(!S.observation||![2,3].includes(S.observation.version)){
   const seed=globalThis.crypto?.getRandomValues?crypto.getRandomValues(new Uint32Array(1))[0]:Math.floor(Math.random()*0xffffffff);
   S.observation=WatchModel.create(Date.now(),seed,S.observation);save();
  }
- return WatchModel.normalize(S.observation);
+ const migrated=S.observation.version===2,o=WatchModel.normalize(S.observation),credit=WatchModel.takeRouteCredit(o);
+ if(credit)S.currency+=credit;
+ const id=typeof LegendModel!=='undefined'?LegendModel.state(S.legends,S.levels).active:null,c=LegendModel.CASES[id];
+ WatchModel.focus(o,c?{id,mode:c.mode,rarities:c.rarities}:null);
+ if(migrated||credit){markDirty();save();}
+ return o;
 }
 function observationSync(now=Date.now()){
  const o=observationState(),changed=WatchModel.sync(o,now);
@@ -34,7 +39,7 @@ function renderObservation(){
  const quiet=o.quiet||!!S.incursion?.quiet;
  f.dataset.quiet=String(quiet);f.dataset.ready=String(!o.mind.closed);f.dataset.closed=String(o.mind.closed);f.disabled=o.mind.closed;f.setAttribute('aria-disabled',String(o.mind.closed));
  const danger=!!p&&p.rarity>0;
- document.querySelector('[data-watch="settings"]').hidden=!watchSettingsUnlocked();
+ document.querySelectorAll('[data-watch="settings"]').forEach(b=>b.hidden=!watchSettingsUnlocked());
  document.getElementById('obs-rest').textContent=o.mind.closed?'観測を再開':'回線を切る';
  document.getElementById('obs-closed').hidden=!o.mind.closed;
  f.setAttribute('aria-label',o.mind.closed?'観測モニタは閉じています':`${m.title}。${danger?'違和感のある場所をタップ。キーボードでは場所を選んで対処':'タップで観測を進める'}`);
@@ -48,7 +53,7 @@ function renderObservation(){
 
  if(Date.now()>watchMessageUntil)watchMessage='';document.getElementById('obs-feedback').textContent=watchMessage;
  const pressure=WatchModel.contamination(o);
- document.getElementById('obs-atmosphere').textContent=o.mind.closed?'切った回線の向こうは、もう確認しない。':pressure>=3?'画面を閉じても、この輪郭が残りそうだ。':pressure===2?'映像の外側にも、視線を感じる。':pressure===1?'さっきから、部屋の気配が変わらない。':['映っていない場所が、気になる。','誰もいない。そう記録されている。','こちらの様子は、映っていないはずだ。'][o.sequence%3];
+ document.getElementById('obs-atmosphere').textContent=o.mind.closed?'切った回線の向こうは、もう確認しない。':pressure>=3?'画面を閉じても、この輪郭が残りそうだ。':pressure===2?'映像の外側にも、視線を感じる。':pressure===1?'さっきから、部屋の気配が変わらない。':watchLeadCopy(o)||['映っていない場所が、気になる。','誰もいない。そう記録されている。','こちらの様子は、映っていないはずだ。'][o.sequence%3];
  if(typeof investigationHome==='function')investigationHome();
  renderWatchMind();fitObservation();
  // The screen reader can request the timer; normal viewing stays quiet.
@@ -116,19 +121,32 @@ function watchSettingsUnlocked(){return Object.values(observationState().upgrade
 function observationSettings(){
  if(!watchSettingsUnlocked())return;
  const o=observationSync(),p=o.pending;
- sheet('観測設定',`<div class="watch-settings"><h2>${WatchModel.MODES[o.mode].label} ／ ${OBSERVATIONS[o.mode].title}</h2><p>${p?`受取期限まで ${watchDuration(p.expiresAt-o.lastSeen)}`:`定時観測まで ${watchDuration(o.dueAt-o.lastSeen)}`}</p><p>${WatchModel.RETENTION[o.upgrades.retention]}時間保持</p><p>映像を繰り返しタップ。照合が完了すると解放済みの次の地点へ移動し、記録報酬を受け取ります。1地点のみの場合は同じ地点を再観測します。異変は、映像内の違和感がある付近に繰り返し触れて抑えます。別の場所や通常巡回では除去できません。場所選択からも対処できます。保持中は別地点に切り替えられません。</p><p>異変を見続け、真相を追い続けると画面の外へ干渉が広がります。手を止める、モニタを閉じる、課内で話すと落ち着きます。不在中には悪化せず、資料やptも失われません。</p><button class="btn-paper" data-watch="lab">観測装備を変更・育成</button>${WatchModel.automationUnlocked(o,'patrol')&&o.upgrades.patrol?`<label><input type="checkbox" data-watch-auto ${o.autoEnabled?'checked':''}> 自動巡回・鎮静を有効にする</label><p>自動化は調査室で強化。観測映像の表示中だけ進み、別画面・資料閲覧・対処中は停止。留守中の自動pt獲得は継続します。</p>`:''}<label><input type="checkbox" data-watch-quiet ${o.quiet?'checked':''}> 揺れ・瞬きを抑える</label><details><summary>観測記録 ${o.collected}件</summary><ul>${o.history.slice().reverse().map(h=>`<li>${WatchModel.RARITY[h.rarity].name} · ${OBSERVATIONS[h.mode].records[h.rarity]} · +${h.reward}pt</li>`).join('')||'<li>記録はまだありません。</li>'}</ul></details><details><summary>出現率と報酬</summary><p>同じ地点で平常と3種類の異変を抽選。受取前の変更・引き直しはできません。</p><p>N / R / SR / SSR：${WatchModel.ODDS[o.upgrades.sensitivity].join(' / ')}%</p><p>通常巡回 8pt、異変鎮静 R / SR / SSR は80 / 200 / 480pt。方式倍率：監視×1、写真×1.25、視界×1.5、車載×2。虫眼鏡でさらに1Lvあたり+10%（四捨五入）。</p></details><button class="btn-line" data-desk="evidence">別件の検知記録</button><button class="btn-line" data-inc="open">異変の対処記録</button></div>`);
+ sheet('観測設定',`<div class="watch-settings"><h2>${WatchModel.MODES[o.mode].label} ／ ${OBSERVATIONS[o.mode].title}</h2><p>${p?`受取期限まで ${watchDuration(p.expiresAt-o.lastSeen)}`:`定時観測まで ${watchDuration(o.dueAt-o.lastSeen)}`}</p><p>${WatchModel.RETENTION[o.upgrades.retention]}時間保持</p><p>映像に触れて照合を進め、完了すると4地点のうち別の場所へ移ります。追跡中の噂に関連する場所と未観測の記録を優先します。異変は、映像内の違和感がある付近に繰り返し触れて抑えます。別の場所や通常巡回では除去できません。場所選択からも対処できます。結果は観測ごとに固定され、再読込や育成では引き直されません。</p><p>異変を見続け、真相を追い続けると画面の外へ干渉が広がります。手を止める、モニタを閉じる、課内で話すと落ち着きます。不在中には悪化せず、資料やptも失われません。</p><button class="btn-paper" data-watch="lab">観測装備を変更・育成</button>${WatchModel.automationUnlocked(o,'patrol')&&o.upgrades.patrol?`<label><input type="checkbox" data-watch-auto ${o.autoEnabled?'checked':''}> 自動巡回・鎮静を有効にする</label><p>自動化は調査室で強化。観測映像の表示中だけ進み、別画面・資料閲覧・対処中は停止。留守中の自動pt獲得は継続します。</p>`:''}<label><input type="checkbox" data-watch-quiet ${o.quiet?'checked':''}> 揺れ・瞬きを抑える</label><details><summary>観測記録 ${o.collected}件</summary><ul>${o.history.slice().reverse().map(h=>`<li>${WatchModel.RARITY[h.rarity].name} · ${OBSERVATIONS[h.mode].records[h.rarity]} · +${h.reward}pt</li>`).join('')||'<li>記録はまだありません。</li>'}</ul></details><details><summary>出現率と報酬</summary><p>観測先へ移るときに平常か異変かを抽選。異変の種類は未遭遇と追跡中の噂を優先します。受取前の引き直しはできません。</p><p>平常 ${WatchModel.ODDS[o.upgrades.sensitivity][0]}% ／ 異変 ${100-WatchModel.ODDS[o.upgrades.sensitivity][0]}%（最大12%）</p><p>通常巡回 8pt、異変鎮静 R / SR / SSR は80 / 200 / 480pt。方式倍率：監視×1、写真×1.25、視界×1.5、車載×2。虫眼鏡でさらに1Lvあたり+10%（四捨五入）。</p></details><button class="btn-line" data-desk="evidence">別件の検知記録</button><button class="btn-line" data-inc="open">異変の対処記録</button></div>`);
+}
+function watchUpgradeValues(id){
+ if(id==='retention')return WatchModel.RETENTION.map(x=>x+'時間');
+ if(id==='interval')return WatchModel.INTERVAL.map(x=>'照合間隔 '+x+'分');
+ if(id==='sensitivity')return WatchModel.ODDS.map(row=>'異変 '+(100-row[0])+'%');
+ return WatchModel.AUTO_SECONDS.map((x,lv)=>lv?(id==='suppression'?WatchModel.RARITY[WatchModel.autoTier(lv)].name+'まで・':'')+x+'秒に1回':'手動');
+}
+function watchLeadCopy(o){
+ if(!o.lead||o.pending?.rarity>0||!OBSERVATIONS[o.lead.mode])return '';
+ const id=o.lead.legendId,known=id&&LegendModel.count(S.levels,id)===3,place=OBSERVATIONS[o.lead.mode].title;
+ const lines=[`無線：${place}の記録に、照合先が見つかった。`,`課内連絡：${place}の記録を別の時刻と比べてほしい。`,`照合メモ：${place}について、同じ報告が届いている。`];
+ return known?`課内連絡：「${legendTitle(id)}」の断片は${place}と照合できそうだ。`:lines[(o.lead.step-1)%lines.length];
 }
 function renderObservationLab(){
  const root=document.getElementById('observation-lab');if(!root)return;if(isLite()){root.innerHTML='';return;}
  const o=observationState();
- root.innerHTML=`<section class="watch-lab"><div class="watch-lab-heading"><h2>観測装備</h2><span>${o.collected}件</span></div><div class="watch-equipment">${Object.entries(WatchModel.MODES).map(([id,m])=>{const owned=o.unlocked.includes(id),active=id===o.mode,eligible=o.collected>=m.need&&S.currency>=m.cost;return `<article class="watch-mode ${active?'equipped':''}"><div><b>${m.label}</b><small>${OBSERVATIONS[id].title} · pt ×${m.mult}</small></div><button type="button" data-watch-${owned?'equip':'unlock'}="${id}" ${owned?(active||o.pending?'disabled':''):eligible?'':'disabled'}>${active?'● 設置中':owned?'設置':o.collected<m.need?`${o.collected}/${m.need}件`:`解放 ${m.cost}pt`}</button></article>`;}).join('')}</div>${o.pending?'<p class="watch-note">記録を保持中。タップで観測・鎮静を終えると装備を変更できます。</p>':''}<details class="watch-upgrades"><summary>観測を強化 <span>${WatchModel.RETENTION[o.upgrades.retention]}h</span></summary>${Object.entries(WatchModel.UPGRADES).filter(([id])=>!['patrol','suppression'].includes(id)||WatchModel.automationUnlocked(o,id)).map(([id,u])=>{const lv=o.upgrades[id],max=lv===u.max;const values=id==='retention'?WatchModel.RETENTION.map(x=>x+'時間'):id==='interval'?['標準','短縮 I','短縮 II','短縮 III']:id==='patrol'?['手動','5秒に1回','3秒に1回','1秒に1回']:id==='suppression'?['手動','Rまで自動','SRまで自動','SSRまで自動']:WatchModel.ODDS.map(row=>'異変 '+(100-row[0])+'%');return `<article><div><b>${u.name}</b><small>${values[lv]}${max?'':` → ${values[lv+1]}`}</small></div><button data-watch-upgrade="${id}" ${max||S.currency<u.costs[lv]?'disabled':''}>${max?'最大':`${u.costs[lv]}pt`}</button></article>`;}).join('')}<p class="watch-note">自動巡回は記録20件・2地点解放後、自動鎮静は手動鎮静10件・自動巡回Lv.1で解放。異常感度は5%→8%→12%。育成後の新しい抽選から適用。観測装備を1段階育成すると観測設定を利用可能。保持強化は受取待ちの記録にも適用。巡回効率は定時観測の間隔も短縮。</p></details></section>`;
+ root.innerHTML=`<section class="watch-lab"><div class="watch-lab-heading"><h2>観測装備</h2><span>${o.collected}件</span></div><p class="watch-lab-context">${OBSERVATIONS[o.mode].title} ／ 異変 ${(100-WatchModel.ODDS[o.upgrades.sensitivity][0]).toFixed(1).replace(/\.0$/,'')}%<br>${o.focusLegend?'追跡中：'+escapeHTML(legendTitle(o.focusLegend)):'追跡中の噂はありません'}</p><div class="watch-lab-links"><button class="btn-paper" data-watch="return">観測へ戻る</button><button class="btn-line" data-watch="settings" ${watchSettingsUnlocked()?'':'hidden'}>観測設定</button></div><p class="watch-note">4地点を巡回。同じ場所を続けず、追跡中の噂と未観測の場所を優先します。</p><div class="watch-equipment">${Object.entries(WatchModel.MODES).map(([id,m])=>`<article class="watch-mode ${id===o.mode?'equipped':''}"><div><b>${m.label}</b><small>${OBSERVATIONS[id].title} · pt ×${m.mult}</small></div><span>${id===o.mode?'● 観測中':o.focusMode===id?'噂の照合先':'巡回対象'}</span></article>`).join('')}</div>${o.routeCredit?`<p class="watch-note">以前の観測先解放分 ${o.routeCredit}ptを返還済み。育成と記録は引き継いでいます。</p>`:''}<details class="watch-upgrades"><summary>観測を強化 <span>${WatchModel.RETENTION[o.upgrades.retention]}h</span></summary>${Object.entries(WatchModel.UPGRADES).filter(([id])=>!['patrol','suppression'].includes(id)||WatchModel.automationUnlocked(o,id)).map(([id,u])=>{const lv=o.upgrades[id],max=lv===u.max,values=watchUpgradeValues(id);return `<article><div><b>${u.name} · Lv.${lv}/${u.max}</b><small>${values[lv]}${max?'':` → ${values[lv+1]}`}</small></div><button data-watch-upgrade="${id}" ${max||S.currency<u.costs[lv]?'disabled':''}>${max?'最大':`${u.costs[lv]}pt`}</button></article>`;}).join('')}<p class="watch-note">異常感度は0.5ポイントずつ、最大12%。記録保持は最大24時間、巡回効率は最大Lv.6。自動化は最大Lv.9・1秒に1回。自動巡回は記録20件、自動鎮静は手動鎮静10件と自動巡回Lv.1で解放。鎮静Lv.1/5/9でR/SR/SSRまで対応。保持中の抽選結果は育成で変わりません。</p></details></section>`;
 }
 document.getElementById('obs-frame').addEventListener('click',observationCollect);
 document.addEventListener('click',e=>{
  const b=e.target.closest('[data-watch],[data-watch-equip],[data-watch-unlock],[data-watch-upgrade]');if(!b||b.disabled)return;
  if(b.dataset.watch==='target')return observationTargetPicker();
  if(b.dataset.watch==='settings')return observationSettings();
- if(b.dataset.watch==='lab'){document.getElementById('sheet-bg').hidden=true;go('lab');return;}
+ if(b.dataset.watch==='lab'){document.getElementById('sheet-bg').hidden=true;go('lab');setSectionTab('lab:upgrade');document.querySelector('.watch-upgrades').open=true;return;}
+ if(b.dataset.watch==='return'){hideSheet();go('home');setHomeTab('desk');return;}
  const o=observationSync();let cost=null;
  if(b.dataset.watchEquip){if(!WatchModel.equip(o,b.dataset.watchEquip,Date.now()))return;}
  else if(b.dataset.watchUnlock){cost=WatchModel.unlock(o,b.dataset.watchUnlock,S.currency);if(cost===null)return;S.currency-=cost;}
@@ -246,6 +264,7 @@ function watchConversationPage(html,member=''){
  page.dataset.member=member;page.innerHTML=html;renderPlayerSeepage();page.querySelector('[tabindex="-1"]')?.focus({preventScroll:true});
 }
 function observationColleagues(){
+ const echo=observationState().echo;if(echo?.end>Date.now())echo.returnedAt=Date.now();
  WatchModel.closeMonitor(observationState(),Date.now(),true);markDirty();renderObservation();
  const contacts=watchContacts();
  watchConversationPage(`<div class="watch-colleagues"><header><small>第六文書課 ／ 休憩室</small><h1 tabindex="-1">課内で話す</h1><p class="watch-room-note">相談する相手を選ぶ。回線は切ってあります。</p></header><div class="watch-people">${Object.entries(WATCH_COLLEAGUES).map(([id,m])=>`<button class="watch-person" data-watch-member="${id}">${watchPortrait(m)}<span><small>${m.role} · ${contacts[id]?'面識あり':'初めて話す'}</small><b>${m.name}</b><span class="watch-person-description">${m.description}</span><span class="watch-person-action">${m.name}に声をかける ›</span></span></button>`).join('')}</div><button class="btn-line watch-leave" data-watch="leave">観測へ戻る</button></div>`);
@@ -299,15 +318,15 @@ document.addEventListener('click',e=>{
 function fitObservation(){
  if(typeof S==='undefined')return;
  const frame=document.getElementById('obs-frame');if(!frame.getClientRects().length)return;
- const controls=document.querySelector('.obs-secondary'),nav=document.querySelector('.nav-in');
- const f=frame.getBoundingClientRect(),bottom=controls.getBoundingClientRect().bottom+scrollY;
- const navTop=nav?.getBoundingClientRect().top||innerHeight-60;
- const navHeight=document.querySelector('.nav')?.getBoundingClientRect().height||60;
+ const nav=document.querySelector('.nav'),f=frame.getBoundingClientRect();
+ const navRect=nav.getBoundingClientRect(),navHeight=navRect.height;
  document.documentElement.style.setProperty('--watch-nav-height',`${navHeight}px`);
- const nativeHeight=f.width/OBSERVATIONS[observationState().mode].ratio;
- const available=f.height+Math.min(innerHeight,navTop)-bottom-18;
- const height=Math.max(180,Math.min(nativeHeight,560,available));
- if(Math.abs(height-f.height)>1)frame.style.setProperty('--obs-height',`${Math.floor(height)}px`);
+ // The viewport owns the monitor size; image ratio and status text never resize it.
+ // A short landscape viewport scrolls, rather than crushing the image.
+ let top=0;for(let el=frame;el;el=el.offsetParent)top+=el.offsetTop;
+ const reserved=44+64+56+18;
+ const height=Math.floor(Math.max(180,Math.min(560,innerHeight-navHeight-top-reserved)));
+ if(Math.abs(height-f.height)>1)frame.style.setProperty('--obs-height',`${height}px`);
 }
 const scheduleObservationFit=RuntimeSafety.frame(fitObservation);
 addEventListener('resize',scheduleObservationFit);
@@ -322,16 +341,5 @@ document.addEventListener('keydown',e=>{
  if(page.dataset.member)observationColleagues();else watchLeaveConversation();
 },true);
 
-function observationRouteOffer(){
- const o=observationState();return Object.entries(WatchModel.MODES).find(([id,m])=>!o.unlocked.includes(id)&&o.collected>=m.need&&S.currency>=m.cost);
-}
-function observationRoutePrompt(){
- const offer=observationRouteOffer();if(!offer)return;const [id,m]=offer;
- sheet('観測先を増やす',`<h2>${OBSERVATIONS[id].title}</h2><p>${m.cost}ptで${m.label}を解放します。次の巡回が終わると、この地点にも切り替わります。</p><button class="btn-paper" data-watch-route="${id}">解放する（${m.cost}pt）</button><button class="btn-line" data-act="close">今は戻る</button>`);
-}
-document.addEventListener('click',e=>{
- const b=e.target.closest('[data-watch-route]');if(!b)return;
- const id=b.dataset.watchRoute;if(id==='offer')return observationRoutePrompt();
- const cost=WatchModel.unlock(observationState(),id,S.currency);if(cost===null)return;
- S.currency-=cost;markDirty();hideSheet();watchMessage='観測先を追加しました。次の巡回で移動します。';watchMessageUntil=Date.now()+4500;render();
-});
+function observationRouteOffer(){return null;}
+function observationRoutePrompt(){go('lab');}

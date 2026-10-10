@@ -18,6 +18,7 @@ jobs:
           node-version: 22
       - run: node tests/smoke.mjs
       - run: node tests/incursion-rarity.cjs
+      - run: node tests/rumor-patrol-model.cjs
       - run: node tests/legend-model.cjs
       - run: node tests/player-seepage-model.cjs
       - run: node tests/observation-model.cjs
@@ -74,6 +75,12 @@ jobs:
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/anomaly-cues.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/account-catalog.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/rumor-patrol.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/legend-cases.cjs
@@ -134,6 +141,14 @@ jobs:
       - run: npx playwright install --with-deps webkit
       - name: Japanese font
         run: curl --fail --location --retry 2 --output "$RUNNER_TEMP/noto.otf" https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/OTF/Japanese/NotoSansCJKjp-Regular.otf
+      - run: node tests/account-catalog.cjs
+        env:
+          QA_WEBKIT: 1
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/rumor-patrol.cjs
+        env:
+          QA_WEBKIT: 1
+          QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/legend-cases.cjs
         env:
           QA_WEBKIT: 1

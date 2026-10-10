@@ -11,10 +11,13 @@ service cloud.firestore {
           && request.resource.data.revision is int
           && request.resource.data.revision > 0;
       }
-      allow read, delete: if owner();
+      allow read: if owner();
+      // Retain only a deletion marker: old sessions cannot recreate a deleted save.
+      allow delete: if owner() && resource.data.state.get('accountDeleted', false) != true;
       allow create: if owner() && validSave() && request.resource.data.revision == 1;
       // Revisionless legacy saves migrate once; stale/old clients cannot bypass CAS.
       allow update: if owner() && validSave()
+        && resource.data.state.get('accountDeleted', false) != true
         && request.resource.data.revision == resource.data.get('revision', 0) + 1;
     }
 
@@ -22,7 +25,9 @@ service cloud.firestore {
     // 自己申告値ではあるが、公開集計を壊しにくくするため型・必須キー・範囲を検証する。
     match /scouts/{uid} {
       allow read: if true;
-      allow write: if request.auth != null
+      allow delete: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null
+        && (!exists(/databases/$(db)/documents/users/$(uid)) || get(/databases/$(db)/documents/users/$(uid)).data.state.get('accountDeleted', false) != true)
         && request.auth.uid == uid
         && request.resource.data.keys().hasOnly(['day','todayLv','total','lv5'])
         && request.resource.data.keys().hasAll(['day','todayLv','total','lv5'])

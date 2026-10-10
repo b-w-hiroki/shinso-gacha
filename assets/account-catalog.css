@@ -1,0 +1,12 @@
+.watch-lab-context{line-height:1.7;color:var(--ink,#d3c7ac);margin:10px 0}
+.watch-lab-links{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.watch-lab-links button{flex:1;min-width:120px}
+.account-card,.account-danger{border:1px solid #53534a;padding:20px;margin:16px 0;background:rgba(15,19,17,.7);line-height:1.8;overflow-wrap:anywhere}
+.account-card h2,.account-danger h2{font-size:20px;margin:12px 0}.account-card>small{font-size:11px;letter-spacing:.12em;color:#acae9e}
+.account-card button,.account-danger button,.catalog-detail button{display:block;width:100%;margin-top:12px;min-height:46px;white-space:normal}
+.account-danger{border-color:#78554b}.account-danger button{color:#e3b3a4}#account-status{color:#c8ba8d;font-size:14px;min-height:1.8em}
+.account-confirm{display:flex;align-items:center;gap:10px;min-height:48px;margin:16px 0}.account-confirm input{width:22px;height:22px;flex:none}
+.catalog-intro{font-size:14px;color:#b4b5a7;line-height:1.8}.catalog-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:22px}
+.catalog-tabs button{min-height:48px;background:#171e1b;border:1px solid #52574c;color:#b7bba9;font:inherit}.catalog-tabs button[aria-pressed=true]{background:#c6b998;color:#20271f;border-color:#c6b998}
+.catalog-summary{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;margin:12px 0}.catalog-summary p{white-space:nowrap}.catalog-summary label{display:flex;align-items:center;gap:7px;min-height:44px}.catalog-summary input{width:18px;height:18px}
+.catalog-list{display:grid;gap:8px}.catalog-entry{display:grid;grid-template-columns:52px minmax(0,1fr) 16px;gap:10px;align-items:center;width:100%;min-height:82px;padding:12px;text-align:left;border:1px solid #4c5349;background:#1c241f;color:#d3ccb8;font:inherit}.catalog-entry>small{font-size:10px;color:#949e8a}.catalog-entry b{display:block;font-size:16px;line-height:1.6;font-weight:500}.catalog-entry span small{display:block;font-size:12px;color:#a5af9b;line-height:1.6}.catalog-unknown{opacity:.58;background:#151a17}.catalog-detail{line-height:1.8}.catalog-detail h2{margin:8px 0}.catalog-detail h3{font-size:15px;margin-top:24px}.catalog-detail blockquote{margin:12px 0;padding:12px;border-left:2px solid #797e66;color:#bfc6b3}.catalog-detail .watch-speaker img{width:75px;height:100px;object-fit:cover}
+@media(max-width:360px){.account-card,.account-danger{padding:15px}.catalog-entry{padding:10px;grid-template-columns:44px minmax(0,1fr) 10px;gap:7px}.catalog-entry b{font-size:15px}}

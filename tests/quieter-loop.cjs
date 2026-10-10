@@ -7,9 +7,8 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
 
  await p.clock.install();await p.clock.pauseAt(new Date(Date.now()+1000));
  await p.evaluate(()=>{const o=observationState();o.collected=5;o.pending=null;S.currency=100;watchMessage='';renderObservation();});
- await p.locator('[data-watch-route="offer"]').click();assert((await p.locator('#sheet').innerText()).includes('100pt'));
- await p.locator('[data-watch-route="photo"]').click();assert.equal(await p.evaluate(()=>S.currency),0);assert(await p.evaluate(()=>S.observation.unlocked.includes('photo')));
- await p.evaluate(()=>{observationState().tapProgress=9;});await p.locator('#obs-frame').click();assert.equal(await p.evaluate(()=>S.observation.mode),'photo');
+ assert.deepEqual(await p.evaluate(()=>S.observation.unlocked),['cctv','photo','vision','dash']);
+ const routeMoney=await p.evaluate(()=>S.currency);await p.evaluate(()=>{observationState().tapProgress=9;});await p.locator('#obs-frame').click();assert.notEqual(await p.evaluate(()=>S.observation.mode),'cctv');assert.equal(await p.evaluate(()=>S.currency),routeMoney+9);
  await p.screenshot({path:'docs/qa-incursions/route-unlocked-390.jpg'});
  await p.evaluate(()=>{S.currency=5000;const o=observationState();o.collected=20;o.pending=null;go('lab');renderObservationLab();});await p.locator('.watch-upgrades summary').click();
  assert(await p.locator('[data-watch-upgrade="patrol"]').isVisible());assert.equal(await p.locator('[data-watch-upgrade="suppression"]').count(),0);
