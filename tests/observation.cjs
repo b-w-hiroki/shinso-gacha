@@ -101,5 +101,12 @@ for(const width of [320,390,430]){await p.setViewportSize({width,height:844});as
 // Expired observation never pays or escalates danger; passive pt still work.
 await p.evaluate(()=>{go('home');S.incursion.level=0;S.incursion.event=null;const o=observationState();o.lastSeen=Date.now()-2000;o.pending.expiresAt=Date.now()-1000;o.pending.readyAt=Date.now()-4*3600000;S.lastTick=Date.now()+600000;render();});assert(!(await p.locator('#obs-ready').isVisible()));const expired=await p.evaluate(()=>S.currency);assert(await p.locator('#obs-frame').isEnabled());await p.locator('#obs-frame').evaluate(e=>e.click());assert.equal(await p.evaluate(()=>S.currency),expired+1);assert.equal(await p.evaluate(()=>incursionState().level),0);
 await p.evaluate(()=>{S.lastTick=Date.now()-idleStep()*2;tick();});assert.equal(await p.evaluate(()=>S.currency),expired+3);
+// Closed observation reports elapsed absence without altering the saved collection or reward.
+await p.evaluate(()=>{go('home');const o=observationState();o.mind.closed=false;observationRest();o.awaySince=Date.now()-3*3600000-17*60000;});
+const beforeAway=await p.evaluate(()=>JSON.stringify({currency:S.currency,collection:S.observation.collection}));
+await p.evaluate(()=>observationRest());
+assert((await p.locator('#obs-feedback').innerText()).includes('3時間17分'));
+assert.equal(await p.evaluate(()=>S.observation.awaySince),0);
+assert.equal(await p.evaluate(()=>JSON.stringify({currency:S.currency,collection:S.observation.collection})),beforeAway);
 assert.deepEqual(errors,[]);console.log('Single scene clock collection, unlock/growth, persistence, 16 visuals and four responsive sizes passed');
 }finally{await b.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});
