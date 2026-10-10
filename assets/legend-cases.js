@@ -20,9 +20,23 @@ function renderLegendLead(){
  const el=document.getElementById('cab-desc');el.textContent=box==='urban'?(next?`${legendTitle(next)} ／ ${legendStatus(next)}　証拠を照合 ›`:'噂の断片を集める。3つ揃うと、調査が始まる。 ›'):BOX_DESC[box];
  el.dataset.legend=box==='urban'?'board':'';el.disabled=box!=='urban';
 }
+function legendNextStep(id){
+ const n=LegendModel.count(S.levels,id),state=legendState();
+ if(n<3)return `残り${3-n}断片を封筒から探す`;
+ if(Object.hasOwn(state.conclusions,id))return '照合済み。次の噂を調べる';
+ if(!legendProof(id))return '観測で裏付けの記録を集める';
+ if(!state.testified[id])return `${WATCH_COLLEAGUES[LegendModel.CASES[id].member].name}に照会する`;
+ return '証言を照合し、真相候補を記録する';
+}
+function legendResumeHTML(){
+ const state=legendState();
+ const id=[state.active,...LegendModel.ids.filter(k=>LegendModel.count(S.levels,k)>0&&!Object.hasOwn(state.conclusions,k))].find(k=>k&&LegendModel.count(S.levels,k)>0&&!Object.hasOwn(state.conclusions,k));
+ if(!id)return '<p class="legend-resume">現在追跡中の噂はありません。封筒から断片を見つけてください。</p>';
+ return `<section class="legend-resume" aria-label="前回の調査を再開"><small>調査の続き</small><p><strong>${legendTitle(id)}</strong> ／ ${legendNextStep(id)}</p><button class="btn-paper" data-legend="case" data-id="${id}">この調査を再開する</button></section>`;
+}
 function openLegendBoard(){
  const s=legendState();
- sheet('都市伝説の調査',`<div class="legend-board"><h2>噂が、証拠に変わる。</h2><p>封筒の断片3つから調査へ。既存の解読記録も引き継いでいます。</p><div class="legend-case-list">${LegendModel.ids.map(id=>{const n=LegendModel.count(S.levels,id);return `<button data-legend="case" data-id="${id}" ${n?'':'disabled'}><span><b>${n?legendTitle(id):'未入手の噂'}</b><small>${s.active===id?'追跡中 ／ ':''}${legendStatus(id)}</small></span><span aria-hidden="true">${n?'›':'―'}</span></button>`;}).join('')}</div><button class="btn-paper" data-legend="gacha">封筒から次の断片を探す</button></div>`);
+ sheet('都市伝説の調査',`<div class="legend-board"><h2>噂が、証拠に変わる。</h2><p>封筒の断片3つから調査へ。既存の解読記録も引き継いでいます。</p>${legendResumeHTML()}<div class="legend-case-list">${LegendModel.ids.map(id=>{const n=LegendModel.count(S.levels,id);return `<button data-legend="case" data-id="${id}" ${n?'':'disabled'}><span><b>${n?legendTitle(id):'未入手の噂'}</b><small>${s.active===id?'追跡中 ／ ':''}${legendStatus(id)}</small></span><span aria-hidden="true">${n?'›':'―'}</span></button>`;}).join('')}</div><button class="btn-paper" data-legend="gacha">封筒から次の断片を探す</button></div>`);
 }
 function openLegendCase(id){
  const n=LegendModel.count(S.levels,id);if(!n)return;
