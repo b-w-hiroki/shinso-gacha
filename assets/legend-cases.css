@@ -6,3 +6,12 @@
 .legend-fragments{list-style:none;padding:0;display:grid;gap:10px}.legend-fragments li{padding:12px;border-left:2px solid #9d825a;background:#382d2444}.legend-fragments p{margin:6px 0}.legend-investigation{margin:20px 0;border-top:1px solid #776349;padding-top:12px}
 .legend-case button,.legend-board>.btn-paper,.legend-related button,.legend-observation-links button,.legend-incident-links button{display:block;min-height:46px;width:100%;margin:10px 0;white-space:normal;overflow-wrap:anywhere}.legend-case-list button{display:flex}.legend-hypotheses{border:1px solid #8e7959;margin:20px 0;padding:12px;min-width:0}.legend-hypotheses legend{font-size:15px}.legend-conclusion{border-left:2px solid #92744f;padding:12px;background:#312e2566}.legend-original summary,.legend-case details>summary{padding:10px 0;min-height:44px}
 .gacha-scene button.cab-desc{font-family:var(--f-body);min-height:44px;width:100%;border:1px solid #8e785755;text-align:center;line-height:1.6}.gacha-scene button.cab-desc:disabled{opacity:1}
+
+/* V1.1: comparison panels are in document flow; never cover controls. */
+.legend-layers{margin-top:18px;padding-top:12px;border-top:1px solid #9d8a6844}
+.legend-layers h3{margin:14px 0 6px;font-size:1rem}
+.legend-layers p{font-size:.93rem;line-height:1.7;overflow-wrap:anywhere}
+.legend-layers details{margin:10px 0;padding:10px;border:1px solid #a795754d;border-radius:6px}
+.legend-layers details p+p{border-top:1px dashed #a795754d;padding-top:8px}
+.legend-layers button{min-height:44px;max-width:100%;white-space:normal}
+@media (prefers-reduced-motion:reduce){.legend-layers *{animation:none!important;transition:none!important}}
