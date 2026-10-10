@@ -82,8 +82,15 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  // Classified category is not even rendered before evidence; acquired-only witnesses unlock it.
  await p.evaluate(()=>{S.levels.u1=3;S.legendLayers={};go('home');openEncyclopedia('anomalies');});
  assert.equal(await p.locator('[data-catalog-tab="confidential"]').count(),0);
+ await p.evaluate(()=>{openEncyclopedia('people');});
+ assert.equal(await p.locator('[data-catalog-entry="ghost:u1"]').count(),0);
  await p.evaluate(()=>{S.legendLayers.noticed={u1:true};S.legendLayers.compared={u1:true};openEncyclopedia('anomalies');});
  assert.equal(await p.locator('[data-catalog-tab="confidential"]').count(),1);
+ await p.evaluate(()=>openEncyclopedia('people'));
+ assert.equal(await p.locator('[data-catalog-entry="ghost:u1"]').count(),1);
+ await p.locator('[data-catalog-entry="ghost:u1"]').click();
+ assert(await p.locator('.forecast-archive').count());
+ await p.evaluate(()=>openEncyclopedia('anomalies'));
  await p.locator('[data-catalog-tab="confidential"]').click();
  assert.equal(await p.locator('.catalog-entry:enabled').count(),1);
  assert(!(await p.locator('.catalog-list').innerText()).includes('u2'));
