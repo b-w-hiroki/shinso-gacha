@@ -45,6 +45,7 @@ function renderObservation(){
   f.classList.remove('obs-change');if(watchPaint){void f.offsetWidth;f.classList.add('obs-change');}watchPaint=paint;
  }
  const quiet=o.quiet||!!S.incursion?.quiet;
+ f.dataset.trace=String(r>0&&condition===2&&!quiet?'1':'0');
  f.dataset.quiet=String(quiet);f.dataset.ready=String(!o.mind.closed);f.dataset.closed=String(o.mind.closed);f.disabled=o.mind.closed;f.setAttribute('aria-disabled',String(o.mind.closed));
  const danger=!!p&&p.rarity>0;
  document.querySelectorAll('[data-watch="settings"]').forEach(b=>b.hidden=!watchSettingsUnlocked());
