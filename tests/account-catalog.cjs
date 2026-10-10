@@ -61,6 +61,7 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  await p.evaluate(()=>{cloud=null;FB=null;S.role='agent';S.lastTick=Date.now()+600000;S.observation=WatchModel.create(Date.now(),42);S.incursion={version:1,discovered:{},history:[]};applyMode();openEncyclopedia();});
  assert.equal(await p.locator('.catalog-entry:enabled').count(),0);assert(!(await p.locator('.catalog').innerText()).includes('影だけの来園者'));assert.equal(await p.locator('.catalog img').count(),0);
  await p.locator('[data-catalog-filter]').check();assert(await p.locator('.menu-empty').isVisible());await p.locator('[data-catalog-filter]').uncheck();
+ await p.locator('[data-catalog-missing]').check();assert.equal(await p.locator('.catalog-entry:enabled').count(),0);assert(!(await p.locator('.catalog').innerText()).includes('影だけの来園者'));await p.locator('[data-catalog-missing]').uncheck();
  await p.evaluate(()=>{S.observation.collection={'cctv:0':1,'cctv:2':1};S.observation.contacts={records:true};S.incursion.discovered={0:true};save();openEncyclopedia();});
  const state=await p.evaluate(()=>JSON.stringify({currency:S.currency,collection:S.observation.collection,discovered:S.incursion.discovered}));
  assert.equal(await p.locator('.catalog-entry:enabled').count(),2);await p.locator('[data-catalog-entry="cctv:2"]').click();assert((await p.locator('.watch-record-caption').innerText()).includes('影だけの来園者'));await p.keyboard.press('Escape');
