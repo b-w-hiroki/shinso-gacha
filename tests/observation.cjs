@@ -108,5 +108,10 @@ await p.evaluate(()=>observationRest());
 assert((await p.locator('#obs-feedback').innerText()).includes('3時間17分'));
 assert.equal(await p.evaluate(()=>S.observation.awaySince),0);
 assert.equal(await p.evaluate(()=>JSON.stringify({currency:S.currency,collection:S.observation.collection})),beforeAway);
+// Visual contradictions appear only for active anomaly footage, never in quiet mode.
+await p.evaluate(()=>{go('home');const o=observationState();o.mind.closed=false;o.mode='cctv';o.sequence=2;o.quiet=false;o.pending={mode:'cctv',rarity:1,readyAt:Date.now(),expiresAt:Date.now()+3600000,sequence:2,suppression:0};renderObservation();});
+assert.equal(await p.locator('#obs-frame').getAttribute('data-trace'),'1');
+await p.evaluate(()=>{observationState().quiet=true;renderObservation();});
+assert.equal(await p.locator('#obs-frame').getAttribute('data-trace'),'0');
 assert.deepEqual(errors,[]);console.log('Single scene clock collection, unlock/growth, persistence, 16 visuals and four responsive sizes passed');
 }finally{await b.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});
