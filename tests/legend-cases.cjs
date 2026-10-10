@@ -35,6 +35,9 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  assert(await p.locator('.legend-case').isVisible());
  await p.evaluate(()=>{S.legends.active='u2';openLegendBoard();});
  assert.equal(await p.locator('.legend-resume [data-id="u8"]').count(),1,'completed rumor falls through to unfinished case');
+ assert.equal(await p.locator('.legend-resume [data-legend="observe"][data-id="u8"]').count(),1,'missing proof offers observation action');
+ await p.locator('.legend-resume [data-legend="observe"]').click();assert(await p.evaluate(()=>['home','lab'].includes(screen)),'direct action enters observation or equipment');
+ await p.evaluate(()=>{openLegendBoard();});
  for(const [width,height] of [[320,568],[390,844],[844,390]]){
   await p.setViewportSize({width,height});
   for(const screen of ['case','board','gacha']){
