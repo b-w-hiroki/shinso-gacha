@@ -135,3 +135,9 @@ body.watch-mind-quiet #watch-veil{display:none}
 .watch-mode>span{flex:0 0 auto;font-size:12px;color:#d5cdbd}
 
 @media(max-height:640px) and (orientation:portrait){.agent-home .thread-radar{--obs-copy-row:42px;--obs-control-row:48px}}
+
+/* Subtle source conditions reuse the original sprite and image-space targets. */
+.obs-frame[data-condition="1"] #obs-image{filter:saturate(.58) sepia(.10) brightness(.88)}
+.obs-frame[data-condition="2"] #obs-image{filter:saturate(.65) contrast(1.14) brightness(.72)}
+body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
+@media(prefers-reduced-motion:reduce){.obs-frame[data-condition] #obs-image{transition:none}}
