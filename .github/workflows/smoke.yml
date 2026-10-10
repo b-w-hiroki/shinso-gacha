@@ -138,8 +138,9 @@ jobs:
         env:
           QA_WEBKIT: 1
           QA_FONT: ${{ runner.temp }}/noto.otf
-      - run: node tests/player-seepage.cjs
+      - run: xvfb-run -a node tests/player-seepage.cjs
         env:
+          QA_HEADED: 1
           QA_WEBKIT: 1
           QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/quieter-loop.cjs
