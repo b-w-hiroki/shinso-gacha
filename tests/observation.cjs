@@ -10,7 +10,7 @@ assert.equal(await p.locator('.thread-radar #obs-frame,.thread-radar .obs-second
 assert.equal(await p.locator('#obs-atmosphere .investigation-link').count(),1,'one contextual lead replaces ambient copy');
 const initial=await p.evaluate(()=>S.currency);assert(await p.locator('#obs-frame').isEnabled());
 for(let i=0;i<9;i++)await p.locator('#obs-frame').evaluate(e=>e.click());assert.equal(await p.evaluate(()=>S.currency),initial+9,'each partial patrol tap pays one point');
-const expected=18;await p.locator('#obs-frame').click();assert.equal(await p.evaluate(()=>S.currency),initial+expected);await p.locator('#obs-frame').evaluate(e=>e.click());assert.equal(await p.evaluate(()=>S.currency),initial+expected);
+const expected=18;await p.locator('#obs-frame').click();assert.equal(await p.evaluate(()=>S.currency),initial+expected);await p.evaluate(()=>{const o=observationState(),now=Date.now();o.pending={mode:o.mode,rarity:1,readyAt:now,expiresAt:now+WatchModel.hold(o),sequence:o.sequence,suppression:0};renderObservation();});await p.locator('#obs-frame').evaluate(e=>e.click());assert.equal(await p.evaluate(()=>S.currency),initial+expected);
 await p.keyboard.press('Escape'); // A keyboard tap on an anomaly opens location selection.
 // Collection records discoveries, survives reload and never pays for replay.
 const recordKey=await p.evaluate(()=>S.observation.history[0].mode+':'+S.observation.history[0].rarity);
@@ -61,7 +61,7 @@ await p.evaluate(()=>{S.currency=1000;S.observation.collected=5;go('lab');render
 await p.locator('[data-watch-unlock="photo"]').click();assert.equal(await p.evaluate(()=>S.currency),900);await p.locator('[data-watch-equip="photo"]').click();assert.equal(await p.evaluate(()=>S.observation.mode),'photo');assert(await p.locator('[data-watch-unlock="vision"]').isDisabled());
 await p.locator('.watch-upgrades summary').click();await p.locator('[data-watch-upgrade="retention"]').click();assert.equal(await p.evaluate(()=>S.currency),820);assert.equal(await p.evaluate(()=>S.observation.upgrades.retention),1);
 await p.evaluate(()=>{go('home');S.observation.dueAt=Date.now()-1000;renderObservation();save();});
-const saved=await p.evaluate(()=>JSON.stringify(S.observation.pending));await p.reload();await font();assert.equal(await p.evaluate(()=>JSON.stringify(S.observation.pending)),saved);assert(await p.locator('#obs-ready').isVisible());
+const saved=await p.evaluate(()=>JSON.stringify(S.observation.pending));await p.reload();await font();assert.equal(await p.evaluate(()=>JSON.stringify(S.observation.pending)),saved);assert.equal(await p.locator('#obs-ready').isVisible(),JSON.parse(saved).rarity>0);
 await p.locator('[data-watch="settings"]').click();assert(await p.locator('.watch-settings').isVisible());await p.locator('[data-watch-quiet]').check();await p.keyboard.press('Escape');assert.equal(await p.locator('#obs-frame').getAttribute('data-quiet'),'true');
 // Every medium and rarity draws a decoded large image; only one capture surface exists.
 for(const [width,height] of [[320,568],[390,844],[430,932],[844,390]]){

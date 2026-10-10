@@ -108,7 +108,7 @@ function observationCollect(event){
   if(strike){watchMisses=contact?0:watchMisses+1;
    if(contact||watchMisses>=3){watchMessage=contact?'輪郭が揺らいだ。まだ、そこにいる。':'この場所からは反応がない。';watchMessageUntil=Date.now()+2200;}
   }
-  markDirty();save();renderObservation();
+  markDirty();renderObservation();
  }
  observationTouchFeedback(event,contact);
 }
@@ -210,7 +210,7 @@ function renderWatchMind(){
 function observationRest(){
  const o=observationState();WatchModel.closeMonitor(o,Date.now(),!o.mind.closed);
  watchMessage=o.mind.closed?'回線を切りました。今は、見なくてかまいません。':'回線を開きました。';watchMessageUntil=Date.now()+4500;
- markDirty();save();renderObservation();
+ markDirty();renderObservation();
 }
 const WATCH_REGIONS=['左上','中央上','右上','左中央','中央','右中央','左下','中央下','右下'];
 function observationTargetPicker(message='異変が見えた場所を選ぶ。同じ枠を繰り返し押すと対処できます。'){
@@ -244,7 +244,7 @@ function watchConversationPage(html,member=''){
  page.dataset.member=member;page.innerHTML=html;page.querySelector('[tabindex="-1"]')?.focus({preventScroll:true});
 }
 function observationColleagues(){
- WatchModel.closeMonitor(observationState(),Date.now(),true);markDirty();save();renderObservation();
+ WatchModel.closeMonitor(observationState(),Date.now(),true);markDirty();renderObservation();
  const contacts=watchContacts();
  watchConversationPage(`<div class="watch-colleagues"><header><small>第六文書課 ／ 休憩室</small><h1 tabindex="-1">課内で話す</h1><p class="watch-room-note">相談する相手を選ぶ。回線は切ってあります。</p></header><div class="watch-people">${Object.entries(WATCH_COLLEAGUES).map(([id,m])=>`<button class="watch-person" data-watch-member="${id}">${watchPortrait(m)}<span><small>${m.role} · ${contacts[id]?'面識あり':'初めて話す'}</small><b>${m.name}</b><span class="watch-person-description">${m.description}</span><span class="watch-person-action">${m.name}に声をかける ›</span></span></button>`).join('')}</div><button class="btn-line watch-leave" data-watch="leave">観測へ戻る</button></div>`);
 }
@@ -307,9 +307,9 @@ function fitObservation(){
  const height=Math.max(180,Math.min(nativeHeight,560,available));
  if(Math.abs(height-f.height)>1)frame.style.setProperty('--obs-height',`${Math.floor(height)}px`);
 }
-addEventListener('resize',fitObservation);
-window.visualViewport?.addEventListener('resize',fitObservation);
 const scheduleObservationFit=RuntimeSafety.frame(fitObservation);
+addEventListener('resize',scheduleObservationFit);
+window.visualViewport?.addEventListener('resize',scheduleObservationFit);
 new ResizeObserver(scheduleObservationFit).observe(document.querySelector('.thread-radar'));
 
 // Only handle page navigation when no modal is being dismissed.
