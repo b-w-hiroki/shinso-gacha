@@ -17,6 +17,8 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  const money=await p.evaluate(()=>S.currency);await p.evaluate(()=>observationTick());assert.equal(await p.evaluate(()=>S.observation.tapProgress),1);assert.equal(await p.evaluate(()=>S.currency),money,'Automatic input is not a manual 1pt tap');
  await p.evaluate(()=>{const o=observationState();o.manualSuppressions=10;go('lab');renderObservationLab();});await p.locator('.watch-upgrades summary').click();await p.locator('[data-watch-upgrade="suppression"]').click();
  await p.evaluate(()=>{go('home');const o=observationState(),t=Date.now();o.mode='cctv';o.pending={mode:'cctv',rarity:1,readyAt:t,expiresAt:t+3600000,sequence:o.sequence,suppression:5};o.autoLastAt=t-6000;watchLastTick=0;renderObservation();});
+ await p.locator('#obs-frame').evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));
+ assert(await p.locator('#obs-frame').evaluate(e=>{const r=e.getBoundingClientRect();return r.bottom>0&&r.top<innerHeight-60;}),'automated suppression only runs on visible live observation');
  const autoMoney=await p.evaluate(()=>S.currency);await p.evaluate(()=>observationTick());assert.equal(await p.evaluate(()=>S.currency),autoMoney+80);assert.equal(await p.evaluate(()=>S.observation.manualSuppressions),10);
  await p.evaluate(()=>{S.incursion={version:1,level:40,resolved:10,discovered:Object.fromEntries(Array.from({length:10},(_,i)=>[i,true])),duplicates:12,history:[],event:{kind:34,tier:1,step:1,round:0,contacts:2}};openIncursionRecords();});
  const event=await p.evaluate(()=>JSON.stringify(incursionState().event));
