@@ -28,6 +28,7 @@ async function accountLogin(){
  if(!FB||accountBusy||accountPending())return;
  accountLock(true);accountMessage('Googleの認証画面を開いています');
  const {auth,Au}=FB,provider=new Au.GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});
+ if(!accountUnsubscribe&&Au.onAuthStateChanged)accountObserveAuth(auth,Au);
  const previous=cloud,previousCanWrite=cloud?.canWrite,guest=auth.currentUser?.isAnonymous;
  accountDetach();
  try{
