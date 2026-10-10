@@ -13,6 +13,12 @@ const GAME_MAIL=[
  {id:'records-5',from:'記録保管係',title:'受領数が一致しません',body:'あなたから届いた5件の観測記録を受領しました。保管棚には6件あります。追加分の撮影者欄には、あなたの名前が記入されています。',reward:0,when:()=>!isLite()&&(S.observation?.collected||0)>=5},
  {id:'rare-first',from:'解析班',title:'映像の外側',body:'希少記録の照合が完了しました。被写体はこちらを見ていません。カメラの後ろにいた何かを見ています。次の記録は、周辺も確認してください。',reward:0,when:()=>!isLite()&&Object.entries(S.observation?.collection||{}).some(([k,n])=>n>0&&/:[23]$/.test(k))}
 ];
+// Case-specific anonymous mail is delivered once through the existing saved inbox.
+for(const id of LegendModel.ids)GAME_MAIL.push({
+ id:'uncanny-'+id,from:'差出人不明',title:'空欄の差出人',
+ body:'資料に残された余白を調べてください。受領印の筆跡は、あなたの記録に似ています。',
+ reward:0,when:()=>!isLite()&&!!UncannyArchive.events(id,LegendModel.count(S.levels,id),LegendLayers.status(LegendLayers.normalize(S.legendLayers,S.levels,LegendModel.CASES),id,S.levels,LegendModel.CASES,observationState().collection,S.incursion?.discovered,incursionProfile,LegendModel.state(S.legends,S.levels).testified),Object.hasOwn(LegendModel.state(S.legends,S.levels).conclusions,id))?.letter
+});
 function menuState(){
  if(!S.communications||typeof S.communications!=='object')S.communications={};
  const c=S.communications;if(!Array.isArray(c.readNotices))c.readNotices=[];
