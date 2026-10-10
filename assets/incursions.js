@@ -1383,6 +1383,7 @@ function renderIncursion() {
   const stage=!visible||!a.level?'calm':a.level<36?'trace':a.level<70?'noticed':a.level<100?'close':'breach';
   document.body.dataset.incursion=stage;
   document.body.classList.toggle('incursion-quiet',!!a?.quiet);
+  if(typeof renderPlayerSeepage==='function')renderPlayerSeepage();
   if(!visible)return;
   const label={calm:'静穏',trace:'違和感',noticed:'観測されている',close:'侵入の兆候',breach:'開封を一時停止'}[stage];
   const text=`${label}${a.event?' Lv.'+a.event.tier:''} ${a.level}/100　｜　${a.event?'対処する':'対処記録'}`;
@@ -1430,7 +1431,7 @@ function openIncursionRecords(kind=null, fromList=false) {
   if(!d.open){incursionReturnFocus=document.activeElement;d.showModal();}
   const p=kind===null?null:INCURSIONS[kind],at=owned.indexOf(kind);
   const photo=p&&!a.quiet?`<figure class="inc-record-photo"><img src="assets/incursions/${p.visual}.webp" alt="${INC_VISUALS[p.visual].alt}" decoding="async"><figcaption>${a.reconstructed?.[kind]?'照合で復元':'保管写真'} ／ ${String(kind+1).padStart(3,'0')} ／ ${incursionRarity(kind).id}</figcaption></figure>`:'';
-  const content=p?`${photo}${a.quiet?'<p>控えめな演出設定のため、写真を伏せています。</p>':''}${p.reference?`<article class="inc-reference"><h3>保管された原本</h3><p>${p.reference}</p></article>`:''}<article class="inc-record-aftermath"><h3>鎮静後の記録</h3><p>${p.after}</p></article><button class="inc-primary" data-inc-witness="${kind}">${incursionWitnessMember(kind).name}にこの記録を聞く</button>`:
+  const content=p?`${photo}${a.quiet?'<p>控えめな演出設定のため、写真を伏せています。</p>':''}${p.reference?`<article class="inc-reference"><h3>保管された原本</h3><p>${p.reference}</p></article>`:''}<article class="inc-record-aftermath"><h3>鎮静後の記録</h3><p>${p.after}</p></article><button class="inc-primary" data-inc-witness="${kind}">${incursionWitnessMember(kind).name}にこの記録を聞く</button>${typeof legendIncidentLinks==='function'?legendIncidentLinks(kind):''}`:
     `<p>封筒調査の記録 ${owned.length} / 100件。現地観測の16記録とは別に保管します。</p>${incursionCollectionActions(a)}${owned.length?`<div class="inc-record-list">${owned.map(k=>`<button data-inc="record" data-value="${k}"><span>${String(k+1).padStart(3,'0')}</span><strong>${INCURSIONS[k].short}<small class="inc-rarity">${incursionRarity(k).id}</small></strong><span aria-hidden="true">›</span></button>`).join('')}</div>`:'<p class="inc-instruction">まだ保管された記録はありません。封筒の調査中に現れた異変を鎮めると、ここに残ります。</p>'}`;
   const navigation=p?`<div class="inc-grid"><button data-inc="record" data-value="${owned[at-1]}" ${at===0?'disabled':''}>前の記録</button><button data-inc="record" data-value="${owned[at+1]}" ${at===owned.length-1?'disabled':''}>次の記録</button></div><button class="inc-primary" data-inc="records" data-value="${kind}">記録一覧に戻る</button>`:`<button class="inc-primary" data-inc="open">${a.event?'進行中の異変に戻る':'対処状況を見る'}</button>`;
   d.classList.add('inc-record-mode');

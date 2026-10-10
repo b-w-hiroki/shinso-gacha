@@ -4,7 +4,7 @@
  const MODES={cctv:{label:'監視カメラ',need:0,cost:0,mult:1},photo:{label:'写真',need:5,cost:100,mult:1.25},vision:{label:'視界ジャック',need:15,cost:300,mult:1.5},dash:{label:'車載カメラ',need:30,cost:800,mult:2}};
  const RETENTION=[3,6,12,24],INTERVAL=[10,8,6,5],TAPS=[10,8,6,4],SUPPRESS=[0,6,10,15],AUTO_SECONDS=[0,5,3,1],ANOMALY_REWARDS=[8,80,200,480];
  const UPGRADES={retention:{name:'記録保持',costs:[80,240,600],max:3},interval:{name:'巡回効率',costs:[100,300,800],max:3},sensitivity:{name:'異常感度',costs:[200,500],max:2},patrol:{name:'自動巡回',costs:[300,900,2400],max:3},suppression:{name:'自動鎮静',costs:[600,1800,4000],max:3}};
- const ODDS=[[85,11,3.5,.5],[82,13,4.3,.7],[78,15,6,1]];
+ const ODDS=[[95,4,0.9,0.1],[92,6,1.7,0.3],[88,8.5,2.9,0.6]];
  const RARITY=[{name:'N',reward:8},{name:'R',reward:20},{name:'SR',reward:60},{name:'SSR',reward:180}];
  // Native-image coordinates, never viewport coordinates. No target is shown before contact.
  const TARGETS={

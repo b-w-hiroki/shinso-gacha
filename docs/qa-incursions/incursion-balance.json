@@ -7,10 +7,10 @@
     "Timing is not a measurement of real players."
   ],
   "observationOdds": [
-    85,
-    11,
-    3.5,
-    0.5
+    95,
+    4,
+    0.9,
+    0.1
   ],
   "incursionRarity": [
     60,
@@ -21,7 +21,7 @@
   "incursionSingleOpenUntilFirst": 9,
   "incursionSingleOpenAfterSuppression": 11,
   "firstPhotoUnlockTaps": {
-    "median": 56,
+    "median": 60,
     "p90": 60
   },
   "firstNaturalSSRConditional": {

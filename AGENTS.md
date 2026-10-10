@@ -19,3 +19,5 @@
 - Award 1pt per active observation/region input in addition to patrol or suppression bonuses. A missed contact must not advance suppression; opening help, a closed monitor, passive ticks and automation are not taps. Persist the input result and keep the wallet current without per-tap celebratory effects.
 
 - Incursion case IDs are shared by saves, resolved-case discovery and the weighted rarity pool (N/R/SR/SSR = 60/28/10/2; uniform within rarity excluding the immediately previous case). Preserve their meaning. Ordered work, wire isolation, contact and testimony comparison must survive reload; photo misses never advance contact. Keep quiet/keyboard trace alternatives playable, final confirmation explicit and materials idempotent across tiers.
+
+- Observation anomaly chance grows with sensitivity: 5% / 8% / 12%. Keep held results and existing levels. Player spillover is cosmetic and event-bound: preserve true controls, wallet, evidence, and save outcomes; no repeated flashes. Quiet disables spillover, reduced motion disables glimpses, and explicit rest calms it.

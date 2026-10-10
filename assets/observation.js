@@ -121,7 +121,7 @@ function observationSettings(){
 function renderObservationLab(){
  const root=document.getElementById('observation-lab');if(!root)return;if(isLite()){root.innerHTML='';return;}
  const o=observationState();
- root.innerHTML=`<section class="watch-lab"><div class="watch-lab-heading"><h2>観測装備</h2><span>${o.collected}件</span></div><div class="watch-equipment">${Object.entries(WatchModel.MODES).map(([id,m])=>{const owned=o.unlocked.includes(id),active=id===o.mode,eligible=o.collected>=m.need&&S.currency>=m.cost;return `<article class="watch-mode ${active?'equipped':''}"><div><b>${m.label}</b><small>${OBSERVATIONS[id].title} · pt ×${m.mult}</small></div><button type="button" data-watch-${owned?'equip':'unlock'}="${id}" ${owned?(active||o.pending?'disabled':''):eligible?'':'disabled'}>${active?'● 設置中':owned?'設置':o.collected<m.need?`${o.collected}/${m.need}件`:`解放 ${m.cost}pt`}</button></article>`;}).join('')}</div>${o.pending?'<p class="watch-note">記録を保持中。タップで観測・鎮静を終えると装備を変更できます。</p>':''}<details class="watch-upgrades"><summary>観測を強化 <span>${WatchModel.RETENTION[o.upgrades.retention]}h</span></summary>${Object.entries(WatchModel.UPGRADES).filter(([id])=>!['patrol','suppression'].includes(id)||WatchModel.automationUnlocked(o,id)).map(([id,u])=>{const lv=o.upgrades[id],max=lv===u.max;const values=id==='retention'?WatchModel.RETENTION.map(x=>x+'時間'):id==='interval'?['標準','短縮 I','短縮 II','短縮 III']:id==='patrol'?['手動','5秒に1回','3秒に1回','1秒に1回']:id==='suppression'?['手動','Rまで自動','SRまで自動','SSRまで自動']:['SSR 0.5%','SSR 0.7%','SSR 1%'];return `<article><div><b>${u.name}</b><small>${values[lv]}${max?'':` → ${values[lv+1]}`}</small></div><button data-watch-upgrade="${id}" ${max||S.currency<u.costs[lv]?'disabled':''}>${max?'最大':`${u.costs[lv]}pt`}</button></article>`;}).join('')}<p class="watch-note">自動巡回は記録20件・2地点解放後、自動鎮静は手動鎮静10件・自動巡回Lv.1で解放。観測装備を1段階育成すると観測設定を利用可能。保持強化は受取待ちの記録にも適用。巡回効率は定時観測の間隔も短縮。</p></details></section>`;
+ root.innerHTML=`<section class="watch-lab"><div class="watch-lab-heading"><h2>観測装備</h2><span>${o.collected}件</span></div><div class="watch-equipment">${Object.entries(WatchModel.MODES).map(([id,m])=>{const owned=o.unlocked.includes(id),active=id===o.mode,eligible=o.collected>=m.need&&S.currency>=m.cost;return `<article class="watch-mode ${active?'equipped':''}"><div><b>${m.label}</b><small>${OBSERVATIONS[id].title} · pt ×${m.mult}</small></div><button type="button" data-watch-${owned?'equip':'unlock'}="${id}" ${owned?(active||o.pending?'disabled':''):eligible?'':'disabled'}>${active?'● 設置中':owned?'設置':o.collected<m.need?`${o.collected}/${m.need}件`:`解放 ${m.cost}pt`}</button></article>`;}).join('')}</div>${o.pending?'<p class="watch-note">記録を保持中。タップで観測・鎮静を終えると装備を変更できます。</p>':''}<details class="watch-upgrades"><summary>観測を強化 <span>${WatchModel.RETENTION[o.upgrades.retention]}h</span></summary>${Object.entries(WatchModel.UPGRADES).filter(([id])=>!['patrol','suppression'].includes(id)||WatchModel.automationUnlocked(o,id)).map(([id,u])=>{const lv=o.upgrades[id],max=lv===u.max;const values=id==='retention'?WatchModel.RETENTION.map(x=>x+'時間'):id==='interval'?['標準','短縮 I','短縮 II','短縮 III']:id==='patrol'?['手動','5秒に1回','3秒に1回','1秒に1回']:id==='suppression'?['手動','Rまで自動','SRまで自動','SSRまで自動']:WatchModel.ODDS.map(row=>'異変 '+(100-row[0])+'%');return `<article><div><b>${u.name}</b><small>${values[lv]}${max?'':` → ${values[lv+1]}`}</small></div><button data-watch-upgrade="${id}" ${max||S.currency<u.costs[lv]?'disabled':''}>${max?'最大':`${u.costs[lv]}pt`}</button></article>`;}).join('')}<p class="watch-note">自動巡回は記録20件・2地点解放後、自動鎮静は手動鎮静10件・自動巡回Lv.1で解放。異常感度は5%→8%→12%。育成後の新しい抽選から適用。観測装備を1段階育成すると観測設定を利用可能。保持強化は受取待ちの記録にも適用。巡回効率は定時観測の間隔も短縮。</p></details></section>`;
 }
 document.getElementById('obs-frame').addEventListener('click',observationCollect);
 document.addEventListener('click',e=>{
@@ -206,9 +206,11 @@ function renderWatchMind(){
  const frame=document.getElementById('obs-frame');
  frame.dataset.seep=String(o.mind.closed?0:stage);
  frame.dataset.anomaly=String(!isLite()&&!o.mind.closed&&o.pending?.rarity>0?Math.max(1,stage):0);
+ if(typeof renderPlayerSeepage==='function')renderPlayerSeepage();
 }
 function observationRest(){
  const o=observationState();WatchModel.closeMonitor(o,Date.now(),!o.mind.closed);
+ if(o.mind.closed)calmPlayerSeepage();
  watchMessage=o.mind.closed?'回線を切りました。今は、見なくてかまいません。':'回線を開きました。';watchMessageUntil=Date.now()+4500;
  markDirty();renderObservation();
 }
@@ -235,13 +237,13 @@ const WATCH_COLLEAGUES={
  past:['前任の話は、記録と本人で少し違う。どちらも嘘をついているつもりはないんだろう。','初日に言われたことは忘れない。「着任、おめでとう」ではなく「お帰り」だった。','この課を出た人のことも覚えている。顔より先に、名前が思い出せなくなる。']}
 };
 const WATCH_TOPICS={strange:'見たものについて',rest:'少し休みたい',office:'課内のこと',past:'以前のこと'};
-function watchPortrait(m){return `<img src="assets/colleagues/${m.portrait}.webp" alt="" width="90" height="120">`;}
+function watchPortrait(m){const id=Object.keys(WATCH_COLLEAGUES).find(id=>WATCH_COLLEAGUES[id]===m)||'';return `<img data-seep-person="${id}" src="assets/colleagues/${m.portrait}.webp" alt="" width="90" height="120">`;}
 function watchContacts(){
  const o=observationState();if(!o.contacts||typeof o.contacts!=='object'||Array.isArray(o.contacts))o.contacts={};return o.contacts;
 }
 function watchConversationPage(html,member=''){
  hideSheet();go('colleagues');const page=document.querySelector('[data-view="colleagues"]');
- page.dataset.member=member;page.innerHTML=html;page.querySelector('[tabindex="-1"]')?.focus({preventScroll:true});
+ page.dataset.member=member;page.innerHTML=html;renderPlayerSeepage();page.querySelector('[tabindex="-1"]')?.focus({preventScroll:true});
 }
 function observationColleagues(){
  WatchModel.closeMonitor(observationState(),Date.now(),true);markDirty();renderObservation();
@@ -267,7 +269,7 @@ function observationConversation(id,topic){
   line=member[topic][n%member[topic].length];o.mind.dialogue[key]=n+1;
   if(id==='equipment'&&topic==='office'&&n%3===0)o.mind.clues.absent=true;
   if(id==='records'&&topic==='office'&&o.mind.clues.absent){line='榊さんが、そう言ったんですか。欠勤届は私が預かっています。……私の分ではありません。';o.mind.clues.absent=false;}
-  WatchModel.talk(o,Date.now(),id);markDirty();save();renderWatchMind();
+  WatchModel.talk(o,Date.now(),id);if(topic==='rest')calmPlayerSeepage();markDirty();save();renderWatchMind();
  }
  if(topic==='record')line=investigationTestimony(id)||line;
  WatchModel.closeMonitor(o,Date.now(),true);watchContacts()[id]=true;markDirty();save();
