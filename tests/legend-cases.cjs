@@ -27,6 +27,14 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  const afterTalk=await p.evaluate(()=>S.observation.mind.load);await p.locator('.watch-dialogue-actions [data-legend="case"]').click();await p.locator('[data-legend="witness"]').click();assert.equal(await p.evaluate(()=>S.observation.mind.load),afterTalk,'no repeated recovery farming');
  await p.locator('.watch-dialogue-actions [data-legend="case"]').click();const currency=await p.evaluate(()=>S.currency);await p.locator('[data-choice="1"]').click();assert.equal(await p.evaluate(()=>S.legends.conclusions.u2),1);assert.equal(await p.evaluate(()=>S.currency),currency);
  assert((await p.locator('.legend-conclusion').innerText()).includes('確定には'));
+ // Returning players see an owned unfinished rumor and its next action.
+ await p.evaluate(()=>{S.legends.active='u8';openLegendBoard();});
+ assert.equal(await p.locator('.legend-resume [data-legend="case"][data-id="u8"]').count(),1);
+ assert(!(await p.locator('.legend-resume').innerText()).includes('u8'),'internal IDs stay hidden');
+ await p.locator('.legend-resume [data-legend="case"]').click();
+ assert(await p.locator('.legend-case').isVisible());
+ await p.evaluate(()=>{S.legends.active='u2';openLegendBoard();});
+ assert.equal(await p.locator('.legend-resume [data-id="u8"]').count(),1,'completed rumor falls through to unfinished case');
  for(const [width,height] of [[320,568],[390,844],[844,390]]){
   await p.setViewportSize({width,height});
   for(const screen of ['case','board','gacha']){
