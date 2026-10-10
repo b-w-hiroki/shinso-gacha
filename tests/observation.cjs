@@ -3,6 +3,12 @@ const out='docs/qa-incursions';const server=http.createServer((q,r)=>{try{const 
 (async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));const b=await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE||undefined,args:['--no-sandbox','--disable-dev-shm-usage','--no-zygote','--single-process']});try{const p=await b.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'}),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.route('https://**/*',r=>r.abort());await p.goto('http://127.0.0.1:'+server.address().port);await p.evaluate(()=>{S.role='agent';S.onboarded=true;S.lite={intro:{done:true}};applyMode();});
 async function font(){if(process.env.QA_FONT){await p.addStyleTag({content:"@font-face{font-family:QAJP;src:url('/font.otf')} :root{--f-body:QAJP;--f-display:QAJP;--f-mono:QAJP}body,button{font-family:QAJP}"});await p.evaluate(()=>document.fonts.load('16px QAJP'));}}
 await font();
+await p.evaluate(()=>{S.role='agent';S.onboarded=true;S.lite={intro:{done:true}};applyMode();S.observation=WatchModel.create(Date.now(),42);S.observation.sequence=2;go('home');setHomeTab('desk');renderObservation();});
+assert.equal(await p.locator('#obs-frame').getAttribute('data-condition'),'2');
+assert((await p.locator('#obs-source').innerText()).includes('夜間記録'));
+await p.evaluate(()=>{S.observation.sequence=0;renderObservation();});
+assert.equal(await p.locator('#obs-frame').getAttribute('data-condition'),'0');
+
 
 await p.evaluate(()=>{go('home');setHomeTab('desk');S.currency=100;S.lastTick=Date.now()+600000;S.incursion={version:1,level:0,resolved:0,history:[]};S.observation=WatchModel.create(Date.now(),42);S.streak={last:dayKey(),n:1};save();render();});
 assert.equal(await p.locator('[data-obs-mode],#obs-report,#obs-reference,#sniff,.obs-preview').count(),0,'no permanent comparison/report/tap button group');

@@ -50,7 +50,7 @@ function returnFromMenu(){
 }
 function openGameMenu(){
  const n=renderMenuBadge();
- openMenuPage('メニュー',`<div class="game-menu-list">${!isLite()?'<button data-trail="guide"><span>調査の進め方</span><small>›</small></button>':''}<button data-menu="news"><span>運営からのお知らせ</span><small>${n.news?'● '+n.news:'›'}</small></button><button data-menu="inbox"><span>受信ボックス</span><small>${n.mail?'● '+n.mail:'›'}</small></button><button data-menu="catalog"><span>図鑑</span><small>›</small></button><button data-menu="account"><span>ログイン・アカウント</span><small>›</small></button><button data-menu="settings"><span>設定</span><small>›</small></button></div>`);
+ openMenuPage('メニュー',`<div class="game-menu-list">${!isLite()?'<button data-trail="guide"><span>調査の進め方</span><small>›</small></button>':''}<button data-menu="news"><span>運営からのお知らせ</span><small>${n.news?'● '+n.news:'›'}</small></button><button data-menu="inbox"><span>受信ボックス</span><small>${n.mail?'● '+n.mail:'›'}</small></button><button data-menu="catalog"><span>図鑑・収集記録</span><small>›</small></button>${!isLite()?'<button data-menu="investigations"><span>都市伝説の調査</span><small>›</small></button>':''}<button data-menu="account"><span>ログイン・アカウント</span><small>›</small></button><button data-menu="settings"><span>設定</span><small>›</small></button></div>`);
 }
 function menuBack(target='home'){return `<button class="menu-back" data-menu="${target}">‹ ${target==='home'?'メニュー':target==='news'?'お知らせ一覧':'受信ボックス'}</button>`;}
 function openGameNews(){const c=menuState();openMenuPage('運営からのお知らせ',menuBack()+`<div class="game-message-list">${GAME_NOTICES.map(n=>`<button data-notice="${n.id}"><small>${n.date}${c.readNotices.includes(n.id)?'':' · 未読'}</small><b>${n.title}</b></button>`).join('')}</div>`);}
@@ -71,7 +71,7 @@ function openMenuSettings(){
 document.getElementById('game-menu').addEventListener('click',openGameMenu);
 document.addEventListener('click',e=>{
  const b=e.target.closest('[data-menu],[data-notice],[data-mail],[data-mail-claim]');if(!b||b.disabled)return;
- if(b.dataset.menu){const actions={return:returnFromMenu,home:openGameMenu,news:openGameNews,inbox:openGameInbox,settings:openMenuSettings,observation:observationSettings,target:observationTargetPicker,account:openAccount,catalog:()=>openEncyclopedia()};return actions[b.dataset.menu]?.();}
+ if(b.dataset.menu){const actions={return:returnFromMenu,home:openGameMenu,news:openGameNews,inbox:openGameInbox,settings:openMenuSettings,observation:observationSettings,target:observationTargetPicker,account:openAccount,catalog:()=>openEncyclopedia(),investigations:()=>{returnFromMenu();openLegendBoard();}};return actions[b.dataset.menu]?.();}
  if(b.dataset.notice){const n=GAME_NOTICES.find(n=>n.id===b.dataset.notice);if(!n)return;const c=menuState();if(!c.readNotices.includes(n.id))c.readNotices.push(n.id);markDirty();renderMenuBadge();return openMenuPage('運営からのお知らせ',menuBack('news')+`<article class="game-message"><small>${n.date} · 運営</small><h2>${n.title}</h2><p>${n.body}</p></article>`);}
  if(b.dataset.mail)return openGameMail(b.dataset.mail);
  const id=b.dataset.mailClaim,m=GAME_MAIL.find(m=>m.id===id),entry=menuState().mail[id];

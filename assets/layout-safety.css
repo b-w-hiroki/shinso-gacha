@@ -28,3 +28,15 @@
 @media(max-width:599px) and (max-height:700px) {
   .gacha-scene .big-env { margin-top:10px; margin-bottom:2px; }
 }
+
+/* Phone header: keep the title and balance on separate, non-overlapping tracks. */
+@media(max-width:599px){
+ .top-in{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;padding-inline:12px}
+ .top-in .logo{min-width:0;max-width:100%;font-size:clamp(15px,4.5vw,20px);line-height:1.18;overflow-wrap:normal;word-break:keep-all}
+ .top-in .logo small{font-size:clamp(7px,1.75vw,10px);letter-spacing:.045em;white-space:nowrap}
+ .top-in .wallet{max-width:44vw;min-width:0;min-height:46px;padding:7px 9px;gap:6px}
+ .top-in .wallet b{font-size:clamp(17px,4.7vw,21px);min-width:0}
+ .top-in .wallet span{white-space:nowrap}
+ .gacha-scene .cabinet{min-width:0}
+ .gacha-scene .cab-desc{width:100%;max-width:100%;box-sizing:border-box;overflow-wrap:anywhere}
+}
