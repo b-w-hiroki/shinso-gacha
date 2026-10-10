@@ -324,8 +324,10 @@ function fitObservation(){
  // The viewport owns the monitor size; image ratio and status text never resize it.
  // A short landscape viewport scrolls, rather than crushing the image.
  let top=0;for(let el=frame;el;el=el.offsetParent)top+=el.offsetTop;
- const reserved=44+64+56+18;
- const height=Math.floor(Math.max(180,Math.min(560,innerHeight-navHeight-top-reserved)));
+ const rows=getComputedStyle(frame.closest('.thread-radar'));
+ const reserved=['--obs-status-row','--obs-copy-row','--obs-control-row'].reduce((n,key)=>n+parseFloat(rows.getPropertyValue(key)),18);
+ const minimum=innerHeight>=innerWidth?140:180;
+ const height=Math.floor(Math.max(minimum,Math.min(560,innerHeight-navHeight-top-reserved)));
  if(Math.abs(height-f.height)>1)frame.style.setProperty('--obs-height',`${height}px`);
 }
 const scheduleObservationFit=RuntimeSafety.frame(fitObservation);

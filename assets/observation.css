@@ -126,10 +126,12 @@ body.watch-mind-quiet #watch-veil{display:none}
 @media(prefers-reduced-motion:reduce){.obs-frame #obs-image,.obs-frame .obs-effect::after{animation:none!important}}
 
 /* A stable monitor and control row across every source and observation state. */
-.agent-home .thread-radar{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:30px auto 44px 64px 56px}
+.agent-home .thread-radar{display:grid;grid-template-columns:minmax(0,1fr);--obs-status-row:44px;--obs-copy-row:64px;--obs-control-row:56px;grid-template-rows:30px auto var(--obs-status-row) var(--obs-copy-row) var(--obs-control-row)}
 .agent-home .obs-topline{grid-area:1/1;margin:0;min-height:30px}
 .agent-home .obs-frame{grid-area:2/1}
-.agent-home .obs-status,.agent-home .obs-status:has(#obs-ready[hidden]):has(#obs-first-hint[hidden]):has(#obs-timer:empty){display:flex;grid-area:3/1;height:44px;min-height:44px;padding:0;align-items:center}
-.agent-home #obs-atmosphere,.agent-home #obs-feedback{grid-area:4/1;margin:0;align-self:center;max-height:64px;overflow:auto;font-size:14px;line-height:1.5}
+.agent-home .obs-status,.agent-home .obs-status:has(#obs-ready[hidden]):has(#obs-first-hint[hidden]):has(#obs-timer:empty){display:flex;grid-area:3/1;height:var(--obs-status-row);min-height:var(--obs-status-row);padding:0;align-items:center}
+.agent-home #obs-atmosphere,.agent-home #obs-feedback{grid-area:4/1;margin:0;align-self:center;max-height:var(--obs-copy-row);overflow:auto;font-size:14px;line-height:1.5}
 .agent-home .obs-secondary{grid-area:5/1;align-self:end;height:48px;margin:0}
 .watch-mode>span{flex:0 0 auto;font-size:12px;color:#d5cdbd}
+
+@media(max-height:640px) and (orientation:portrait){.agent-home .thread-radar{--obs-copy-row:42px;--obs-control-row:48px}}
