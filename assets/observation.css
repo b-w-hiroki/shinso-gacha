@@ -141,3 +141,14 @@ body.watch-mind-quiet #watch-veil{display:none}
 .obs-frame[data-condition="2"] #obs-image{filter:saturate(.65) contrast(1.14) brightness(.72)}
 body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
 @media(prefers-reduced-motion:reduce){.obs-frame[data-condition] #obs-image{transition:none}}
+
+/* A barely perceptible duplicated edge on anomalous late-frame footage.
+   Cosmetic only: no target overlays, no clickable element and no flashing. */
+.obs-frame[data-trace="1"] #obs-image::after{
+ content:"";position:absolute;inset:0;pointer-events:none;
+ background:linear-gradient(104deg,transparent 23%,rgba(171,184,161,.10) 24%,transparent 25%,transparent 67%,rgba(175,163,144,.11) 68%,transparent 69%);
+ opacity:.7;mix-blend-mode:screen;
+}
+.obs-frame[data-trace="1"] #obs-image{box-shadow:inset 1px 0 rgba(191,168,147,.17)}
+.obs-frame[data-quiet="true"] #obs-image::after{display:none}
+@media(prefers-reduced-motion:reduce){.obs-frame[data-trace="1"] #obs-image::after{display:none}}
