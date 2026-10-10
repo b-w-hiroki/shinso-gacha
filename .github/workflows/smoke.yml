@@ -23,6 +23,7 @@ jobs:
       - run: node tests/legend-layers.cjs
       - run: node tests/uncanny-archive.cjs
       - run: node tests/investigation-links.cjs
+      - run: node tests/reality-clues.cjs
       - run: node tests/player-seepage-model.cjs
       - run: node tests/observation-model.cjs
       - run: node tests/contamination-model.cjs
