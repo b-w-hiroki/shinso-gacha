@@ -10,7 +10,13 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  // Actual anomaly and actual observation input produce a saved, independent spillover.
  await p.evaluate(()=>{const o=observationState(),t=Date.now();for(let seed=1;seed<1000;seed++){if(SeepageModel.hash(`watch:${seed}:0:cctv`,seed)%100<35){o.seed=seed;break;}}o.pending={mode:'cctv',rarity:1,readyAt:t,expiresAt:t+3600000,sequence:0,suppression:0};o.mind.closed=false;S.playerSeepage={};renderObservation();});
  assert.equal(await p.evaluate(()=>S.playerSeepage.event),null,'idle does not trigger');
- const money=await p.evaluate(()=>S.currency);await p.locator('#obs-frame').click({position:{x:4,y:4}});
+ // Use a real pointer hit on the animated scene. Frozen animation frames can stall
+ // WebKit's locator stability polling; hit-testing still verifies the input is unobstructed.
+ await p.clock.runFor(40);
+ const money=await p.evaluate(()=>S.currency),frame=await p.locator('#obs-frame').boundingBox();
+ assert(frame);const hit={x:frame.x+4,y:frame.y+4};
+ assert(await p.evaluate(({x,y})=>!!document.elementFromPoint(x,y)?.closest('#obs-frame'),hit));
+ await p.mouse.click(hit.x,hit.y);
  assert(await p.evaluate(()=>!!S.playerSeepage.event));assert.equal(await p.evaluate(()=>S.currency),money+1);assert.equal(await p.evaluate(()=>S.observation.pending.suppression),0);
  const chosen=await p.evaluate(()=>JSON.stringify(S.playerSeepage.event));await p.evaluate(()=>renderObservation());assert.equal(await p.evaluate(()=>JSON.stringify(S.playerSeepage.event)),chosen,'render does not redraw event');
  await p.evaluate(()=>go('lab'));await p.locator('.watch-upgrades summary').click();
