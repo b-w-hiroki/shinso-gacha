@@ -113,5 +113,16 @@ await p.evaluate(()=>{go('home');const o=observationState();o.mind.closed=false;
 assert.equal(await p.locator('#obs-frame').getAttribute('data-trace'),'1');
 await p.evaluate(()=>{observationState().quiet=true;renderObservation();});
 assert.equal(await p.locator('#obs-frame').getAttribute('data-trace'),'0');
+// Alternate complete locations change only ordinary patrol presentation, never anomaly tap geometry.
+for(const [mode,title] of [['cctv','地下通路'],['photo','夜の教室'],['vision','踏切前'],['dash','海沿いの夜道']]){
+ await p.evaluate(mode=>{const o=observationState();o.mode=mode;o.sequence=1;o.mind.closed=false;const now=Date.now();o.pending={mode,rarity:0,readyAt:now,expiresAt:now+WatchModel.hold(o),sequence:1};go('home');renderObservation();},mode);
+ assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
+ assert.equal(await p.locator('#obs-name').innerText(),title);
+ assert((await p.locator('#obs-image').evaluate(e=>getComputedStyle(e).backgroundImage)).includes('scene-'+mode+'-alt.svg'));
+ assert(await p.locator('#obs-image').evaluate(async e=>{const im=new Image();im.src=getComputedStyle(e).backgroundImage.slice(5,-2);await im.decode();return im.naturalWidth>=1600;}));
+ await p.evaluate(mode=>{const o=observationState(),now=Date.now();o.pending={mode,rarity:2,readyAt:now,expiresAt:now+WatchModel.hold(o),sequence:1};renderObservation();},mode);
+ assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'false');
+ assert((await p.locator('#obs-image').evaluate(e=>getComputedStyle(e).backgroundImage)).includes(mode+'.webp'));
+}
 assert.deepEqual(errors,[]);console.log('Single scene clock collection, unlock/growth, persistence, 16 visuals and four responsive sizes passed');
 }finally{await b.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});
