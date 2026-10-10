@@ -41,7 +41,7 @@ function renderObservation(){
  const paint=`${o.mode}/${p?.sequence??'idle'}/${r}/${condition}`;
  if(paint!==watchPaint){
   const im=document.getElementById('obs-image');im.style.backgroundImage=`url("${src}")`;im.style.backgroundPosition=`${side} center`;
-  f.style.setProperty('--obs-ratio',m.ratio);f.dataset.mode=o.mode;f.dataset.rarity=r;f.dataset.condition=String(condition);
+  f.style.setProperty('--obs-ratio',m.ratio);f.dataset.mode=o.mode;f.dataset.rarity=r;f.dataset.condition=String(condition);f.dataset.trace=String(r>0&&condition===2&&!o.quiet?'1':'0');
   f.classList.remove('obs-change');if(watchPaint){void f.offsetWidth;f.classList.add('obs-change');}watchPaint=paint;
  }
  const quiet=o.quiet||!!S.incursion?.quiet;
