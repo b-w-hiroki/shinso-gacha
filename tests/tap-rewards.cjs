@@ -14,7 +14,7 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  assert.equal(await p.evaluate(()=>S.observation.collected),0);
  await p.locator('#obs-frame').click();assert.equal(await pt(),18);assert.equal(await p.evaluate(()=>S.observation.collected),1);
  const before=await pt();
- await p.evaluate(()=>{const o=observationState(),t=Date.now();o.pending={mode:'cctv',rarity:1,readyAt:t,expiresAt:t+3600000,sequence:0,suppression:0,strain:0};o.mind.closed=false;renderObservation();});
+ await p.evaluate(()=>{const o=observationState(),t=Date.now();o.mode='cctv';o.pending={mode:'cctv',rarity:1,readyAt:t,expiresAt:t+3600000,sequence:o.sequence,suppression:0,strain:0};o.mind.closed=false;renderObservation();});
  for(let i=0;i<3;i++)await p.locator('#obs-frame').click({position:{x:2,y:2}});
  assert.equal(await pt(),before+3);assert.equal(await p.evaluate(()=>S.observation.pending.suppression),0);
  await p.locator('#obs-help').click();assert.equal(await pt(),before+3,'help does not award');
