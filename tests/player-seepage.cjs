@@ -6,13 +6,15 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  await p.evaluate(()=>{S.role='agent';S.onboarded=true;S.lite={intro:{done:true}};S.lastTick=Date.now()+600000;S.incursion={version:1,level:0,resolved:0,history:[]};S.streak={last:dayKey(),n:1};S.observation=WatchModel.create(Date.now(),42);S.currency=5000;applyMode();go('home');setHomeTab('desk');render();});
 
 
- await p.clock.install();await p.clock.pauseAt(new Date(Date.now()+1000));
+ // Freeze saved event timestamps, but keep animation frames and timers running.
+ // WebKit actionability checks need live frames when reduced motion is off.
+ await p.clock.setFixedTime(Date.now());
  // Actual anomaly and actual observation input produce a saved, independent spillover.
  await p.evaluate(()=>{const o=observationState(),t=Date.now();for(let seed=1;seed<1000;seed++){if(SeepageModel.hash(`watch:${seed}:0:cctv`,seed)%100<35){o.seed=seed;break;}}o.pending={mode:'cctv',rarity:1,readyAt:t,expiresAt:t+3600000,sequence:0,suppression:0};o.mind.closed=false;S.playerSeepage={};renderObservation();});
  assert.equal(await p.evaluate(()=>S.playerSeepage.event),null,'idle does not trigger');
- // Use a real pointer hit on the animated scene. Frozen animation frames can stall
- // WebKit's locator stability polling; hit-testing still verifies the input is unobstructed.
- await p.clock.runFor(40);
+ // Use a real pointer hit on the animated scene. Hit-testing verifies
+ // the decorative overlay does not obstruct the input.
+ await p.waitForTimeout(40);
  const money=await p.evaluate(()=>S.currency),frame=await p.locator('#obs-frame').boundingBox();
  assert(frame);const hit={x:frame.x+4,y:frame.y+4};
  assert(await p.evaluate(({x,y})=>!!document.elementFromPoint(x,y)?.closest('#obs-frame'),hit));
@@ -30,7 +32,7 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
    await p.evaluate(id=>{go('home');setHomeTab('desk');const t=Date.now(),o=observationState();o.mind.closed=false;S.playerSeepage={event:{id,key:'qa:'+id,start:t,end:t+90000,glimpsed:false},nextAt:t+120000};renderObservation();},id);
    if(id>=6){await p.locator('#obs-colleagues').click();await p.locator(`[data-watch-member="${['records','equipment','senior'][id-6]}"]`).click();assert(await p.locator('.seep-colleague-line').isVisible());assert.equal(await p.locator('[data-seep-odd="true"]').count(),1);}
    if(id<3){assert((await p.locator('.seep-margin-copy').innerText()).length>0);assert.equal(await p.locator('body').getAttribute('data-player-seepage'),'caption');}
-   if(id>=3&&id<6){assert(await p.locator('#player-seepage-edge').evaluate(e=>e.classList.contains('seep-glimpse')));await p.clock.runFor(250);}
+   if(id>=3&&id<6){assert(await p.locator('#player-seepage-edge').evaluate(e=>e.classList.contains('seep-glimpse')));await p.waitForTimeout(250);}
    assert.equal(await p.locator('#player-seepage-edge').evaluate(e=>getComputedStyle(e).pointerEvents),'none');
    assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no horizontal overflow');
    if(width===390&&[0,3,6].includes(id)){await p.locator('#player-seepage-edge img,.watch-speaker img').evaluateAll(imgs=>Promise.all(imgs.filter(i=>i.src).map(i=>i.decode())));if(id===3)await p.locator('.seep-reflection').evaluate(e=>e.getAnimations().forEach(a=>{a.pause();a.currentTime=400;}));await p.screenshot({path:`docs/qa-incursions/seepage-${id}-390.jpg`});}
@@ -41,7 +43,7 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  const before=await p.evaluate(()=>JSON.stringify({currency:S.currency,collection:S.observation.collection}));await p.locator('[data-topic="rest"]').click();
  assert.equal(await p.evaluate(()=>S.playerSeepage.event),null);assert.equal(await p.locator('.seep-colleague-line').count(),0);assert.equal(await p.evaluate(()=>JSON.stringify({currency:S.currency,collection:S.observation.collection})),before);
  await p.evaluate(()=>{go('home');const t=Date.now();S.playerSeepage={event:{id:3,key:'persisted',start:t,end:t+90000,glimpsed:false}};observationState().mind.closed=false;renderObservation();save();});
- await p.clock.runFor(1200);assert.equal(await p.locator('#player-seepage-edge').evaluate(e=>e.classList.contains('seep-glimpse')),false);
+ await p.waitForTimeout(1200);assert.equal(await p.locator('#player-seepage-edge').evaluate(e=>e.classList.contains('seep-glimpse')),false);
  await p.reload();await p.evaluate(()=>{go('home');renderObservation();});assert.equal(await p.locator('#player-seepage-edge').evaluate(e=>e.classList.contains('seep-glimpse')),false,'reload cannot replay glimpse');
  await p.evaluate(()=>{S.playerSeepage.event.glimpsed=false;});await p.emulateMedia({reducedMotion:'reduce'});await p.evaluate(()=>renderObservation());assert.equal(await p.locator('#player-seepage-edge').evaluate(e=>e.classList.contains('seep-glimpse')),false);
  await p.evaluate(()=>{observationState().quiet=true;renderObservation();});assert(await p.locator('#player-seepage-edge').isHidden());assert.equal(await p.locator('body').getAttribute('data-player-seepage'),'');
