@@ -20,7 +20,7 @@ const due=o.dueAt;assert.notEqual(M.upgrade(o,'interval',9999,o.lastSeen),null);
 assert.equal(M.upgrade(o,'sensitivity',0,o.lastSeen),null);assert.equal(M.upgrade(o,'sensitivity',9999,o.lastSeen),200);
 // Rewards increase with rarity/source; all three anomaly families actually occur.
 for(const mode of Object.keys(M.MODES)){const rewards=[0,1,2,3].map(rarity=>M.reward({mode,rarity}));for(let i=1;i<4;i++)assert(rewards[i]>rewards[i-1]);}
-const counts=[0,0,0,0];o=M.create(T,93);for(let i=0;i<10000;i++)counts[M.roll(o,i)]++;assert(counts[0]>5000&&counts[3]>100&&counts[3]<300,counts.join(','));
+const counts=[0,0,0,0];o=M.create(T,93);for(let i=0;i<10000;i++)counts[M.roll(o,i)]++;assert(counts[0]>8300&&counts[0]<8700&&counts[3]>20&&counts[3]<90,counts.join(','));
 // Migration preserves chosen medium and a held old anomaly, without granting every unlock.
 o=M.create(T,13,{version:1,mode:'vision',anomaly:true,quiet:true});assert.equal(o.mode,'vision');assert.deepEqual(o.unlocked,['cctv','vision']);assert.equal(o.pending.rarity,2);assert(o.quiet);
 console.log('Clock boundaries, 3–24h hold, offline catch-up, no reroll/double payout, unlocks and growth passed');
@@ -67,13 +67,13 @@ for(const mode of Object.keys(M.MODES))for(const rarity of [1,2,3]){
 }
 // Automation is purchased separately, foreground-only and never catches up in bursts.
 o=M.create(T,42);M.automate(o,T+5000);assert.equal(o.tapProgress,0);
-assert.equal(M.upgrade(o,'patrol',300,T+5000),300);
+assert.equal(M.upgrade(o,'patrol',300,T+5000),null);o.collected=20;o.unlocked.push('photo');assert.equal(M.upgrade(o,'patrol',300,T+5000),300);
 M.automate(o,T+9999);assert.equal(o.tapProgress,0);M.automate(o,T+10000);assert.equal(o.tapProgress,1);
 M.automate(o,T+15000,false);assert.equal(o.tapProgress,1);M.automate(o,T+15001,true);assert.equal(o.tapProgress,1);
 o.autoEnabled=false;M.automate(o,T+20000);assert.equal(o.tapProgress,1);o.autoEnabled=true;
 M.automate(o,T+100000);assert.equal(o.tapProgress,2,'one tick even after a large gap');
 o.pending={mode:'cctv',rarity:2,readyAt:T,expiresAt:T+3*H,sequence:0};o.upgrades.suppression=1;
-M.automate(o,T+105000);assert.equal(o.pending.suppression,0,'R automation cannot suppress SR');o.upgrades.suppression=2;
-M.automate(o,T+110000);assert.equal(o.pending.suppression,0,'automatic suppression cannot bypass targeting');
+M.automate(o,T+105000);assert.equal(o.pending.suppression,0,'R automation cannot suppress SR');o.upgrades.suppression=2;o.manualSuppressions=10;
+M.automate(o,T+110000);assert.equal(o.pending.suppression,1,'eligible automation uses an actual target');assert.equal(o.manualSuppressions,10,'automation does not count as manual training');
 const legacy=M.create(T,42);delete legacy.tapProgress;delete legacy.autoLastAt;delete legacy.upgrades.patrol;delete legacy.upgrades.suppression;legacy.collection={'cctv:3':2};M.normalize(legacy);assert.equal(legacy.tapProgress,0);assert.equal(legacy.upgrades.patrol,0);assert.equal(legacy.collection['cctv:3'],2);
 console.log('Tap thresholds, normal/rare payouts, rotation, saved progress, foreground automation and migration passed');

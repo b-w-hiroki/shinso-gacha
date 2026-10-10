@@ -20,6 +20,9 @@ jobs:
       - run: node tests/incursion-rarity.cjs
       - run: node tests/observation-model.cjs
       - run: node tests/contamination-model.cjs
+      - run: node scripts/update-csp.cjs --check
+      - run: node tests/runtime-safety.cjs
+      - run: node tests/cloud-save.cjs
       - run: node tests/branch-cleanup.mjs
 
   browser:
@@ -71,6 +74,9 @@ jobs:
       - run: node tests/anomaly-cues.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/quieter-loop.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/incursion-records.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
@@ -108,3 +114,38 @@ jobs:
             docs/qa-ui/
             docs/qa-intro/
             docs/qa-incursions/
+
+  webkit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save --package-lock=false playwright@1.62.1
+      - run: npx playwright install --with-deps webkit
+      - name: Japanese font
+        run: curl --fail --location --retry 2 --output "$RUNNER_TEMP/noto.otf" https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/OTF/Japanese/NotoSansCJKjp-Regular.otf
+      - run: node tests/quieter-loop.cjs
+        env:
+          QA_WEBKIT: 1
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: webkit-loop-qa
+          path: docs/qa-incursions/
+
+  security-rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm install --no-save --package-lock=false firebase-tools@14.20.0 @firebase/rules-unit-testing@4.0.1 firebase@11.10.0
+      - run: npx firebase emulators:exec --only firestore --project demo-shinso-security 'node tests/firestore-rules.cjs'

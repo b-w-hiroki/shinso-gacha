@@ -34,3 +34,10 @@
 
 - `index.html` を直接開くと動く。`file://` ではクラウド保存は無効（端末内保存のみ）
 - 初回体験（一般人モード）を見るには、保存データを消すか、シークレットウィンドウで開く
+
+## CSPと保存ルールの更新
+
+- メインスクリプト変更後は `node scripts/update-csp.cjs`。CIがハッシュ一致を検証する。
+- `firebase/firestore.rules` の変更はPages公開では反映されない。新クライアントの公開確認後、Firebaseコンソールで反映する（CLI権限がある環境では `firebase deploy --only firestore:rules --project shinso-gacha`）。
+- 今回の版番号ルール適用後、旧版を開いた端末は再読込する。自動テストは `firebase emulators:exec --only firestore --project demo-shinso-security 'node tests/firestore-rules.cjs'`。
+- 詳細と未確認の運用項目は SECURITY-REVIEW.md を参照。

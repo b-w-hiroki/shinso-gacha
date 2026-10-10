@@ -133,3 +133,4 @@ body:is([data-incursion='close'],[data-incursion='breach']):not(.incursion-quiet
 body:has(#incursion-dialog.inc-record-mode[open]) #watch-veil{display:none}
 @media(prefers-reduced-motion:reduce){.inc-case-photo::before{animation:none!important;filter:none!important}}
 .inc-rarity{display:block;margin-top:4px;font:12px/1.5 var(--f-mono);color:#c9b99c}
+.inc-witness-copy{margin:22px 0;padding-left:12px;border-left:2px solid #806a4e;font-size:16px;line-height:1.9;color:#eee3cf}

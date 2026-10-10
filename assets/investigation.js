@@ -28,6 +28,8 @@ function investigationGoal(){
 function investigationHome(){
  const o=observationState(),s=investigationState(),el=document.getElementById('obs-atmosphere');
  if(watchMessage||o.pending?.rarity||WatchModel.contamination(o)>0)return;
+ const offer=observationRouteOffer();
+ if(offer){el.innerHTML=`<button class="investigation-link" data-watch-route="offer">${OBSERVATIONS[offer[0]].title}への観測を解放する ›</button>`;return;}
  const key=investigationLatest(true);
  if(key)el.innerHTML='<button class="investigation-link" data-trail="latest">届いた観測資料を読む ›</button>';
  else if(o.mind.closed)el.textContent='回線は切れています。下の「観測を再開」で戻れます。';

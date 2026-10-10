@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="ja">
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-tBB3oi1v09WQXrS/FR8O4PPPYcv52QaiO/lgcxiM3NA=' https://www.gstatic.com/firebasejs/ https://cdn.jsdelivr.net/npm/budoux@0.9.3/ https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://shinso-gacha.firebaseapp.com; frame-src https://shinso-gacha.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>真相ガチャ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1172,7 +1174,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
       <div id="tb-list"></div>
     </div>
     </div>
-    <div class="section-pane" data-spane="archive:observations" hidden><button class="btn-line" data-inc="records">封筒の異変記録を見る</button><div id="watch-album"></div></div>
+    <div class="section-pane" data-spane="archive:observations" hidden><button class="btn-line" data-inc="records">封筒の異変記録（100種）を見る</button><div id="watch-album"></div></div>
   </section>
 
   <!-- LAB -->
@@ -1240,7 +1242,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
     <div class="section-pane" data-spane="report:settings" hidden>
     <p class="hint" id="sync" style="text-align:left">記録：この端末のみに保存</p>
     <button class="intro-archive-link" data-intro="archive">最初の3通を読み返す</button>
-    <button class="btn-paper" id="glink" hidden onclick="linkGoogle()">Googleで記録を引き継ぐ</button>
+    <button class="btn-paper" id="glink" hidden>Googleで記録を引き継ぐ</button>
     </div>
   </section>
 </main>
@@ -1271,11 +1273,14 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 <div class="toast" id="toast" hidden></div>
 
 <dialog id="incursion-dialog" aria-labelledby="incursion-title"></dialog>
+<script src="assets/runtime-safety.js"></script>
+<script src="assets/cloud-save.js"></script>
 <script src="assets/intro-story.js"></script>
 <script src="assets/incursions.js"></script>
 <script src="assets/observation-model.js"></script>
 <script src="assets/observation.js"></script>
 <script src="assets/investigation.js"></script>
+<script src="assets/incursion-collection.js"></script>
 <script src="assets/menu.js"></script>
 <script src="assets/scene-fit.js"></script>
 <script>
@@ -1556,7 +1561,9 @@ const fresh = () => ({ currency:30, pulls:0, clicks:0, levels:{}, lastTick:Date.
 let S = load();
 if (!S.role && (S.pulls > 0 || S.onboarded)) S.role = "agent";
 const isLite = () => !S.role;
-function load() { try { const r = localStorage.getItem(KEY); if (r) return Object.assign(fresh(), JSON.parse(r)); } catch (e) {} return fresh(); }
+const escapeHTML = RuntimeSafety.html;
+function restoredState(raw){ return RuntimeSafety.state(raw,fresh(),ITEMS.map(i=>i.id)); }
+function load() { try { const r = localStorage.getItem(KEY); if (r) return restoredState(JSON.parse(r)); } catch (e) {} return fresh(); }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 function dayNo() { const t = new Date(); t.setHours(0,0,0,0); return Math.max(1, Math.floor((t - LAUNCH) / 864e5) + 1); }
 const pad = n => String(n).padStart(3, "0");
@@ -1782,10 +1789,10 @@ function cardHTML(r) {
   const it = r.item, L = r.after, show = Math.min(L, 5) - 1;
   if (r.testi) {
     const t = r.testi;
-    return `${docHead(it)}<div class="eyebrow"><span><span class="rar rar-${it.rar}">${RAR[it.rar].label}</span> FILE ${it.id.toUpperCase()}</span><span class="badges"><span class="badge ${t.rar === "x" ? "red" : t.rar === "r" ? "" : "grey"}">${t.rar === "x" ? "禁" : t.rar === "r" ? "稀" : ""}証言 #${t.no}</span></span></div>
+    return `${docHead(it)}<div class="eyebrow"><span><span class="rar rar-${it.rar}">${RAR[it.rar].label}</span> FILE ${it.id.toUpperCase()}</span><span class="badges"><span class="badge ${t.rar === "x" ? "red" : t.rar === "r" ? "" : "grey"}">${t.rar === "x" ? "禁" : t.rar === "r" ? "稀" : ""}証言 #${escapeHTML(t.no)}</span></span></div>
       <h2>${it.name}</h2>
       <div class="pips">${pips(5)}</div>
-      <div class="lyr"><div class="lab">追加の目撃証言 ／ +3pt</div><p>${t.text}<span class="wipe"></span></p>${t.rar === "x" ? `<span class="note">※ この証言は保管庫へ</span>` : ""}</div>`;
+      <div class="lyr"><div class="lab">追加の目撃証言 ／ +3pt</div><p>${escapeHTML(t.text)}<span class="wipe"></span></p>${t.rar === "x" ? `<span class="note">※ この証言は保管庫へ</span>` : ""}</div>`;
   }
   const badge = !r.opened ? `<span class="badge grey">重複 +3pt還元</span>`
     : L === 1 ? `<span class="badge">新規ファイル</span>`
@@ -1876,7 +1883,7 @@ function openDossier(id, freshLv = 0) {
       <div class="pips" style="margin-bottom:6px">${pips(L)}</div>
       ${body}
     </article>
-    ${L === 5 ? (() => { const ts = (S.tlog || []).filter(t => t.id === id).slice(-3).reverse(); return `<div class="testis"><div class="sec-h" style="margin:0"><h3>目撃証言</h3><small>${(S.tby || {})[id] || 0}件</small></div>${ts.length ? ts.map(t => `<p class="testi t-${t.rar}"><span class="mono">#${t.no}</span> ${t.text}</p>`).join("") : `<p class="hint" style="text-align:left">真相到達後にこのネタを引くと、目撃証言が集まる。</p>`}</div>`; })() : ""}
+    ${L === 5 ? (() => { const ts = (S.tlog || []).filter(t => t.id === id).slice(-3).reverse(); return `<div class="testis"><div class="sec-h" style="margin:0"><h3>目撃証言</h3><small>${escapeHTML((S.tby || {})[id] || 0)}件</small></div>${ts.length ? ts.map(t => `<p class="testi t-${escapeHTML(t.rar)}"><span class="mono">#${escapeHTML(t.no)}</span> ${escapeHTML(t.text)}</p>`).join("") : `<p class="hint" style="text-align:left">真相到達後にこのネタを引くと、目撃証言が集まる。</p>`}</div>`; })() : ""}
     <p class="hint">${L < 5 ? `あと${5 - L}回引けば、最後の黒塗りが剥がれる。` : "真相に到達。ただし中身は共有できない。"}</p>
     ${truthRewardHTML(id)}
     <div class="actions"><button class="btn-paper" data-act="card" data-id="${id}">黒塗りカードを作る</button><button class="btn-line" data-act="close">閉じる</button></div>`);
@@ -2272,10 +2279,10 @@ function renderArchive() {
       <span class="cond">${sL === 5 ? "全ファイルの真相に到達" : `剥がした黒塗りの合計 ${totalLv()} / ${next} で次の段が開示`}</span></button>`;
   const ts = S.tstat || { n: 0, r: 0, x: 0 };
   $("tb-total").textContent = (S.tcount || 0) + "件";
-  $("tb-stat").innerHTML = `<span><span class="rar rar-n">並</span> ${ts.n}</span><span><span class="rar rar-r">稀</span> ${ts.r}</span><span><span class="rar rar-x">禁</span> ${ts.x}</span>`;
-  const recent = (S.tlog || []).slice(-15).reverse();
+  $("tb-stat").innerHTML = `<span><span class="rar rar-n">並</span> ${escapeHTML(ts.n)}</span><span><span class="rar rar-r">稀</span> ${escapeHTML(ts.r)}</span><span><span class="rar rar-x">禁</span> ${escapeHTML(ts.x)}</span>`;
+  const recent = (S.tlog || []).filter(t=>byId(t.id)).slice(-15).reverse();
   $("tb-list").innerHTML = recent.length
-    ? recent.map(t => `<p class="testi t-${t.rar}"><span class="mono">#${t.no}</span> ${byId(t.id).name}：${t.text}</p>`).join("")
+    ? recent.map(t => `<p class="testi t-${escapeHTML(t.rar)}"><span class="mono">#${escapeHTML(t.no)}</span> ${byId(t.id).name}：${escapeHTML(t.text)}</p>`).join("")
     : `<p class="hint" style="text-align:left">真相に到達したネタをもう一度引くと、目撃証言が集まる。</p>`;
   $("files").innerHTML = secretHTML + ITEMS.filter(i => chip === "all" || i.box === chip).map((i, k) => {
     const L = lv(i.id);
@@ -2332,7 +2339,7 @@ function renderReport() {
   if (S.agentNo) {
     aid.hidden = false;
     const crowdLine = pursuerTotal ? `追求者 ${pursuerTotal}名 ・ 本日 ${todayActiveCount()}名が活動中` : "追求者数を照会中";
-    aid.innerHTML = `<span>第六文書課・調査員登録</span><b>No.${S.agentNo} ／ ${S.agentType || "境界観測型"}</b><span>${S.assign || "両班の兼任"}</span>`;
+    aid.innerHTML = `<span>第六文書課・調査員登録</span><b>No.${escapeHTML(S.agentNo)} ／ ${escapeHTML(S.agentType || "境界観測型")}</b><span>${escapeHTML(S.assign || "両班の兼任")}</span>`;
   } else aid.hidden = true;
   const [n, d] = diagnosis();
   $("diag-name").textContent = n; $("diag-desc").textContent = d;
@@ -2543,7 +2550,7 @@ function todayActiveCount() { return crowd ? crowd.length : 0; }
 function renderPursuerSignal() {
   const el = $("pursuer-signal"); if (!el || isLite()) { if (el) el.hidden = true; return; }
   el.hidden = false;
-  const no = S.pursuerNo ? "第" + S.pursuerNo + "追求者" : "追求者登録済み";
+  const no = S.pursuerNo ? "第" + escapeHTML(S.pursuerNo) + "追求者" : "追求者登録済み";
   const total = pursuerTotal || "—", today = todayActiveCount();
   el.innerHTML = `<span>第六文書課・追求者ネットワーク</span><b>あなたは <strong>${no}</strong> です</b><span>現在 ${total}人が登録 ・ 本日 ${today}人が追跡中</span>`;
 }
@@ -2555,7 +2562,7 @@ async function refreshPursuerTotal(assignNo = false) {
     if (assignNo && !S.pursuerNo && pursuerTotal > 0) {
       S.pursuerNo = pursuerTotal;
       S.updatedAt = Date.now(); save();
-      await cloud.setDoc(cloud.saveRef, { state: JSON.parse(JSON.stringify(S)) });
+      markDirty(); again = true;
     }
     renderPursuerSignal(); renderReport();
   } catch (e) {}
@@ -2570,23 +2577,47 @@ async function flush() {
   if (!cloud || !cloud.canWrite) return;
   if (flushing) { again = true; return; }
   flushing = true;
+  const activeCloud=cloud;
   try {
-    await cloud.setDoc(cloud.saveRef, { state: JSON.parse(JSON.stringify(S)) });
+    const revision=await CloudSave.commit(activeCloud.transaction,activeCloud.saveRef,activeCloud.revision,S);
+    if(cloud!==activeCloud)throw {code:'cloud-switched'};
+    cloud.revision=revision;S.cloudBase={uid:cloud.uid,revision};save();
     const t = todayItem();
     const scout = { day: dayKey(), todayLv: lv(t.id), total: totalLv(), lv5: ITEMS.filter(i => lv(i.id) === 5).length };
     const key = JSON.stringify(scout);
     if (!isLite() && key !== lastScout) {
-      await cloud.setDoc(cloud.scoutRef, scout); lastScout = key;
+      await activeCloud.setDoc(activeCloud.scoutRef, scout);
+      if(cloud!==activeCloud)throw {code:'cloud-switched'};
+      lastScout = key;
       await refreshPursuerTotal(!!S.pursuerPending);
       if (S.pursuerNo && S.pursuerPending) { delete S.pursuerPending; save(); }
     }
     setSync("アカウントに保存済み（別の端末でも続きから遊べます）");
   } catch (e) {
-    if (e && (e.code === "permission-denied" || e.code === "invalid-argument")) { cloud.canWrite = false; setSync("この端末のみに保存"); } else setSync("保存に失敗（あとで再試行します）");
+    if(cloud!==activeCloud){again=true;}
+    else if(e?.code==='save-conflict'){cloud.canWrite=false;again=false;showCloudConflict();}
+    else if(e?.code==='cloud-switched'){again=true;}
+    else if (e && (e.code === "permission-denied" || e.code === "invalid-argument")) { cloud.canWrite = false; setSync("この端末のみに保存"); } else setSync("保存に失敗（あとで再試行します）");
   }
   flushing = false;
   if (again) { again = false; flush(); }
 }
+function showCloudConflict(){
+ clearTimeout(flushT);setSync('別端末の進行を検出。同期を停止しています');
+ if(document.getElementById('incursion-dialog').open)closeIncursion();
+ sheet('記録の競合',`<h2>別端末の記録が更新されています</h2><p>どちらの進行も勝手に上書きしません。アカウントの記録を読み込む場合、この端末の進行は退避して残します。</p><button class="btn-paper" data-cloud-choice="remote">アカウントの記録を読み込む</button><button class="btn-line" data-cloud-choice="local">この端末だけで続ける</button>`);
+}
+document.addEventListener('click',async e=>{
+ const b=e.target.closest('[data-cloud-choice]');if(!b||b.disabled)return;
+ if(b.dataset.cloudChoice==='backup'){
+  const data=localStorage.getItem(KEY+'_conflict_backup');if(!data)return;
+  const url=URL.createObjectURL(new Blob([data],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='shinso-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return;
+ }
+ if(b.dataset.cloudChoice==='local'){hideSheet();return;}
+ if(!cloud)return;b.disabled=true;
+ try{localStorage.setItem(KEY+'_conflict_backup',JSON.stringify(S));await pullRemote(true);hideSheet();setSync('アカウントの記録を読み込み済み');}
+ catch(err){b.disabled=false;setSync('読み込みに失敗。この端末の進行を保持しています');}
+});
 function renderCrowd() {
   if (!crowd) return;
   const n = crowd.length, truth = crowd.filter(c => c.todayLv === 5).length;
@@ -2605,19 +2636,25 @@ function renderCrowd() {
 const FB_CONFIG = { apiKey:"AIzaSyAMn8f4sbyKIuAIZKdQVGhgmAzSPOErgA0", authDomain:"shinso-gacha.firebaseapp.com", projectId:"shinso-gacha", storageBucket:"shinso-gacha.firebasestorage.app", messagingSenderId:"1035473896096", appId:"1:1035473896096:web:19a89c0b71de6c3d8d3fc5" };
 const FB_V = "10.14.1";
 let FB = null;
-async function pullRemote() {
-  const snap = await FB.getDoc(cloud.saveRef);
-  const remote = snap.exists() ? (snap.data() || {}).state : null;
-  if (remote && (remote.updatedAt || 0) > (S.updatedAt || 0)) {
-    S = Object.assign(fresh(), remote); ensureMissions(); save();
+async function pullRemote(force=false) {
+  const activeCloud=cloud;
+  const snap = await FB.getDoc(activeCloud.saveRef);
+  if(cloud!==activeCloud)throw {code:"cloud-switched"};
+  const data=snap.exists()?(snap.data()||{}):{},remote=data.state;
+  const revision=Number.isInteger(data.revision)?data.revision:0;
+  if(!force&&S.cloudBase?.uid===cloud.uid&&S.cloudBase.revision!==revision){cloud.canWrite=false;showCloudConflict();return;}
+  cloud.revision=revision;cloud.canWrite=true;
+  if (remote && (force||(remote.updatedAt || 0) > (S.updatedAt || 0))) {
+    S = restoredState(remote); ensureMissions(); save();
     shownPt = Math.floor(S.currency); setWalletText(shownPt); $("fast").checked = !!S.fast;
     render(); toast("アカウントの記録から続きを読み込みました");
   }
+  S.cloudBase={uid:cloud.uid,revision};save();
 }
 function bindCloud(user) {
   const { db, doc } = FB;
-  cloud = { uid: user.uid, canWrite: true, setDoc: FB.setDoc, saveRef: doc(db, "users", user.uid), scoutRef: doc(db, "scouts", user.uid) };
-  lastScout = "";
+  cloud = { uid: user.uid, canWrite: false, revision:null, transaction:fn=>FB.runTransaction(db,fn), setDoc: FB.setDoc, saveRef: doc(db, "users", user.uid), scoutRef: doc(db, "scouts", user.uid) };
+  clearTimeout(flushT);again=false;lastScout = "";
   $("glink").hidden = !user.isAnonymous;
 }
 async function initCloud() {
@@ -2626,7 +2663,7 @@ async function initCloud() {
     const base = "https://www.gstatic.com/firebasejs/" + FB_V + "/";
     const [A, Au, F] = await Promise.all([import(base + "firebase-app.js"), import(base + "firebase-auth.js"), import(base + "firebase-firestore.js")]);
     const app = A.initializeApp(FB_CONFIG), auth = Au.getAuth(app), db = F.getFirestore(app);
-    FB = { db, auth, doc: F.doc, collection: F.collection, getDoc: F.getDoc, setDoc: F.setDoc, getCountFromServer: F.getCountFromServer, Au };
+    FB = { db, auth, doc: F.doc, collection: F.collection, getDoc: F.getDoc, runTransaction:F.runTransaction, setDoc: F.setDoc, getCountFromServer: F.getCountFromServer, Au };
     F.onSnapshot(F.query(F.collection(db, "scouts"), F.where("day", "==", dayKey())), snap => { crowd = snap.docs.map(d => d.data()); renderCrowd(); }, () => {});
     await auth.authStateReady();
     if (!auth.currentUser) await Au.signInAnonymously(auth);
@@ -2641,12 +2678,13 @@ async function linkGoogle() {
   const { auth, Au } = FB, prov = new Au.GoogleAuthProvider();
   try {
     await Au.linkWithPopup(auth.currentUser, prov);
-    bindCloud(auth.currentUser); toast("Googleアカウントに紐付けました"); markDirty(); flush();
+    bindCloud(auth.currentUser); await pullRemote(); toast("Googleアカウントに紐付けました"); markDirty(); flush();
   } catch (e) {
     if (e && e.code === "auth/credential-already-in-use") {
       const cred = Au.GoogleAuthProvider.credentialFromError(e);
-      if (cred && confirm("このGoogleアカウントには既に記録があります。そちらに切り替えますか？（この端末の未同期の進捗は、記録の方が古い場合のみ上書きされます）")) {
-        await Au.signInWithCredential(auth, cred); bindCloud(auth.currentUser); await pullRemote(); markDirty(); flush();
+      if (cred && confirm("このGoogleアカウントには既に記録があります。そちらに切り替えますか？（この端末の進行は退避してから、アカウントの記録を読み込みます）")) {
+        localStorage.setItem(KEY+'_conflict_backup',JSON.stringify(S));
+        await Au.signInWithCredential(auth, cred); bindCloud(auth.currentUser); await pullRemote(true); markDirty(); flush();
       }
     } else if (!e || (e.code !== "auth/popup-closed-by-user" && e.code !== "auth/cancelled-popup-request")) toast("Google連携に失敗しました");
   }
@@ -3060,16 +3098,16 @@ function answerInterview(i) {
     iv.type = interviewType(iv.score);
     if (!S.agentNo) S.agentNo = String(1000 + Math.floor(Math.random() * 9000));
     renderInterview(false);
-    setTimeout(() => { iv.log.push(["them", `確認できました。一般人として放置する方が危険です。<br>調査員番号 No.${S.agentNo} を発行します。判定は「${iv.type}」、配属は${SIDE_NAME[iv.side]}。<br>以後はこちらの管理下で資料を扱ってください。`]); renderInterview(false); }, 900);
+    setTimeout(() => { iv.log.push(["them", `確認できました。一般人として放置する方が危険です。<br>調査員番号 No.${escapeHTML(S.agentNo)} を発行します。判定は「${iv.type}」、配属は${SIDE_NAME[iv.side]}。<br>以後はこちらの管理下で資料を扱ってください。`]); renderInterview(false); }, 900);
   } else {
     renderInterview(false);
     setTimeout(() => { iv.log.push(["them", INTERVIEW[iv.step].q()]); renderInterview(true); }, 900);
   }
 }
 function showAgentWelcome() {
-  const ordinal = S.pursuerNo ? `あなたは、第${S.pursuerNo}追求者です。` : "追求者登録を照会しています。";
+  const ordinal = S.pursuerNo ? `あなたは、第${escapeHTML(S.pursuerNo)}追求者です。` : "追求者登録を照会しています。";
   const live = pursuerTotal ? `現在 ${pursuerTotal}人が登録、本日 ${todayActiveCount()}人が追跡中。` : "";
-  sheet("保護登録 / 着任通知", `<article class="doc paper aged con appointment-paper">${rankEmblem()}<div class="formhead"><span>第六文書課</span><span>緊急介入後・保護登録</span><span>機密</span></div><div class="horror-status rescue">接続遮断済 / 認証済</div><h2>調査員 No.${S.agentNo}</h2><div class="lyr"><div class="lab">追求者登録</div><p><b>${ordinal}</b><br>${live}</p><span class="note">※ 保護対象から調査員へ移管。あなた以外にも、同じ真相を追っている者がいる</span></div><div class="lyr"><div class="lab">判定</div><p>${S.agentType}</p></div><div class="lyr"><div class="lab">配属</div><p>${S.assign}</p></div><div class="lyr"><div class="lab">閲覧権限</div><p>一般人には黒塗りだった LEVEL 4 / 5、および調査室へのアクセスを許可する。</p></div></article><div class="actions"><button class="btn-paper" data-la="enter">調査を開始する</button></div>`);
+  sheet("保護登録 / 着任通知", `<article class="doc paper aged con appointment-paper">${rankEmblem()}<div class="formhead"><span>第六文書課</span><span>緊急介入後・保護登録</span><span>機密</span></div><div class="horror-status rescue">接続遮断済 / 認証済</div><h2>調査員 No.${escapeHTML(S.agentNo)}</h2><div class="lyr"><div class="lab">追求者登録</div><p><b>${ordinal}</b><br>${live}</p><span class="note">※ 保護対象から調査員へ移管。あなた以外にも、同じ真相を追っている者がいる</span></div><div class="lyr"><div class="lab">判定</div><p>${escapeHTML(S.agentType)}</p></div><div class="lyr"><div class="lab">配属</div><p>${escapeHTML(S.assign)}</p></div><div class="lyr"><div class="lab">閲覧権限</div><p>一般人には黒塗りだった LEVEL 4 / 5、および調査室へのアクセスを許可する。</p></div></article><div class="actions"><button class="btn-paper" data-la="enter">調査を開始する</button></div>`);
 }
 function becomeAgent() {
   if (!S.role) {
@@ -3169,6 +3207,7 @@ renderSniffCap();
 applyTime();
 $("fast").checked = !!S.fast;
 initCloud();
+$("glink").addEventListener("click",linkGoogle);
 $("fast").addEventListener("change", e => { S.fast = e.target.checked; markDirty(); });
 if (!isLite() && !S.onboarded) setTimeout(() => sheet("調査員の皆さまへ", `
   <article class="doc paper aged con" style="--sx:86%;--sy:80%">

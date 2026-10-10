@@ -4,6 +4,7 @@
  const MODES={cctv:{label:'監視カメラ',need:0,cost:0,mult:1},photo:{label:'写真',need:5,cost:100,mult:1.25},vision:{label:'視界ジャック',need:15,cost:300,mult:1.5},dash:{label:'車載カメラ',need:30,cost:800,mult:2}};
  const RETENTION=[3,6,12,24],INTERVAL=[10,8,6,5],TAPS=[10,8,6,4],SUPPRESS=[0,6,10,15],AUTO_SECONDS=[0,5,3,1],ANOMALY_REWARDS=[8,80,200,480];
  const UPGRADES={retention:{name:'記録保持',costs:[80,240,600],max:3},interval:{name:'巡回効率',costs:[100,300,800],max:3},sensitivity:{name:'異常感度',costs:[200,500],max:2},patrol:{name:'自動巡回',costs:[300,900,2400],max:3},suppression:{name:'自動鎮静',costs:[600,1800,4000],max:3}};
+ const ODDS=[[85,11,3.5,.5],[82,13,4.3,.7],[78,15,6,1]];
  const RARITY=[{name:'N',reward:8},{name:'R',reward:20},{name:'SR',reward:60},{name:'SSR',reward:180}];
  // Native-image coordinates, never viewport coordinates. No target is shown before contact.
  const TARGETS={
@@ -33,6 +34,7 @@
   if(o.pending){o.pending.suppression=int(o.pending.suppression,14);o.pending.strain=Math.max(0,Math.min(90,Number(o.pending.strain)||0));}
   const m=o.mind&&typeof o.mind==='object'?o.mind:{};
   o.mind={load:Math.max(0,Math.min(100,Number(m.load)||0)),lastAt:int(m.lastAt),lastInput:int(m.lastInput),closed:!!m.closed,talkAt:int(m.talkAt),talks:m.talks&&typeof m.talks==='object'?m.talks:{},dialogue:m.dialogue&&typeof m.dialogue==='object'?m.dialogue:{},clues:m.clues&&typeof m.clues==='object'?m.clues:{}};
+  o.manualSuppressions=int(o.manualSuppressions);
   o.seed=int(o.seed,0xffffffff)||1;o.quiet=!!o.quiet;
   o.history=Array.isArray(o.history)?o.history.filter(x=>x&&MODES[x.mode]&&Number.isInteger(x.rarity)&&RARITY[x.rarity]).slice(-12):[];
   o.collection=o.collection&&typeof o.collection==='object'?o.collection:{};
@@ -47,8 +49,8 @@
   // Counter-based deterministic randomness makes reload and offline sync order irrelevant.
   let n=(o.seed^Math.imul(sequence+1,0x9e3779b1)^Math.imul(Object.keys(MODES).indexOf(o.mode)+1,0x85ebca6b))>>>0;
   n=Math.imul(n^(n>>>16),0x7feb352d);n=Math.imul(n^(n>>>15),0x846ca68b);n=(n^(n>>>16))>>>0;
-  const r=n/4294967296,thresholds=[[.60,.88,.98],[.50,.83,.97],[.40,.77,.95]][o.upgrades.sensitivity];
-  return r<thresholds[0]?0:r<thresholds[1]?1:r<thresholds[2]?2:3;
+  let r=n/4294967296*100;
+  for(let i=0;i<4;i++){if(r<ODDS[o.upgrades.sensitivity][i])return i;r-=ODDS[o.upgrades.sensitivity][i];}return 3;
  }
  function sync(o,time){
   const now=Math.max(int(time),o.lastSeen);o.lastSeen=now;let changed=false;
@@ -88,12 +90,13 @@
   if(!point||!Number.isFinite(point.x)||!Number.isFinite(point.y)||point.x<0||point.x>1||point.y<0||point.y>1)return false;
   return (TARGETS[o.mode]?.[o.pending?.rarity]||[]).some(([x,y,rx,ry])=>((point.x-x)/rx)**2+((point.y-y)/ry)**2<=1);
  }
- function suppress(o,time,point){
+ function suppress(o,time,point,manual=true){
   normalize(o);sync(o,time);if(o.mind.closed||!o.pending?.rarity)return null;
   pursue(o,time,.08);if(!hit(o,point))return null;
   const p=o.pending;p.suppression++;o.mind.load=Math.min(100,o.mind.load+.35);
   if(p.suppression<SUPPRESS[p.rarity])return null;
   const record=claim(o,time);record.reward=Math.round(ANOMALY_REWARDS[record.rarity]*MODES[record.mode].mult);
+  if(manual)o.manualSuppressions++;
   o.tapProgress=0;o.mind.load=Math.max(0,o.mind.load-6);return {kind:'anomaly',record};
  }
  function suppressRegion(o,time,region){
@@ -122,15 +125,20 @@
   if(rarity>0)o.pending={mode:o.mode,rarity,readyAt:o.lastSeen,expiresAt:o.lastSeen+hold(o),sequence:o.sequence,suppression:0};
   return {kind:'patrol',record};
  }
+ function automationUnlocked(o,id){return id==='patrol'?o.collected>=20&&o.unlocked.length>=2:id==='suppression'?o.manualSuppressions>=10&&o.upgrades.patrol>=1:false;}
  function automate(o,time,active=true){
   normalize(o);const now=Math.max(int(time),o.autoLastAt),elapsed=now-o.autoLastAt;
-  const seconds=AUTO_SECONDS[o.upgrades.patrol]||5;
+  const seconds=AUTO_SECONDS[o.pending?.rarity>0?o.upgrades.suppression:o.upgrades.patrol]||5;
   if(!active||!o.autoEnabled){o.autoLastAt=now;return null;}
   // No catch-up bursts: a visible tick can advance at most one real tap.
   if(elapsed<seconds*1000)return null;
   o.autoLastAt=now;sync(o,now);
-  if(o.pending?.rarity>0)return null; // Targeted suppression is manual until unlock design is agreed.
-  else if(!o.upgrades.patrol)return null;
+  if(o.mind.closed)return null;
+  if(o.pending?.rarity>0){
+   if(!automationUnlocked(o,'suppression')||o.upgrades.suppression<o.pending.rarity)return null;
+   const [x,y]=TARGETS[o.mode][o.pending.rarity][0];return suppress(o,now,{x,y},false);
+  }
+  if(!o.upgrades.patrol||!automationUnlocked(o,'patrol'))return null;
   return tap(o,now);
  }
  function equip(o,mode,now){sync(o,now);if(o.pending||!o.unlocked.includes(mode)||o.mode===mode)return false;o.mode=mode;o.tapProgress=0;o.sequence++;o.dueAt=o.lastSeen+interval(o);return true;}
@@ -159,11 +167,11 @@
  }
  function unlock(o,mode,balance){const m=MODES[mode];if(!m||o.unlocked.includes(mode)||o.collected<m.need||balance<m.cost)return null;o.unlocked.push(mode);return m.cost;}
  function upgrade(o,id,balance,now){
-  sync(o,now);const u=UPGRADES[id];if(!u)return null;const lv=o.upgrades[id],cost=u.costs[lv];if(lv>=u.max||balance<cost)return null;
+  sync(o,now);if(['patrol','suppression'].includes(id)&&!automationUnlocked(o,id))return null;const u=UPGRADES[id];if(!u)return null;const lv=o.upgrades[id],cost=u.costs[lv];if(lv>=u.max||balance<cost)return null;
   o.upgrades[id]++;
   if(id==='retention'&&o.pending)o.pending.expiresAt=o.pending.readyAt+hold(o);
   if(id==='interval'&&!o.pending)o.dueAt=Math.min(o.dueAt,o.lastSeen+interval(o));
   return cost;
  }
- return {TARGETS,mindTick,pursue,closeMonitor,contamination,hit,suppress,suppressRegion,talk,MINUTE,HOUR,MODES,RETENTION,INTERVAL,TAPS,SUPPRESS,AUTO_SECONDS,ANOMALY_REWARDS,UPGRADES,RARITY,SET_REWARDS,RESEARCH_COST,create,normalize,interval,hold,roll,sync,reward,claim,tap,automate,equip,unlock,upgrade,setProgress,claimSet,researchStatus,research};
+ return {ODDS,automationUnlocked,TARGETS,mindTick,pursue,closeMonitor,contamination,hit,suppress,suppressRegion,talk,MINUTE,HOUR,MODES,RETENTION,INTERVAL,TAPS,SUPPRESS,AUTO_SECONDS,ANOMALY_REWARDS,UPGRADES,RARITY,SET_REWARDS,RESEARCH_COST,create,normalize,interval,hold,roll,sync,reward,claim,tap,automate,equip,unlock,upgrade,setProgress,claimSet,researchStatus,research};
 });

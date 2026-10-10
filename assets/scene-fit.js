@@ -11,9 +11,10 @@ function fitGacha(){
  const height=Math.max(90,Math.min(width*.72,400,current+room));
  if(Math.abs(height-current)>1)envelope.style.setProperty('--envelope-height',`${Math.floor(height)}px`);
 }
-addEventListener('resize',fitGacha);window.visualViewport?.addEventListener('resize',fitGacha);
-new ResizeObserver(()=>requestAnimationFrame(fitGacha)).observe(document.querySelector('.gacha-scene'));
-new ResizeObserver(()=>requestAnimationFrame(fitGacha)).observe(document.querySelector('.top'));
+const scheduleGachaFit=RuntimeSafety.frame(fitGacha);
+addEventListener('resize',scheduleGachaFit);window.visualViewport?.addEventListener('resize',scheduleGachaFit);
+new ResizeObserver(scheduleGachaFit).observe(document.querySelector('.gacha-scene'));
+new ResizeObserver(scheduleGachaFit).observe(document.querySelector('.top'));
 
 // Prevent unintended zoom only on game controls. Reading text still permits browser zoom.
 const GAME_TOUCH_SURFACES='button,.thread-radar,.gacha-scene,.st-env,#obs-frame,.inc-photo,.inc-presence';

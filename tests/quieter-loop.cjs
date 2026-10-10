@@ -1,0 +1,40 @@
+const {chromium,webkit}=require('playwright'),fs=require('fs'),path=require('path'),http=require('http'),assert=require('assert/strict');
+const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.env.QA_FONT:path.join(process.cwd(),q.url==='/'?'index.html':q.url);r.setHeader('Content-Type',f.endsWith('.html')?'text/html; charset=utf-8':f.endsWith('.js')?'application/javascript':f.endsWith('.css')?'text/css':'application/octet-stream');r.end(fs.readFileSync(f));}catch{r.writeHead(404);r.end();}});
+(async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));const b=await (process.env.QA_WEBKIT?webkit:chromium).launch(process.env.QA_WEBKIT?{}:{executablePath:process.env.CHROMIUM_EXECUTABLE||undefined,args:['--no-sandbox','--disable-dev-shm-usage','--no-zygote','--single-process']});try{
+ const p=await b.newPage({viewport:{width:390,height:680},reducedMotion:'reduce'}),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.route('https://**/*',r=>r.abort());await p.goto('http://127.0.0.1:'+server.address().port);
+ if(process.env.QA_FONT){await p.addStyleTag({content:"@font-face{font-family:QAJP;src:url('/font.otf')} :root{--f-body:QAJP;--f-display:QAJP;--f-mono:QAJP;--f-hand:QAJP}"});await p.evaluate(()=>document.fonts.load('16px QAJP'));}
+ await p.evaluate(()=>{S.role='agent';S.onboarded=true;S.lite={intro:{done:true}};S.lastTick=Date.now()+600000;S.incursion={version:1,level:0,resolved:0,history:[]};S.streak={last:dayKey(),n:1};S.observation=WatchModel.create(Date.now(),42);S.currency=5000;applyMode();go('home');setHomeTab('desk');render();});
+
+ await p.clock.install();await p.clock.pauseAt(new Date(Date.now()+1000));
+ await p.evaluate(()=>{const o=observationState();o.collected=5;o.pending=null;S.currency=100;watchMessage='';renderObservation();});
+ await p.locator('[data-watch-route="offer"]').click();assert((await p.locator('#sheet').innerText()).includes('100pt'));
+ await p.locator('[data-watch-route="photo"]').click();assert.equal(await p.evaluate(()=>S.currency),0);assert(await p.evaluate(()=>S.observation.unlocked.includes('photo')));
+ await p.evaluate(()=>{observationState().tapProgress=9;});await p.locator('#obs-frame').click();assert.equal(await p.evaluate(()=>S.observation.mode),'photo');
+ await p.screenshot({path:'docs/qa-incursions/route-unlocked-390.jpg'});
+ await p.evaluate(()=>{S.currency=5000;const o=observationState();o.collected=20;o.pending=null;go('lab');renderObservationLab();});await p.locator('.watch-upgrades summary').click();
+ assert(await p.locator('[data-watch-upgrade="patrol"]').isVisible());assert.equal(await p.locator('[data-watch-upgrade="suppression"]').count(),0);
+ await p.locator('[data-watch-upgrade="patrol"]').click();
+ await p.evaluate(()=>{go('home');setHomeTab('desk');const o=observationState();o.tapProgress=0;o.autoLastAt=Date.now()-6000;watchLastTick=0;renderObservation();});
+ const money=await p.evaluate(()=>S.currency);await p.evaluate(()=>observationTick());assert.equal(await p.evaluate(()=>S.observation.tapProgress),1);assert.equal(await p.evaluate(()=>S.currency),money,'Automatic input is not a manual 1pt tap');
+ await p.evaluate(()=>{const o=observationState();o.manualSuppressions=10;go('lab');renderObservationLab();});await p.locator('.watch-upgrades summary').click();await p.locator('[data-watch-upgrade="suppression"]').click();
+ await p.evaluate(()=>{go('home');const o=observationState(),t=Date.now();o.mode='cctv';o.pending={mode:'cctv',rarity:1,readyAt:t,expiresAt:t+3600000,sequence:o.sequence,suppression:5};o.autoLastAt=t-6000;watchLastTick=0;renderObservation();});
+ const autoMoney=await p.evaluate(()=>S.currency);await p.evaluate(()=>observationTick());assert.equal(await p.evaluate(()=>S.currency),autoMoney+80);assert.equal(await p.evaluate(()=>S.observation.manualSuppressions),10);
+ await p.evaluate(()=>{S.incursion={version:1,level:40,resolved:10,discovered:Object.fromEntries(Array.from({length:10},(_,i)=>[i,true])),duplicates:12,history:[],event:{kind:34,tier:1,step:1,round:0,contacts:2}};openIncursionRecords();});
+ const event=await p.evaluate(()=>JSON.stringify(incursionState().event));
+ await p.locator('[data-inc-milestone="10"]').click();assert.equal(await p.evaluate(()=>incursionState().samples),3);assert.equal(await p.evaluate(()=>claimIncursionMilestone(10)),false);
+ await p.locator('[data-inc-research="offer"]').click();await p.locator('[data-inc-research="confirm"]').click();assert.equal(await p.evaluate(()=>Object.keys(incursionState().discovered).length),11);assert.equal(await p.evaluate(()=>reconstructIncursion(0)),null);
+ assert.equal(await p.evaluate(()=>JSON.stringify(incursionState().event)),event);
+ const witness=p.locator('[data-inc-witness]');await witness.click();assert(await p.locator('#incursion-dialog .watch-speaker img').isVisible());
+ const mind=await p.evaluate(()=>observationState().mind.load);await p.locator('#incursion-dialog [data-inc="record"]').click();await p.locator('[data-inc-witness]').click();assert.equal(await p.evaluate(()=>observationState().mind.load),mind,'Repeated testimony does not farm recovery');
+ await p.screenshot({path:'docs/qa-incursions/incursion-witness-390.jpg'});
+ await p.keyboard.press('Escape');
+ await p.evaluate(async()=>{S.currency=321;const remote={revision:1,state:{...JSON.parse(JSON.stringify(S)),currency:999,updatedAt:Date.now()+10000}};globalThis.testRemote=remote;cloud={uid:'qa',revision:0,canWrite:true,saveRef:'users/qa',transaction:async fn=>fn({get:async()=>({exists:()=>true,data:()=>remote}),set:()=>{throw Error('stale write attempted');}})};FB={getDoc:async()=>({exists:()=>true,data:()=>remote})};await flush();});
+ assert.equal(await p.evaluate(()=>cloud.canWrite),false);assert.equal(await p.evaluate(()=>S.currency),321);assert(await p.locator('[data-cloud-choice="remote"]').isVisible());
+ await p.screenshot({path:'docs/qa-incursions/save-conflict-390.jpg'});
+ await p.locator('[data-cloud-choice="remote"]').click();assert.equal(await p.evaluate(()=>S.currency),999);assert.equal(await p.evaluate(()=>JSON.parse(localStorage.getItem(KEY+'_conflict_backup')).currency),321);assert.equal(await p.evaluate(()=>S.cloudBase.revision),1);
+ await p.evaluate(()=>{cloud.canWrite=false;save();});await p.reload();assert.equal(await p.evaluate(()=>Object.keys(incursionState().discovered).length),11);assert.equal(await p.evaluate(()=>incursionState().researchSpent),12);assert(await p.evaluate(()=>incursionState().claimedMilestones.includes(10)));
+ await p.evaluate(()=>{S.agentNo='<img src=x onerror="window.injected=1">';S.agentType=S.agentNo;S.assign=S.agentNo;S.tlog=[{id:'u1',rar:'n',no:1,text:S.agentNo}];renderReport();renderArchive();});
+ assert.equal(await p.locator('#agent-id img,#tb-list img').count(),0);assert.equal(await p.evaluate(()=>window.injected),undefined);
+ await p.evaluate(async()=>{let finish;cloud={uid:'old',saveRef:'users/old'};FB={};const old=cloud;FB.getDoc=()=>new Promise(r=>finish=r);const request=pullRemote().catch(e=>e.code);cloud={uid:'replacement',canWrite:false};finish({exists:()=>true,data:()=>({revision:99,state:{currency:1e9}})});if(await request!=='cloud-switched')throw Error('stale cloud read accepted');if(S.currency===1e9)throw Error('old account state leaked');cloud=old;});
+ assert.deepEqual(errors,[]);console.log('Route unlock → actual rotation, automation gates/input accounting, collection/reconstruction/testimony, conflict isolation and backup recovery passed');
+}finally{await b.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});
