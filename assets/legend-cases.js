@@ -28,11 +28,18 @@ function legendNextStep(id){
  if(!state.testified[id])return `${WATCH_COLLEAGUES[LegendModel.CASES[id].member].name}に照会する`;
  return '証言を照合し、真相候補を記録する';
 }
+function legendNextActionHTML(id){
+ const n=LegendModel.count(S.levels,id),state=legendState();
+ if(n<3||Object.hasOwn(state.conclusions,id))return `<button class="btn-line" data-legend="gacha">${n<3?'次の断片を探す':'次の封筒を調べる'}</button>`;
+ if(!legendProof(id))return `<button class="btn-line" data-legend="observe" data-id="${id}">裏付けの観測へ進む</button>`;
+ if(!state.testified[id])return `<button class="btn-line" data-legend="witness" data-id="${id}">担当者に照会する</button>`;
+ return `<button class="btn-line" data-legend="case" data-id="${id}">真相候補を記録する</button>`;
+}
 function legendResumeHTML(){
  const state=legendState();
  const id=[state.active,...LegendModel.ids.filter(k=>LegendModel.count(S.levels,k)>0&&!Object.hasOwn(state.conclusions,k))].find(k=>k&&LegendModel.count(S.levels,k)>0&&!Object.hasOwn(state.conclusions,k));
  if(!id)return '<p class="legend-resume">現在追跡中の噂はありません。封筒から断片を見つけてください。</p>';
- return `<section class="legend-resume" aria-label="前回の調査を再開"><small>調査の続き</small><p><strong>${legendTitle(id)}</strong> ／ ${legendNextStep(id)}</p><button class="btn-paper" data-legend="case" data-id="${id}">この調査を再開する</button></section>`;
+ return `<section class="legend-resume" aria-label="前回の調査を再開"><small>調査の続き</small><p><strong>${legendTitle(id)}</strong> ／ ${legendNextStep(id)}</p><button class="btn-paper" data-legend="case" data-id="${id}">調査記録を開く</button>${legendNextActionHTML(id)}</section>`;
 }
 function openLegendBoard(){
  const s=legendState();

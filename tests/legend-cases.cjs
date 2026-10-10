@@ -33,8 +33,11 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  assert(!(await p.locator('.legend-resume').innerText()).includes('u8'),'internal IDs stay hidden');
  await p.locator('.legend-resume [data-legend="case"]').click();
  assert(await p.locator('.legend-case').isVisible());
- await p.evaluate(()=>{S.legends.active='u2';openLegendBoard();});
- assert.equal(await p.locator('.legend-resume [data-id="u8"]').count(),1,'completed rumor falls through to unfinished case');
+ await p.evaluate(()=>{S.legends.active='u2';S.incursion.discovered={};openLegendBoard();});
+ assert.equal(await p.locator('.legend-resume [data-legend="case"][data-id="u8"]').count(),1,'completed rumor falls through to unfinished case');
+ assert.equal(await p.locator('.legend-resume [data-legend="observe"][data-id="u8"]').count(),1,'missing proof offers observation action');
+ await p.locator('.legend-resume [data-legend="observe"]').click();assert.equal(await p.locator('#sheet').getAttribute('open'),null,'next action closes the investigation sheet');
+ await p.evaluate(()=>{openLegendBoard();});
  for(const [width,height] of [[320,568],[390,844],[844,390]]){
   await p.setViewportSize({width,height});
   for(const screen of ['case','board','gacha']){
