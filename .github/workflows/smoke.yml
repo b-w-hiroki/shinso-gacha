@@ -20,6 +20,7 @@ jobs:
       - run: node tests/incursion-rarity.cjs
       - run: node tests/rumor-patrol-model.cjs
       - run: node tests/legend-model.cjs
+      - run: node tests/legend-layers.cjs
       - run: node tests/player-seepage-model.cjs
       - run: node tests/observation-model.cjs
       - run: node tests/contamination-model.cjs
