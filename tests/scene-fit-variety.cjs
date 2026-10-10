@@ -18,7 +18,13 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
    if(width===390&&height===680&&level===40&&box==='urban')await p.screenshot({path:'docs/qa-incursions/envelope-fit-390.jpg',quality:85});
   }
   await p.evaluate(()=>{go('home');renderObservation();});await p.waitForTimeout(100);
-  assert(await p.evaluate(()=>document.documentElement.scrollHeight<=innerHeight+1),'observation also fits with danger banner');
+  assert(await p.evaluate(()=>document.documentElement.scrollHeight<=innerHeight+1),JSON.stringify(await p.evaluate(()=>({width:innerWidth,height:innerHeight,scroll:document.documentElement.scrollHeight,frame:document.getElementById('obs-frame').getBoundingClientRect().toJSON(),controls:document.querySelector('.obs-secondary').getBoundingClientRect().toJSON(),nav:document.querySelector('.nav').getBoundingClientRect().toJSON(),top:[...document.querySelectorAll('.view:not([hidden])>*')].map(e=>({tag:e.className,box:e.getBoundingClientRect().toJSON()}))}))));
+  if(width===320){
+   await p.evaluate(()=>{const o=observationState(),t=Date.now();o.pending={mode:o.mode,rarity:1,sequence:o.sequence,readyAt:t,expiresAt:t+3600000,suppression:0};renderObservation();});await p.waitForTimeout(100);
+   assert(await p.locator('#obs-help').evaluate(e=>{const r=e.getBoundingClientRect(),frame=document.getElementById('obs-frame').getBoundingClientRect(),copy=document.getElementById('obs-atmosphere').getBoundingClientRect();return r.height>=44&&r.top>=frame.bottom-1&&r.bottom<=copy.top+1;}),'target help retains a full row without covering the image or copy');
+   await p.screenshot({path:'docs/qa-incursions/fixed-monitor-warning-320.jpg',quality:85});
+   await p.evaluate(()=>{observationState().pending=null;renderObservation();});
+  }
  }
  await p.evaluate(()=>{go('home');renderObservation();});assert(await p.locator('#obs-first-hint').isHidden());assert(await p.locator('#obs-source').isHidden());
  // Each new anomaly has evidence, a wrong choice, saved intermediate progress and idempotent completion.

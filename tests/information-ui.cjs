@@ -11,7 +11,7 @@ for(const [level,tier,label] of [[0,1,'静穏'],[12,1,'微かな反応'],[36,2,'
  if(level>=36){await p.locator('#incursion-status').click();assert(await p.locator('#incursion-dialog').isVisible());await p.keyboard.press('Escape');}
 }
 await p.evaluate(()=>{S.incursion.level=0;S.incursion.event=null;observationState().upgrades.retention=1;render();});
-await p.locator('[data-watch="settings"]').click();await p.locator('.watch-settings [data-desk="evidence"]').click();assert(await p.locator('.evidence-stack').isVisible());assert.equal(await p.locator('.case-choices button').count(),3);await p.keyboard.press('Escape');
+await p.locator('#obs-equipment').click();await p.locator('[data-watch="settings"]').click();await p.locator('.watch-settings [data-desk="evidence"]').click();assert(await p.locator('.evidence-stack').isVisible());assert.equal(await p.locator('.case-choices button').count(),3);await p.keyboard.press('Escape');await p.locator('.watch-lab [data-watch="return"]').click();
 for(const [width,height] of [[320,568],[390,700],[430,932]]){
  await p.setViewportSize({width,height});await p.locator('#wallet').click();assert.equal(await p.locator('.wallet-rank').count(),0);assert.equal(await p.locator('#wallet-current').innerText(),'543pt');
  await p.evaluate(()=>{S.currency=654;render();});assert.equal(await p.locator('#wallet-current').innerText(),'654pt');assert(await p.locator('#wallet-hour').isVisible());

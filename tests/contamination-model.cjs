@@ -4,7 +4,7 @@ for(const mode of Object.keys(M.MODES))for(const rarity of [1,2,3]){
  let o=fixture(mode,rarity);for(let i=0;i<30;i++)M.tap(o,T);assert.equal(o.pending.suppression,0,'ordinary taps do not suppress');
  M.suppress(o,T,{x:0,y:1});assert.equal(o.pending.suppression,0,'miss');assert.equal(M.suppress(o,T,{x:NaN,y:0}),null);
  const [x,y]=M.TARGETS[mode][rarity][0];for(let i=0;i<M.SUPPRESS[rarity]-1;i++){M.suppress(o,T,{x,y});o=M.normalize(JSON.parse(JSON.stringify(o)));}
- const result=M.suppress(o,T,{x,y});assert.equal(result.kind,'anomaly');assert.equal(o.collected,1);assert(!o.pending);assert.equal(M.suppress(o,T,{x,y}),null,'no duplicate payout');
+ const result=M.suppress(o,T,{x,y});assert.equal(result.kind,'anomaly');assert.equal(o.collected,1);assert.notEqual(o.mode,mode);assert(!o.pending||o.pending.sequence!==0);assert.equal(M.suppress(o,T,{x,y}),null,'no duplicate payout');
  o=fixture(mode,rarity);const region=Math.floor(y*3)*3+Math.floor(x*3);M.suppressRegion(o,T,region);assert.equal(o.pending.suppression,1,'accessible location choice');
 }
 let o=fixture();M.pursue(o,T);for(let seconds=1;seconds<=80;seconds++){if(seconds%10===0)M.pursue(o,T+seconds*1000);M.mindTick(o,T+seconds*1000,{viewing:true});}

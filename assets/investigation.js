@@ -20,16 +20,14 @@ function investigationLatest(unread=false){
  return [...o.history].reverse().map(r=>`${r.mode}:${r.rarity}`).find(k=>investigationRecord(k)&&(!unread||!s.read[k]))||Object.keys(o.collection).find(k=>o.collection[k]&&(!unread||!s.read[k]))||null;
 }
 function investigationGoal(){
- const o=observationState(),next=Object.entries(WatchModel.MODES).find(([id])=>!o.unlocked.includes(id));
- if(next){const [id,m]=next;return `${m.label}の解放まで、観測記録あと${Math.max(0,m.need-o.collected)}件・${m.cost}pt（所持${Math.floor(S.currency)}pt）。`;}
+ const o=observationState();
  const missing=Object.keys(o.collection).filter(k=>!o.collection[k]).length;
  return missing?`未観測はあと${missing}種。重複記録は各地点48件で未発見の記録と照合できます。`:'全16種を保管済み。各地点の達成報酬と、同僚の証言を確かめられます。';
 }
 function investigationHome(){
  const o=observationState(),s=investigationState(),el=document.getElementById('obs-atmosphere');
  if(watchMessage||o.pending?.rarity||WatchModel.contamination(o)>0)return;
- const offer=observationRouteOffer();
- if(offer){el.innerHTML=`<button class="investigation-link" data-watch-route="offer">${OBSERVATIONS[offer[0]].title}への観測を解放する ›</button>`;return;}
+ if(!o.mind.closed&&watchLeadCopy(o))return;
  const key=investigationLatest(true);
  if(key)el.innerHTML='<button class="investigation-link" data-trail="latest">届いた観測資料を読む ›</button>';
  else if(o.mind.closed)el.textContent='回線は切れています。下の「観測を再開」で戻れます。';

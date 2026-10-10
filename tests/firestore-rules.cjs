@@ -1,5 +1,5 @@
 const fs=require('fs'),{initializeTestEnvironment,assertFails,assertSucceeds}=require('@firebase/rules-unit-testing');
-const {doc,setDoc,getDoc}=require('firebase/firestore');
+const {doc,setDoc,getDoc,deleteDoc,runTransaction}=require('firebase/firestore');
 (async()=>{const env=await initializeTestEnvironment({projectId:'demo-shinso-security',firestore:{host:'127.0.0.1',port:8080,rules:fs.readFileSync('firebase/firestore.rules','utf8')}});try{
  const a=env.authenticatedContext('alice').firestore(),b=env.authenticatedContext('bob').firestore(),anon=env.unauthenticatedContext().firestore();
  await assertSucceeds(setDoc(doc(a,'users/alice'),{state:{currency:30},revision:1}));
@@ -15,5 +15,14 @@ const {doc,setDoc,getDoc}=require('firebase/firestore');
  const scout={day:'2026-10-10',todayLv:1,total:5,lv5:0};
  await assertSucceeds(setDoc(doc(a,'scouts/alice'),scout));await assertSucceeds(getDoc(doc(anon,'scouts/alice')));
  await assertFails(setDoc(doc(b,'scouts/alice'),scout));await assertFails(setDoc(doc(a,'scouts/alice'),{...scout,total:999}));await assertFails(setDoc(doc(a,'scouts/alice'),{...scout,email:'private'}));
+ // Deletion replaces the game with a marker and removes public aggregate atomically.
+ await assertFails(deleteDoc(doc(b,'scouts/alice')));
+ await assertFails(deleteDoc(doc(anon,'scouts/alice')));
+ await assertSucceeds(runTransaction(a,async tx=>{tx.set(doc(a,'users/alice'),{state:{accountDeleted:true},revision:3});tx.delete(doc(a,'scouts/alice'));}));
+ await assertSucceeds(deleteDoc(doc(a,'scouts/alice'))); // retry is idempotent
+ await assertFails(setDoc(doc(a,'users/alice'),{state:{currency:999},revision:4}));
+ await assertFails(setDoc(doc(a,'scouts/alice'),scout));
+ await assertFails(deleteDoc(doc(a,'users/alice'))); // no delete/recreate bypass
+ await assertFails(getDoc(doc(b,'users/alice')));
  await assertFails(setDoc(doc(a,'unexpected/alice'),{}));console.log('Owner isolation, save schema/revisions/legacy migration, public aggregate bounds and default deny passed');
  }finally{await env.cleanup();}})().catch(e=>{console.error(e);process.exitCode=1;});

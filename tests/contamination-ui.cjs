@@ -6,7 +6,7 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  await p.evaluate(()=>{S.role='agent';S.onboarded=true;S.lite={intro:{done:true}};S.lastTick=Date.now()+600000;S.incursion={version:1,level:0,resolved:0,history:[]};S.streak={last:dayKey(),n:1};S.observation=WatchModel.create(Date.now(),42);S.currency=5000;applyMode();go('home');setHomeTab('desk');render();});
  assert(await p.locator('[data-watch="settings"]').isHidden(),'settings locked before training');
  await p.locator('#game-menu').click();await p.locator('[data-menu="settings"]').click();assert(await p.locator('[data-watch-quiet]').isVisible(),'motion preference is always available');assert.equal(await p.locator('[data-menu="observation"]').count(),0);await p.keyboard.press('Escape');
- await p.evaluate(()=>go('lab'));await p.locator('.watch-upgrades summary').click();await p.locator('[data-watch-upgrade="retention"]').click();await p.evaluate(()=>{go('home');render();});assert(await p.locator('[data-watch="settings"]').isVisible(),'training unlocks settings');
+ await p.evaluate(()=>go('lab'));await p.locator('.watch-upgrades summary').click();await p.locator('[data-watch-upgrade="retention"]').click();await p.evaluate(()=>{go('home');render();});await p.locator('#obs-equipment').click();assert(await p.locator('[data-watch="settings"]').isVisible(),'training unlocks settings');await p.locator('.watch-lab [data-watch="return"]').click();
  await p.clock.install();await p.clock.pauseAt(new Date(Date.now()+1000));
  // Every clue can be touched at its native-image coordinate, including portrait edges in landscape.
  for(const [width,height] of [[320,568],[390,844],[844,390]]){

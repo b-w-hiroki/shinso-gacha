@@ -14,6 +14,8 @@
  u11:{mode:'photo',member:'records',families:['presence','memory'],fragments:[['相談記録','友人に家の外へ連れ出された。理由は帰宅後まで教えてもらえなかった。'],['室内写真','寝台の下だけが、照明の向きに関係なく暗い。'],['入室記録','在室人数が一人多い。追加された人の入室履歴はない。']],original:'寝台の下から撮られた、あなたが資料を読む姿の写真。',witness:'見つけた人の証言がありません。見られていた人の証言だけです。',seep:'在室人数：一名超過',odd:'白瀬があなたの椅子の下へ挨拶する。「先にいらしていたんですね」'},
  u12:{mode:'dash',member:'senior',families:['time','memory'],fragments:[['夢の手記','同じ列車に乗る夢を見た。翌朝、停車駅の順序だけを覚えていた。'],['録音記録','眠っている間の部屋から、車内案内に似た声が録音されている。'],['時刻表','夢で聞いた駅名の横に、目撃者が起きる時刻が並んでいる。']],original:'次の駅名は、まだ誰にも話していないあなたの夢の中の言葉。',witness:'続きを見るために眠るな。起きてからの記録と、別々に保管しておけ。',seep:'次は、目が覚めたあとの駅です',odd:'三輪が目を閉じたまま言う。「まだ降りていないのか」'}
  };
+ const affinities={u1:[2],u2:[2],u3:[1,2],u4:[3],u5:[3],u6:[3],u7:[2],u8:[2,3],u9:[2],u10:[3],u11:[2,3],u12:[1,2]};
+ for(const [id,rarities] of Object.entries(affinities))CASES[id].rarities=rarities;
  const ids=Object.keys(CASES),has=id=>Object.hasOwn(CASES,id);
  const count=(levels,id)=>has(id)?Math.min(3,Math.max(0,Math.floor(Number(levels?.[id])||0))):0;
  function state(raw,levels){

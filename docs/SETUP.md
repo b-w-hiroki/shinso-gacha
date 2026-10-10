@@ -38,6 +38,10 @@
 ## CSPと保存ルールの更新
 
 - メインスクリプト変更後は `node scripts/update-csp.cjs`。CIがハッシュ一致を検証する。
-- `firebase/firestore.rules` の変更はPages公開では反映されない。新クライアントの公開確認後、Firebaseコンソールで反映する（CLI権限がある環境では `firebase deploy --only firestore:rules --project shinso-gacha`）。
+- `firebase/firestore.rules` の変更はPages公開では反映されない。アカウント削除に必要なルールを新クライアントより先にFirebaseコンソールで反映する（CLI権限がある環境では `firebase deploy --only firestore:rules --project shinso-gacha`）。
 - 今回の版番号ルール適用後、旧版を開いた端末は再読込する。自動テストは `firebase emulators:exec --only firestore --project demo-shinso-security 'node tests/firestore-rules.cjs'`。
 - 詳細と未確認の運用項目は SECURITY-REVIEW.md を参照。
+
+## ログイン・削除・図鑑
+
+仕様、削除済み印の扱い、公開前の作業は [ACCOUNT-CATALOG.md](ACCOUNT-CATALOG.md) を参照。Google認証と本番の削除はテスト用アカウントで確認する。

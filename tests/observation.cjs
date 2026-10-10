@@ -58,11 +58,11 @@ await p.reload();await font();assert(await p.evaluate(()=>S.observation.reconstr
 await p.evaluate(()=>{S.observation=WatchModel.create(Date.now(),42);save();});
 // Genuine growth flow: locked source -> unlock -> equip, with point deductions.
 await p.evaluate(()=>{S.currency=1000;S.observation.collected=5;go('lab');render();});
-await p.locator('[data-watch-unlock="photo"]').click();assert.equal(await p.evaluate(()=>S.currency),900);await p.locator('[data-watch-equip="photo"]').click();assert.equal(await p.evaluate(()=>S.observation.mode),'photo');assert(await p.locator('[data-watch-unlock="vision"]').isDisabled());
-await p.locator('.watch-upgrades summary').click();await p.locator('[data-watch-upgrade="retention"]').click();assert.equal(await p.evaluate(()=>S.currency),820);assert.equal(await p.evaluate(()=>S.observation.upgrades.retention),1);
+assert.equal(await p.locator('[data-watch-unlock],[data-watch-equip]').count(),0);assert.equal(await p.locator('.watch-mode').count(),4);
+await p.locator('.watch-upgrades summary').click();await p.locator('[data-watch-upgrade="retention"]').click();assert.equal(await p.evaluate(()=>S.currency),965);assert.equal(await p.evaluate(()=>S.observation.upgrades.retention),1);
 await p.evaluate(()=>{go('home');S.observation.dueAt=Date.now()-1000;renderObservation();save();});
 const saved=await p.evaluate(()=>JSON.stringify(S.observation.pending));await p.reload();await font();assert.equal(await p.evaluate(()=>JSON.stringify(S.observation.pending)),saved);assert.equal(await p.locator('#obs-ready').isVisible(),JSON.parse(saved).rarity>0);
-await p.locator('[data-watch="settings"]').click();assert(await p.locator('.watch-settings').isVisible());await p.locator('[data-watch-quiet]').check();await p.keyboard.press('Escape');assert.equal(await p.locator('#obs-frame').getAttribute('data-quiet'),'true');
+await p.locator('#obs-equipment').click();await p.locator('[data-watch="settings"]').click();assert(await p.locator('.watch-settings').isVisible());await p.locator('[data-watch-quiet]').check();await p.keyboard.press('Escape');await p.locator('.watch-lab [data-watch="return"]').click();assert.equal(await p.locator('#obs-frame').getAttribute('data-quiet'),'true');
 // Every medium and rarity draws a decoded large image; only one capture surface exists.
 for(const [width,height] of [[320,568],[390,844],[430,932],[844,390]]){
  await p.setViewportSize({width,height});

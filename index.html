@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-G3XZuAjo3cGvdoQovHhdZd6uF0TCSmKtPuKGkynnhsQ=' https://www.gstatic.com/firebasejs/ https://cdn.jsdelivr.net/npm/budoux@0.9.3/ https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://shinso-gacha.firebaseapp.com; frame-src https://shinso-gacha.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-CVOflPUx8mJ/5KZEiAq7VwfZf/gXYtFp8R64EknSpmI=' https://www.gstatic.com/firebasejs/ https://cdn.jsdelivr.net/npm/budoux@0.9.3/ https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://shinso-gacha.firebaseapp.com; frame-src https://shinso-gacha.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>真相ガチャ</title>
@@ -1006,6 +1006,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 <link rel="stylesheet" href="assets/menu.css">
 <link rel="stylesheet" href="assets/player-seepage.css">
 <link rel="stylesheet" href="assets/legend-cases.css">
+<link rel="stylesheet" href="assets/account-catalog.css">
 
 <div id="watch-veil" aria-hidden="true"></div>
 <header class="top">
@@ -1088,7 +1089,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
         <div class="obs-status"><span id="obs-ready" hidden>記録を受信</span><span id="obs-first-hint" hidden>映像に触れて観測する</span><span id="obs-timer"></span><button id="obs-help" data-watch="target" hidden>対処方法</button></div>
         <p id="obs-atmosphere" aria-live="off"></p>
         <p id="obs-feedback" role="status" aria-live="polite"></p>
-        <div class="obs-secondary"><button id="obs-rest" type="button">モニタを閉じる</button><button id="obs-colleagues" type="button">課内で話す</button><button data-watch="settings" type="button" hidden>観測設定</button></div>
+        <div class="obs-secondary"><button id="obs-rest" type="button">モニタを閉じる</button><button id="obs-colleagues" type="button">課内で話す</button><button id="obs-equipment" data-watch="lab" type="button">機材・育成</button></div>
       </section>
       <div class="cap home-cap" hidden><span id="cap-text"></span><div class="rk-bar"><i id="cap-bar" style="width:0%"></i></div></div>
     </div>
@@ -1177,7 +1178,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
       <div id="tb-list"></div>
     </div>
     </div>
-    <div class="section-pane" data-spane="archive:observations" hidden><button class="btn-line" data-inc="records">封筒の異変記録（100種）を見る</button><div id="watch-album"></div></div>
+    <div class="section-pane" data-spane="archive:observations" hidden><button class="btn-paper" data-menu="catalog">図鑑を開く · 異変／人物／場所</button><button class="btn-line" data-inc="records">封筒の異変記録（100種）を見る</button><div id="watch-album"></div></div>
   </section>
 
   <!-- LAB -->
@@ -1289,6 +1290,8 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 <script src="assets/player-seepage-model.js"></script>
 <script src="assets/player-seepage.js"></script>
 <script src="assets/menu.js"></script>
+<script src="assets/account.js"></script>
+<script src="assets/encyclopedia.js"></script>
 <script src="assets/scene-fit.js"></script>
 <script>
 /* ---------- 日本語の改行（文節で折り返す） ---------- */
@@ -2580,14 +2583,15 @@ async function refreshPursuerTotal(assignNo = false) {
 function setSync(t) { $("sync").textContent = "記録：" + t; }
 function markDirty() {
   S.updatedAt = Date.now(); save();
-  if (!cloud || !cloud.canWrite) return;
+  if (!cloud || !cloud.canWrite || accountDeleting) return;
   clearTimeout(flushT); flushT = setTimeout(flush, 3000);
 }
 async function flush() {
-  if (!cloud || !cloud.canWrite) return;
+  if (!cloud || !cloud.canWrite || accountDeleting) return;
   if (flushing) { again = true; return; }
   flushing = true;
   const activeCloud=cloud;
+  activeCloud.lastError=null;
   try {
     const revision=await CloudSave.commit(activeCloud.transaction,activeCloud.saveRef,activeCloud.revision,S);
     if(cloud!==activeCloud)throw {code:'cloud-switched'};
@@ -2604,6 +2608,7 @@ async function flush() {
     }
     setSync("アカウントに保存済み（別の端末でも続きから遊べます）");
   } catch (e) {
+    activeCloud.lastError=e;
     if(cloud!==activeCloud){again=true;}
     else if(e?.code==='save-conflict'){cloud.canWrite=false;again=false;showCloudConflict();}
     else if(e?.code==='cloud-switched'){again=true;}
@@ -2648,22 +2653,25 @@ const FB_V = "10.14.1";
 let FB = null;
 async function pullRemote(force=false) {
   const activeCloud=cloud;
+  force=force||!!activeCloud.requireRemote;
   const snap = await FB.getDoc(activeCloud.saveRef);
   if(cloud!==activeCloud)throw {code:"cloud-switched"};
   const data=snap.exists()?(snap.data()||{}):{},remote=data.state;
   const revision=Number.isInteger(data.revision)?data.revision:0;
+  if(data.state?.accountDeleted){accountDeleting=true;cloud.canWrite=false;localStorage.setItem(KEY+'_account_deletion',cloud.uid);throw {code:'account-deleted'};}
   if(!force&&S.cloudBase?.uid===cloud.uid&&S.cloudBase.revision!==revision){cloud.canWrite=false;showCloudConflict();return;}
   cloud.revision=revision;cloud.canWrite=true;
   if (remote && (force||(remote.updatedAt || 0) > (S.updatedAt || 0))) {
+    if(S.cloudBase?.uid!==activeCloud.uid&&(S.pulls||S.role))localStorage.setItem(KEY+'_conflict_backup',JSON.stringify(S));
     S = restoredState(remote); ensureMissions(); save();
     shownPt = Math.floor(S.currency); setWalletText(shownPt); $("fast").checked = !!S.fast;
     render(); toast("アカウントの記録から続きを読み込みました");
   }
-  S.cloudBase={uid:cloud.uid,revision};save();
+  cloud.requireRemote=false;S.cloudBase={uid:cloud.uid,revision};save();
 }
 function bindCloud(user) {
   const { db, doc } = FB;
-  cloud = { uid: user.uid, canWrite: false, revision:null, transaction:fn=>FB.runTransaction(db,fn), setDoc: FB.setDoc, saveRef: doc(db, "users", user.uid), scoutRef: doc(db, "scouts", user.uid) };
+  cloud = { uid: user.uid, canWrite: false, requireRemote:!user.isAnonymous&&S.cloudBase?.uid!==user.uid, revision:null, transaction:fn=>FB.runTransaction(db,fn), setDoc: FB.setDoc, saveRef: doc(db, "users", user.uid), scoutRef: doc(db, "scouts", user.uid) };
   clearTimeout(flushT);again=false;lastScout = "";
   $("glink").hidden = !user.isAnonymous;
 }
@@ -2676,29 +2684,19 @@ async function initCloud() {
     FB = { db, auth, doc: F.doc, collection: F.collection, getDoc: F.getDoc, runTransaction:F.runTransaction, setDoc: F.setDoc, getCountFromServer: F.getCountFromServer, Au };
     F.onSnapshot(F.query(F.collection(db, "scouts"), F.where("day", "==", dayKey())), snap => { crowd = snap.docs.map(d => d.data()); renderCrowd(); }, () => {});
     await auth.authStateReady();
-    if (!auth.currentUser) await Au.signInAnonymously(auth);
+    accountReady=true;
+    if (!auth.currentUser && !localStorage.getItem(KEY+'_signed_out')) await Au.signInAnonymously(auth);
+    accountObserveAuth(auth,Au);
+    if(!auth.currentUser){accountMessage('ゲストの記録はこの端末に保存しています');return;}
     bindCloud(auth.currentUser);
+    if(accountPending()===auth.currentUser.uid){accountDeleting=true;accountMessage('削除が途中です。アカウント画面から再開してください。');return;}
     await pullRemote();
     if (!isLite()) await refreshPursuerTotal(false);
     markDirty(); flush();
-  } catch (e) { setSync("この端末のみに保存"); }
+    accountMessage(auth.currentUser.isAnonymous?'Google連携すると端末を変えて引き継げます':'ログイン済み。記録を同期しています');
+  } catch (e) { setSync("この端末のみに保存");accountMessage(accountError(e)); }
 }
-async function linkGoogle() {
-  if (!FB) return;
-  const { auth, Au } = FB, prov = new Au.GoogleAuthProvider();
-  try {
-    await Au.linkWithPopup(auth.currentUser, prov);
-    bindCloud(auth.currentUser); await pullRemote(); toast("Googleアカウントに紐付けました"); markDirty(); flush();
-  } catch (e) {
-    if (e && e.code === "auth/credential-already-in-use") {
-      const cred = Au.GoogleAuthProvider.credentialFromError(e);
-      if (cred && confirm("このGoogleアカウントには既に記録があります。そちらに切り替えますか？（この端末の進行は退避してから、アカウントの記録を読み込みます）")) {
-        localStorage.setItem(KEY+'_conflict_backup',JSON.stringify(S));
-        await Au.signInWithCredential(auth, cred); bindCloud(auth.currentUser); await pullRemote(true); markDirty(); flush();
-      }
-    } else if (!e || (e.code !== "auth/popup-closed-by-user" && e.code !== "auth/cancelled-popup-request")) toast("Google連携に失敗しました");
-  }
-}
+async function linkGoogle(){return accountLogin();}
 
 /* ---------- 一般人モード（入門版）と面接 ---------- */
 const LITE_IDS = ["u1", "u2", "u4", "u5", "u6", "u7", "c1", "c3", "c6", "c7", "c8", "c12"], LITE_MAX = 3, LITE_ALL = LITE_IDS.length * LITE_MAX;
@@ -3189,6 +3187,7 @@ function openAgentRecord() {
 }
 $("agent-record").addEventListener("click",openAgentRecord);
 function tick() {
+  if(accountBusy||accountDeleting)return;
   if (isLite()) { S.lastTick = Date.now(); return; }
   observationTick();
   const step = idleStep(), el = Date.now() - S.lastTick;

@@ -5,7 +5,7 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  if(process.env.QA_FONT){await p.addStyleTag({content:"@font-face{font-family:QAJP;src:url('/font.otf')} :root{--f-body:QAJP;--f-display:QAJP;--f-mono:QAJP;--f-hand:QAJP}"});await p.evaluate(()=>document.fonts.load('16px QAJP'));}
  await p.evaluate(()=>{S.role='agent';S.onboarded=true;S.lite={intro:{done:true}};S.lastTick=Date.now()+600000;S.incursion={version:1,level:0,resolved:0,history:[]};S.streak={last:dayKey(),n:1};S.observation=WatchModel.create(Date.now(),42);S.currency=5000;applyMode();go('home');setHomeTab('desk');render();});
 
- await p.locator('[data-trail="guide"]').click();assert((await p.locator('.investigation-goal').innerText()).includes('100pt'));await p.screenshot({path:'docs/qa-incursions/trail-guide-390.jpg',quality:85});
+ await p.locator('[data-trail="guide"]').click();assert((await p.locator('.investigation-goal').innerText()).includes('未観測'));await p.screenshot({path:'docs/qa-incursions/trail-guide-390.jpg',quality:85});
  for(const route of ['gacha','files','lab','home']){
   await p.evaluate(()=>openInvestigationGuide());await p.locator(`[data-trail="${route}"]`).click();assert(await p.locator(`[data-view="${route==='files'?'archive':route}"]`).isVisible());
  }

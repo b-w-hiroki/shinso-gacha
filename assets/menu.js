@@ -1,6 +1,7 @@
 /* Operator notices are release-managed; personal game mail is saved with the player. */
 const GAME_NOTICES=[
- {id:'seepage-growth-1',date:'2026.10.10',title:'異常感度の育成と、画面外への干渉',body:'観測の異変率は初期5%。調査室の異常感度を育てると8%、12%へ上がります。異変の一部は画面の縁や課員にも干渉します。回線を切る、課内で少し休むと収まります。設定の「揺れ・画面演出を抑える」で追加演出を停止できます。記録とptは失われません。'},
+ {id:'rumor-patrol-1',date:'2026.10.10',title:'観測先を巡り、噂を追う',body:'4地点を最初から巡回できるようになりました。同じ地点を続けず、追跡中の噂と未観測の記録を優先します。平常が続いたときも課内から照合の手がかりが届きます。育成は小刻みな段階に変更。以前の育成効果を引き継ぎ、観測先の解放費は一度だけ返還します。'},
+ {id:'seepage-growth-1',date:'2026.10.10',title:'異常感度の育成と、画面外への干渉',body:'観測の異変率は初期5%。調査室の異常感度を育てると0.5ポイントずつ、最大12%まで上がります。異変の一部は画面の縁や課員にも干渉します。回線を切る、課内で少し休むと収まります。設定の「揺れ・画面演出を抑える」で追加演出を停止できます。記録とptは失われません。'},
  {id:'anomaly-pressure-1',date:'2026.10.09',title:'異変の対処と休息を追加しました',body:'異変は映像内の違和感がある付近を繰り返しタップして対処します。通常巡回では除去できません。観測や真相追求を続けると干渉が広がります。手を止める、モニタを閉じる、課内で話すことで落ち着きます。不在中の悪化や資料・ptの喪失はありません。観測ボタンは廃止し、映像へ直接触れる方式です。観測設定は装備の育成後に表示されます。自動対処と広告回復は未開放です。'},
  {id:'observation-patrol-1',date:'2026.10.09',title:'観測手順と操作配置を更新しました',body:'映像を繰り返しタップすると次の地点へ進み、平常時も記録報酬を受け取れます。映像に干渉がある場合は追加操作で抑えてください。自動巡回・鎮静は解放条件の調整中につき非表示・停止しています。購入済みの育成データは保持されます。設定やメニューは下部へ移動し、真相印は本文と重ならない位置に調整しました。'},
  {id:'observation-research-1',date:'2026.10.09',title:'重複記録を照合できるようになりました',body:'「ファイル → 観測」で同じ地点の重複48件を照合すると、未発見の記録を1件復元できます。発見済みの画像や記録件数は残ります。全4種を揃えた達成報酬や、発見済み画像の比較も利用できます。'},
@@ -43,7 +44,7 @@ function returnFromMenu(){
 }
 function openGameMenu(){
  const n=renderMenuBadge();
- openMenuPage('メニュー',`<div class="game-menu-list">${!isLite()?'<button data-trail="guide"><span>調査の進め方</span><small>›</small></button>':''}<button data-menu="news"><span>運営からのお知らせ</span><small>${n.news?'● '+n.news:'›'}</small></button><button data-menu="inbox"><span>受信ボックス</span><small>${n.mail?'● '+n.mail:'›'}</small></button><button data-menu="settings"><span>設定・記録の引き継ぎ</span><small>›</small></button></div>`);
+ openMenuPage('メニュー',`<div class="game-menu-list">${!isLite()?'<button data-trail="guide"><span>調査の進め方</span><small>›</small></button>':''}<button data-menu="news"><span>運営からのお知らせ</span><small>${n.news?'● '+n.news:'›'}</small></button><button data-menu="inbox"><span>受信ボックス</span><small>${n.mail?'● '+n.mail:'›'}</small></button><button data-menu="catalog"><span>図鑑</span><small>›</small></button><button data-menu="account"><span>ログイン・アカウント</span><small>›</small></button><button data-menu="settings"><span>設定</span><small>›</small></button></div>`);
 }
 function menuBack(target='home'){return `<button class="menu-back" data-menu="${target}">‹ ${target==='home'?'メニュー':target==='news'?'お知らせ一覧':'受信ボックス'}</button>`;}
 function openGameNews(){const c=menuState();openMenuPage('運営からのお知らせ',menuBack()+`<div class="game-message-list">${GAME_NOTICES.map(n=>`<button data-notice="${n.id}"><small>${n.date}${c.readNotices.includes(n.id)?'':' · 未読'}</small><b>${n.title}</b></button>`).join('')}</div>`);}
@@ -58,13 +59,13 @@ function openGameMail(id){
  openMenuPage('受信メール',menuBack('inbox')+`<article class="game-message"><small>${m.from} · ${d}</small><h2>${m.title}</h2><p>${m.body}</p>${m.reward?`<button class="btn-paper" data-mail-claim="${id}" ${c.mail[id].claimed?'disabled':''}>${c.mail[id].claimed?'受取済み':m.reward+'pt を受け取る'}</button>`:''}</article>`);
 }
 function openMenuSettings(){
- openMenuPage('設定',menuBack()+`<div class="game-message"><p id="menu-sync"></p>${!isLite()?`<label class="watch-quiet-setting"><input type="checkbox" data-watch-quiet ${observationState().quiet?'checked':''}> 揺れ・画面演出を抑える</label>${observationState().pending?.rarity>0?'<button class="btn-line" data-menu="target">場所を選んで異変に対処</button>':''}${watchSettingsUnlocked()?'<button class="btn-line" data-menu="observation">観測設定</button>':''}`:''}<button class="btn-line" data-intro="archive">最初の3通を読み返す</button>${localStorage.getItem(KEY+'_conflict_backup')?'<button class="btn-line" data-cloud-choice="backup">退避した記録をダウンロード</button>':''}${document.getElementById('glink').hidden?'':'<button class="btn-paper" data-menu="account">Googleで記録を引き継ぐ</button>'}</div>`);
+ openMenuPage('設定',menuBack()+`<div class="game-message"><p id="menu-sync"></p>${!isLite()?`<label class="watch-quiet-setting"><input type="checkbox" data-watch-quiet ${observationState().quiet?'checked':''}> 揺れ・画面演出を抑える</label>${observationState().pending?.rarity>0?'<button class="btn-line" data-menu="target">場所を選んで異変に対処</button>':''}${watchSettingsUnlocked()?'<button class="btn-line" data-menu="observation">観測設定</button>':''}`:''}<button class="btn-line" data-intro="archive">最初の3通を読み返す</button>${localStorage.getItem(KEY+'_conflict_backup')?'<button class="btn-line" data-cloud-choice="backup">退避した記録をダウンロード</button>':''}<button class="btn-paper" data-menu="account">ログイン・アカウント管理</button></div>`);
  document.getElementById('menu-sync').textContent=document.getElementById('sync').textContent;
 }
 document.getElementById('game-menu').addEventListener('click',openGameMenu);
 document.addEventListener('click',e=>{
  const b=e.target.closest('[data-menu],[data-notice],[data-mail],[data-mail-claim]');if(!b||b.disabled)return;
- if(b.dataset.menu){const actions={return:returnFromMenu,home:openGameMenu,news:openGameNews,inbox:openGameInbox,settings:openMenuSettings,observation:observationSettings,target:observationTargetPicker,account:()=>linkGoogle()};return actions[b.dataset.menu]?.();}
+ if(b.dataset.menu){const actions={return:returnFromMenu,home:openGameMenu,news:openGameNews,inbox:openGameInbox,settings:openMenuSettings,observation:observationSettings,target:observationTargetPicker,account:openAccount,catalog:()=>openEncyclopedia()};return actions[b.dataset.menu]?.();}
  if(b.dataset.notice){const n=GAME_NOTICES.find(n=>n.id===b.dataset.notice);if(!n)return;const c=menuState();if(!c.readNotices.includes(n.id))c.readNotices.push(n.id);markDirty();renderMenuBadge();return openMenuPage('運営からのお知らせ',menuBack('news')+`<article class="game-message"><small>${n.date} · 運営</small><h2>${n.title}</h2><p>${n.body}</p></article>`);}
  if(b.dataset.mail)return openGameMail(b.dataset.mail);
  const id=b.dataset.mailClaim,m=GAME_MAIL.find(m=>m.id===id),entry=menuState().mail[id];

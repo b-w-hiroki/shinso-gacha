@@ -14,10 +14,10 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  assert.deepEqual(await p.evaluate(()=>({pt:S.currency,progress:S.observation.pending.suppression})),before,'saved automation is paused');
  assert.equal(await p.locator('#obs-progress,#obs-progress-count,#obs-auto-status').count(),0);
  assert(!/\d+\/\d+/.test(await p.locator('#obs-frame').getAttribute('aria-label')));
- await p.locator('[data-watch="settings"]').click();
+ await p.locator('#obs-equipment').click();await p.locator('[data-watch="settings"]').click();
  assert.equal(await p.locator('[data-watch-auto]').count(),0);
  assert(!/\d+タップ/.test(await p.locator('.watch-settings').innerText()));
- await p.keyboard.press('Escape');
+ await p.keyboard.press('Escape');await p.locator('.watch-lab [data-watch="return"]').click();
  await p.locator('#obs-frame').press('Enter');assert.equal(await p.evaluate(()=>S.currency),before.pt,'patrol button never suppresses');await p.locator('[data-watch-region="4"]').click();assert.equal(await p.evaluate(()=>S.currency),before.pt+81,'targeted manual suppression pays tap plus completion bonus');
  assert(await p.evaluate(()=>{save();const saved=JSON.parse(localStorage.getItem(KEY));return saved.observation.upgrades.patrol===3&&saved.observation.upgrades.suppression===3;}),'saved purchases preserved');
  assert(await p.locator('.logo .bar').evaluate(e=>{const c=getComputedStyle(e);return c.color==='rgba(0, 0, 0, 0)'&&c.backgroundColor!=='rgba(0, 0, 0, 0)';}),'title redaction restored');
@@ -31,7 +31,7 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  assert(await p.evaluate(()=>{S.observation.mind.load=0;S.observation.mind.lastInput=0;const stamp=S.updatedAt;watchLastTick=0;observationTick();return S.updatedAt===stamp;}),'idle tick must not restart the cloud save debounce');
  for(const [width,height] of [[320,568],[390,844],[844,390]]){
   await p.setViewportSize({width,height});
-  for(const selector of ['#obs-rest','#obs-colleagues','[data-watch="settings"]','#game-menu']){const el=p.locator(selector);await el.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));assert(await el.evaluate(e=>{const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.width>=44&&r.height>=44&&e.scrollWidth<=e.clientWidth&&(e===hit||e.contains(hit));}),selector+' accessible at '+width);}
+  for(const selector of ['#obs-rest','#obs-colleagues','#obs-equipment','#game-menu']){const el=p.locator(selector);await el.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));assert(await el.evaluate(e=>{const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.width>=44&&r.height>=44&&e.scrollWidth<=e.clientWidth&&(e===hit||e.contains(hit));}),selector+' accessible at '+width);}
   await p.evaluate(()=>scrollTo(0,0));await p.screenshot({path:`${out}/patrol-${width}.jpg`,quality:85});
   await p.evaluate(()=>{const it=ITEMS.find(i=>i.id==='u2');runStage([{item:it,before:4,after:5,opened:true}]);advance();});await p.locator('#st-card.truthy').waitFor();await p.locator('.ghost').waitFor({state:'hidden'});assert.equal(await p.locator('#stage').evaluate(e=>getComputedStyle(e,'::after').opacity),'0','reduced motion flash cannot cover the document');
   assert(await p.locator('#st-card').evaluate(e=>{const stamp=e.querySelector('.truth').getBoundingClientRect(),text=e.querySelector('.lyr').getBoundingClientRect();return stamp.top>=text.bottom+4&&stamp.left>=e.getBoundingClientRect().left;}),'truth stamp has its own space');

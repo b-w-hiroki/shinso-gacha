@@ -15,17 +15,18 @@ function playerSeepageState(){
  if(!S.playerSeepage||typeof S.playerSeepage!=='object'||Array.isArray(S.playerSeepage))S.playerSeepage={};
  return SeepageModel.normalize(S.playerSeepage);
 }
-function calmPlayerSeepage(){SeepageModel.calm(playerSeepageState(),Date.now());markDirty();renderPlayerSeepage();}
+function calmPlayerSeepage(){observationState().echo=null;SeepageModel.calm(playerSeepageState(),Date.now());markDirty();renderPlayerSeepage();}
 function renderPlayerSeepage(){
  const o=observationState(),s=playerSeepageState(),now=Date.now(),a=S.incursion;
  const quiet=isLite()||o.quiet||!!a?.quiet;
- const encounter=o.pending?.rarity>0?`watch:${o.seed}:${o.pending.sequence}:${o.pending.mode}`:a?.event?`envelope:${a.resolved}:${a.event.kind}:${a.event.tier}`:'';
- const engaged=!o.mind.closed&&now-o.mind.lastInput<30000;
+ const echo=o.echo?.end>now?o.echo:null;
+ const encounter=o.pending?.rarity>0?`watch:${o.seed}:${o.pending.sequence}:${o.pending.mode}`:echo?echo.key:a?.event?`envelope:${a.resolved}:${a.event.kind}:${a.event.tier}`:'';
+ const engaged=(!o.mind.closed&&now-o.mind.lastInput<30000)||(!!echo&&now-echo.returnedAt<30000&&!document.querySelector('[data-view=colleagues]').hidden);
  const modal=!!document.querySelector('dialog[open]')||!document.getElementById('sheet-bg').hidden||!document.getElementById('stage').hidden;
  const allowed=!quiet&&!document.hidden&&!modal&&!document.querySelector('[data-view="menu"]:not([hidden])');
  const previous=s.event;
  const changed=SeepageModel.tick(s,{now,encounter,seed:o.seed,engaged,visible:allowed,quiet});
- if(s.event&&s.event!==previous&&typeof legendSeepageContext==='function')s.event.legendId=legendSeepageContext();
+ if(s.event&&s.event!==previous&&typeof legendSeepageContext==='function')s.event.legendId=o.pending?.rarity>0?(Object.hasOwn(o.pending,'legendId')?o.pending.legendId:legendSeepageContext()):echo?echo.legendId:legendSeepageContext();
  if(changed)markDirty();
  const e=allowed?s.event:null,base=e?SEEPAGE_CASES[e.id]:null,c=e&&typeof legendSeepageCopy==='function'?legendSeepageCopy(e,base):base;
  document.body.dataset.playerSeepage=c?.kind||'';

@@ -1,19 +1,18 @@
 const assert=require('node:assert/strict'),M=require('../assets/player-seepage-model'),W=require('../assets/observation-model');
 const now=1800000000000;
-for(let lv=0;lv<3;lv++){
+for(const lv of [0,1,6,14]){
  const o=W.normalize(W.create(now,93));o.upgrades.sensitivity=lv;
  const counts=[0,0,0,0];for(let i=0;i<100000;i++)counts[W.roll(o,i)]++;
- assert.equal(W.ODDS[lv].reduce((a,b)=>a+b,0),100);
+ assert(Math.abs(W.ODDS[lv].reduce((a,b)=>a+b,0)-100)<1e-8);
  const anomaly=1-counts[0]/100000;
- assert(Math.abs(anomaly-[.05,.08,.12][lv])<.004,`${lv}: ${anomaly}`);
+ assert(Math.abs(anomaly-(.05+lv*.005))<.004,`${lv}: ${anomaly}`);
  assert(counts[3]>0);console.log('Sensitivity',lv,'anomaly rate',anomaly);
 }
-const o=W.normalize(W.create(now,42));W.sync(o,o.dueAt);const held=JSON.stringify(o.pending);
-assert.equal(W.upgrade(o,'sensitivity',199,o.lastSeen),null);
-assert.equal(W.upgrade(o,'sensitivity',200,o.lastSeen),200);
-assert.equal(W.upgrade(o,'sensitivity',500,o.lastSeen),500);
-assert.equal(W.upgrade(o,'sensitivity',999,o.lastSeen),null);
-assert.equal(JSON.stringify(o.pending),held);assert.equal(W.normalize(JSON.parse(JSON.stringify(o))).upgrades.sensitivity,2);
+const o=W.normalize(W.create(now,42));W.sync(o,o.dueAt);W.normalize(o);const held=JSON.stringify(o.pending);
+assert.equal(W.upgrade(o,'sensitivity',19,o.lastSeen),null);
+for(const cost of W.UPGRADES.sensitivity.costs)assert.equal(W.upgrade(o,'sensitivity',9999,o.lastSeen),cost);
+assert.equal(W.upgrade(o,'sensitivity',9999,o.lastSeen),null);
+assert.equal(JSON.stringify(o.pending),held);assert.equal(W.normalize(JSON.parse(JSON.stringify(o))).upgrades.sensitivity,14);
 const states=new Set();let accepted=0;
 for(let i=0;i<1000;i++){
  const s={};M.tick(s,{now,encounter:'watch:'+i,seed:42,engaged:true});
