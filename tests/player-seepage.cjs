@@ -39,7 +39,7 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
   await p.setViewportSize({width,height});
   for(let id=0;id<9;id++){
    await p.evaluate(id=>{go('home');setHomeTab('desk');const t=Date.now(),o=observationState();o.mind.closed=false;S.playerSeepage={event:{id,key:'qa:'+id,start:t,end:t+90000,glimpsed:false},nextAt:t+120000};renderObservation();},id);
-   if(id>=6){await tap(p.locator('#obs-colleagues'));await tap(p.locator(`[data-watch-member="${['records','equipment','senior'][id-6]}"]`));assert(await p.locator('.seep-colleague-line').isVisible());assert.equal(await p.locator('[data-seep-odd="true"]').count(),1);}
+   if(id>=6){await tap(p.locator('#obs-colleagues'));await tap(p.locator(`[data-watch-member="${['records','equipment','senior'][id-6]}"]`));assert(await p.locator('.seep-colleague-line').isVisible());assert.equal(await p.locator('[data-seep-odd="true"]').count(),1);assert.equal(await p.locator('#player-seepage-edge').evaluate(e=>getComputedStyle(e,'::after').pointerEvents),'none');}
    if(id<3){assert((await p.locator('.seep-margin-copy').innerText()).length>0);assert.equal(await p.locator('body').getAttribute('data-player-seepage'),'caption');}
    if(id>=3&&id<6){assert(await p.locator('#player-seepage-edge').evaluate(e=>e.classList.contains('seep-glimpse')));await p.waitForTimeout(250);}
    assert.equal(await p.locator('#player-seepage-edge').evaluate(e=>getComputedStyle(e).pointerEvents),'none');
