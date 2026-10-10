@@ -79,6 +79,18 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
    if(width===390)await p.screenshot({path:`docs/qa-incursions/catalog-${tab}-390.jpg`});
   }
  }
+ // Classified category is not even rendered before evidence; acquired-only witnesses unlock it.
+ await p.evaluate(()=>{S.levels.u1=3;S.legendLayers={};go('home');openEncyclopedia('anomalies');});
+ assert.equal(await p.locator('[data-catalog-tab="confidential"]').count(),0);
+ await p.evaluate(()=>{S.legendLayers.noticed={u1:true};S.legendLayers.compared={u1:true};openEncyclopedia('anomalies');});
+ assert.equal(await p.locator('[data-catalog-tab="confidential"]').count(),1);
+ await p.locator('[data-catalog-tab="confidential"]').click();
+ assert.equal(await p.locator('.catalog-entry:enabled').count(),1);
+ assert(!(await p.locator('.catalog-list').innerText()).includes('u2'));
+ await p.locator('.catalog-entry:enabled').click();
+ assert(await p.locator('.forecast-archive').count());
+ await p.evaluate(()=>{S.levels.u1=0;openEncyclopedia('confidential');});
+ assert.equal(await p.locator('[data-catalog-tab="confidential"]').count(),0);
  await p.evaluate(()=>{go('home');setHomeTab('desk');S.observation.upgrades.retention=1;S.currency=200;render();});
  const pending=await p.evaluate(()=>JSON.stringify(S.observation.pending));await p.locator('#obs-equipment').click();assert(await p.locator('.watch-upgrades').evaluate(e=>e.open));await p.locator('[data-watch-upgrade="sensitivity"]').click();await p.locator('.watch-lab [data-watch="return"]').click();assert.equal(await p.evaluate(()=>JSON.stringify(S.observation.pending)),pending);
  assert.deepEqual(errors,[]);console.log('Login/cancel/return, save-before-logout, reauth/atomic deletion failure/retry, locked catalogs, links, responsive UI and observation/lab return passed');
