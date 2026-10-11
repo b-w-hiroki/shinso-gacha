@@ -1,5 +1,7 @@
 # Development completion flow
 
+- Shared birdman studio standards, AI harness evaluation and genre-specific asset workflows have one canonical source: https://github.com/b-w-hiroki/studio-playbook/blob/main/README.md (private; authorized GitHub access required). Do not duplicate the common standard in this public repository. If inaccessible, state that the common source was not read. This repo's current main, saved data contracts and horror-specific docs remain authoritative for game details.
+
 - Start from the latest main and [docs/INDEX.md](docs/INDEX.md); [docs/CURRENT-SPEC.md](docs/CURRENT-SPEC.md) is the dated living snapshot and this file remains the invariant checklist. If documentation and code differ, investigate the code and update documents in the same PR.
 - For any user-facing or save-impacting change, update the relevant document, tests and issue state; use [docs/DEVELOPMENT-WORKFLOW.md](docs/DEVELOPMENT-WORKFLOW.md), [docs/ASSET-PRODUCTION-WORKFLOW.md](docs/ASSET-PRODUCTION-WORKFLOW.md), and [docs/QA-RELEASE-CHECKLIST.md](docs/QA-RELEASE-CHECKLIST.md). Keep asset-generated, integrated, verified, released, and production-validated as separate statuses.
 - Current automation is model-gated and available after eligibility; do not restore historical blanket-off flags. Never loosen eligibility, foreground-only execution, save compatibility or quiet handling without tests.
