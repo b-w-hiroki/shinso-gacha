@@ -2160,7 +2160,7 @@ function caseAftermath() {
   const list = AFTERMATH[p.choice] || AFTERMATH.watch;
   const seed = Math.abs(([...p.day].reduce((a,c)=>a+c.charCodeAt(0),0) + (p.code || "").length + totalLv()) % list.length);
   const a = list[seed];
-  const band = clearanceForRank(Number.isInteger(p.clearanceRank) ? p.clearanceRank : rankIdx());
+  const band = clearanceForRank(Number.isInteger(p.clearanceRank) ? p.clearanceRank : 0);
   const extra = band.tier && ((p.at || seed) % 5) < band.tier ? " " + band.trace : "";
   return { eye:a[0], title:a[1], body:a[2] + extra, state:a[3] };
 }
@@ -2991,6 +2991,12 @@ function liteFooterLabel(n = liteTotal()) {
 function updateLiteFooter() {
   const b = $("lite-pull"), f = document.querySelector(".lite-footer"); if (!b || !f) return;
   const n = liteTotal(), navOnly = liteTab !== "open";
+  const navigating = !introActive() && n >= 3;
+  const tabs = f.querySelector(".lite-tabs");
+  tabs.hidden = !navigating;
+  f.querySelectorAll("[data-ltab]").forEach(tab => {
+    tab.hidden = !navigating || (tab.dataset.ltab === "notes" && n < 6);
+  });
   b.disabled = false;
   b.textContent = liteFooterLabel(n);
   b.dataset.mode = S.lite && S.lite.event ? "event" : "pull";
@@ -2998,6 +3004,7 @@ function updateLiteFooter() {
   document.body.classList.toggle("footer-nav-only", navOnly && isLite());
 }
 function setLiteTab(tab) {
+  if (isLite() && tab !== "open" && (introActive() || liteTotal() < 3 || (tab === "notes" && liteTotal() < 6))) tab = "open";
   liteTab = tab;
   document.querySelectorAll("[data-ltab]").forEach(b => b.setAttribute("aria-pressed", b.dataset.ltab === tab));
   document.querySelectorAll("[data-lpane]").forEach(p => p.hidden = p.dataset.lpane !== tab);
@@ -3022,6 +3029,7 @@ function renderLiteFiles() {
 }
 function renderLite(freshIt, freshL) {
   const n = liteTotal();
+  if (liteTab === "notes" && n < 6) liteTab = "open";
   applyLitePhase();
   renderLiteEvent();
   $("lite-n").textContent = n + " / " + LITE_ALL;
