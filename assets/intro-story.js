@@ -17,7 +17,7 @@ function introImage(name, alt, cls = '') {
 }
 function introLabel() {
   const i=S.lite.intro;
-  return ['開ける','もう一度見る','次を開く','次を開く',i.revealed?'記録を閉じる':'黒塗りを剥がす'][i.step] || '調査を続ける';
+  return ['封を切る','写真を見直す','2通目を開く','3通目を開く',i.revealed?'記録を閉じる':'黒塗りを剥がす'][i.step] || '調査を続ける';
 }
 function renderIntro() {
   const root=$('intro-case'); if(!root)return;
@@ -25,19 +25,19 @@ function renderIntro() {
   document.body.classList.toggle('intro-active',active);
   document.body.classList.toggle('intro-quiet',!!(S.observation&&S.observation.quiet));
   if(isLite()){
-    const menuHome=(active || liteTotal()<3)?document.querySelector('.top-in'):document.querySelector('.lite-tabs');
+    const menuHome=(active || liteTotal()<10)?document.querySelector('.top-in'):document.querySelector('.lite-tabs');
     if(menuHome && $('game-menu').parentElement!==menuHome)menuHome.appendChild($('game-menu'));
   }
   if(!active)return;
   const i=S.lite.intro, step=i.step;
-  const titles=['封筒がある。','ひとり。','……ふたり？','ここに、印。','02:14'];
-  const captions=['','裏に、02:14。','そこにいた人は、誰ですか。','まだ見せていない写真の位置だ。','読まない方がいい。'];
+  const titles=['差出人が、ない。','記録上は、ひとり。','記録上は、ひとり。','印は、先に付いていた。','数え直さないこと。'];
+  const captions=['','右のベンチには、誰もいない。','同じ写真。同じ時刻。人数だけが増えている。','誰にも見せていない写真と、位置が一致する。','3通とも、02:14。記録者の欄は空白。'];
   let visual=step===0?'<img class="intro-image intro-envelope" src="assets/ui/civilian-envelope.webp" alt="差出人のない閉じた茶封筒" width="1536" height="1024">'
     :step<3?introImage(step===1?'station-before':'station-after',step===1?'夜の駅。左の柱の横に1人。右のベンチ横には誰もいない。':'同じ駅。左の人物に加え、右のベンチ横にもう1人が立っている。')
     :step===3?introImage('station-plan','駅の構内図。ベンチの横に赤い丸が描かれている。')
     :`<div class="intro-note"><span>02:14 ／ 差出人のメモ</span><p>写真の人物を、数え直さないこと。</p><button class="intro-redaction" data-intro="reveal" aria-expanded="${!!i.revealed}">${i.revealed?'あなたの閲覧は、記録されています。':'黒塗りを剥がす'}</button>${'<p class="intro-sender">差出人　██████</p>'}</div>`;
   root.dataset.step=String(step);
-  root.innerHTML=`<div class="intro-top"><button data-intro="skip" aria-label="導入をスキップ">スキップ</button></div><h1>${titles[step]}</h1><figure>${visual}${step>0&&step<4?'<span class="intro-time">記録時刻 02:14</span>':''}</figure>${captions[step] ? `<p class="intro-caption" aria-live="polite">${captions[step]}</p>` : ""}${step===2?'<div class="intro-compare" role="group" aria-label="写真を比較"><button data-intro="before" aria-pressed="false">最初の写真</button><button data-intro="after" aria-pressed="true">もう一度見た写真</button></div>':''}`;
+  root.innerHTML=`<h1>${titles[step]}</h1><figure>${visual}${step===1||step===2?'<span class="intro-time">02:14 ／ 記録上 1人</span>':step===3?'<span class="intro-time">02:14 ／ 登録前</span>':''}</figure>${captions[step] ? `<p class="intro-caption" aria-live="polite">${captions[step]}</p>` : ""}${step===2?'<div class="intro-compare" role="group" aria-label="写真を比較"><button data-intro="before" aria-pressed="false">最初の写真</button><button data-intro="after" aria-pressed="true">もう一度見た写真</button></div>':''}`;
   $('lite-pull').textContent=introLabel(); $('lite-pull').dataset.mode='intro';
 }
 function advanceIntro() {
@@ -62,7 +62,7 @@ document.addEventListener('click',e=>{
   const action=b.dataset.intro;
   if(action==='archive')return introArchive();
   if(!introActive())return;
-  if(action==='skip'){S.lite.intro.done=true;S.lite.intro.skipped=true;markDirty();renderLite();return;}
+  if(action==='skip'){S.lite.intro.done=true;S.lite.intro.skipped=true;markDirty();renderLite();if(!document.querySelector('[data-view="menu"]').hidden)returnFromMenu();return;}
   if(action==='reveal')return advanceIntro();
   if(action==='before'||action==='after'){
     const im=$('intro-case').querySelector('figure img');
