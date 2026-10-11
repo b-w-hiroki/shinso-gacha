@@ -67,6 +67,16 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
   else{assert(overlay.includes(mode+'-'+rarity+'.svg'));const valid=await p.evaluate(({mode,rarity})=>WatchModel.TARGETS[mode][rarity].some(([x,y])=>WatchModel.hit(observationState(),{x,y})),{mode,rarity});assert(valid,'matching hit target '+mode+rarity);}
   if(rarity>0&&!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/alt-'+mode+'-'+rarity+'-390.jpg',quality:85});
  }
+ // The scene must repaint when the next idle sequence changes, even without a pending record.
+ await p.evaluate(()=>{
+  const o=observationState(),t=Date.now();
+  o.mode='cctv';o.pending=null;o.sequence=1;o.dueAt=t+600000;o.mind.closed=false;renderObservation();
+ });
+ assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
+ await p.evaluate(()=>{const o=observationState();o.sequence=2;renderObservation();});
+ assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'false','idle scene switch repaints the original');
+ await p.evaluate(()=>{const o=observationState();o.sequence=3;renderObservation();});
+ assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true','later idle scene returns to its own image');
  await p.evaluate(()=>save());await p.reload();assert.equal(await p.evaluate(()=>WatchLocations.discovered(S.observation.locationRecords)[0].rarities[1]),1);
  assert.equal(await p.evaluate(()=>S.currency),wallet);
  assert.deepEqual(errors,[]);console.log('New scenes: earned R/SR/SSR, original suppression coordinates, mobile image, save and secrecy passed');
