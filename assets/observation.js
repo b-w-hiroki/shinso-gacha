@@ -38,7 +38,8 @@ function renderObservation(){
  const advanced=r===1||r===3,side=r===2||r===3?'right':'left';
  const alternative=r===0&&o.sequence%2===1;
  const altLocations={cctv:['地下通路','CAM 12'],photo:['夜の教室','PHOTO 18'],vision:['踏切前','LINK 15'],dash:['海沿いの夜道','DRIVE 19']};
- const src=alternative?`assets/observation/scene-${o.mode}-alt.svg`:`assets/observation/${o.mode}${advanced?'-variants':''}.webp`;
+ const upgraded={cctv:'cctv-underground-upgraded.webp',photo:'photo-classroom-upgraded.webp',vision:'vision-crossing-upgraded.webp',dash:'dash-coast-road-upgraded.webp'};
+ const src=alternative?`assets/observation/${upgraded[o.mode]}`:`assets/observation/${o.mode}${advanced?'-variants':''}.webp`;
  const condition=observationCondition(o);
  const paint=`${o.mode}/${p?.sequence??'idle'}/${r}/${condition}/${alternative}`;
  if(paint!==watchPaint){

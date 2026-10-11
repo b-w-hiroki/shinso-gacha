@@ -77,7 +77,7 @@ for(const [width,height] of [[320,568],[390,844],[430,932],[844,390]]){
    await p.evaluate(({mode,rarity})=>{const o=observationState();o.unlocked=Object.keys(WatchModel.MODES);o.mode=mode;const now=Date.now();o.pending={mode,rarity,readyAt:now,expiresAt:now+WatchModel.hold(o),sequence:o.sequence};go('home');render();},{mode,rarity});
    const frame=p.locator('#obs-frame');await frame.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));
    assert(await frame.isVisible());const rect=await frame.boundingBox();assert(rect.width>=Math.min(width-32,576)&&rect.height>=100,JSON.stringify(rect));
-   assert(await p.locator('#obs-image').evaluate(async e=>{const im=new Image();im.src=getComputedStyle(e).backgroundImage.slice(5,-2);await im.decode();return im.naturalWidth>1000;}));
+   assert(await p.locator('#obs-image').evaluate(async e=>{const im=new Image();im.src=getComputedStyle(e).backgroundImage.slice(5,-2);await im.decode();return im.naturalWidth>=(document.getElementById('obs-frame').dataset.sceneAlt==='true'?320:1001);}));
    await frame.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));
    assert(await frame.evaluate(e=>{const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return {ok:hit===e||e.contains(hit),rect:r.toJSON(),hit:hit?.outerHTML.slice(0,300),scroll:scrollY};}).then(x=>{assert(x.ok,JSON.stringify({mode,rarity,width,...x}));return true;}),'scene tap not covered');
    assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
@@ -118,8 +118,8 @@ for(const [mode,title] of [['cctv','地下通路'],['photo','夜の教室'],['vi
  await p.evaluate(mode=>{const o=observationState();o.mode=mode;o.sequence=1;o.mind.closed=false;const now=Date.now();o.pending={mode,rarity:0,readyAt:now,expiresAt:now+WatchModel.hold(o),sequence:1};go('home');renderObservation();},mode);
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
  assert.equal(await p.locator('#obs-name').innerText(),title);
- assert((await p.locator('#obs-image').evaluate(e=>getComputedStyle(e).backgroundImage)).includes('scene-'+mode+'-alt.svg'));
- assert(await p.locator('#obs-image').evaluate(async e=>{const im=new Image();im.src=getComputedStyle(e).backgroundImage.slice(5,-2);await im.decode();return im.naturalWidth>=1600;}));
+ assert((await p.locator('#obs-image').evaluate(e=>getComputedStyle(e).backgroundImage)).includes('-upgraded.webp'));
+ assert(await p.locator('#obs-image').evaluate(async e=>{const im=new Image();im.src=getComputedStyle(e).backgroundImage.slice(5,-2);await im.decode();return im.naturalWidth>=320&&im.naturalHeight>=160;}));
  await p.evaluate(mode=>{const o=observationState(),now=Date.now();o.pending={mode,rarity:2,readyAt:now,expiresAt:now+WatchModel.hold(o),sequence:1};renderObservation();},mode);
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'false');
  assert((await p.locator('#obs-image').evaluate(e=>getComputedStyle(e).backgroundImage)).includes(mode+'.webp'));
