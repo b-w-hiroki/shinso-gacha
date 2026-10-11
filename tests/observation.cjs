@@ -1,4 +1,5 @@
 const {chromium}=require('playwright'),fs=require('fs'),path=require('path'),http=require('http'),assert=require('assert/strict');
+const WatchLocations=require('../assets/observation-location-model.js');
 const out='docs/qa-incursions';const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.env.QA_FONT:path.join(process.cwd(),q.url==='/'?'index.html':q.url);r.setHeader('Content-Type',f.endsWith('.html')?'text/html; charset=utf-8':f.endsWith('.js')?'application/javascript':f.endsWith('.css')?'text/css':f.endsWith('.svg')?'image/svg+xml':'application/octet-stream');r.end(fs.readFileSync(f));}catch{r.writeHead(404);r.end();}});
 (async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));const b=await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE||undefined,args:['--no-sandbox','--disable-dev-shm-usage','--no-zygote','--single-process']});try{const p=await b.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'}),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.route('https://**/*',r=>r.abort());await p.goto('http://127.0.0.1:'+server.address().port);await p.evaluate(()=>{S.role='agent';S.onboarded=true;S.lite={intro:{done:true}};applyMode();});
 async function font(){if(process.env.QA_FONT){await p.addStyleTag({content:"@font-face{font-family:QAJP;src:url('/font.otf')} :root{--f-body:QAJP;--f-display:QAJP;--f-mono:QAJP}body,button{font-family:QAJP}"});await p.evaluate(()=>document.fonts.load('16px QAJP'));}}
@@ -118,11 +119,11 @@ for(const [mode,title] of [['cctv','地下通路'],['photo','夜の教室'],['vi
  await p.evaluate(mode=>{const o=observationState();o.mode=mode;o.sequence=1;o.mind.closed=false;const now=Date.now();o.pending={mode,rarity:0,readyAt:now,expiresAt:now+WatchModel.hold(o),sequence:1};go('home');renderObservation();},mode);
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
  assert.equal(await p.locator('#obs-name').innerText(),title);
- assert((await p.locator('#obs-image').evaluate(e=>getComputedStyle(e).backgroundImage)).includes('-upgraded.webp'));
- assert(await p.locator('#obs-image').evaluate(async e=>{const im=new Image();im.src=getComputedStyle(e).backgroundImage.slice(5,-2);await im.decode();return im.naturalWidth>=320&&im.naturalHeight>=160;}));
+ assert((await p.locator('#obs-image').evaluate(e=>getComputedStyle(e).backgroundImage)).includes(WatchLocations.byId('alt:'+mode).file));
+ assert(await p.locator('#obs-image').evaluate(async e=>{const im=new Image();im.src=getComputedStyle(e).backgroundImage.slice(5,-2);await im.decode();return im.naturalWidth===1440&&im.naturalHeight===720;}));
  await p.evaluate(mode=>{const o=observationState(),now=Date.now();o.pending={mode,rarity:2,readyAt:now,expiresAt:now+WatchModel.hold(o),sequence:1};renderObservation();},mode);
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
- assert((await p.locator('#obs-image').evaluate(e=>getComputedStyle(e).backgroundImage)).includes('-upgraded.webp'));
+ assert((await p.locator('#obs-image').evaluate(e=>getComputedStyle(e).backgroundImage)).includes(WatchLocations.byId('alt:'+mode).file));
  assert((await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).backgroundImage)).includes(mode+'-2.svg'));
 }
 // Acquired alternative locations are separate records, unseen ones have no placeholders.
@@ -135,7 +136,7 @@ assert.equal(await p.locator('[data-catalog-entry="alt:cctv"]').count(),0);
 await p.screenshot({path:`${out}/location-archive-390.jpg`,quality:85});
 await p.locator('[data-catalog-entry="alt:photo"]').click();
 assert((await p.locator('#sheet').innerText()).includes('夜の教室'));
-assert(await p.locator('#sheet img[src*="photo-classroom-upgraded.webp"]').count());
+assert(await p.locator('#sheet img[src*="'+WatchLocations.byId("alt:photo").file+'"]').count());
 assert.deepEqual(await p.evaluate(()=>Object.keys(S.observation.locationRecords)),['alt:photo']);
 assert.deepEqual(errors,[]);console.log('Single scene clock collection, unlock/growth, persistence, 16 visuals and four responsive sizes passed');
 }finally{await b.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});

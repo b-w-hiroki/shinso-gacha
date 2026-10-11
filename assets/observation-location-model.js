@@ -1,10 +1,10 @@
 /* Collect individual places without changing the four existing media or their rarity rolls. */
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.WatchLocations=api;})(typeof globalThis!=='undefined'?globalThis:this,()=>{
  const scenes={
-  cctv:{id:'alt:cctv',mode:'cctv',title:'地下通路',source:'CAM 12',file:'cctv-underground-upgraded.webp',notes:['無人の地下通路','通路に残る足跡','出口の向こうの立会者','存在しない階段']},
-  photo:{id:'alt:photo',mode:'photo',title:'夜の教室',source:'PHOTO 18',file:'photo-classroom-upgraded.webp',notes:['灯りの消えた教室','誰も座らない席','黒板にない人影','出席番号の増殖']},
-  vision:{id:'alt:vision',mode:'vision',title:'踏切前',source:'LINK 15',file:'vision-crossing-upgraded.webp',notes:['遮断機の手前','踏切の向こうの影','数の合わない横断者','後ろから見ている者']},
-  dash:{id:'alt:dash',mode:'dash',title:'海沿いの夜道',source:'DRIVE 19',file:'dash-coast-road-upgraded.webp',notes:['海沿いの走行記録','路肩の白い影','背後に続く灯り','対向車線に残る人影']}
+  cctv:{id:'alt:cctv',mode:'cctv',title:'地下通路',source:'CAM 12',file:'cctv-underground-native.webp',notes:['無人の地下通路','通路に残る足跡','出口の向こうの立会者','存在しない階段']},
+  photo:{id:'alt:photo',mode:'photo',title:'夜の教室',source:'PHOTO 18',file:'photo-classroom-native.webp',notes:['灯りの消えた教室','誰も座らない席','黒板にない人影','出席番号の増殖']},
+  vision:{id:'alt:vision',mode:'vision',title:'踏切前',source:'LINK 15',file:'vision-crossing-native.webp',notes:['遮断機の手前','踏切の向こうの影','数の合わない横断者','後ろから見ている者']},
+  dash:{id:'alt:dash',mode:'dash',title:'海沿いの夜道',source:'DRIVE 19',file:'dash-coast-road-native.webp',notes:['海沿いの走行記録','路肩の白い影','背後に続く灯り','対向車線に残る人影']}
  };
  /* Independent native-frame tap geometry for each new location and rarity.
   * The illustrated centers remain at the existing overlay SVG data-hotspots;

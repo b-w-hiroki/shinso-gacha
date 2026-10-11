@@ -1,8 +1,11 @@
-/* Audit the real binary images shipped to Pages. The legacy 320/480px files are
- * allowed during migration, but may not be described as high-resolution art. */
-const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+/* Audit the native-resolution WebP binaries, verified CC0 source metadata, and the build report. */
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),assert=require('node:assert/strict');
 const WatchLocations=require('../assets/observation-location-model.js');
 const modes=['cctv','photo','vision','dash'];
+const sourceManifest=JSON.parse(fs.readFileSync(path.join(__dirname,'..','docs','observation-native-sources.json'),'utf8'));
+const report=JSON.parse(fs.readFileSync(path.join(__dirname,'..','docs','qa-incursions','native-photo-source-report.json'),'utf8'));
+assert.equal(sourceManifest.sources.length,4);
+assert.equal(report.length,4);
 function dimensions(data){
  assert(data.length>30&&data.toString('ascii',0,4)==='RIFF'&&data.toString('ascii',8,12)==='WEBP','invalid WebP RIFF');
  for(let at=12;at+8<=data.length;){
@@ -25,20 +28,23 @@ function dimensions(data){
  }
  throw Error('no decodable WebP image dimensions');
 }
-const report=[];
+const result=[];
 for(const mode of modes){
  const scene=WatchLocations.byId('alt:'+mode);
  assert(scene&&scene.mode===mode,'missing site in location model: '+mode);
  const file=path.join(__dirname,'..','assets','observation',scene.file);
  const data=fs.readFileSync(file),[width,height]=dimensions(data);
- assert(width>=320&&height>=160,'site has invalid or unusable resolution: '+scene.file);
+ assert(width===1440&&height===720,'native art must be 1440x720, not a resized legacy image: '+scene.file);
  assert(width/height>1.95&&width/height<2.05,'site must retain the existing 2:1 framing: '+scene.file);
  assert(data.length<=2*1024*1024,'unexpectedly large observation site: '+scene.file);
- const quality=width>=1200&&height>=600?'source-resolution-ready':'LOW_RES_SOURCE_REQUIRES_NEW_ART';
- report.push({id:scene.id,file:scene.file,width,height,bytes:data.length,quality});
+ const src=sourceManifest.sources.find(s=>s.mode===mode),provenance=report.find(r=>r.mode===mode);
+ assert(src&&provenance&&src.file===scene.file&&provenance.output===scene.file);
+ assert(src.license==='CC0-1.0'&&/^https:\/\/commons.wikimedia.org\/wiki\/File:/.test(src.source),'license proof required');
+ assert(provenance.license==='CC0-1.0'&&provenance.source===src.source&&provenance.bytes===data.length);
+ assert(provenance.sha256===crypto.createHash('sha256').update(data).digest('hex'),'source output does not match reviewed art manifest');
+ result.push({id:scene.id,file:scene.file,width,height,bytes:data.length,source:src.source});
 }
-assert(new Set(report.map(x=>x.file)).size===4,'sites should not share the same baseline photo');
+assert(new Set(result.map(x=>x.file)).size===4,'sites should not share the same baseline photo');
 console.log('Observation site image inventory (this is NOT a photorealism or in-game visual-quality test):');
-console.log(JSON.stringify(report,null,2));
-if(report.some(x=>x.quality==='LOW_RES_SOURCE_REQUIRES_NEW_ART'))
- console.warn('ART QUALITY OPEN: four shipped original scenes are still low-resolution. A 1440x720 replacement must be visually reviewed before closing Issue #81.');
+console.log(JSON.stringify(result,null,2));
+console.log('Four 1440x720 images, original source licenses, and binary hash provenance verified. This does not certify perceived visual quality.');

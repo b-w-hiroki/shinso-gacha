@@ -63,16 +63,29 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  for(const mode of ['cctv','photo','vision','dash'])for(const rarity of [0,1,2,3]){
   await p.evaluate(({mode,rarity})=>{const o=observationState(),t=Date.now();o.mode=mode;o.sequence=1;o.mind.closed=false;o.pending={mode,rarity,readyAt:t,expiresAt:t+3600000,sequence:1,suppression:0};renderObservation();},{mode,rarity});
   assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
+  if(rarity===0){
+   await p.evaluate(async mode=>{
+    const scene=WatchLocations.byId('alt:'+mode),img=new Image();
+    img.src='assets/observation/'+scene.file;
+    await img.decode();
+    if(img.naturalWidth!==1440||img.naturalHeight!==720)throw Error('not the native asset for '+mode);
+   },mode);
+   if(!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/alt-'+mode+'-native-normal-390.jpg',quality:86});
+  }
   assert(await p.locator('#obs-frame').evaluate(frame=>{
    const f=frame.getBoundingClientRect(),im=document.getElementById('obs-image').getBoundingClientRect();
    return Math.abs(f.left-im.left)<8&&Math.abs(f.top-im.top)<8&&Math.abs(f.width-im.width)<8&&Math.abs(f.height-im.height)<8;
   }),'all four sources and all four rarity states stay in frame during live motion');
-  const overlay=await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).backgroundImage);
+  const overlay=await p.evaluate(()=>{const e=document.getElementById('obs-site-overlay');return e?getComputedStyle(e).backgroundImage:null;});
+  assert(overlay!==null,'site overlay element must exist in DOM');
   if(rarity===0)assert.equal(overlay,'none');
   else{
    assert(overlay.includes(mode+'-'+rarity+'.svg'));
    const valid=await p.evaluate(({mode,rarity})=>WatchLocations.targets(mode,rarity).some(([x,y])=>WatchModel.hit(observationState(),{x,y})),{mode,rarity});
    assert(valid,'matching native image-space target '+mode+rarity);
+   // Browser animation can keep Playwright's element-stability waiter pending in WebKit.
+   // Scroll explicitly, verify hit testing, then issue a real pointer click at the image point.
+   await p.evaluate(()=>document.getElementById('obs-frame').scrollIntoView({block:'center',behavior:'instant'}));
    const geometry=await p.evaluate(({mode,rarity})=>{
     const f=document.getElementById('obs-frame').getBoundingClientRect(),overlay=document.getElementById('obs-site-overlay'),v=getComputedStyle(overlay);
     const pictureWidth=Math.max(f.width,2*f.height),[x,y]=WatchLocations.targets(mode,rarity)[0];
@@ -82,7 +95,12 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    assert(geometry.coverMatches,'visual anomaly overlay must match photographic cover framing '+mode+rarity);
    const q=geometry.point,f=geometry.f;
    if(q.x>=f.left+2&&q.x<=f.right-2&&q.y>=f.top+2&&q.y<=f.bottom-2){
-    await p.locator('#obs-frame').click({position:{x:q.x-f.left,y:q.y-f.top}});
+    const reachable=await p.evaluate(point=>{
+      const hit=document.elementFromPoint(point.x,point.y);
+      return hit===document.getElementById('obs-frame')||document.getElementById('obs-frame').contains(hit);
+    },q);
+    assert(reachable,'actual rendered hotspot must not be obscured by UI '+mode+rarity);
+    await p.mouse.click(q.x,q.y);
     projectedContactTaps++;
     assert.equal(await p.evaluate(()=>observationState().pending?.suppression),1,'clicking actual projected visual hotspot must suppress '+mode+rarity);
    }
