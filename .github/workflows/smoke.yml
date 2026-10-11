@@ -35,6 +35,7 @@ jobs:
       - run: node tests/player-seepage-model.cjs
       - run: node tests/observation-model.cjs
       - run: node tests/observation-location-model.cjs
+      - run: node tests/location-correlations-model.cjs
       - run: node tests/contamination-model.cjs
       - run: node scripts/update-csp.cjs --check
       - run: node tests/runtime-safety.cjs
@@ -76,6 +77,9 @@ jobs:
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/observation-location-variants.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/location-correlations.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/contamination-ui.cjs
@@ -178,6 +182,10 @@ jobs:
           QA_WEBKIT: 1
           QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/observation-location-variants.cjs
+        env:
+          QA_WEBKIT: 1
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/location-correlations.cjs
         env:
           QA_WEBKIT: 1
           QA_FONT: ${{ runner.temp }}/noto.otf

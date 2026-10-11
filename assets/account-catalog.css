@@ -24,3 +24,17 @@
 .witness-record-note{font-size:14px;color:#bdb8a7}.witness-related summary{min-height:46px;padding:9px 0}
 @media(max-width:360px){.witness-card{grid-template-columns:minmax(86px,34%) minmax(0,1fr);gap:10px}.witness-photo{min-height:157px}.witness-identity h2{font-size:17px}}
 @media(prefers-reduced-motion:reduce){.witness-dossier *{animation:none!important;transition:none!important}}
+
+
+/* Acquired-only cross-location dossier: two originals, one quiet contradiction. */
+.catalog-cross-sites{margin:16px 0;border-top:1px solid #625c4b;border-bottom:1px solid #625c4b;padding:7px 0}
+.catalog-cross-sites>summary{padding:10px 0;min-height:46px;font-size:14px;cursor:pointer;color:#e2d6bd}
+.catalog-cross-sites button{min-height:46px;white-space:normal}
+.site-correlation{overflow-wrap:anywhere;color:#e3dac8}
+.site-correlation-images{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:16px 0}
+.site-correlation-images figure{margin:0;min-width:0}
+.site-correlation-images img{display:block;width:100%;aspect-ratio:2/1;object-fit:cover;border:1px solid #786f5d;background:#111511}
+.site-correlation-images figcaption{padding:6px 0;color:#bdb3a0;font-size:12px;line-height:1.6}
+.site-correlation-copy{margin:16px 0;border-left:2px solid #94826b;padding:12px;background:#241d18;color:#eadcca;line-height:1.9}
+.site-correlation-note{font-size:12px;color:#bdb4a2;line-height:1.7}
+@media(max-width:360px){.site-correlation-images{gap:5px}.site-correlation-images figcaption{font-size:11px}}
