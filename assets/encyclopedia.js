@@ -73,7 +73,7 @@ function showLocationLink(id){
  const match=LocationCorrelations.inspect(WatchLocations.discovered(observationState().locationRecords),id);
  if(!match)return;
  const scenes=[match.left,match.right];
- const tiles=scenes.map(scene=>'<figure><img loading="lazy" src="assets/observation/'+escapeHTML(scene.file)+'" alt="'+escapeHTML(scene.title)+'で回収した映像原本"><figcaption>'+escapeHTML(scene.source)+' ／ '+escapeHTML(scene.title)+'</figcaption></figure>').join('');
+ const tiles=scenes.map(scene=>'<figure><img loading="eager" decoding="async" src="assets/observation/'+escapeHTML(scene.file)+'" alt="'+escapeHTML(scene.title)+'で回収した映像原本"><figcaption>'+escapeHTML(scene.source)+' ／ '+escapeHTML(scene.title)+'</figcaption></figure>').join('');
  sheet('地点の照合記録','<article class="catalog-detail site-correlation"><small>第六文書課 ／ 相互照合資料</small><h2>離れた二地点の一致</h2><div class="site-correlation-images">'+tiles+'</div><p class="site-correlation-copy">'+escapeHTML(match.record)+'</p><p>'+escapeHTML(match.afterword)+'</p><p class="site-correlation-note">これは取得済みの原本を相互参照した記録です。別の場所の観測結果を新しく抽選したものではありません。</p>'+scenes.map(scene=>'<button class="btn-line" data-catalog-entry="'+escapeHTML(scene.id)+'">'+escapeHTML(scene.title)+'の記録へ戻る</button>').join('')+'</article>');
 }
 function alternateLocationRecordsHTML(place,entry){
