@@ -75,3 +75,8 @@ body.intro-active #intro-case[data-step="0"] .intro-envelope { filter:drop-shado
 body.intro-active #intro-case[data-step="2"] .intro-time { color:#e0d7c7; }
 body.intro-active .lite-footer .lite-pull[data-mode="intro"] { color:#eee0cd; background:#51241f; border-color:#855449; font-weight:600; }
 body.intro-active .lite-footer .lite-pull[data-mode="intro"]:focus-visible { outline:2px solid #ebd6b0; outline-offset:3px; }
+
+/* The optional settings page must not be covered by introduction chrome. */
+body.intro-active:has([data-view="menu"]:not([hidden])) header.top,
+body.intro-active:has([data-view="menu"]:not([hidden])) .lite-footer { display:none!important; }
+body.intro-active:has([data-view="menu"]:not([hidden])) main { padding-top:18px; padding-bottom:28px; }
