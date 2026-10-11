@@ -1,5 +1,7 @@
 # 真相ガチャ
 
+> **現行ドキュメント（2026-10-11基準）：[docs/INDEX.md](docs/INDEX.md)** ／ [実装仕様](docs/CURRENT-SPEC.md) ／ [アーキテクチャ](docs/SYSTEM-ARCHITECTURE.md) ／ [制作ワークフロー](docs/DEVELOPMENT-WORKFLOW.md) ／ [再利用ノウハウ](docs/REUSABLE-PLAYBOOK.md)。以下は初期からの製品紹介と変遷を含むため、数値・画面・解放条件が最新mainと異なる箇所は現行仕様とコードを優先してください。
+
 都市伝説と陰謀論を集めて、黒塗りを剥がしていく収集ガチャ。
 バトルも育成の口実もなく、ガチャを引くこと自体が目的のゲーム。トーンは皮肉・風刺。
 
