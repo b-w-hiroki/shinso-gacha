@@ -10,10 +10,25 @@ function realityCluesHTML(id){
  if(!clue)return '';
  return '<section class="legend-investigation reality-clues"><h3>写真の成立しない部分</h3><p>'+escapeHTML(clue.tag)+'</p><details><summary>原本の記述と現在の観測を比較</summary><p>原本：'+escapeHTML(clue.original)+'</p><p>現在：'+escapeHTML(clue.observed)+'</p></details></section>';
 }
+function forecastFollowupHTML(id){
+ const c=LegendModel.CASES[id];
+ if(!c||LegendModel.count(S.levels,id)!==3)return '';
+ const entry=ForecastFollowup.inspect(S.forecastFollowups,id);
+ if(!entry)return '<div class="forecast-action"><button class="btn-line" data-forecast-issue="'+id+'">翌日の照合を依頼する</button><p>この依頼で異変の出現率や観測結果は変わりません。</p></div>';
+ return '<div class="forecast-action"><small>照合依頼 ／ '+escapeHTML(entry.issued)+'</small><p>'+escapeHTML(entry.copy)+'</p>'+(entry.status==='compared'?'<p>照合記録 ／ '+escapeHTML(entry.observed)+'</p>':'<p>'+escapeHTML(OBSERVATIONS[c.mode].title)+'の観測を続けてください。回線を閉じても構いません。</p>')+'</div>';
+}
+document.addEventListener('click',e=>{
+ const b=e.target.closest('[data-forecast-issue]');if(!b||isLite())return;
+ const id=b.dataset.forecastIssue,c=LegendModel.CASES[id];
+ if(!c||LegendModel.count(S.levels,id)!==3)return;
+ const result=ForecastFollowup.issue(S.forecastFollowups,id,c.mode,Date.now());
+ if(!result.changed)return;
+ S.forecastFollowups=result.state;markDirty();save();openLegendCase(id);
+});
 function forecastArchiveHTML(id){
  const v=ForecastArchive.inspect(id,S.levels,LegendModel.CASES,legendProof(id),legendLayerStatus(id));
  if(!v)return '';
- return '<section class="legend-investigation forecast-archive"><h3>'+escapeHTML(v.title)+'</h3><p>'+escapeHTML(v.forecast)+'</p><details><summary>予告と観測の食い違いを照合</summary><p>'+escapeHTML(v.comparison)+'</p><p>'+escapeHTML(v.warning)+'</p></details>'+(v.staff?'<details><summary>'+escapeHTML(v.staff.label)+'</summary><p>'+escapeHTML(v.staff.quote)+'</p></details>':'')+'</section>';
+ return '<section class="legend-investigation forecast-archive"><h3>'+escapeHTML(v.title)+'</h3><p>'+escapeHTML(v.forecast)+'</p><details><summary>予告と観測の食い違いを照合</summary><p>'+escapeHTML(v.comparison)+'</p><p>'+escapeHTML(v.warning)+'</p></details>'+(v.staff?'<details><summary>'+escapeHTML(v.staff.label)+'</summary><p>'+escapeHTML(v.staff.quote)+'</p></details>':'')+forecastFollowupHTML(id)+'</section>';
 }
 function legendLayersHTML(id){
  const c=LegendModel.CASES[id],v=legendLayerStatus(id);if(!v||v.n<3)return '';
