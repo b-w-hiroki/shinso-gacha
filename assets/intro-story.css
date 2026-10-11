@@ -36,10 +36,10 @@ body.intro-active main { padding-bottom:calc(154px + env(safe-area-inset-bottom,
 .lite-tabs:has([data-ltab="notes"][hidden]) { grid-template-columns:repeat(2,minmax(0,1fr)); }
 body.lite:has(.lite-tabs[hidden]) main { padding-bottom:calc(98px + env(safe-area-inset-bottom,0px)); }
 body.lite:has(.lite-tabs[hidden]) .lite-footer { border:0; box-shadow:none; background:none; backdrop-filter:none; }
-body.intro-active header.top { display:block!important; position:absolute; left:0; right:0; top:0; z-index:15; background:none; border:0; box-shadow:none; }
+body.intro-active header.top { display:block!important; position:absolute; left:0; right:0; top:0; z-index:15; background:none; border:0; box-shadow:none; pointer-events:none; }
 body.intro-active header.top .top-in { min-height:44px; justify-content:flex-end; background:none; border:0; padding:3px 12px; }
 body.intro-active header.top .logo, body.intro-active header.top #wallet, body.intro-active header.top #incursion-status, body.intro-active header.top .menu-label { display:none!important; }
-body.intro-active header.top #game-menu { min-width:44px; min-height:44px; opacity:.56; background:transparent; }
+body.intro-active header.top #game-menu { min-width:44px; min-height:44px; opacity:.56; background:transparent; pointer-events:auto; }
 body.intro-active #intro-case .intro-top { justify-content:flex-start; }
 body.intro-active main { padding-top:12px; padding-bottom:calc(90px + env(safe-area-inset-bottom,0px)); }
 body.intro-active #intro-case { gap:10px; padding:0 4px; }
