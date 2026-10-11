@@ -1,5 +1,9 @@
 # Development completion flow
 
+- Start from the latest main and [docs/INDEX.md](docs/INDEX.md); [docs/CURRENT-SPEC.md](docs/CURRENT-SPEC.md) is the dated living snapshot and this file remains the invariant checklist. If documentation and code differ, investigate the code and update documents in the same PR.
+- For any user-facing or save-impacting change, update the relevant document, tests and issue state; use [docs/DEVELOPMENT-WORKFLOW.md](docs/DEVELOPMENT-WORKFLOW.md), [docs/ASSET-PRODUCTION-WORKFLOW.md](docs/ASSET-PRODUCTION-WORKFLOW.md), and [docs/QA-RELEASE-CHECKLIST.md](docs/QA-RELEASE-CHECKLIST.md). Keep asset-generated, integrated, verified, released, and production-validated as separate statuses.
+- Current automation is model-gated and available after eligibility; do not restore historical blanket-off flags. Never loosen eligibility, foreground-only execution, save compatibility or quiet handling without tests.
+
 - Read the latest main, open PRs, CI and relevant docs before changing code. Preserve newer changes and never resolve conflicts by blindly taking ours/theirs.
 - Implement, run relevant checks, inspect mobile browser screenshots, open a PR, and verify required CI before an authorized merge.
 - After merging, remove the disposable head branch promptly. Confirm the PR is actually merged into the default branch, the current head still matches its merged PR head, and no open PR uses the branch as a base or head. Preserve default, protected, release, environment and active branches.
