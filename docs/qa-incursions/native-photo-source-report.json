@@ -1,0 +1,70 @@
+[
+  {
+    "mode": "cctv",
+    "source": "https://commons.wikimedia.org/wiki/File:Underground_passage,_Ciocana_01.jpg",
+    "license": "CC0-1.0",
+    "author": "Iurie Nistor",
+    "native_original": [
+      3840,
+      2561
+    ],
+    "output": "cctv-underground-native.webp",
+    "size": [
+      1440,
+      720
+    ],
+    "bytes": 81204,
+    "sha256": "e482c2a33c79dc594301ff2d3cd1fc8357e94385cb3dcdd6b2b1e2b570740a2f"
+  },
+  {
+    "mode": "photo",
+    "source": "https://commons.wikimedia.org/wiki/File:A_Sideview_of_an_Empty_Classroom.jpg",
+    "license": "CC0-1.0",
+    "author": "Paul The Writer",
+    "native_original": [
+      3840,
+      2891
+    ],
+    "output": "photo-classroom-native.webp",
+    "size": [
+      1440,
+      720
+    ],
+    "bytes": 26376,
+    "sha256": "1561021a4bc11b90b1485437a370fd09d87af552859d0a74995c390700a6e902"
+  },
+  {
+    "mode": "vision",
+    "source": "https://commons.wikimedia.org/wiki/File:Railway_Crossing_at_Shin-Matsuda_Station_250720_02.jpg",
+    "license": "CC0-1.0",
+    "author": "Aspere",
+    "native_original": [
+      3840,
+      2160
+    ],
+    "output": "vision-crossing-native.webp",
+    "size": [
+      1440,
+      720
+    ],
+    "bytes": 61562,
+    "sha256": "89f73a0033f09c34d5f209d7296b20195bf51a679aa899e7cc69db28d3d90772"
+  },
+  {
+    "mode": "dash",
+    "source": "https://commons.wikimedia.org/wiki/File:Night_road_(Unsplash).jpg",
+    "license": "CC0-1.0",
+    "author": "Vladlane Vadek",
+    "native_original": [
+      3840,
+      2560
+    ],
+    "output": "dash-coast-road-native.webp",
+    "size": [
+      1440,
+      720
+    ],
+    "bytes": 64632,
+    "sha256": "a855f208c8d3de69b0bdb8bb1fe34cadd4b4dfbbdd2f82f47ac7bcb117a1b91d"
+  }
+]
