@@ -155,3 +155,10 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
 
 /* New locations are complete pictures; legacy anomaly sprites keep their original image-space coordinate system. */
 .obs-frame[data-scene-alt='true'] #obs-image{top:0;left:0;width:100%;height:100%;aspect-ratio:auto;transform:none;background-size:cover;background-position:center;filter:saturate(.8) contrast(1.05)}
+
+
+/* Site-specific visual differences stay on the same native coordinate system as the touch targets. */
+#obs-site-overlay{display:block;position:absolute;inset:0;z-index:1;pointer-events:none;background-size:100% 100%;background-position:center;background-repeat:no-repeat}
+.watch-site-record-image{position:relative;width:100%;aspect-ratio:2 / 1;background-color:#111816;background-size:cover;background-position:center;overflow:hidden;border:1px solid #555b52}
+.watch-site-record-overlay{position:absolute;inset:0;display:block;pointer-events:none;background-size:100% 100%;background-position:center;background-repeat:no-repeat}
+@media(prefers-reduced-motion:reduce){#obs-site-overlay,.watch-site-record-overlay{animation:none!important;transition:none!important}}
