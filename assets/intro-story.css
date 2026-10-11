@@ -80,3 +80,6 @@ body.intro-active .lite-footer .lite-pull[data-mode="intro"]:focus-visible { out
 body.intro-active:has([data-view="menu"]:not([hidden])) header.top,
 body.intro-active:has([data-view="menu"]:not([hidden])) .lite-footer { display:none!important; }
 body.intro-active:has([data-view="menu"]:not([hidden])) main { padding-top:18px; padding-bottom:28px; }
+
+/* Menu pages provide their own back control; the introductory menu icon must not cover it. */
+body.intro-active:has([data-view="menu"]:not([hidden])) header.top {display:none!important;}
