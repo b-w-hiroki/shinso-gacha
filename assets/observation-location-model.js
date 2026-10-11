@@ -7,8 +7,15 @@
   dash:{id:'alt:dash',mode:'dash',title:'海沿いの夜道',source:'DRIVE 19',file:'dash-coast-road-upgraded.webp',notes:['海沿いの走行記録','路肩の白い影','背後に続く灯り','対向車線に残る人影']}
  };
  const safeInt=n=>Number.isSafeInteger(n)&&n>=0?n:0;
- function current(mode,rarity,sequence){
-  return Object.hasOwn(scenes,mode)&&[0,1,2,3].includes(rarity)&&Number.isSafeInteger(sequence)&&sequence>=0&&sequence%2===1?scenes[mode]:null;
+ // Legacy saves chose alternatives by the global odd/even sequence. Keep their
+ // pending results unchanged. For new records, alternate across 4-route cycles:
+ // visiting the same source at 1,5,9,13 now sees alt/base/alt/base.
+ function sceneTurn(sequence,version=1){
+  if(!Number.isSafeInteger(sequence)||sequence<0)return false;
+  return version===2?(sequence%2+Math.floor(sequence/4)%2)%2===1:sequence%2===1;
+ }
+ function current(mode,rarity,sequence,version=1){
+  return Object.hasOwn(scenes,mode)&&[0,1,2,3].includes(rarity)&&sceneTurn(sequence,version)?scenes[mode]:null;
  }
  function normalize(raw){
   const source=raw&&typeof raw==='object'&&!Array.isArray(raw)?raw:{},result={};
@@ -22,7 +29,7 @@
   return result;
  }
  function observe(o,record){
-  const scene=current(record?.mode,record?.rarity,record?.sequence);if(!scene||!o||typeof o!=='object')return false;
+  const scene=current(record?.mode,record?.rarity,record?.sequence,o?.locationSceneVersion===2?2:1);if(!scene||!o||typeof o!=='object')return false;
   const data=normalize(o.locationRecords),prior=data[scene.id],seq=record.sequence;
   if(prior&&seq<=prior.lastSequence)return false;
   const rarities={...(prior?.rarities||{})};rarities[record.rarity]=Math.min(999999,(rarities[record.rarity]||0)+1);
@@ -32,5 +39,5 @@
  function discovered(raw){const state=normalize(raw);return Object.values(scenes).filter(s=>state[s.id]).map(s=>({...s,...state[s.id]}));}
  function byId(id){return Object.values(scenes).find(s=>s.id===id)||null;}
  const overlay=(mode,rarity)=>Object.hasOwn(scenes,mode)&&[1,2,3].includes(rarity)?'assets/observation/alt-overlays/'+mode+'-'+rarity+'.svg':null;
- return {current,normalize,observe,discovered,byId,overlay};
+ return {sceneTurn,current,normalize,observe,discovered,byId,overlay};
 });
