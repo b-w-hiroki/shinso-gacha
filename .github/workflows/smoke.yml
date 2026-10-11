@@ -34,6 +34,7 @@ jobs:
       - run: node tests/forecast-followup-model.cjs
       - run: node tests/player-seepage-model.cjs
       - run: node tests/observation-model.cjs
+      - run: node tests/observation-location-model.cjs
       - run: node tests/contamination-model.cjs
       - run: node scripts/update-csp.cjs --check
       - run: node tests/runtime-safety.cjs

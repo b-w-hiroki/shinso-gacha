@@ -124,5 +124,17 @@ for(const [mode,title] of [['cctv','地下通路'],['photo','夜の教室'],['vi
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'false');
  assert((await p.locator('#obs-image').evaluate(e=>getComputedStyle(e).backgroundImage)).includes(mode+'.webp'));
 }
+// Acquired alternative locations are separate records, unseen ones have no placeholders.
+await p.setViewportSize({width:390,height:844});
+await p.evaluate(()=>{S.observation.locationRecords={};openEncyclopedia('places');});
+assert.equal(await p.locator('[data-catalog-entry^="alt:"]').count(),0);
+await p.evaluate(()=>{const record={mode:'photo',rarity:0,sequence:3,readyAt:Date.now()};WatchLocations.observe(S.observation,record);markDirty();openEncyclopedia('places');});
+assert.equal(await p.locator('[data-catalog-entry="alt:photo"]').count(),1);
+assert.equal(await p.locator('[data-catalog-entry="alt:cctv"]').count(),0);
+await p.screenshot({path:`${out}/location-archive-390.jpg`,quality:85});
+await p.locator('[data-catalog-entry="alt:photo"]').click();
+assert((await p.locator('#sheet').innerText()).includes('夜の教室'));
+assert(await p.locator('#sheet img[src*="photo-classroom-upgraded.webp"]').count());
+assert.deepEqual(await p.evaluate(()=>Object.keys(S.observation.locationRecords)),['alt:photo']);
 assert.deepEqual(errors,[]);console.log('Single scene clock collection, unlock/growth, persistence, 16 visuals and four responsive sizes passed');
 }finally{await b.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});
