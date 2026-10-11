@@ -36,10 +36,12 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  assert.equal(await p.locator('.watch-site-record-overlay').isVisible(),false);
  assert((await p.locator('#watch-site-compare-status').innerText()).includes('平常'));
  assert((await p.locator('.watch-site-record-image').getAttribute('aria-label')).includes('無人'));
+ if(!process.env.QA_WEBKIT){await p.setViewportSize({width:390,height:844});await p.screenshot({path:'docs/qa-incursions/alt-compare-normal-390.jpg',quality:85});}
  await comparison.click();
  assert.equal(await comparison.getAttribute('aria-pressed'),'false');
  assert(await p.locator('.watch-site-record-overlay').isVisible());
  assert((await p.locator('#watch-site-compare-status').innerText()).includes('発見した'));
+ if(!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/alt-compare-anomaly-390.jpg',quality:85});
  assert.equal(await p.evaluate(()=>JSON.stringify({currency:S.currency,collected:S.observation.collected,locations:S.observation.locationRecords})),beforeCompare,'comparison never changes saved state');
  for(const [w,h]of [[320,568],[390,844],[844,390]]){await p.setViewportSize({width:w,height:h});assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));if(w===390&&!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/alt-location-rarity-390.jpg',quality:85});}
  await p.evaluate(()=>{hideSheet();go('home');});
