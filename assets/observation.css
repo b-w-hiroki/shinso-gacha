@@ -154,4 +154,4 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
 @media(prefers-reduced-motion:reduce){.obs-frame[data-trace="1"] #obs-image::after{display:none}}
 
 /* New locations are complete pictures; legacy anomaly sprites keep their original image-space coordinate system. */
-.obs-frame[data-scene-alt='true'] #obs-image{background-size:cover;background-position:center}
+.obs-frame[data-scene-alt='true'] #obs-image{top:0;left:0;width:100%;height:100%;aspect-ratio:auto;transform:none;background-size:cover;background-position:center;filter:saturate(.8) contrast(1.05)}
