@@ -18,7 +18,7 @@ assert(html.includes("id=\"rk-clearance\"") && html.includes("id=\"rk-risk\""),
   "personnel records show placement and access warning");
 assert(html.includes("clearanceRank:rankIdx()"),
   "incident records snapshot clearance at the time of investigation");
-assert(html.includes("Number.isInteger(p.clearanceRank) ? p.clearanceRank : rankIdx()"),
+assert(html.includes("Number.isInteger(p.clearanceRank) ? p.clearanceRank : 0"),
   "older saved incidents remain readable");
 assert(html.includes("p.at || seed") && html.includes("band.trace"),
   "rank-dependent residual traces are deterministic, not passive penalties");
