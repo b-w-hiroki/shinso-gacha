@@ -1,5 +1,4 @@
-/* Audit the real binary images shipped to Pages. The legacy 320/480px files are
- * allowed during migration, but may not be described as high-resolution art. */
+/* Audit the native-resolution WebP binaries, verified CC0 source metadata, and the build report. */
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),assert=require('node:assert/strict');
 const WatchLocations=require('../assets/observation-location-model.js');
 const modes=['cctv','photo','vision','dash'];
