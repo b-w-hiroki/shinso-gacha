@@ -52,7 +52,7 @@ function openCatalogEntry(id){
 }
 document.addEventListener('click',e=>{
  const b=e.target.closest('[data-catalog-tab],[data-catalog-entry],[data-catalog-record],[data-catalog-talk],[data-catalog-incident],[data-personnel-confirm],[data-personnel-list]');if(!b||b.disabled)return;
- if(b.dataset.personnelList)return openEncyclopedia('people');
+ if(b.dataset.personnelList!==undefined)return openEncyclopedia('people');
  if(b.dataset.personnelConfirm){const result=PersonnelDiscrepancies.confirm(S.personnelEvidence,rankIdx(),b.dataset.personnelConfirm);if(result.changed){S.personnelEvidence=result.state;markDirty();save();renderMenuBadge();}return openPersonnelDossier(b.dataset.personnelConfirm);}
  if(b.dataset.catalogTab)return openEncyclopedia(b.dataset.catalogTab);
  if(b.dataset.catalogEntry)return openCatalogEntry(b.dataset.catalogEntry);
