@@ -108,7 +108,10 @@ function observationTouchFeedback(event,strike){
  watchJolt?.cancel();
  if(frame.dataset.quiet!=='true'&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
   const im=document.getElementById('obs-image'),n=strike?3:1.5;
-  watchJolt=im.animate([{transform:`translate(calc(-50% + ${n}px),calc(-50% - ${n}px))`},{transform:`translate(calc(-50% - ${n}px),-50%)`},{transform:'translate(-50%,-50%)'}],{duration:160,easing:'ease-out'});
+  const frames=frame.dataset.sceneAlt==='true'
+   ?[{transform:`translate(${n}px,-${n}px)`},{transform:`translate(-${n}px,0)`},{transform:'translate(0,0)'}]
+   :[{transform:`translate(calc(-50% + ${n}px),calc(-50% - ${n}px))`},{transform:`translate(calc(-50% - ${n}px),-50%)`},{transform:'translate(-50%,-50%)'}];
+  watchJolt=im.animate(frames,{duration:160,easing:'ease-out'});
  }
  clearTimeout(watchTouchTimer);frame.classList.toggle('obs-strike',strike);frame.classList.add('obs-touched');
  watchTouchTimer=setTimeout(()=>frame.classList.remove('obs-touched','obs-strike'),180);
