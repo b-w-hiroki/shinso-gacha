@@ -4,12 +4,12 @@
   "sources": [
     {
       "mode": "cctv",
-      "name": "Blue underground passage (Unsplash).jpg",
-      "author": "James Sutton",
-      "source": "https://commons.wikimedia.org/wiki/File:Blue_underground_passage_(Unsplash).jpg",
+      "name": "Underground passage, Ciocana 01.jpg",
+      "author": "Iurie Nistor",
+      "source": "https://commons.wikimedia.org/wiki/File:Underground_passage,_Ciocana_01.jpg",
       "file": "cctv-underground-native.webp",
-      "brightness": 0.87,
-      "teal": 0.1,
+      "brightness": 0.91,
+      "teal": 0.09,
       "license": "CC0-1.0"
     },
     {

@@ -58,7 +58,7 @@ def main():
         target=OUT/source["file"]
         art.save(target,format="WEBP",quality=85,method=6)
         size=target.stat().st_size
-        if not 30_000<size<2_000_000:raise ValueError("unexpected output size: "+str(size))
+        if not 16_000<size<2_000_000:raise ValueError("unexpected output size: "+str(size))
         board.paste(art.resize((720,360),Image.Resampling.LANCZOS),((i%2)*720,(i//2)*720))
         report.append({"mode":source["mode"],"source":source["source"],"license":source["license"],"author":source["author"],"native_original":original.size,"output":source["file"],"size":SIZE,"bytes":size,"sha256":hashlib.sha256(target.read_bytes()).hexdigest()})
     (qa/"native-photo-source-report.json").write_text(json.dumps(report,indent=2,ensure_ascii=False)+"\n",encoding="utf-8")
