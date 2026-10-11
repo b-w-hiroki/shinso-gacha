@@ -31,6 +31,33 @@ function openPersonnelDossier(id){
  const action=item.confirmed?'<p>照合済み。記録は保管された。</p><p>'+escapeHTML(item.conclusion)+'</p>':item.complete?'<button class="btn-paper" data-personnel-confirm="'+escapeHTML(id)+'">三人の証言を照合する</button>':'<p>照合に必要な証言は、まだ揃っていない。</p>';
  sheet('第六文書課・人事照合', '<article class="catalog-detail"><small>PERSONNEL / CLASSIFIED</small><h2>'+escapeHTML(item.title)+'</h2>'+statements+action+'</article>');
 }
+function witnessRegistryRecords(){
+ const compared=Object.fromEntries(LegendModel.ids.filter(id=>LegendModel.count(S.levels,id)===3&&legendLayerStatus(id)?.compared).map(id=>[id,true]));
+ const followups=Object.fromEntries(Object.keys(compared).map(id=>[id,ForecastFollowup.inspect(S.forecastFollowups,id)]));
+ return WitnessRegistry.list(S.levels,LegendModel.CASES,compared,followups);
+}
+function openWitnessDossier(id){
+ const records=witnessRegistryRecords(),entry=records.find(x=>x.id===id);
+ if(!entry)return;
+ const forecast=ForecastArchive.inspect(id,S.levels,LegendModel.CASES,legendProof(id),legendLayerStatus(id));
+ const related=records.length>1?'<details class="witness-related"><summary>別の資料に残された痕跡</summary>'+records.filter(x=>x.id!==id).map(x=>'<button class="btn-line" data-witness-case="'+x.id+'">'+escapeHTML(legendTitle(x.id))+'の立会記録を見る</button>').join('')+'</details>':'';
+ sheet('人物図鑑・人事記録',`<article class="catalog-detail witness-dossier">
+  <small>第六文書課 ／ 人事台帳 照会不一致</small>
+  <header class="witness-card">
+   <div class="witness-photo" role="img" aria-label="肖像写真の登録がない台帳"><span>肖像欄</span><i aria-hidden="true"></i><small>該当なし</small></div>
+   <div class="witness-identity"><h2>登録のない立会人</h2><p>所属：照会できません</p><p>氏名：記載がありません</p><p>在籍記録：なし</p></div>
+  </header>
+  <p class="witness-lead">人員台帳に記録はない。けれど、この人物の立会印を押した事件がある。</p>
+  <section class="witness-record"><h3>回収した資料 ／ ${escapeHTML(legendTitle(id))}</h3>
+   <blockquote>${escapeHTML(entry.record)}</blockquote>
+   <h3>資料に残された証言</h3><p>${escapeHTML(entry.testimony)}</p>
+   <p class="witness-record-note">${escapeHTML(entry.statement)}</p>
+  </section>
+  ${forecast?'<section class="forecast-archive witness-forecast"><h3>未来の調査記録</h3><p>'+escapeHTML(forecast.forecast)+'</p>'+(entry.extra?'<p>'+escapeHTML(entry.extra)+'</p>':'<p>後日の観測記録との照合結果は、まだありません。</p>')+'</section>':''}
+  ${related}
+  <button class="btn-paper" data-legend="case" data-id="${id}">この立会人が記された調査へ戻る</button>
+ </article>`);
+}
 function openCatalogEntry(id){
  const entry=catalogEntries(encyclopediaTab).find(e=>e.id===id);if(!entry?.known)return;
  if(encyclopediaTab==='confidential'){hideSheet();return openLegendCase(id);}
@@ -40,7 +67,7 @@ function openCatalogEntry(id){
  }
  if(encyclopediaTab==='people'){
   if(id.startsWith('personnel:'))return openPersonnelDossier(id.slice('personnel:'.length));
-  if(id.startsWith('ghost:')){const caseId=id.slice(6);if(LegendModel.count(S.levels,caseId)!==3||!legendLayerStatus(caseId)?.compared)return;hideSheet();return openLegendCase(caseId);}
+  if(id.startsWith('ghost:'))return openWitnessDossier(id.slice(6));
   const m=WATCH_COLLEAGUES[id],o=observationState();
   const records=Object.entries(INVESTIGATION_CASES).flatMap(([mode,c])=>c.member===id?[0,1,2,3].filter(r=>o.collection[mode+':'+r]>0).map(r=>({mode,r})):[]);
   const incidents=Object.keys(S.incursion?.discovered||{}).map(Number).filter(k=>S.incursion.discovered[k]===true&&INCURSIONS[k]&&incursionWitnessMember(k).id===id);
@@ -51,8 +78,10 @@ function openCatalogEntry(id){
  sheet('場所図鑑',`<article class="catalog-detail"><small>${m.source} ／ ${WatchModel.MODES[id].label}</small><h2>${m.title}</h2><p>この場所で回収した記録 ${WatchModel.setProgress(o,id)}件。平常の記録も比較の手がかりになります。</p><div class="catalog-records">${[0,1,2,3].map(r=>`<button class="btn-line" data-catalog-record="${id}:${r}" ${o.collection[id+':'+r]>0?'':'disabled'}>${o.collection[id+':'+r]>0?m.records[r]:'未観測'}</button>`).join('')}</div>${legends.length?'<h3>関連する噂</h3>'+legends.map(k=>`<button class="btn-line" data-legend="case" data-id="${k}">${escapeHTML(legendTitle(k))}</button>`).join(''):''}<button class="btn-paper" data-watch="return">観測へ戻る</button></article>`);
 }
 document.addEventListener('click',e=>{
- const b=e.target.closest('[data-catalog-tab],[data-catalog-entry],[data-catalog-record],[data-catalog-talk],[data-catalog-incident],[data-personnel-confirm],[data-personnel-list]');if(!b||b.disabled)return;
+ const b=e.target.closest('[data-catalog-tab],[data-catalog-entry],[data-catalog-record],[data-catalog-talk],[data-catalog-incident],[data-personnel-confirm],[data-personnel-list],[data-witness-case],[data-witness-registry]');if(!b||b.disabled)return;
  if(b.dataset.personnelList!==undefined)return openEncyclopedia('people');
+ if(b.dataset.witnessCase)return openWitnessDossier(b.dataset.witnessCase);
+ if(b.dataset.witnessRegistry!==undefined){const first=witnessRegistryRecords()[0];if(first){hideSheet();return openWitnessDossier(first.id);}return;}
  if(b.dataset.personnelConfirm){const result=PersonnelDiscrepancies.confirm(S.personnelEvidence,rankIdx(),b.dataset.personnelConfirm);if(result.changed){S.personnelEvidence=result.state;markDirty();save();renderMenuBadge();}return openPersonnelDossier(b.dataset.personnelConfirm);}
  if(b.dataset.catalogTab)return openEncyclopedia(b.dataset.catalogTab);
  if(b.dataset.catalogEntry)return openCatalogEntry(b.dataset.catalogEntry);
