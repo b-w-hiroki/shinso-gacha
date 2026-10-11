@@ -10,3 +10,17 @@
 .catalog-summary{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;margin:12px 0}.catalog-summary p{white-space:nowrap}.catalog-summary label{display:flex;align-items:center;gap:7px;min-height:44px}.catalog-summary input{width:18px;height:18px}
 .catalog-list{display:grid;gap:8px}.catalog-entry{display:grid;grid-template-columns:52px minmax(0,1fr) 16px;gap:10px;align-items:center;width:100%;min-height:82px;padding:12px;text-align:left;border:1px solid #4c5349;background:#1c241f;color:#d3ccb8;font:inherit}.catalog-entry>small{font-size:10px;color:#949e8a}.catalog-entry b{display:block;font-size:16px;line-height:1.6;font-weight:500}.catalog-entry span small{display:block;font-size:12px;color:#a5af9b;line-height:1.6}.catalog-unknown{opacity:.58;background:#151a17}.catalog-detail{line-height:1.8}.catalog-detail h2{margin:8px 0}.catalog-detail h3{font-size:15px;margin-top:24px}.catalog-detail blockquote{margin:12px 0;padding:12px;border-left:2px solid #797e66;color:#bfc6b3}.catalog-detail .watch-speaker img{width:75px;height:100px;object-fit:cover}
 @media(max-width:360px){.account-card,.account-danger{padding:15px}.catalog-entry{padding:10px;grid-template-columns:44px minmax(0,1fr) 10px;gap:7px}.catalog-entry b{font-size:15px}}
+
+
+/* Unregistered personnel: the missing portrait is intentional, not a broken image. */
+.witness-dossier{color:#e0d7c4;overflow-wrap:anywhere}
+.witness-card{display:grid;grid-template-columns:minmax(96px,31%) minmax(0,1fr);gap:14px;align-items:start;margin:14px 0 20px}
+.witness-photo{position:relative;display:flex;min-height:175px;flex-direction:column;align-items:center;justify-content:space-between;padding:13px 7px;border:1px solid #77715f;background:linear-gradient(150deg,#32342b,#101411 74%);color:#b7ab92;text-align:center;letter-spacing:.1em}
+.witness-photo>span{font-size:11px}.witness-photo>small{font-size:11px;color:#d8cbb2}
+.witness-photo i{display:block;width:61%;height:68px;border:1px solid #5b5b50;border-top-color:#817968;opacity:.7;transform:skewY(-4deg)}
+.witness-identity{min-width:0}.witness-identity h2{font-size:19px;line-height:1.45;margin:0 0 12px}.witness-identity p{font-size:13px;line-height:1.8;margin:5px 0;color:#cbc5b6}
+.witness-lead{border-left:2px solid #86775b;padding:5px 0 5px 13px;font-size:14px;line-height:1.9}
+.witness-record,.witness-forecast{border-top:1px solid #555448;padding-top:12px;margin:18px 0;line-height:1.8}
+.witness-record-note{font-size:14px;color:#bdb8a7}.witness-related summary{min-height:46px;padding:9px 0}
+@media(max-width:360px){.witness-card{grid-template-columns:minmax(86px,34%) minmax(0,1fr);gap:10px}.witness-photo{min-height:157px}.witness-identity h2{font-size:17px}}
+@media(prefers-reduced-motion:reduce){.witness-dossier *{animation:none!important;transition:none!important}}
