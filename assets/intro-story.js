@@ -23,6 +23,7 @@ function renderIntro() {
   const root=$('intro-case'); if(!root)return;
   const active=!!introActive(); root.hidden=!active;
   document.body.classList.toggle('intro-active',active);
+  document.body.classList.toggle('intro-quiet',!!(S.observation&&S.observation.quiet));
   if(isLite()){
     const menuHome=(active || liteTotal()<3)?document.querySelector('.top-in'):document.querySelector('.lite-tabs');
     if(menuHome && $('game-menu').parentElement!==menuHome)menuHome.appendChild($('game-menu'));
@@ -70,3 +71,5 @@ document.addEventListener('click',e=>{
     $('intro-case').querySelectorAll('.intro-compare button').forEach(x=>x.setAttribute('aria-pressed',x===b));
   }
 });
+
+document.addEventListener('change',e=>{if(e.target.matches('[data-watch-quiet]'))queueMicrotask(()=>document.body.classList.toggle('intro-quiet',!!(S.observation&&S.observation.quiet)));});
