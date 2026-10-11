@@ -41,6 +41,7 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
   assert((await entry.innerText()).includes('2件'));
   await entry.click();
   assert.equal(await p.locator('[data-witness-case]').count(),1);
+  await p.locator('.witness-related summary').click();
   await p.locator('[data-witness-case="u2"]').click();
   assert((await p.locator('.witness-record').innerText()).includes('列車に乗っていない'));
   assert((await p.locator('.witness-forecast').innerText()).includes('平常'));
