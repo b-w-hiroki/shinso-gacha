@@ -83,3 +83,10 @@ body.intro-active:has([data-view="menu"]:not([hidden])) main { padding-top:18px;
 
 /* Menu pages provide their own back control; the introductory menu icon must not cover it. */
 body.intro-active:has([data-view="menu"]:not([hidden])) header.top {display:none!important;}
+
+/* Fade the photographed desk into the dark lower half, without losing the envelope. */
+body.intro-active main { background:radial-gradient(ellipse 125% 65% at 50% 0%,#241810 0%,#15120f 52%,#111318 100%); }
+body.intro-active #intro-case[data-step="0"] .intro-envelope {
+  -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 78%,transparent 100%);
+  mask-image:linear-gradient(to bottom,#000 0%,#000 78%,transparent 100%);
+}
