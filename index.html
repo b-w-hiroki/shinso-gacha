@@ -2994,6 +2994,7 @@ function updateLiteFooter() {
   const navigating = !introActive() && n >= 3;
   const tabs = f.querySelector(".lite-tabs");
   tabs.hidden = !navigating;
+  tabs.style.setProperty("--visible-lite-tabs", String(2 + (n >= 6 ? 1 : 0) + (n >= 10 ? 1 : 0)));
   f.querySelectorAll("[data-ltab]").forEach(tab => {
     tab.hidden = !navigating || (tab.dataset.ltab === "notes" && n < 6);
   });
