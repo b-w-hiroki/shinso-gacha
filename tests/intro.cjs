@@ -28,6 +28,7 @@ await p.evaluate(()=>{S.lite.lv=Object.fromEntries(LITE_IDS.map((id,i)=>[id,i<11
 await p.evaluate(()=>{S.lite.lv=Object.fromEntries(LITE_IDS.map(id=>[id,3]));renderLite();});await p.locator('#lite-apply').click();assert(await p.locator('#sheet-bg').isVisible());await p.locator('.sheet .x').click();
 // Double taps must not award a second letter or skip the comparison.
 await fresh();await p.locator('#lite-pull').dblclick();assert.equal(await p.evaluate(()=>S.lite.pulls),1);assert.equal(await p.evaluate(()=>S.lite.intro.step),1);
+await p.evaluate(()=>{S.role='agent';S.onboarded=true;applyMode();});assert(await p.locator('header.top').isVisible(),'header returns after becoming an agent');assert.equal(await p.locator('body.intro-active').count(),0,'intro presentation state clears on role change');
 for(const a of JSON.parse(fs.readFileSync('assets/intro/manifest.json'))){await p.evaluate(async src=>{const im=new Image();im.src=src;await im.decode();},a.path);}
 assert.deepEqual(errors,[]);fs.writeFileSync(out+'/results.json',JSON.stringify({passed:true,checks:['fresh + existing user','progressive footer unlocks','320/390/430 mobile controls','photo comparison','exactly three ordinary draws','reload resume','redaction reveal','skip + replay without rewards','33 fragment intervention + 36 interview gate','double tap guard','7 image decodes'],errors},null,2)+'\n');console.log('Introduction checks passed');
 }finally{await browser.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1});
