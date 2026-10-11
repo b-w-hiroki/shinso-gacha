@@ -17,6 +17,7 @@ jobs:
         with:
           node-version: 22
       - run: node tests/smoke.mjs
+      - run: node tests/documentation-contract.cjs
       - run: node tests/clearance-risk.cjs
       - run: node tests/personnel-discrepancies-model.cjs
       - run: node tests/incursion-rarity.cjs
