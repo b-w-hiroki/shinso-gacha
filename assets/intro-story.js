@@ -53,6 +53,8 @@ function advanceIntro() {
     i.step++;
   }
   markDirty(); renderLite();
+  // Each document is a new scene. The prior CTA scroll must not hide its heading.
+  window.scrollTo(0, 0);
 }
 function introArchive() {
   sheet('最初の3通 ／ 02:14の記録',`<div class="intro-archive"><p>駅の写真、構内図、差出人のメモ。3通に残された同じ時刻。</p><details open><summary>1通目：人物が増えた写真</summary>${introImage('station-before','最初の写真。左に1人。')}${introImage('station-after','もう一度見た写真。右にも人物がいる。')}</details><details><summary>2通目：構内図の赤い印</summary>${introImage('station-plan','ベンチの横に赤い印がある構内図')}<p>写真で人物が増えた場所を、誰かが先に示していた。</p></details><details><summary>3通目：差出人のメモ</summary><div class="intro-note"><p>02:14<br>写真の人物を、数え直さないこと。</p><p>あなたの閲覧は、記録されています。</p><b>差出人　██████</b></div></details><p class="hint">再閲覧では開封数・資料・報酬は増えません。</p></div>`);
