@@ -39,7 +39,7 @@ function renderObservation(){
  const alternate=WatchLocations.current(o.mode,r,p?.sequence??o.sequence),alternative=!!alternate;
  const src=alternate?`assets/observation/${alternate.file}`:`assets/observation/${o.mode}${advanced?'-variants':''}.webp`;
  const condition=observationCondition(o);
- const paint=`${o.mode}/${p?.sequence??'idle'}/${r}/${condition}/${alternative}`;
+ const paint=`${o.mode}/${p?.sequence??o.sequence}/${r}/${condition}/${alternative}`;
  if(paint!==watchPaint){
   const im=document.getElementById('obs-image'),layer=document.getElementById('obs-site-overlay');im.style.backgroundImage=`url("${src}")`;im.style.backgroundPosition=alternative?'center':`${side} center`;
   layer.style.backgroundImage=alternate&&r>0?`url("${WatchLocations.overlay(o.mode,r)}")`:'none';
