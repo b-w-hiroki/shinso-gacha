@@ -165,7 +165,7 @@ document.addEventListener('click',e=>{
  else return;
  const expanded=document.querySelector('.watch-upgrades')?.open;markDirty();render();if(expanded)document.querySelector('.watch-upgrades').open=true;
 });
-document.addEventListener('change',e=>{if(WATCH_AUTOMATION_AVAILABLE&&e.target.matches('[data-watch-auto]')){observationState().autoEnabled=e.target.checked;observationState().autoLastAt=Date.now();markDirty();}if(e.target.matches('[data-watch-quiet]')){observationState().quiet=e.target.checked;markDirty();renderObservation();}});
+document.addEventListener('change',e=>{if(WATCH_AUTOMATION_AVAILABLE&&e.target.matches('[data-watch-auto]')){observationState().autoEnabled=e.target.checked;observationState().autoLastAt=Date.now();markDirty();}if(e.target.matches('[data-watch-quiet]')){observationState().quiet=e.target.checked;document.body.classList.toggle('intro-quiet',e.target.checked);markDirty();renderObservation();}});
 document.addEventListener('visibilitychange',()=>{if(typeof S!=='undefined'&&!isLite()){observationState().autoLastAt=Date.now();if(!document.hidden)observationTick();}});
 
 function renderObservationAlbum(){

@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-CVOflPUx8mJ/5KZEiAq7VwfZf/gXYtFp8R64EknSpmI=' https://www.gstatic.com/firebasejs/ https://cdn.jsdelivr.net/npm/budoux@0.9.3/ https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://shinso-gacha.firebaseapp.com; frame-src https://shinso-gacha.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-vT7YEP4SBdJksGuwcLtT6XgZ/npc7o7lozJsCpRDY5A=' https://www.gstatic.com/firebasejs/ https://cdn.jsdelivr.net/npm/budoux@0.9.3/ https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://shinso-gacha.firebaseapp.com; frame-src https://shinso-gacha.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>真相ガチャ</title>
@@ -1611,6 +1611,17 @@ const RANKS = RANK_NAMES.map((name, k) => { const t = k / 19; return { name, nee
 const rankIdx = () => { let k = 0; RANKS.forEach((r, i) => { if (S.pulls >= r.need) k = i; }); return k; };
 const rank = () => RANKS[rankIdx()];
 const rankEmblem = () => `<span class="rank-emblem" data-tier="${Math.min(3, Math.floor(rankIdx() / 5))}" aria-hidden="true"></span>`;
+/* 課内地位と機密区分。昇進は抽選確率を変えず、調査可能な記録の危険を深める。 */
+const CLEARANCE_BANDS = [
+  { from:0, tier:0, position:"仮配属", access:"一般記録", warning:"照合は監督者の立会いを要する。まだ名前を呼ばれていない。", trace:"" },
+  { from:3, tier:1, position:"正式調査員", access:"指定記録", warning:"閲覧履歴の照会元が増えている。申請者欄は空白のまま。", trace:"処理後、同じ調査員番号を使った閲覧が別端末から発生した。" },
+  { from:6, tier:2, position:"現地調査班", access:"現地機密", warning:"帰投時刻を他の職員と照合すること。単独行動の記録は認めない。", trace:"帰投簿にはあなたの名前がない。端末の接続だけが続いている。" },
+  { from:10, tier:3, position:"特務調査班", access:"特別指定", warning:"照合資料の改訂理由を同僚に尋ねないこと。証言が一致する保証はない。", trace:"課員の証言と設備記録が食い違う。勤務表には誰も出勤していない。" },
+  { from:14, tier:4, position:"機密管理職", access:"最上位機密", warning:"引き継いだ机に前任者の私物はない。前任者の記録も存在しない。", trace:"第六文書課の名簿には存在しない席が一つ増えている。" },
+  { from:17, tier:5, position:"深層特務", access:"区分外", warning:"以後の報告書では、調査者と調査対象の区別を保証しない。", trace:"照合対象の欄に、あなた自身の調査員番号が記載されている。" }
+];
+const clearanceForRank = (index = rankIdx()) => CLEARANCE_BANDS.reduce((found, band) => index >= band.from ? band : found, CLEARANCE_BANDS[0]);
+
 /* ---------- 調査室（育成）：証拠を使って設備を強化 ---------- */
 const UPS = [
   { id:"radio", name:"盗聴ラジオ", max:20, base:12, grow:1.32, flavor:"深夜のAM放送の隙間に、ときどき知らない声が混ざる。", eff: L => `放置効率 +${L * 10}%` },
@@ -1752,7 +1763,7 @@ function commit(res) {
   if (newT.length) { S.titlesSeen = seen.concat(newT); titleNews = newT; }
   S.pulls += res.length;
   incursionInvestigate(res.length);
-  if (rankIdx() > r0) rankNews = rank().name + (ITEMS.some(i => i.minRank && i.minRank > r0 && i.minRank <= rankIdx()) ? "。深層ファイルが解禁された" : "");
+  if (rankIdx() > r0) rankNews = rank().name + (clearanceForRank(r0).tier < clearanceForRank().tier ? "。課内の担当区分が変更された" : ITEMS.some(i => i.minRank && i.minRank > r0 && i.minRank <= rankIdx()) ? "。深層ファイルが解禁された" : "");
   bump("pull", res.length);
   bump("layer", res.filter(r => r.opened).length);
   markDirty(); render();
@@ -1861,7 +1872,7 @@ function closeStage() {
   notify();
 }
 function notify() {
-  if (rankNews) { const n = rankNews; rankNews = null; setTimeout(() => { toast("ランクアップ：" + n + "（稀・禁が出やすくなった）"); $("toast").insertAdjacentHTML("afterbegin", rankEmblem()); }, 450); buzz([30, 30, 60]); }
+  if (rankNews) { const n = rankNews; rankNews = null; setTimeout(() => { toast("人事通知：" + n); $("toast").insertAdjacentHTML("afterbegin", rankEmblem()); }, 450); buzz([30, 30, 60]); }
   if (titleNews) { const t = titleNews; titleNews = null; setTimeout(() => toast("称号「" + t.join("」「") + "」を獲得しました（報告画面）"), 150); buzz([20, 40, 20]); }
   if (secretNews) { secretNews = false; setTimeout(() => toast("機密区分外のファイルに動きがありました（ファイル画面）"), 300); }
 }
@@ -2117,7 +2128,7 @@ function evidenceHTML() {
     visual = `<div class="ev-audio"><div class="wave">${hs.map(h=>`<i style="--h:${h}%"></i>`).join("")}</div></div>`;
   } else if (e.type === "transit") visual = '<div class="ev-map"><span class="transit-mark">ENTRY -- / EXIT 23:41</span></div>';
   else visual = `<div class="ev-cctv"><b>IMG ${e.code} / SUBJECT UNLISTED</b></div>`;
-  return `<div class="evidence-stack"><div class="ev-status"><span>${e.code}</span><span>${r.place}</span><span class="${r.urgent ? "danger" : ""}">${r.state}</span></div><div class="evidence-view" data-kind="${e.type}"><div class="ev-head"><span>${e.label}</span><span>${e.clock}</span></div>${visual}<div class="ev-transcript">${e.note}</div></div><p class="hint" style="text-align:left">第六文書課・自動収集記録。記録の地点は架空の観測地点です。</p></div>`;
+  return `<div class="evidence-stack"><div class="ev-status"><span>${e.code}</span><span>${r.place}</span><span class="${r.urgent ? "danger" : ""}">${r.state}</span></div><div class="evidence-view" data-kind="${e.type}"><div class="ev-head"><span>${e.label}</span><span>${e.clock}</span></div>${visual}<div class="ev-transcript">${e.note}</div>${clearanceForRank().tier ? `<p class="hint" style="text-align:left">機密付記：${clearanceForRank().warning}</p>` : ""}</div><p class="hint" style="text-align:left">第六文書課・自動収集記録。記録の地点は架空の観測地点です。</p></div>`;
 }
 function caseState() {
   S.caseLog = S.caseLog || {};
@@ -2149,7 +2160,9 @@ function caseAftermath() {
   const list = AFTERMATH[p.choice] || AFTERMATH.watch;
   const seed = Math.abs(([...p.day].reduce((a,c)=>a+c.charCodeAt(0),0) + (p.code || "").length + totalLv()) % list.length);
   const a = list[seed];
-  return { eye:a[0], title:a[1], body:a[2], state:a[3] };
+  const band = clearanceForRank(Number.isInteger(p.clearanceRank) ? p.clearanceRank : 0);
+  const extra = band.tier && ((p.at || seed) % 5) < band.tier ? " " + band.trace : "";
+  return { eye:a[0], title:a[1], body:a[2] + extra, state:a[3] };
 }
 function caseChoiceMeta(choice) {
   return choice === "field" ? ["現地確認","現場へ向かう。最も情報を得られるが、異常へ近づく。"]
@@ -2159,7 +2172,7 @@ function caseChoiceMeta(choice) {
 function resolveCase(choice) {
   const e = anomalyEvidence(), r = radarSignal(), meta = caseChoiceMeta(choice);
   S.caseLog = S.caseLog || {};
-  S.caseLog[dayKey()] = { choice, label:meta[0], evidence:e.type, code:e.code, place:r.place, at:Date.now() };
+  S.caseLog[dayKey()] = { choice, label:meta[0], evidence:e.type, code:e.code, place:r.place, at:Date.now(), clearanceRank:rankIdx() };
   if (choice === "field") { S.evi = (S.evi || 0) + 2; toast("現地確認：証拠 +2"); }
   else if (choice === "seal") toast("対象区画を遠隔封鎖しました");
   else toast("経過観察へ移行しました");
@@ -2238,6 +2251,9 @@ function render() {
   const ri = rankIdx(), rk = RANKS[ri], nx = RANKS[ri + 1];
   $("rk-name").textContent = rk.name;
   $("rk-lv").textContent = `RANK ${ri + 1} / ${RANKS.length}`;
+   const clearance = clearanceForRank(ri);
+   $("rk-clearance").textContent = `課内配置：${clearance.position} ／ 閲覧区分：${clearance.access}`;
+   $("rk-risk").textContent = clearance.warning;
   $("rk-bar").style.width = (nx ? (S.pulls - rk.need) / (nx.need - rk.need) * 100 : 100) + "%";
   $("rk-next").textContent = nx ? `次の「${nx.name}」まで あと${nx.need - S.pulls}回` : "最高ランク";
   $("rk-perks").innerHTML = [`放置 ×${idleMult().toFixed(2)}`, `稀 ×${rarMult("r").toFixed(2)}`, `禁 ×${rarMult("x").toFixed(2)}`, `二重解除 ${(critRate() * 100).toFixed(1).replace(/\.0$/, "")}%`, `天井 ${pityMax()}回`].map(t => `<span>${t}</span>`).join("");
@@ -2790,11 +2806,11 @@ function applyLitePhase() {
 }
 function defaultLiteEvent() {
   const n = liteTotal(), phase = litePhase(n);
-  if (n === 0) return { eye:"取扱注意 ・ 宛先不明", title:"郵便受けに、見覚えのない封筒があった", body:"差出人も、宛名もない。中には、途中まで黒く塗りつぶされた記録が入っている。開封するなら、少し慎重に扱った方がよさそうだ。", alert:false };
-  if (phase === "calm") return { eye:"未確認資料", title:"次の封筒が届いている", body:"前の封筒と同じ紙質だ。差出人は、まだ分からない。", alert:false };
-  if (phase === "uneasy") return { eye:"観察継続中", title:"まだ、こちらを見ている", body:"封筒は途切れない。開くほど、こちらの行動を記録されている気がする。", alert:false };
-  if (phase === "danger") return { eye:"警告", title:"こちらを見ているのは、差出人だけではない", body:"資料の一部に、あなたの閲覧時刻と同じ数字が繰り返し現れている。", alert:true };
-  if (phase === "crisis") return { eye:"接続異常", title:"閲覧を中止してください", body:"封筒の外側から、こちらへ何かが接続しようとしている。閉じても記録が増えている。", alert:true };
+  if (n === 0) return { eye:"取扱注意 ・ 宛先不明", title:"封筒が、1通。", body:"宛名がない。紙が少し温かい。", alert:false };
+  if (phase === "calm") return { eye:"未確認資料", title:"一通、増えている。", body:"封は、最初から切れていた。", alert:false };
+  if (phase === "uneasy") return { eye:"観察継続中", title:"先に開かれていた。", body:"自分が開く前の閲覧時刻が残っている。", alert:false };
+  if (phase === "danger") return { eye:"警告", title:"ここから先の記録が、おかしい。", body:"開いていない資料に、同じ閲覧時刻がある。", alert:true };
+  if (phase === "crisis") return { eye:"接続異常", title:"閉じてください。", body:"閉じても、閲覧記録だけが増えている。", alert:true };
   return { eye:"第六文書課・保護通信", title:"こちらで接続を遮断しました", body:"今は安全です。見てしまった内容について、確認させてください。", alert:false, action:n >= 36 ? "apply" : "", label:"事情聴取を受ける" };
 }
 function setLiteEvent(evt) {
@@ -2975,6 +2991,13 @@ function liteFooterLabel(n = liteTotal()) {
 function updateLiteFooter() {
   const b = $("lite-pull"), f = document.querySelector(".lite-footer"); if (!b || !f) return;
   const n = liteTotal(), navOnly = liteTab !== "open";
+  const navigating = !introActive() && n >= 3;
+  const tabs = f.querySelector(".lite-tabs");
+  tabs.hidden = !navigating;
+  tabs.style.setProperty("--visible-lite-tabs", String(2 + (n >= 6 ? 1 : 0) + (n >= 10 ? 1 : 0)));
+  f.querySelectorAll("[data-ltab]").forEach(tab => {
+    tab.hidden = !navigating || (tab.dataset.ltab === "notes" && n < 6);
+  });
   b.disabled = false;
   b.textContent = liteFooterLabel(n);
   b.dataset.mode = S.lite && S.lite.event ? "event" : "pull";
@@ -2982,6 +3005,7 @@ function updateLiteFooter() {
   document.body.classList.toggle("footer-nav-only", navOnly && isLite());
 }
 function setLiteTab(tab) {
+  if (isLite() && tab !== "open" && (introActive() || liteTotal() < 3 || (tab === "notes" && liteTotal() < 6))) tab = "open";
   liteTab = tab;
   document.querySelectorAll("[data-ltab]").forEach(b => b.setAttribute("aria-pressed", b.dataset.ltab === tab));
   document.querySelectorAll("[data-lpane]").forEach(p => p.hidden = p.dataset.lpane !== tab);
@@ -3006,6 +3030,7 @@ function renderLiteFiles() {
 }
 function renderLite(freshIt, freshL) {
   const n = liteTotal();
+  if (liteTab === "notes" && n < 6) liteTab = "open";
   applyLitePhase();
   renderLiteEvent();
   $("lite-n").textContent = n + " / " + LITE_ALL;
@@ -3143,6 +3168,7 @@ function becomeAgent() {
 }
 function applyMode() {
   document.body.classList.toggle("lite", isLite());
+  if (!isLite()) document.body.classList.remove("intro-active");
   document.querySelector(isLite()?".lite-tabs":".nav-in").appendChild($("game-menu"));
   if (isLite()) { $("issue").textContent = "UNVERIFIED ARCHIVE ・ 一般人"; go("lite"); setLiteTab("open"); setLiteFilter("urban"); renderLite(); }
 }
@@ -3190,7 +3216,7 @@ function openWalletDetail() {
 }
 function openAgentRecord() {
   if(isLite())return;
-  sheet("調査員証・ランク", `<div class="rankcard wallet-rank">${rankEmblem()}<div class="rk-top"><span class="eyebrow" id="rk-lv">RANK 1 / 20</span><b id="rk-name">見習い調査員</b></div><div class="rk-bar"><i id="rk-bar" style="width:0%"></i></div><div class="rk-row"><span id="rk-next"></span></div><div class="perks" id="rk-perks"></div><div class="rk-row" id="rk-deep"></div><div class="pity"><span>未発見資料の確定まで</span><b id="pity-left">あと30回</b></div></div>`);
+  sheet("調査員証・ランク", `<div class="rankcard wallet-rank">${rankEmblem()}<div class="rk-top"><span class="eyebrow" id="rk-lv">RANK 1 / 20</span><b id="rk-name">見習い調査員</b></div><div class="rk-bar"><i id="rk-bar" style="width:0%"></i></div><div class="rk-row"><span id="rk-next"></span></div><div class="rk-row" id="rk-clearance"></div><div class="rk-row" id="rk-risk"></div><div class="perks" id="rk-perks"></div><div class="rk-row" id="rk-deep"></div><div class="pity"><span>未発見資料の確定まで</span><b id="pity-left">あと30回</b></div></div>`);
   render();
 }
 $("agent-record").addEventListener("click",openAgentRecord);
