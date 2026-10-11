@@ -76,7 +76,8 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    const f=frame.getBoundingClientRect(),im=document.getElementById('obs-image').getBoundingClientRect();
    return Math.abs(f.left-im.left)<8&&Math.abs(f.top-im.top)<8&&Math.abs(f.width-im.width)<8&&Math.abs(f.height-im.height)<8;
   }),'all four sources and all four rarity states stay in frame during live motion');
-  const overlay=await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).backgroundImage);
+  const overlay=await p.evaluate(()=>{const e=document.getElementById('obs-site-overlay');return e?getComputedStyle(e).backgroundImage:null;});
+  assert(overlay!==null,'site overlay element must exist in DOM');
   if(rarity===0)assert.equal(overlay,'none');
   else{
    assert(overlay.includes(mode+'-'+rarity+'.svg'));
