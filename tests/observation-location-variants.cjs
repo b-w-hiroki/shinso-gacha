@@ -5,6 +5,7 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  if(process.env.QA_FONT){await p.addStyleTag({content:"@font-face{font-family:QAJP;src:url('/font.otf')}body,button{font-family:QAJP}"});await p.evaluate(()=>document.fonts.load('16px QAJP'));}
  await p.evaluate(()=>{S.role='agent';S.onboarded=true;S.lite={intro:{done:true}};S.lastTick=Date.now()+900000;S.streak={last:dayKey(),n:1};S.observation=WatchModel.create(Date.now(),42);S.incursion={version:1,level:0,history:[]};S.currency=5000;applyMode();go('home');render();});
  await p.evaluate(()=>openEncyclopedia('places'));assert.equal(await p.locator('[data-catalog-entry^="alt:"]').count(),0,'unknown places absent');
+ await p.evaluate(()=>openEncyclopedia('anomalies'));assert.equal(await p.locator('[data-catalog-entry^="alt:"]').count(),0,'unknown anomaly locations absent');
  await p.evaluate(()=>{hideSheet();go('home');const o=observationState(),now=Date.now();o.mode='cctv';o.sequence=1;o.mind.closed=false;o.pending={mode:'cctv',rarity:1,readyAt:now,expiresAt:now+3600000,sequence:1,suppression:0};renderObservation();});
  assert.equal(await p.locator('#obs-name').innerText(),'地下通路');
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
@@ -15,6 +16,13 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  const visits=await p.evaluate(()=>WatchLocations.discovered(S.observation.locationRecords));
  assert.equal(visits.length,1);assert.equal(visits[0].id,'alt:cctv');assert.equal(visits[0].rarities[1],1);assert.equal(visits[0].rarities[0]||0,0);
  const wallet=await p.evaluate(()=>S.currency);
+ await p.evaluate(()=>openEncyclopedia('anomalies'));
+ assert.equal(await p.locator('[data-catalog-entry^="alt:"]').count(),1,'only acquired location anomaly is shown');
+ assert((await p.locator('[data-catalog-entry="alt:cctv:1"]').innerText()).includes('通路に残る足跡'));
+ assert.equal(await p.locator('[data-catalog-entry="alt:cctv:2"]').count(),0,'unowned anomaly details never enter DOM');
+ await p.locator('[data-catalog-entry="alt:cctv:1"]').click();
+ assert(await p.locator('.watch-site-record-image').isVisible(),'catalog entry opens original acquired location evidence');
+ assert((await p.locator('.watch-record-caption').innerText()).includes('通路に残る足跡'));
  await p.evaluate(()=>openEncyclopedia('places'));
  assert.equal(await p.locator('[data-catalog-entry^="alt:"]').count(),1);
  await p.locator('[data-catalog-entry="alt:cctv"]').click();
