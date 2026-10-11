@@ -68,7 +68,23 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
   }),'all four sources and all four rarity states stay in frame during live motion');
   const overlay=await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).backgroundImage);
   if(rarity===0)assert.equal(overlay,'none');
-  else{assert(overlay.includes(mode+'-'+rarity+'.svg'));const valid=await p.evaluate(({mode,rarity})=>WatchModel.TARGETS[mode][rarity].some(([x,y])=>WatchModel.hit(observationState(),{x,y})),{mode,rarity});assert(valid,'matching hit target '+mode+rarity);}
+  else{
+   assert(overlay.includes(mode+'-'+rarity+'.svg'));
+   const valid=await p.evaluate(({mode,rarity})=>WatchLocations.targets(mode,rarity).some(([x,y])=>WatchModel.hit(observationState(),{x,y})),{mode,rarity});
+   assert(valid,'matching native image-space target '+mode+rarity);
+   const geometry=await p.evaluate(({mode,rarity})=>{
+    const f=document.getElementById('obs-frame').getBoundingClientRect(),v=document.getElementById('obs-site-overlay').getBoundingClientRect();
+    const pictureWidth=Math.max(f.width,2*f.height),[x,y]=WatchLocations.targets(mode,rarity)[0];
+    return {coverMatches:Math.abs(v.width-pictureWidth)<2&&Math.abs(v.height-pictureWidth/2)<2,
+     point:{x:f.left+f.width/2+(x-.5)*pictureWidth,y:f.top+f.height/2+(y-.5)*pictureWidth/2},f:{left:f.left,top:f.top,right:f.right,bottom:f.bottom}};
+   },{mode,rarity});
+   assert(geometry.coverMatches,'visual anomaly overlay must match photographic cover framing '+mode+rarity);
+   const q=geometry.point,f=geometry.f;
+   if(q.x>=f.left+2&&q.x<=f.right-2&&q.y>=f.top+2&&q.y<=f.bottom-2){
+    await p.mouse.click(q.x,q.y);
+    assert.equal(await p.evaluate(()=>observationState().pending?.suppression),1,'clicking actual projected visual hotspot must suppress '+mode+rarity);
+   }
+  }
   if(rarity>0&&!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/alt-'+mode+'-'+rarity+'-390.jpg',quality:85});
  }
  // The scene must repaint when the next idle sequence changes, even without a pending record.
