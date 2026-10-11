@@ -136,7 +136,7 @@ assert.equal(await p.locator('[data-catalog-entry="alt:cctv"]').count(),0);
 await p.screenshot({path:`${out}/location-archive-390.jpg`,quality:85});
 await p.locator('[data-catalog-entry="alt:photo"]').click();
 assert((await p.locator('#sheet').innerText()).includes('夜の教室'));
-assert(await p.locator('#sheet img[src*="photo-classroom-upgraded.webp"]').count());
+assert(await p.locator('#sheet img[src*="'+WatchLocations.byId("alt:photo").file+'"]').count());
 assert.deepEqual(await p.evaluate(()=>Object.keys(S.observation.locationRecords)),['alt:photo']);
 assert.deepEqual(errors,[]);console.log('Single scene clock collection, unlock/growth, persistence, 16 visuals and four responsive sizes passed');
 }finally{await b.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});
