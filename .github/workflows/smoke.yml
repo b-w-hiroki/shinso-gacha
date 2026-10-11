@@ -29,6 +29,7 @@ jobs:
       - run: node tests/reality-clues.cjs
       - run: node tests/absence-traces.cjs
       - run: node tests/forecast-archive.cjs
+      - run: node tests/forecast-followup-model.cjs
       - run: node tests/player-seepage-model.cjs
       - run: node tests/observation-model.cjs
       - run: node tests/contamination-model.cjs
@@ -98,6 +99,9 @@ jobs:
       - run: node tests/legend-cases.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/forecast-followup.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/player-seepage.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
@@ -162,6 +166,10 @@ jobs:
           QA_WEBKIT: 1
           QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/legend-cases.cjs
+        env:
+          QA_WEBKIT: 1
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/forecast-followup.cjs
         env:
           QA_WEBKIT: 1
           QA_FONT: ${{ runner.temp }}/noto.otf
