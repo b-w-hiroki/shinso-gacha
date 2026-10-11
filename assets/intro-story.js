@@ -30,7 +30,7 @@ function renderIntro() {
   let visual=step===0?'<img class="intro-image intro-envelope" src="assets/ui/civilian-envelope.webp" alt="差出人のない閉じた茶封筒" width="1536" height="1024">'
     :step<3?introImage(step===1?'station-before':'station-after',step===1?'夜の駅。左の柱の横に1人。右のベンチ横には誰もいない。':'同じ駅。左の人物に加え、右のベンチ横にもう1人が立っている。')
     :step===3?introImage('station-plan','駅の構内図。ベンチの横に赤い丸が描かれている。')
-    :`<div class="intro-note"><span>02:14 ／ 差出人のメモ</span><p>写真の人物を、数え直さないこと。</p><button class="intro-redaction" data-intro="reveal" aria-expanded="${!!i.revealed}">${i.revealed?'こちらで、あなたを保護します。':'黒塗りを剥がす'}</button>${i.revealed?'<p class="intro-sender">第六文書課</p>':'<p class="intro-sender">差出人　██████</p>'}</div>`;
+    :`<div class="intro-note"><span>02:14 ／ 差出人のメモ</span><p>写真の人物を、数え直さないこと。</p><button class="intro-redaction" data-intro="reveal" aria-expanded="${!!i.revealed}">${i.revealed?'あなたの閲覧は、記録されています。':'黒塗りを剥がす'}</button>${'<p class="intro-sender">差出人　██████</p>'}</div>`;
   root.dataset.step=String(step);
   root.innerHTML=`<div class="intro-top"><button data-intro="skip" aria-label="導入をスキップ">スキップ</button></div><h1>${titles[step]}</h1><figure>${visual}${step>0&&step<4?'<span class="intro-time">記録時刻 02:14</span>':''}</figure>${captions[step] ? `<p class="intro-caption" aria-live="polite">${captions[step]}</p>` : ""}${step===2?'<div class="intro-compare" role="group" aria-label="写真を比較"><button data-intro="before" aria-pressed="false">最初の写真</button><button data-intro="after" aria-pressed="true">もう一度見た写真</button></div>':''}`;
   $('lite-pull').textContent=introLabel(); $('lite-pull').dataset.mode='intro';
@@ -50,7 +50,7 @@ function advanceIntro() {
   markDirty(); renderLite();
 }
 function introArchive() {
-  sheet('最初の3通 ／ 02:14の記録',`<div class="intro-archive"><p>駅の写真、構内図、差出人のメモ。3通に残された同じ時刻。</p><details open><summary>1通目：人物が増えた写真</summary>${introImage('station-before','最初の写真。左に1人。')}${introImage('station-after','もう一度見た写真。右にも人物がいる。')}</details><details><summary>2通目：構内図の赤い印</summary>${introImage('station-plan','ベンチの横に赤い印がある構内図')}<p>写真で人物が増えた場所を、誰かが先に示していた。</p></details><details><summary>3通目：差出人のメモ</summary><div class="intro-note"><p>02:14<br>写真の人物を、数え直さないこと。</p><p>こちらで、あなたを保護します。</p><b>第六文書課</b></div></details><p class="hint">再閲覧では開封数・資料・報酬は増えません。</p></div>`);
+  sheet('最初の3通 ／ 02:14の記録',`<div class="intro-archive"><p>駅の写真、構内図、差出人のメモ。3通に残された同じ時刻。</p><details open><summary>1通目：人物が増えた写真</summary>${introImage('station-before','最初の写真。左に1人。')}${introImage('station-after','もう一度見た写真。右にも人物がいる。')}</details><details><summary>2通目：構内図の赤い印</summary>${introImage('station-plan','ベンチの横に赤い印がある構内図')}<p>写真で人物が増えた場所を、誰かが先に示していた。</p></details><details><summary>3通目：差出人のメモ</summary><div class="intro-note"><p>02:14<br>写真の人物を、数え直さないこと。</p><p>あなたの閲覧は、記録されています。</p><b>差出人　██████</b></div></details><p class="hint">再閲覧では開封数・資料・報酬は増えません。</p></div>`);
 }
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-intro]');if(!b)return;
