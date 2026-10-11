@@ -118,9 +118,17 @@
  function pursue(o,time,amount=.18){normalize(o);const m=o.mind;m.lastInput=Math.max(int(time),m.lastAt);m.lastAt=m.lastAt||m.lastInput;m.load=Math.min(100,m.load+amount);}
  function closeMonitor(o,time,closed=true){mindTick(o,time);o.mind.closed=closed;o.mind.lastInput=closed?0:Math.max(int(time),o.mind.lastAt);}
  function contamination(o){normalize(o);return Math.max(o.mind.load>=70?3:o.mind.load>=45?2:o.mind.load>=20?1:0,o.pending?.strain>=75?3:o.pending?.strain>=45?2:o.pending?.strain>=20?1:0);}
+ function activeTargets(o){
+  const p=o?.pending,mode=o?.mode;
+  // A persisted sequence selects the same real place before and after reload.
+  // If the site registry is unavailable (standalone model tests), legacy targets stay valid.
+  const site=typeof globalThis!=='undefined'?globalThis.WatchLocations:null;
+  if(p&&site?.current(mode,p.rarity,p.sequence))return site.targets(mode,p.rarity)||[];
+  return TARGETS[mode]?.[p?.rarity]||[];
+ }
  function hit(o,point){
   if(!point||!Number.isFinite(point.x)||!Number.isFinite(point.y)||point.x<0||point.x>1||point.y<0||point.y>1)return false;
-  return (TARGETS[o.mode]?.[o.pending?.rarity]||[]).some(([x,y,rx,ry])=>((point.x-x)/rx)**2+((point.y-y)/ry)**2<=1);
+  return activeTargets(o).some(([x,y,rx,ry])=>((point.x-x)/rx)**2+((point.y-y)/ry)**2<=1);
  }
  function suppress(o,time,point,manual=true){
   normalize(o);sync(o,time);if(o.mind.closed||!o.pending?.rarity)return null;
@@ -132,7 +140,7 @@
   o.tapProgress=0;o.mind.load=Math.max(0,o.mind.load-6);nextRoute(o,record);return {kind:'anomaly',record};
  }
  function suppressRegion(o,time,region){
-  const t=(TARGETS[o.mode]?.[o.pending?.rarity]||[]).find(([x,y])=>Math.floor(y*3)*3+Math.floor(x*3)===region);
+  const t=activeTargets(o).find(([x,y])=>Math.floor(y*3)*3+Math.floor(x*3)===region);
   return suppress(o,time,t?{x:t[0],y:t[1]}:{x:-1,y:-1});
  }
  function talk(o,time,member){
@@ -165,7 +173,7 @@
   if(o.mind.closed)return null;
   if(o.pending?.rarity>0){
    if(!automationUnlocked(o,'suppression')||autoTier(o.upgrades.suppression)<o.pending.rarity)return null;
-   const [x,y]=TARGETS[o.mode][o.pending.rarity][0];return suppress(o,now,{x,y},false);
+   const [x,y]=activeTargets(o)[0];return suppress(o,now,{x,y},false);
   }
   if(!o.upgrades.patrol||!automationUnlocked(o,'patrol'))return null;
   return tap(o,now);
@@ -202,5 +210,5 @@
   if(id==='interval'&&!o.pending)o.dueAt=Math.min(o.dueAt,o.lastSeen+interval(o));
   return cost;
  }
- return {autoTier,takeRouteCredit,focus,nextRoute,LEGACY_LEVELS,ODDS,automationUnlocked,TARGETS,mindTick,pursue,closeMonitor,contamination,hit,suppress,suppressRegion,talk,MINUTE,HOUR,MODES,RETENTION,INTERVAL,TAPS,SUPPRESS,AUTO_SECONDS,ANOMALY_REWARDS,UPGRADES,RARITY,SET_REWARDS,RESEARCH_COST,create,normalize,interval,hold,roll,sync,reward,claim,tap,automate,equip,unlock,upgrade,setProgress,claimSet,researchStatus,research};
+ return {autoTier,takeRouteCredit,focus,nextRoute,LEGACY_LEVELS,ODDS,automationUnlocked,TARGETS,activeTargets,mindTick,pursue,closeMonitor,contamination,hit,suppress,suppressRegion,talk,MINUTE,HOUR,MODES,RETENTION,INTERVAL,TAPS,SUPPRESS,AUTO_SECONDS,ANOMALY_REWARDS,UPGRADES,RARITY,SET_REWARDS,RESEARCH_COST,create,normalize,interval,hold,roll,sync,reward,claim,tap,automate,equip,unlock,upgrade,setProgress,claimSet,researchStatus,research};
 });
