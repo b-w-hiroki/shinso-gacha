@@ -7,7 +7,7 @@ async function font(){if(process.env.QA_FONT){await p.addStyleTag({content:"@fon
 async function shot(name){await p.screenshot({path:out+'/'+name+'.jpg',quality:85,animations:'disabled'});}
 async function fresh(state={}){await p.goto(origin);await p.evaluate(s=>localStorage.setItem('shinso_gacha_state_v1',JSON.stringify({currency:30,lastTick:Date.now(),levels:{},...s})),state);await p.reload();await font();}
 async function next(){await p.waitForFunction(()=>!introBusy);await p.locator('#lite-pull').click();}
-await fresh();assert(await p.locator('#intro-case').isVisible());
+await fresh();assert(await p.locator('#intro-case').isVisible());assert.equal(await p.locator('.lite-tabs').isVisible(),false,'no navigation before discovery');assert.equal(await p.locator('header.top').isVisible(),false,'no header chrome over opening image');
 for(const [width,height] of [[320,568],[390,844],[430,932]]){await p.setViewportSize({width,height});assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));const c=await p.locator('#lite-pull').boundingBox();assert(c.height>=44&&c.y+c.height<height);await shot('sealed-'+width);}
 await p.setViewportSize({width:390,height:844});await next();assert.equal(await p.evaluate(()=>S.lite.pulls),1);assert.equal(await p.evaluate(()=>S.lite.intro.step),1);await shot('photo-before');
 await p.reload();await font();assert.equal(await p.evaluate(()=>S.lite.intro.step),1);await next();assert.equal(await p.evaluate(()=>S.lite.pulls),1);await shot('photo-after');
@@ -15,13 +15,19 @@ await p.setViewportSize({width:320,height:568});const compare=await p.locator('.
 await p.locator('[data-intro="before"]').click();assert((await p.locator('#intro-case figure img').getAttribute('src')).includes('station-before'));await p.locator('[data-intro="after"]').click();
 await next();assert.equal(await p.evaluate(()=>S.lite.pulls),2);await shot('plan');await next();assert.equal(await p.evaluate(()=>S.lite.pulls),3);await shot('note-sealed');
 await next();assert.equal(await p.locator('.intro-redaction').getAttribute('aria-expanded'),'true');await shot('note-revealed');await next();assert(!(await p.locator('#intro-case').isVisible()));assert.equal(await p.evaluate(()=>liteTotal()),3);assert.equal(await p.evaluate(()=>S.lite.intro.completed),true);
-await p.reload();await font();assert(!(await p.locator('#intro-case').isVisible()));const count=await p.evaluate(()=>S.lite.pulls);await p.locator('[data-ltab="notes"]').click();await p.locator('.lite-pane [data-intro="archive"]').click();assert(await p.locator('.intro-archive').isVisible());await p.locator('.sheet .x').click();assert.equal(await p.evaluate(()=>S.lite.pulls),count);
-await fresh();await p.locator('[data-intro="skip"]').click();assert.equal(await p.evaluate(()=>liteTotal()),0);await p.reload();await font();assert(!(await p.locator('#intro-case').isVisible()));await p.locator('#lite-pull').click();assert.equal(await p.evaluate(()=>S.lite.pulls),1);
+await p.reload();await font();assert(!(await p.locator('#intro-case').isVisible()));
+assert(await p.locator('[data-ltab="files"]').isVisible(),'archive unlocks after initial documents');
+assert.equal(await p.locator('[data-ltab="notes"]').isVisible(),false,'record archive remains locked until six fragments');
+const count=await p.evaluate(()=>S.lite.pulls);
+await p.evaluate(()=>{for(const id of LITE_IDS.slice(0,6))S.lite.lv[id]=Math.max(S.lite.lv[id]||0,1);renderLite();});
+assert(await p.locator('[data-ltab="notes"]').isVisible(),'records unlock after six fragments');
+await p.locator('[data-ltab="notes"]').click();await p.locator('.lite-pane [data-intro="archive"]').click();assert(await p.locator('.intro-archive').isVisible());await p.locator('.sheet .x').click();assert.equal(await p.evaluate(()=>S.lite.pulls),count);
+await fresh();await p.locator('[data-intro="skip"]').click();assert.equal(await p.evaluate(()=>liteTotal()),0);assert.equal(await p.locator('.lite-tabs').isVisible(),false,'skipping never unlocks navigation');await p.reload();await font();assert(!(await p.locator('#intro-case').isVisible()));await p.locator('#lite-pull').click();assert.equal(await p.evaluate(()=>S.lite.pulls),1);
 await fresh({lite:{lv:{u1:1},pulls:1}});assert(!(await p.locator('#intro-case').isVisible()),'existing player is not forced into introduction');
 await p.evaluate(()=>{S.lite.lv=Object.fromEntries(LITE_IDS.map((id,i)=>[id,i<11?3:0]));renderLite();});assert(await p.locator('#lite-rescue img').isVisible());await shot('intervention');
 await p.evaluate(()=>{S.lite.lv=Object.fromEntries(LITE_IDS.map(id=>[id,3]));renderLite();});await p.locator('#lite-apply').click();assert(await p.locator('#sheet-bg').isVisible());await p.locator('.sheet .x').click();
 // Double taps must not award a second letter or skip the comparison.
 await fresh();await p.locator('#lite-pull').dblclick();assert.equal(await p.evaluate(()=>S.lite.pulls),1);assert.equal(await p.evaluate(()=>S.lite.intro.step),1);
 for(const a of JSON.parse(fs.readFileSync('assets/intro/manifest.json'))){await p.evaluate(async src=>{const im=new Image();im.src=src;await im.decode();},a.path);}
-assert.deepEqual(errors,[]);fs.writeFileSync(out+'/results.json',JSON.stringify({passed:true,checks:['fresh + existing user','320/390/430 mobile controls','photo comparison','exactly three ordinary draws','reload resume','redaction reveal','skip + replay without rewards','33 fragment intervention + 36 interview gate','double tap guard','7 image decodes'],errors},null,2)+'\n');console.log('Introduction checks passed');
+assert.deepEqual(errors,[]);fs.writeFileSync(out+'/results.json',JSON.stringify({passed:true,checks:['fresh + existing user','progressive footer unlocks','320/390/430 mobile controls','photo comparison','exactly three ordinary draws','reload resume','redaction reveal','skip + replay without rewards','33 fragment intervention + 36 interview gate','double tap guard','7 image decodes'],errors},null,2)+'\n');console.log('Introduction checks passed');
 }finally{await browser.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1});
