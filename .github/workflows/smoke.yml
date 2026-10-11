@@ -17,6 +17,7 @@ jobs:
         with:
           node-version: 22
       - run: node tests/smoke.mjs
+      - run: node tests/clearance-risk.cjs
       - run: node tests/incursion-rarity.cjs
       - run: node tests/rumor-patrol-model.cjs
       - run: node tests/legend-model.cjs
