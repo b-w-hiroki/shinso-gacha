@@ -18,6 +18,7 @@ jobs:
           node-version: 22
       - run: node tests/smoke.mjs
       - run: node tests/clearance-risk.cjs
+      - run: node tests/personnel-discrepancies-model.cjs
       - run: node tests/incursion-rarity.cjs
       - run: node tests/rumor-patrol-model.cjs
       - run: node tests/legend-model.cjs
@@ -73,6 +74,9 @@ jobs:
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/conversation-pages.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/personnel-discrepancies.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/menu-pages.cjs
@@ -157,6 +161,10 @@ jobs:
           QA_WEBKIT: 1
           QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/legend-cases.cjs
+        env:
+          QA_WEBKIT: 1
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/personnel-discrepancies.cjs
         env:
           QA_WEBKIT: 1
           QA_FONT: ${{ runner.temp }}/noto.otf

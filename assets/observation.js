@@ -269,6 +269,10 @@ const WATCH_COLLEAGUES={
  office:['名前で呼べる相手がいるうちは、ここへ戻ってこい。席の番号だけになったら、休め。','廊下ですれ違っても、返事をしないことがある。ここで会ったときに話してくれ。','空いている席は、空けておく。それだけ覚えていればいい。'],
  past:['前任の話は、記録と本人で少し違う。どちらも嘘をついているつもりはないんだろう。','初日に言われたことは忘れない。「着任、おめでとう」ではなく「お帰り」だった。','この課を出た人のことも覚えている。顔より先に、名前が思い出せなくなる。']}
 };
+function personnelDossierLink(){
+ const c=PersonnelDiscrepancies.current(rankIdx());
+ return c&&PersonnelDiscrepancies.detail(S.personnelEvidence,rankIdx(),c.id)?.complete?'<button class="watch-choice" data-personnel-list>取得した人事記録を照合する</button>':'';
+}
 const WATCH_TOPICS={strange:'見たものについて',rest:'少し休みたい',office:'課内のこと',past:'以前のこと'};
 function watchPortrait(m){const id=Object.keys(WATCH_COLLEAGUES).find(id=>WATCH_COLLEAGUES[id]===m)||'';return `<img data-seep-person="${id}" src="assets/colleagues/${m.portrait}.webp" alt="" width="90" height="120">`;}
 function watchContacts(){
@@ -303,12 +307,16 @@ function observationConversation(id,topic){
   line=member[topic][n%member[topic].length];o.mind.dialogue[key]=n+1;
   if(id==='equipment'&&topic==='office'&&n%3===0)o.mind.clues.absent=true;
   if(id==='records'&&topic==='office'&&o.mind.clues.absent){line='榊さんが、そう言ったんですか。欠勤届は私が預かっています。……私の分ではありません。';o.mind.clues.absent=false;}
+  if(topic==='office'){
+   const finding=PersonnelDiscrepancies.record(S.personnelEvidence,rankIdx(),id);
+   if(finding.fresh){S.personnelEvidence=finding.state;line+=' '+finding.line;}
+  }
   WatchModel.talk(o,Date.now(),id);if(topic==='rest')calmPlayerSeepage();markDirty();save();renderWatchMind();
  }
  if(topic==='record')line=investigationTestimony(id)||line;
  WatchModel.closeMonitor(o,Date.now(),true);watchContacts()[id]=true;markDirty();save();
  const replied=Object.hasOwn(WATCH_TOPICS,topic)||topic==='record';
- watchConversationPage(`<div class="watch-conversation"><button class="menu-back" data-watch="colleagues">‹ 話す相手を選び直す</button><header class="watch-speaker">${watchPortrait(member)}<div><small>${member.role}${first?' ／ 初対面':''}</small><h1 tabindex="-1">${member.name}</h1><p>${member.description}</p></div></header>${first&&topic==='record'?`<p class="watch-introduction">${member.greeting}</p>`:''}<p class="watch-conversation-cue">${troubled?'こちらを見ている。目が合ったかは、わからない。':'向かいの席から、声がする。'}</p>${replied?`<p class="watch-selected-topic">あなた：${topic==='record'?'この記録について聞く':WATCH_TOPICS[topic]}</p>`:''}<blockquote tabindex="-1" aria-label="${member.name}の返答">${line}</blockquote><div class="watch-dialogue-actions">${replied?`${topic==='record'?investigationReturn(id):''}<button class="watch-choice watch-next" data-watch-next="${id}">別の話題を選ぶ</button>`:first?`<button class="watch-choice watch-next" data-watch-next="${id}">話題を選ぶ</button>`:watchTopicChoices(id)}</div><footer class="watch-conversation-footer"><button class="btn-line watch-leave" data-watch="leave">会話を終えて観測へ戻る</button></footer></div>`,id);
+ watchConversationPage(`<div class="watch-conversation"><button class="menu-back" data-watch="colleagues">‹ 話す相手を選び直す</button><header class="watch-speaker">${watchPortrait(member)}<div><small>${member.role}${first?' ／ 初対面':''}</small><h1 tabindex="-1">${member.name}</h1><p>${member.description}</p></div></header>${first&&topic==='record'?`<p class="watch-introduction">${member.greeting}</p>`:''}<p class="watch-conversation-cue">${troubled?'こちらを見ている。目が合ったかは、わからない。':'向かいの席から、声がする。'}</p>${replied?`<p class="watch-selected-topic">あなた：${topic==='record'?'この記録について聞く':WATCH_TOPICS[topic]}</p>`:''}<blockquote tabindex="-1" aria-label="${member.name}の返答">${line}</blockquote><div class="watch-dialogue-actions">${replied?`${topic==='record'?investigationReturn(id):''}${personnelDossierLink()}<button class="watch-choice watch-next" data-watch-next="${id}">別の話題を選ぶ</button>`:first?`<button class="watch-choice watch-next" data-watch-next="${id}">話題を選ぶ</button>`:watchTopicChoices(id)}</div><footer class="watch-conversation-footer"><button class="btn-line watch-leave" data-watch="leave">会話を終えて観測へ戻る</button></footer></div>`,id);
  if(replied)document.querySelector('.watch-conversation blockquote').focus({preventScroll:true});
 }
 document.getElementById('obs-rest').addEventListener('click',observationRest);
