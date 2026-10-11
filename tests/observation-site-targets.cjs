@@ -40,6 +40,24 @@ try {
    assert.equal(Model.hit(fresh,{x:coords[0][0],y:coords[0][1]}),true,'pending observation is same before/after reload');
   }
  }
+ // CSS cover projects 2:1 photography into stable monitor dimensions.
+ for(const [w,h] of [[390,280],[320,240],[844,240],[640,320]]){
+  const nativeWidth=Math.max(w,2*h),nativeHeight=nativeWidth/2;
+  for(const mode of ['cctv','photo','vision','dash'])for(const rarity of [1,2,3]){
+   for(const [x,y] of Sites.targets(mode,rarity)){
+    const px=w/2+(x-.5)*nativeWidth,py=h/2+(y-.5)*nativeHeight;
+    const projected=Sites.imagePoint(px,py,w,h);
+    assert(Math.abs(projected.x-x)<1e-9&&Math.abs(projected.y-y)<1e-9,'native hotspot projection '+mode+'/'+rarity);
+    if(px>=0&&px<=w&&py>=0&&py<=h){
+     const o=Model.normalize(Model.create(T,17));o.mode=mode;
+     o.pending={mode,rarity,sequence:1,readyAt:T,expiresAt:T+3*Model.HOUR,suppression:0};
+     assert(Model.hit(o,projected),'visual center is clickable after cover crop');
+    }
+   }
+  }
+ }
+ assert.equal(Sites.imagePoint(1,1,0,200),null);
+ assert.equal(Sites.imagePoint(NaN,1,400,200),null);
  const alt=Model.normalize(Model.create(T,99));alt.mode='cctv';
  alt.pending={mode:'cctv',rarity:1,sequence:1,readyAt:T,expiresAt:T+3*Model.HOUR,suppression:0};
  const center=Sites.targets('cctv',1)[0];
