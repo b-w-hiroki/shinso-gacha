@@ -123,7 +123,12 @@ function observationCollect(event){
  if(strike&&(event?.currentTarget!==document.getElementById('obs-frame')||!event.detail))return observationTargetPicker();
  observationTapReward();
  let point=null;
- if(strike){const r=document.getElementById('obs-image').getBoundingClientRect();point={x:(event.clientX-r.left)/r.width,y:(event.clientY-r.top)/r.height};}
+ if(strike){
+  const image=document.getElementById('obs-image'),r=image.getBoundingClientRect();
+  const isAlt=!!WatchLocations.current(o.mode,o.pending.rarity,o.pending.sequence);
+  point=isAlt?WatchLocations.imagePoint(event.clientX-r.left,event.clientY-r.top,r.width,r.height)
+             :{x:(event.clientX-r.left)/r.width,y:(event.clientY-r.top)/r.height};
+ }
  const contact=strike&&WatchModel.hit(o,point);
  const result=strike?WatchModel.suppress(o,Date.now(),point):WatchModel.tap(o,Date.now());
  if(result){watchMisses=0;observationReward(result);}else {
