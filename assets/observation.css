@@ -162,3 +162,12 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
 .watch-site-record-image{position:relative;width:100%;aspect-ratio:2 / 1;background-color:#111816;background-size:cover;background-position:center;overflow:hidden;border:1px solid #555b52}
 .watch-site-record-overlay{position:absolute;inset:0;display:block;pointer-events:none;background-size:100% 100%;background-position:center;background-repeat:no-repeat}
 @media(prefers-reduced-motion:reduce){#obs-site-overlay,.watch-site-record-overlay{animation:none!important;transition:none!important}}
+
+
+/* Full-frame locations use their own transform origin. Legacy sprite offsets must never
+   displace an alternate image or its normalized touch coordinates. */
+@keyframes obs-anomaly-warp-alt{from{transform:scale(1)}to{transform:scale(.984,.995)}}
+.obs-frame[data-scene-alt='true'][data-anomaly]:not([data-anomaly='0']):not([data-quiet='true']) #obs-image{
+ animation-name:obs-anomaly-warp-alt;
+ transform-origin:center center;
+}
