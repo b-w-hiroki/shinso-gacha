@@ -81,7 +81,7 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    assert(geometry.coverMatches,'visual anomaly overlay must match photographic cover framing '+mode+rarity);
    const q=geometry.point,f=geometry.f;
    if(q.x>=f.left+2&&q.x<=f.right-2&&q.y>=f.top+2&&q.y<=f.bottom-2){
-    await p.mouse.click(q.x,q.y);
+    await p.locator('#obs-frame').click({position:{x:q.x-f.left,y:q.y-f.top}});
     assert.equal(await p.evaluate(()=>observationState().pending?.suppression),1,'clicking actual projected visual hotspot must suppress '+mode+rarity);
    }
   }
