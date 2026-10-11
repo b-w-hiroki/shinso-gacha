@@ -2806,11 +2806,11 @@ function applyLitePhase() {
 }
 function defaultLiteEvent() {
   const n = liteTotal(), phase = litePhase(n);
-  if (n === 0) return { eye:"取扱注意 ・ 宛先不明", title:"郵便受けに、見覚えのない封筒があった", body:"差出人も、宛名もない。中には、途中まで黒く塗りつぶされた記録が入っている。開封するなら、少し慎重に扱った方がよさそうだ。", alert:false };
-  if (phase === "calm") return { eye:"未確認資料", title:"次の封筒が届いている", body:"前の封筒と同じ紙質だ。差出人は、まだ分からない。", alert:false };
-  if (phase === "uneasy") return { eye:"観察継続中", title:"まだ、こちらを見ている", body:"封筒は途切れない。開くほど、こちらの行動を記録されている気がする。", alert:false };
-  if (phase === "danger") return { eye:"警告", title:"こちらを見ているのは、差出人だけではない", body:"資料の一部に、あなたの閲覧時刻と同じ数字が繰り返し現れている。", alert:true };
-  if (phase === "crisis") return { eye:"接続異常", title:"閲覧を中止してください", body:"封筒の外側から、こちらへ何かが接続しようとしている。閉じても記録が増えている。", alert:true };
+  if (n === 0) return { eye:"取扱注意 ・ 宛先不明", title:"封筒が、1通。", body:"宛名がない。紙が少し温かい。", alert:false };
+  if (phase === "calm") return { eye:"未確認資料", title:"一通、増えている。", body:"封は、最初から切れていた。", alert:false };
+  if (phase === "uneasy") return { eye:"観察継続中", title:"先に開かれていた。", body:"自分が開く前の閲覧時刻が残っている。", alert:false };
+  if (phase === "danger") return { eye:"警告", title:"ここから先の記録が、おかしい。", body:"開いていない資料に、同じ閲覧時刻がある。", alert:true };
+  if (phase === "crisis") return { eye:"接続異常", title:"閉じてください。", body:"閉じても、閲覧記録だけが増えている。", alert:true };
   return { eye:"第六文書課・保護通信", title:"こちらで接続を遮断しました", body:"今は安全です。見てしまった内容について、確認させてください。", alert:false, action:n >= 36 ? "apply" : "", label:"事情聴取を受ける" };
 }
 function setLiteEvent(evt) {
