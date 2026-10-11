@@ -26,6 +26,7 @@ jobs:
       - run: node tests/legend-layers.cjs
       - run: node tests/uncanny-archive.cjs
       - run: node tests/investigation-links.cjs
+      - run: node tests/research-reports-model.cjs
       - run: node tests/reality-clues.cjs
       - run: node tests/absence-traces.cjs
       - run: node tests/forecast-archive.cjs
@@ -86,6 +87,9 @@ jobs:
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/investigation-loop.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/research-reports.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/anomaly-cues.cjs
@@ -170,6 +174,10 @@ jobs:
           QA_WEBKIT: 1
           QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/legend-cases.cjs
+        env:
+          QA_WEBKIT: 1
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/research-reports.cjs
         env:
           QA_WEBKIT: 1
           QA_FONT: ${{ runner.temp }}/noto.otf
