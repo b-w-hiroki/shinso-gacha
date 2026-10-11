@@ -59,6 +59,7 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  await p.evaluate(()=>{hideSheet();go('home');});
  await p.setViewportSize({width:390,height:844});
  await p.emulateMedia({reducedMotion:'no-preference'});
+ let projectedContactTaps=0;
  for(const mode of ['cctv','photo','vision','dash'])for(const rarity of [0,1,2,3]){
   await p.evaluate(({mode,rarity})=>{const o=observationState(),t=Date.now();o.mode=mode;o.sequence=1;o.mind.closed=false;o.pending={mode,rarity,readyAt:t,expiresAt:t+3600000,sequence:1,suppression:0};renderObservation();},{mode,rarity});
   assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
@@ -82,6 +83,7 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    const q=geometry.point,f=geometry.f;
    if(q.x>=f.left+2&&q.x<=f.right-2&&q.y>=f.top+2&&q.y<=f.bottom-2){
     await p.locator('#obs-frame').click({position:{x:q.x-f.left,y:q.y-f.top}});
+    projectedContactTaps++;
     assert.equal(await p.evaluate(()=>observationState().pending?.suppression),1,'clicking actual projected visual hotspot must suppress '+mode+rarity);
    }
   }
@@ -98,7 +100,7 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  await p.evaluate(()=>{const o=observationState();o.sequence=3;renderObservation();});
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true','later idle scene returns to its own image');
  await p.evaluate(()=>save());await p.reload();assert.equal(await p.evaluate(()=>WatchLocations.discovered(S.observation.locationRecords)[0].rarities[1]),1);
- assert.equal(await p.evaluate(()=>S.currency),wallet);
+ assert.equal(await p.evaluate(()=>S.currency),wallet+projectedContactTaps,'real coordinate taps earn their normal 1pt each');
  assert.deepEqual(errors,[]);console.log('New scenes: earned R/SR/SSR, original suppression coordinates, mobile image, save and secrecy passed');
  }finally{await b.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
