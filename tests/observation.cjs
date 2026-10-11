@@ -113,7 +113,7 @@ await p.evaluate(()=>{go('home');const o=observationState();o.mind.closed=false;
 assert.equal(await p.locator('#obs-frame').getAttribute('data-trace'),'1');
 await p.evaluate(()=>{observationState().quiet=true;renderObservation();});
 assert.equal(await p.locator('#obs-frame').getAttribute('data-trace'),'0');
-// Alternate complete locations change only ordinary patrol presentation, never anomaly tap geometry.
+// Acquired alternate locations also show their own visual rarity, while touch geometry stays unchanged.
 for(const [mode,title] of [['cctv','地下通路'],['photo','夜の教室'],['vision','踏切前'],['dash','海沿いの夜道']]){
  await p.evaluate(mode=>{const o=observationState();o.mode=mode;o.sequence=1;o.mind.closed=false;const now=Date.now();o.pending={mode,rarity:0,readyAt:now,expiresAt:now+WatchModel.hold(o),sequence:1};go('home');renderObservation();},mode);
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
@@ -121,8 +121,9 @@ for(const [mode,title] of [['cctv','地下通路'],['photo','夜の教室'],['vi
  assert((await p.locator('#obs-image').evaluate(e=>getComputedStyle(e).backgroundImage)).includes('-upgraded.webp'));
  assert(await p.locator('#obs-image').evaluate(async e=>{const im=new Image();im.src=getComputedStyle(e).backgroundImage.slice(5,-2);await im.decode();return im.naturalWidth>=320&&im.naturalHeight>=160;}));
  await p.evaluate(mode=>{const o=observationState(),now=Date.now();o.pending={mode,rarity:2,readyAt:now,expiresAt:now+WatchModel.hold(o),sequence:1};renderObservation();},mode);
- assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'false');
- assert((await p.locator('#obs-image').evaluate(e=>getComputedStyle(e).backgroundImage)).includes(mode+'.webp'));
+ assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
+ assert((await p.locator('#obs-image').evaluate(e=>getComputedStyle(e).backgroundImage)).includes('-upgraded.webp'));
+ assert((await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).backgroundImage)).includes(mode+'-2.svg'));
 }
 // Acquired alternative locations are separate records, unseen ones have no placeholders.
 await p.setViewportSize({width:390,height:844});
