@@ -23,6 +23,10 @@ function renderIntro() {
   const root=$('intro-case'); if(!root)return;
   const active=!!introActive(); root.hidden=!active;
   document.body.classList.toggle('intro-active',active);
+  if(isLite()){
+    const menuHome=(active || liteTotal()<3)?document.querySelector('.top-in'):document.querySelector('.lite-tabs');
+    if(menuHome && $('game-menu').parentElement!==menuHome)menuHome.appendChild($('game-menu'));
+  }
   if(!active)return;
   const i=S.lite.intro, step=i.step;
   const titles=['封筒がある。','ひとり。','……ふたり？','ここに、印。','02:14'];
