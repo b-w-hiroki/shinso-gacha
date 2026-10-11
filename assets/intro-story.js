@@ -1,5 +1,6 @@
 /* Optional first-case narrative. Progress lives inside the existing saved lite state. */
 let introBusy = false;
+const introPreloadImages = [];
 function introActive() {
   const i = S.lite && S.lite.intro;
   return isLite() && i && i.version === 1 && !i.done && liteTotal() <= 3;
@@ -9,6 +10,15 @@ function initIntro() {
     S.lite = S.lite || {lv:{},pulls:0};
     S.lite.intro = {version:1,step:0,done:false,revealed:false};
     markDirty();
+  }
+  // Begin decoding the later scenes while the player studies the sealed envelope.
+  if (introActive() && !introPreloadImages.length) {
+    for (const name of ['station-before','station-after','station-plan']) {
+      const image = new Image();
+      image.decoding = 'async';
+      image.src = 'assets/intro/' + name + '.webp';
+      introPreloadImages.push(image);
+    }
   }
   renderIntro();
 }

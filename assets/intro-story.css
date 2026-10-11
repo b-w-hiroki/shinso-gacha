@@ -90,3 +90,7 @@ body.intro-active #intro-case[data-step="0"] .intro-envelope {
   -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 78%,transparent 100%);
   mask-image:linear-gradient(to bottom,#000 0%,#000 78%,transparent 100%);
 }
+
+/* Make every new document heading clear of the fixed-height introductory menu. */
+body.intro-active #intro-case,body.intro-active #intro-case[data-step="0"]{padding-top:50px}
+@media(max-height:700px){body.intro-active #intro-case,body.intro-active #intro-case[data-step="0"]{padding-top:48px}body.intro-active #intro-case .intro-image{max-height:36dvh}}

@@ -4,7 +4,16 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
 (async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin='http://127.0.0.1:'+server.address().port;const browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_EXECUTABLE||undefined,args:['--no-sandbox','--disable-dev-shm-usage','--no-zygote','--single-process']});
 try{const p=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'}),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.route('https://**/*',r=>r.abort());
 async function font(){if(process.env.QA_FONT){await p.addStyleTag({content:"@font-face{font-family:QAJP;src:url('/font.otf')} :root{--f-body:QAJP;--f-display:QAJP;--f-mono:QAJP}body,button{font-family:QAJP}"});await p.evaluate(()=>document.fonts.load('16px QAJP'));}}
-async function shot(name){await p.screenshot({path:out+'/'+name+'.jpg',quality:85,animations:'disabled'});}
+async function shot(name){
+ const image=p.locator('#intro-case:not([hidden]) figure img');
+ if(await image.count()) await image.evaluate(async img=>{await img.decode();if(!img.naturalWidth)throw new Error('intro image missing after decode');});
+ const title=p.locator('#intro-case:not([hidden]) h1');
+ if(await title.count()) {
+  const pos=await title.evaluate(el=>({heading:el.getBoundingClientRect().top,menu:document.querySelector('header.top #game-menu').getBoundingClientRect().bottom}));
+  assert(pos.heading>=pos.menu-1,'introduction heading must not be covered by the menu: '+JSON.stringify(pos));
+ }
+ await p.screenshot({path:out+'/'+name+'.jpg',quality:85,animations:'disabled'});
+}
 async function fresh(state={}){await p.goto(origin);await p.evaluate(s=>localStorage.setItem('shinso_gacha_state_v1',JSON.stringify({currency:30,lastTick:Date.now(),levels:{},...s})),state);await p.reload();await font();}
 async function next(){await p.waitForFunction(()=>!introBusy);await p.locator('#lite-pull').click();}
 await fresh();assert(await p.locator('#intro-case').isVisible());assert.equal(await p.locator('#intro-case [data-intro="skip"]').count(),0,'opening contains no skip label');assert.equal(await p.locator('.lite-tabs').isVisible(),false,'no navigation before discovery');assert(await p.locator('#game-menu').isVisible(),'settings remains reachable before navigation unlock');assert.equal(await p.locator('header.top .logo').isVisible(),false,'branding stays out of the opening image');
