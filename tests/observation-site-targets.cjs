@@ -12,7 +12,7 @@ try {
    const coords=Sites.targets(mode,rarity);
    assert(Array.isArray(coords)&&coords.length===Model.TARGETS[mode][rarity].length);
    assert.notStrictEqual(coords,Model.TARGETS[mode][rarity],'new location targets have separate ownership');
-   const state=Model.create(T,42);
+   const state=Model.normalize(Model.create(T,42));
    state.mode=mode;state.mind.closed=false;
    state.pending={mode,rarity,sequence:1,readyAt:T,expiresAt:T+3*Model.HOUR,suppression:0};
    assert.strictEqual(Model.activeTargets(state),coords,'odd sequence resolves site-specific geometry');
@@ -33,14 +33,14 @@ try {
    assert.equal(restored.collection[mode+':'+rarity],1,'save round trip preserves legacy ID');
    assert.equal(Sites.discovered(restored.locationRecords)[0].rarities[rarity],1);
    // Even sequence still obeys the untouched original artwork's coordinates.
-   const original=Model.create(T,42);
+   const original=Model.normalize(Model.create(T,42));
    original.mode=mode;original.pending={mode,rarity,sequence:2,readyAt:T,expiresAt:T+3*Model.HOUR,suppression:0};
    assert.strictEqual(Model.activeTargets(original),Model.TARGETS[mode][rarity]);
-   const fresh=Model.create(T,42);fresh.mode=mode;fresh.pending={mode,rarity,sequence:1,readyAt:T,expiresAt:T+3*Model.HOUR,suppression:0};
+   const fresh=Model.normalize(Model.create(T,42));fresh.mode=mode;fresh.pending={mode,rarity,sequence:1,readyAt:T,expiresAt:T+3*Model.HOUR,suppression:0};
    assert.equal(Model.hit(fresh,{x:coords[0][0],y:coords[0][1]}),true,'pending observation is same before/after reload');
   }
  }
- const alt=Model.create(T,99);alt.mode='cctv';
+ const alt=Model.normalize(Model.create(T,99));alt.mode='cctv';
  alt.pending={mode:'cctv',rarity:1,sequence:1,readyAt:T,expiresAt:T+3*Model.HOUR,suppression:0};
  const center=Sites.targets('cctv',1)[0];
  assert.equal(Model.hit(alt,{x:center[0],y:center[1]+.21}),true,'site y radius is separately tuned');
