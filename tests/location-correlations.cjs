@@ -39,8 +39,13 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
   assert(detail.includes('照会番号'));
   assert(!detail.includes('踏切前')&&!detail.includes('海沿い'));
   assert.equal(await p.locator('.site-correlation-images img').count(),2);
-  await p.locator('.site-correlation-images img').evaluateAll(async els=>await Promise.all(els.map(x=>x.decode())));
-  assert(await p.locator('.site-correlation-images img').evaluateAll(els=>els.every(x=>x.naturalWidth>0)));
+  // Lazy-loading can abort decode in WebKit when a new sheet replaces the old source.
+  // Load eagerly and assert both actual decoded pixel dimensions, not just src presence.
+  await p.waitForFunction(()=>{
+   const images=Array.from(document.querySelectorAll('.site-correlation-images img'));
+   return images.length===2&&images.every(img=>img.complete&&img.naturalWidth>0&&img.naturalHeight>0);
+  },null,{timeout:10000});
+  assert(await p.locator('.site-correlation-images img').evaluateAll(els=>els.length===2&&els.every(x=>x.naturalWidth>=320&&x.naturalHeight>=160)),'both originals loaded and decoded');
   const original=await p.evaluate(()=>({currency:S.currency,records:JSON.stringify(S.observation.locationRecords),collected:S.observation.collected}));
   for(const [width,height] of [[320,568],[390,844],[844,390]]){
    await p.setViewportSize({width,height});
