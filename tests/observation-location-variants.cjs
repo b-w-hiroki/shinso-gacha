@@ -10,7 +10,11 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  assert.equal(await p.locator('#obs-name').innerText(),'地下通路');
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
  assert((await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).backgroundImage)).includes('cctv-1.svg'));
- const targetCheck=await p.evaluate(()=>WatchModel.hit(observationState(),{x:.51,y:.34}));assert(targetCheck);
+ const targetCheck=await p.evaluate(()=>{
+  const o=observationState(),site=WatchLocations.targets(o.mode,o.pending.rarity),legacy=WatchModel.TARGETS[o.mode][o.pending.rarity];
+  if(WatchModel.activeTargets(o)!==site||site===legacy)return false;
+  return WatchModel.hit(o,{x:site[0][0],y:site[0][1]});
+ });assert(targetCheck,'live contact uses the displayed location\'s own touch region');
  await p.evaluate(()=>{const o=observationState();let result;for(let i=0;i<WatchModel.SUPPRESS[1];i++)result=WatchModel.suppress(o,Date.now(),{x:.51,y:.34});if(!result)throw Error('failed authentic image-space suppression');observationReward(result);});
  assert.equal(await p.evaluate(()=>S.observation.collection['cctv:1']),1);
  const visits=await p.evaluate(()=>WatchLocations.discovered(S.observation.locationRecords));
