@@ -69,6 +69,27 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  }
  await p.evaluate(()=>save());await p.reload();assert.equal(await p.evaluate(()=>WatchLocations.discovered(S.observation.locationRecords)[0].rarities[1]),1);
  assert.equal(await p.evaluate(()=>S.currency),wallet);
+ // Four-source patrols revisit a mode every four observations. Old global
+ // parity made some locations effectively permanent; the new selection flips.
+ await p.evaluate(()=>{hideSheet();go('home');const o=observationState();o.locationSceneVersion=2;o.mind.closed=false;o.pending=null;o.dueAt=Date.now()+3600000;renderObservation();});
+ for(const [offset,mode] of ['cctv','photo','vision','dash'].entries()){
+  for(let cycle=0;cycle<4;cycle++){
+   const seq=offset+cycle*4;
+   await p.evaluate(({mode,seq})=>{const o=observationState();o.mode=mode;o.sequence=seq;o.pending=null;o.dueAt=Date.now()+3600000;renderObservation();},{mode,seq});
+   const shown=await p.locator('#obs-frame').getAttribute('data-scene-alt');
+   assert.equal(shown, String((seq%2+Math.floor(seq/4)%2)%2===1),mode+' toggles after four observations');
+  }
+ }
+ // Existing held footage uses legacy parity until its actual collection;
+ // subsequent patrols switch to the versioned schedule without rerolling.
+ await p.evaluate(()=>{const o=observationState(),now=Date.now();o.locationSceneVersion=undefined;o.mode='cctv';o.sequence=5;o.pending={mode:'cctv',rarity:0,readyAt:now,expiresAt:now+3600000,sequence:5,suppression:0};o.mind.closed=false;renderObservation();});
+ assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
+ await p.evaluate(()=>{const o=observationState();const record=WatchModel.claim(o,Date.now());if(!record)throw Error('missing held record');observationReward({kind:'patrol',record});});
+ assert.equal(await p.evaluate(()=>S.observation.locationSceneVersion),2);
+ assert.equal(await p.evaluate(()=>WatchLocations.discovered(S.observation.locationRecords).some(x=>x.id==='alt:cctv')),true);
+ await p.evaluate(()=>save());await p.reload();
+ assert.equal(await p.evaluate(()=>S.observation.locationSceneVersion),2);
+
  assert.deepEqual(errors,[]);console.log('New scenes: earned R/SR/SSR, original suppression coordinates, mobile image, save and secrecy passed');
  }finally{await b.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
