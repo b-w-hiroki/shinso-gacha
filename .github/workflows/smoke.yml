@@ -35,6 +35,7 @@ jobs:
       - run: node tests/player-seepage-model.cjs
       - run: node tests/observation-model.cjs
       - run: node tests/observation-location-model.cjs
+      - run: node tests/observation-overlay-art.cjs
       - run: node tests/location-correlations-model.cjs
       - run: node tests/contamination-model.cjs
       - run: node scripts/update-csp.cjs --check

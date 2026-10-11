@@ -23,8 +23,29 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  await p.locator('[data-location-record="alt:cctv:1"]').click();
  assert((await p.locator('.watch-record-caption').innerText()).includes('通路に残る足跡'));
  assert(await p.locator('.watch-site-record-overlay').count());
+ assert.equal(await p.locator('[data-site-compare]').count(),0,'no comparison until the normal view is actually acquired');
+ await p.evaluate(()=>{
+  const o=observationState();o.locationRecords['alt:cctv'].rarities[0]=1;
+  showAlternateLocationRecord('cctv',1);
+ });
+ const comparison=p.locator('[data-site-compare="cctv:1"]');
+ assert(await comparison.isVisible(),'normal and anomaly both owned');
+ const beforeCompare=await p.evaluate(()=>JSON.stringify({currency:S.currency,collected:S.observation.collected,locations:S.observation.locationRecords}));
+ await comparison.click();
+ assert.equal(await comparison.getAttribute('aria-pressed'),'true');
+ assert.equal(await p.locator('.watch-site-record-overlay').isVisible(),false);
+ assert((await p.locator('#watch-site-compare-status').innerText()).includes('平常'));
+ assert((await p.locator('.watch-site-record-image').getAttribute('aria-label')).includes('無人'));
+ if(!process.env.QA_WEBKIT){await p.setViewportSize({width:390,height:844});await p.screenshot({path:'docs/qa-incursions/alt-compare-normal-390.jpg',quality:85});}
+ await comparison.click();
+ assert.equal(await comparison.getAttribute('aria-pressed'),'false');
+ assert(await p.locator('.watch-site-record-overlay').isVisible());
+ assert((await p.locator('#watch-site-compare-status').innerText()).includes('発見した'));
+ if(!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/alt-compare-anomaly-390.jpg',quality:85});
+ assert.equal(await p.evaluate(()=>JSON.stringify({currency:S.currency,collected:S.observation.collected,locations:S.observation.locationRecords})),beforeCompare,'comparison never changes saved state');
  for(const [w,h]of [[320,568],[390,844],[844,390]]){await p.setViewportSize({width:w,height:h});assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));if(w===390&&!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/alt-location-rarity-390.jpg',quality:85});}
  await p.evaluate(()=>{hideSheet();go('home');});
+ await p.setViewportSize({width:390,height:844});
  await p.emulateMedia({reducedMotion:'no-preference'});
  for(const mode of ['cctv','photo','vision','dash'])for(const rarity of [0,1,2,3]){
   await p.evaluate(({mode,rarity})=>{const o=observationState(),t=Date.now();o.mode=mode;o.sequence=1;o.mind.closed=false;o.pending={mode,rarity,readyAt:t,expiresAt:t+3600000,sequence:1,suppression:0};renderObservation();},{mode,rarity});
@@ -36,6 +57,7 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
   const overlay=await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).backgroundImage);
   if(rarity===0)assert.equal(overlay,'none');
   else{assert(overlay.includes(mode+'-'+rarity+'.svg'));const valid=await p.evaluate(({mode,rarity})=>WatchModel.TARGETS[mode][rarity].some(([x,y])=>WatchModel.hit(observationState(),{x,y})),{mode,rarity});assert(valid,'matching hit target '+mode+rarity);}
+  if(rarity>0&&!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/alt-'+mode+'-'+rarity+'-390.jpg',quality:85});
  }
  await p.evaluate(()=>save());await p.reload();assert.equal(await p.evaluate(()=>WatchLocations.discovered(S.observation.locationRecords)[0].rarities[1]),1);
  assert.equal(await p.evaluate(()=>S.currency),wallet);

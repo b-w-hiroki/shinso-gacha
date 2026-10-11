@@ -161,6 +161,7 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
 #obs-site-overlay{display:block;position:absolute;inset:0;z-index:1;pointer-events:none;background-size:100% 100%;background-position:center;background-repeat:no-repeat}
 .watch-site-record-image{position:relative;width:100%;aspect-ratio:2 / 1;background-color:#111816;background-size:cover;background-position:center;overflow:hidden;border:1px solid #555b52}
 .watch-site-record-overlay{position:absolute;inset:0;display:block;pointer-events:none;background-size:100% 100%;background-position:center;background-repeat:no-repeat}
+.watch-site-record-overlay[hidden]{display:none}
 @media(prefers-reduced-motion:reduce){#obs-site-overlay,.watch-site-record-overlay{animation:none!important;transition:none!important}}
 
 

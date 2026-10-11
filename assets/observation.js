@@ -186,8 +186,9 @@ function watchResearchHTML(o,mode){
 function showAlternateLocationRecord(mode,rarity){
  const o=observationState(),scene=WatchLocations.byId('alt:'+mode),entry=WatchLocations.discovered(o.locationRecords).find(s=>s.id==='alt:'+mode);
  if(!scene||![0,1,2,3].includes(rarity)||!entry?.rarities?.[rarity])return;
- const overlay=WatchLocations.overlay(mode,rarity);
- sheet('観測資料・追加地点',`<div class="watch-site-record-image" role="img" aria-label="${escapeHTML(scene.notes[rarity])}" style="background-image:url('assets/observation/${scene.file}')">${overlay?'<span class="watch-site-record-overlay" style="background-image:url(\''+overlay+'\')"></span>':''}</div><div class="watch-record-caption"><b>${WatchModel.RARITY[rarity].name} ／ ${escapeHTML(scene.notes[rarity])}</b><span>この場所で回収 ${entry.rarities[rarity]}件</span></div><p class="watch-note">この場所で実際に記録された映像。元の資料は変更されていません。</p>`);
+ const overlay=WatchLocations.overlay(mode,rarity),canCompare=rarity>0&&!!entry.rarities[0];
+ const compare=canCompare?`<div class="watch-compare"><p id="watch-site-compare-status" aria-live="polite">発見した記録：${escapeHTML(scene.notes[rarity])}</p><button class="btn-paper" data-site-compare="${mode}:${rarity}" aria-pressed="false">平常の映像と見比べる</button></div>`:'';
+ sheet('観測資料・追加地点',`<div class="watch-site-record-image" role="img" aria-label="${escapeHTML(scene.notes[rarity])}" style="background-image:url('assets/observation/${scene.file}')">${overlay?`<span class="watch-site-record-overlay" style="background-image:url('${overlay}')"></span>`:''}</div><div class="watch-record-caption"><b>${WatchModel.RARITY[rarity].name} ／ ${escapeHTML(scene.notes[rarity])}</b><span>この場所で回収 ${entry.rarities[rarity]}件</span></div>${compare}<p class="watch-note">この場所で実際に記録された映像。元の資料は変更されていません。</p>`);
 }
 function showWatchRecord(mode,rarity,restored=false){
  const o=observationState(),key=mode+':'+rarity,m=OBSERVATIONS[mode];if(!m||!o.collection[key])return;
@@ -213,6 +214,20 @@ document.addEventListener('click',e=>{
   if(isLite())return;
   const reward=WatchModel.claimSet(observationState(),rewardButton.dataset.watchSet);if(reward===null)return;
   S.currency+=reward;markDirty();render();return;
+ }
+ const altCompare=e.target.closest('[data-site-compare]');
+ if(altCompare){
+  const [mode,r]=altCompare.dataset.siteCompare.split(':'),rarity=Number(r),o=observationState();
+  const scene=WatchLocations.byId('alt:'+mode),entry=WatchLocations.discovered(o.locationRecords).find(s=>s.id==='alt:'+mode);
+  if(!scene||![1,2,3].includes(rarity)||!entry?.rarities?.[0]||!entry.rarities[rarity])return;
+  const im=document.querySelector('.watch-site-record-image'),overlay=im?.querySelector('.watch-site-record-overlay'),status=document.getElementById('watch-site-compare-status');
+  if(!im||!overlay||!status)return;
+  const normal=altCompare.getAttribute('aria-pressed')!=='true';
+  overlay.hidden=normal;
+  im.setAttribute('aria-label',scene.notes[normal?0:rarity]);
+  status.textContent=normal?'平常の記録：'+scene.notes[0]:'発見した記録：'+scene.notes[rarity];
+  altCompare.setAttribute('aria-pressed',String(normal));
+  altCompare.textContent=normal?'異変の映像に戻す':'平常の映像と見比べる';return;
  }
  const compare=e.target.closest('[data-watch-compare]');
  if(compare){
