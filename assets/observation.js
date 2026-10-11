@@ -17,7 +17,7 @@ let watchMessage='',watchMessageUntil=0,watchPaint='',watchLastTick=0;
 function observationState(){
  if(!S.observation||![2,3].includes(S.observation.version)){
   const seed=globalThis.crypto?.getRandomValues?crypto.getRandomValues(new Uint32Array(1))[0]:Math.floor(Math.random()*0xffffffff);
-  S.observation=WatchModel.create(Date.now(),seed,S.observation);save();
+  S.observation=WatchModel.create(Date.now(),seed,S.observation);S.observation.locationSceneVersion=2;save();
  }
  const migrated=S.observation.version===2,o=WatchModel.normalize(S.observation),credit=WatchModel.takeRouteCredit(o);
  if(credit)S.currency+=credit;
@@ -36,7 +36,7 @@ function renderObservation(){
  const f=document.getElementById('obs-frame');if(!f||isLite())return;
  const o=observationSync(),p=o.pending,m=OBSERVATIONS[o.mode],r=p?.rarity??0;
  const advanced=r===1||r===3,side=r===2||r===3?'right':'left';
- const alternate=WatchLocations.current(o.mode,r,p?.sequence??o.sequence),alternative=!!alternate;
+ const alternate=WatchLocations.current(o.mode,r,p?.sequence??o.sequence,o.locationSceneVersion===2?2:1),alternative=!!alternate;
  const src=alternate?`assets/observation/${alternate.file}`:`assets/observation/${o.mode}${advanced?'-variants':''}.webp`;
  const condition=observationCondition(o);
  const paint=`${o.mode}/${p?.sequence??'idle'}/${r}/${condition}/${alternative}`;
@@ -86,7 +86,11 @@ function observationTick(){
 }
 function observationReward(result,auto=false){
  const record=result.record;
- WatchLocations.observe(observationState(),record);record.reward=Math.round(record.reward*(1+.1*upLv('lens')));
+ const observation=observationState();WatchLocations.observe(observation,record);
+ // Do not reinterpret an old held frame. Switch to the improved location
+ // selection only after its actual claim has been archived.
+ if(observation.locationSceneVersion!==2)observation.locationSceneVersion=2;
+ record.reward=Math.round(record.reward*(1+.1*upLv('lens')));
  S.currency+=record.reward;
  const followup=ForecastFollowup.collect(S.forecastFollowups,record,Date.now());
  if(followup.matched.length)S.forecastFollowups=followup.state;
