@@ -58,6 +58,12 @@ function openWitnessDossier(id){
   <button class="btn-paper" data-legend="case" data-id="${id}">この立会人が記された調査へ戻る</button>
  </article>`);
 }
+function alternateLocationRecordsHTML(place,entry){
+ return '<div class="catalog-records">'+[0,1,2,3].map(r=>{
+  const acquired=!!entry.rarities?.[r],title=acquired?escapeHTML(place.notes[r])+' ／ '+WatchModel.RARITY[r].name:'未観測';
+  return '<button class="btn-line" data-location-record="'+place.id+':'+r+'" '+(acquired?'':'disabled')+'>'+title+'</button>';
+ }).join('')+'</div>';
+}
 function openCatalogEntry(id){
  const entry=catalogEntries(encyclopediaTab).find(e=>e.id===id);if(!entry?.known)return;
  if(encyclopediaTab==='confidential'){hideSheet();return openLegendCase(id);}
@@ -74,13 +80,14 @@ function openCatalogEntry(id){
   sheet('人物図鑑',`<article class="catalog-detail"><header class="watch-speaker">${watchPortrait(m)}<div><small>${m.role}</small><h2>${m.name}</h2></div></header><p>${m.description}</p><h3>初めて交わした言葉</h3><blockquote>${m.greeting}</blockquote><h3>この人物と照合できる記録</h3>${records.map(({mode,r})=>`<button class="btn-line" data-catalog-record="${mode}:${r}">${OBSERVATIONS[mode].records[r]}</button>`).join('')}${incidents.map(k=>`<button class="btn-line" data-catalog-incident="${k}">${INCURSIONS[k].short}</button>`).join('')}${!records.length&&!incidents.length?'<p>照合できる記録は、まだありません。</p>':''}<button class="btn-paper" data-catalog-talk="${id}">${m.name}に話す</button></article>`);return;
  }
  const place=WatchLocations.byId(id);
- if(place){const entry=WatchLocations.discovered(observationState().locationRecords).find(s=>s.id===id);if(!entry)return;const time=entry.firstAt?new Date(entry.firstAt).toLocaleDateString('ja-JP'):'日時不明';sheet('場所図鑑',`<article class="catalog-detail"><small>${escapeHTML(place.source)} ／ ${escapeHTML(WatchModel.MODES[place.mode].label)}</small><h2>${escapeHTML(place.title)}</h2><img src="assets/observation/${place.file}" alt="${escapeHTML(place.title)}の初回観測資料" loading="lazy" style="width:100%;aspect-ratio:2/1;object-fit:cover;border:1px solid #696154;border-radius:3px"><p>記録された訪問 ${entry.visits}回 ／ 最初の観測 ${time}</p><p>別媒体と記録を共有せず、この場所の原本はそのまま保存されます。</p><button class="btn-line" data-watch="return">観測へ戻る</button></article>`);return;}
+ if(place){const entry=WatchLocations.discovered(observationState().locationRecords).find(s=>s.id===id);if(!entry)return;const time=entry.firstAt?new Date(entry.firstAt).toLocaleDateString('ja-JP'):'日時不明';sheet('場所図鑑',`<article class="catalog-detail"><small>${escapeHTML(place.source)} ／ ${escapeHTML(WatchModel.MODES[place.mode].label)}</small><h2>${escapeHTML(place.title)}</h2><img src="assets/observation/${place.file}" alt="${escapeHTML(place.title)}の初回観測資料" loading="lazy" style="width:100%;aspect-ratio:2/1;object-fit:cover;border:1px solid #696154;border-radius:3px"><p>記録された訪問 ${entry.visits}回 ／ 最初の観測 ${time}</p><p>別媒体と記録を共有せず、この場所の原本はそのまま保存されます。</p>${alternateLocationRecordsHTML(place,entry)}<button class="btn-line" data-watch="return">観測へ戻る</button></article>`);return;}
  const m=OBSERVATIONS[id],o=observationState();
  const legends=LegendModel.ids.filter(k=>LegendModel.CASES[k].mode===id&&LegendModel.count(S.levels,k)>0);
  sheet('場所図鑑',`<article class="catalog-detail"><small>${m.source} ／ ${WatchModel.MODES[id].label}</small><h2>${m.title}</h2><p>この場所で回収した記録 ${WatchModel.setProgress(o,id)}件。平常の記録も比較の手がかりになります。</p><div class="catalog-records">${[0,1,2,3].map(r=>`<button class="btn-line" data-catalog-record="${id}:${r}" ${o.collection[id+':'+r]>0?'':'disabled'}>${o.collection[id+':'+r]>0?m.records[r]:'未観測'}</button>`).join('')}</div>${legends.length?'<h3>関連する噂</h3>'+legends.map(k=>`<button class="btn-line" data-legend="case" data-id="${k}">${escapeHTML(legendTitle(k))}</button>`).join(''):''}<button class="btn-paper" data-watch="return">観測へ戻る</button></article>`);
 }
 document.addEventListener('click',e=>{
- const b=e.target.closest('[data-catalog-tab],[data-catalog-entry],[data-catalog-record],[data-catalog-talk],[data-catalog-incident],[data-personnel-confirm],[data-personnel-list],[data-witness-case],[data-witness-registry]');if(!b||b.disabled)return;
+ const b=e.target.closest('[data-catalog-tab],[data-catalog-entry],[data-catalog-record],[data-catalog-talk],[data-catalog-incident],[data-personnel-confirm],[data-personnel-list],[data-witness-case],[data-witness-registry],[data-location-record]');if(!b||b.disabled)return;
+ if(b.dataset.locationRecord){const [prefix,mode,r]=b.dataset.locationRecord.split(':');if(prefix==='alt')return showAlternateLocationRecord(mode,Number(r));return;}
  if(b.dataset.personnelList!==undefined)return openEncyclopedia('people');
  if(b.dataset.witnessCase)return openWitnessDossier(b.dataset.witnessCase);
  if(b.dataset.witnessRegistry!==undefined){const first=witnessRegistryRecords()[0];if(first){hideSheet();return openWitnessDossier(first.id);}return;}
