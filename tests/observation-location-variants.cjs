@@ -82,6 +82,9 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    assert(overlay.includes(mode+'-'+rarity+'.svg'));
    const valid=await p.evaluate(({mode,rarity})=>WatchLocations.targets(mode,rarity).some(([x,y])=>WatchModel.hit(observationState(),{x,y})),{mode,rarity});
    assert(valid,'matching native image-space target '+mode+rarity);
+   // Browser animation can keep Playwright's element-stability waiter pending in WebKit.
+   // Scroll explicitly, verify hit testing, then issue a real pointer click at the image point.
+   await p.evaluate(()=>document.getElementById('obs-frame').scrollIntoView({block:'center',behavior:'instant'}));
    const geometry=await p.evaluate(({mode,rarity})=>{
     const f=document.getElementById('obs-frame').getBoundingClientRect(),overlay=document.getElementById('obs-site-overlay'),v=getComputedStyle(overlay);
     const pictureWidth=Math.max(f.width,2*f.height),[x,y]=WatchLocations.targets(mode,rarity)[0];
@@ -91,7 +94,12 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    assert(geometry.coverMatches,'visual anomaly overlay must match photographic cover framing '+mode+rarity);
    const q=geometry.point,f=geometry.f;
    if(q.x>=f.left+2&&q.x<=f.right-2&&q.y>=f.top+2&&q.y<=f.bottom-2){
-    await p.locator('#obs-frame').click({position:{x:q.x-f.left,y:q.y-f.top}});
+    const reachable=await p.evaluate(point=>{
+      const hit=document.elementFromPoint(point.x,point.y);
+      return hit===document.getElementById('obs-frame')||document.getElementById('obs-frame').contains(hit);
+    },q);
+    assert(reachable,'actual rendered hotspot must not be obscured by UI '+mode+rarity);
+    await p.mouse.click(q.x,q.y);
     projectedContactTaps++;
     assert.equal(await p.evaluate(()=>observationState().pending?.suppression),1,'clicking actual projected visual hotspot must suppress '+mode+rarity);
    }
