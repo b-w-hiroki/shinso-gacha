@@ -19,6 +19,27 @@ for(const [width,height] of [[320,568],[390,700],[430,932]]){
  await p.evaluate(()=>go('report'));await p.locator('#agent-record').click();assert(await p.locator('#rk-lv').isVisible());await p.keyboard.press('Escape');await p.evaluate(()=>go('home'));
 }
 await p.setViewportSize({width:390,height:700});await p.screenshot({path:`${out}/home-clean.jpg`,quality:85});
+// Personnel clearance is rank-derived; saved investigations retain their risk at assignment.
+await p.evaluate(()=>{S.pulls=14000;S.lastTick=Date.now()+600000;render();go('report');});
+await p.locator('#agent-record').click();
+assert.match(await p.locator('#rk-clearance').innerText(),/深層特務/);
+assert.match(await p.locator('#rk-risk').innerText(),/調査者と調査対象/);
+await p.screenshot({path:out+'/personnel-clearance-390.jpg',quality:85});
+await p.keyboard.press('Escape');
+const risk=await p.evaluate(()=>{
+  const y=new Date(); y.setDate(y.getDate()-1); const key=dayKey(y);
+  S.caseLog={[key]:{choice:'watch',code:'IC-512',at:100,clearanceRank:0}};
+  const old=caseAftermath().body;
+  S.caseLog[key].clearanceRank=17;
+  const high=caseAftermath().body;
+  const expected=clearanceForRank(17).trace;
+  return {old,high,expected,evidence:evidenceHTML(),bands:[0,3,6,10,14,17].map(n=>clearanceForRank(n).tier)};
+});
+assert.deepEqual(risk.bands,[0,1,2,3,4,5]);
+assert(!risk.old.includes(risk.expected),'older incident must not gain future risk');
+assert(risk.high.includes(risk.expected),'high-clearance incident preserves deep trace');
+assert.match(risk.evidence,/機密付記/);
+await p.evaluate(()=>{S.caseLog={};S.pulls=0;render();go('home');});
 
 for(const width of [320,390]){
  await p.setViewportSize({width,height:700});
