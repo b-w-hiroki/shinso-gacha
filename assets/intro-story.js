@@ -17,7 +17,7 @@ function introImage(name, alt, cls = '') {
 }
 function introLabel() {
   const i=S.lite.intro;
-  return ['封を切る','写真をもう一度見る','2通目を開く','3通目を開く',i.revealed?'記録を保管して、調査を続ける':'黒塗りを剥がす'][i.step] || '調査を続ける';
+  return ['開ける','もう一度見る','次を開く','次を開く',i.revealed?'記録を閉じる':'黒塗りを剥がす'][i.step] || '調査を続ける';
 }
 function renderIntro() {
   const root=$('intro-case'); if(!root)return;
@@ -25,13 +25,14 @@ function renderIntro() {
   document.body.classList.toggle('intro-active',active);
   if(!active)return;
   const i=S.lite.intro, step=i.step;
-  const titles=['差出人のない、1通。','写真には、1人だけ。','さっき、ここにいた？','同じ場所に、赤い印。','3通とも、同じ時刻。'];
-  const captions=['郵便受けに入っていた。宛名も、差出人もない。','裏には「02:14」。ベンチの横は空いている。','ベンチの横に、もう1人。この写真は、誰にも見せないでください。','写真で人が増えた場所と、構内図の赤い印が重なる。','写真・構内図・メモ。すべてに「02:14」が残っていた。'];
+  const titles=['封筒がある。','ひとり。','……ふたり？','ここに、印。','02:14'];
+  const captions=['','裏に、02:14。','そこにいた人は、誰ですか。','まだ見せていない写真の位置だ。','読まない方がいい。'];
   let visual=step===0?'<img class="intro-image intro-envelope" src="assets/ui/civilian-envelope.webp" alt="差出人のない閉じた茶封筒" width="1536" height="1024">'
     :step<3?introImage(step===1?'station-before':'station-after',step===1?'夜の駅。左の柱の横に1人。右のベンチ横には誰もいない。':'同じ駅。左の人物に加え、右のベンチ横にもう1人が立っている。')
     :step===3?introImage('station-plan','駅の構内図。ベンチの横に赤い丸が描かれている。')
     :`<div class="intro-note"><span>02:14 ／ 差出人のメモ</span><p>写真の人物を、数え直さないこと。</p><button class="intro-redaction" data-intro="reveal" aria-expanded="${!!i.revealed}">${i.revealed?'こちらで、あなたを保護します。':'黒塗りを剥がす'}</button>${i.revealed?'<p class="intro-sender">第六文書課</p>':'<p class="intro-sender">差出人　██████</p>'}</div>`;
-  root.innerHTML=`<div class="intro-top"><span>最初の3通 ／ ${step===0?'未開封':Math.min(3,Math.max(1,step-1))+' / 3'}</span><button data-intro="skip">導入をスキップ</button></div><h1>${titles[step]}</h1><figure>${visual}${step>0&&step<4?'<span class="intro-time">記録時刻 02:14</span>':''}</figure><p class="intro-caption" aria-live="polite">${captions[step]}</p>${step===2?'<div class="intro-compare" role="group" aria-label="写真を比較"><button data-intro="before" aria-pressed="false">最初の写真</button><button data-intro="after" aria-pressed="true">もう一度見た写真</button></div>':''}${step>0?`<div class="intro-receipt"><img src="assets/intro/${step<3?'envelope-torn':'envelope-open'}.webp" alt="${step<3?'端を破った封筒':'資料が覗く開封済みの封筒'}"><span>${Math.min(3,Math.max(1,step-1))}通を保管済み<br>事件記録は「記録」タブへ</span></div>`:'<small class="intro-fiction">架空の事件を調べる物語です。</small>'}`;
+  root.dataset.step=String(step);
+  root.innerHTML=`<div class="intro-top"><button data-intro="skip" aria-label="導入をスキップ">スキップ</button></div><h1>${titles[step]}</h1><figure>${visual}${step>0&&step<4?'<span class="intro-time">記録時刻 02:14</span>':''}</figure>${captions[step] ? `<p class="intro-caption" aria-live="polite">${captions[step]}</p>` : ""}${step===2?'<div class="intro-compare" role="group" aria-label="写真を比較"><button data-intro="before" aria-pressed="false">最初の写真</button><button data-intro="after" aria-pressed="true">もう一度見た写真</button></div>':''}`;
   $('lite-pull').textContent=introLabel(); $('lite-pull').dataset.mode='intro';
 }
 function advanceIntro() {
