@@ -83,13 +83,13 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  await p.evaluate(()=>{S.levels.u1=3;S.legendLayers={};go('home');openEncyclopedia('anomalies');});
  assert.equal(await p.locator('[data-catalog-tab="confidential"]').count(),0);
  await p.evaluate(()=>{openEncyclopedia('people');});
- assert.equal(await p.locator('[data-catalog-entry="ghost:u1"]').count(),0);
+ assert.equal(await p.locator('[data-catalog-entry="ghost:registry"]').count(),0);
  await p.evaluate(()=>{S.legendLayers.noticed={u1:true};S.legendLayers.compared={u1:true};openEncyclopedia('anomalies');});
  assert.equal(await p.locator('[data-catalog-tab="confidential"]').count(),1);
  await p.evaluate(()=>openEncyclopedia('people'));
- assert.equal(await p.locator('[data-catalog-entry="ghost:u1"]').count(),1);
- await p.locator('[data-catalog-entry="ghost:u1"]').click();
- assert(await p.locator('.forecast-archive').count());
+ assert.equal(await p.locator('[data-catalog-entry="ghost:registry"]').count(),1);
+ await p.locator('[data-catalog-entry="ghost:registry"]').click();
+ assert(await p.locator('.witness-dossier').count());assert(await p.locator('.forecast-archive').count());assert((await p.locator('.witness-photo').getAttribute('aria-label')).includes('肖像写真'));
  await p.evaluate(()=>openEncyclopedia('anomalies'));
  await p.locator('[data-catalog-tab="confidential"]').click();
  assert.equal(await p.locator('.catalog-entry:enabled').count(),1);

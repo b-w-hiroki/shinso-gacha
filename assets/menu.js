@@ -19,6 +19,11 @@ for(const id of LegendModel.ids)GAME_MAIL.push({
  body:'翌日付けの調査報告と後日回収した観測記録の照合が終わりました。報告書の結論は、訂正されていません。',
  reward:0,when:()=>!isLite()&&ForecastFollowup.inspect(S.forecastFollowups,id)?.status==='compared'
 });
+// One in-world personnel message, available only after a real acquired contradiction.
+GAME_MAIL.push({id:'unregistered-personnel',from:'第六文書課・人事登録室',title:'在籍照会の結果',
+ body:'調査記録の立会欄に署名があります。人事台帳では、対応する職員を確認できません。原本をそのまま保管してください。',
+ reward:0,witnessRegistry:true,when:()=>!isLite()&&LegendModel.ids.some(id=>LegendModel.count(S.levels,id)===3&&legendLayerStatus(id)?.compared)
+});
 // A personnel file produces one quietly delivered notice only after explicit comparison.
 for(const c of PersonnelDiscrepancies.CASES)GAME_MAIL.push({
  id:'personnel-'+c.id,from:'第六文書課・人事台帳',title:'照合対象の登録について',
@@ -74,7 +79,7 @@ function openGameMail(id){
  const m=GAME_MAIL.find(m=>m.id===id),c=menuState();if(!m||!c.mail[id])return;
  c.mail[id].read=true;markDirty();renderMenuBadge();
  const d=new Date(c.mail[id].receivedAt).toLocaleDateString('ja-JP');
- openMenuPage('受信メール',menuBack('inbox')+`<article class="game-message"><small>${m.from} · ${d}</small><h2>${m.title}</h2><p>${m.body}</p>${m.caseId?`<button class="btn-line" data-legend="case" data-id="${m.caseId}">調査報告書を確認する</button>`:``}${m.reward?`<button class="btn-paper" data-mail-claim="${id}" ${c.mail[id].claimed?'disabled':''}>${c.mail[id].claimed?'受取済み':m.reward+'pt を受け取る'}</button>`:''}</article>`);
+ openMenuPage('受信メール',menuBack('inbox')+`<article class="game-message"><small>${m.from} · ${d}</small><h2>${m.title}</h2><p>${m.body}</p>${m.caseId?`<button class="btn-line" data-legend="case" data-id="${m.caseId}">調査報告書を確認する</button>`:``}${m.witnessRegistry?`<button class="btn-line" data-witness-registry>立会人の人物記録を確認する</button>`:``}${m.reward?`<button class="btn-paper" data-mail-claim="${id}" ${c.mail[id].claimed?'disabled':''}>${c.mail[id].claimed?'受取済み':m.reward+'pt を受け取る'}</button>`:''}</article>`);
 }
 function openMenuSettings(){
  openMenuPage('設定',menuBack()+`<div class="game-message"><p id="menu-sync"></p><label class="watch-quiet-setting"><input type="checkbox" data-watch-quiet ${observationState().quiet?'checked':''}> 揺れ・画面演出を抑える</label>${!isLite()?`${observationState().pending?.rarity>0?'<button class="btn-line" data-menu="target">場所を選んで異変に対処</button>':''}${watchSettingsUnlocked()?'<button class="btn-line" data-menu="observation">観測設定</button>':''}`:''}<button class="btn-line" data-intro="archive">最初の3通を読み返す</button>${localStorage.getItem(KEY+'_conflict_backup')?'<button class="btn-line" data-cloud-choice="backup">退避した記録をダウンロード</button>':''}<button class="btn-paper" data-menu="account">ログイン・アカウント管理</button></div>`);
