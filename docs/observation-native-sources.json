@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "description": "Fixed CC0 sources for native photographic candidates; compare screenshots before release, locations fictional.",
+  "sources": [
+    {
+      "mode": "cctv",
+      "name": "Blue underground passage (Unsplash).jpg",
+      "author": "James Sutton",
+      "source": "https://commons.wikimedia.org/wiki/File:Blue_underground_passage_(Unsplash).jpg",
+      "file": "cctv-underground-native.webp",
+      "brightness": 0.87,
+      "teal": 0.1,
+      "license": "CC0-1.0"
+    },
+    {
+      "mode": "photo",
+      "name": "A Sideview of an Empty Classroom.jpg",
+      "author": "Paul The Writer",
+      "source": "https://commons.wikimedia.org/wiki/File:A_Sideview_of_an_Empty_Classroom.jpg",
+      "file": "photo-classroom-native.webp",
+      "brightness": 0.62,
+      "teal": 0.2,
+      "license": "CC0-1.0"
+    },
+    {
+      "mode": "vision",
+      "name": "Railway Crossing at Shin-Matsuda Station 250720 02.jpg",
+      "author": "Aspere",
+      "source": "https://commons.wikimedia.org/wiki/File:Railway_Crossing_at_Shin-Matsuda_Station_250720_02.jpg",
+      "file": "vision-crossing-native.webp",
+      "brightness": 0.76,
+      "teal": 0.11,
+      "license": "CC0-1.0"
+    },
+    {
+      "mode": "dash",
+      "name": "Night road (Unsplash).jpg",
+      "author": "Vladlane Vadek",
+      "source": "https://commons.wikimedia.org/wiki/File:Night_road_(Unsplash).jpg",
+      "file": "dash-coast-road-native.webp",
+      "brightness": 0.9,
+      "teal": 0.13,
+      "license": "CC0-1.0"
+    }
+  ]
+}
