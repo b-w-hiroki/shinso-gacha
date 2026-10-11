@@ -66,3 +66,12 @@ body.intro-active .lite-footer .lite-pull[data-mode="intro"] { min-height:58px; 
 }
 
 body.lite.intro-quiet #intro-case *,body.lite.intro-quiet #intro-case *::before,body.lite.intro-quiet #intro-case *::after,body.lite.intro-quiet .lite-event *,body.lite.intro-quiet .lite-event *::after{animation:none!important;transition:none!important;}
+
+/* Sparse introduction: the envelope is an object, not an information panel. */
+body.intro-active #intro-case[data-step="0"] { padding-top:28px; gap:16px; }
+body.intro-active #intro-case[data-step="0"] figure { border:0; background:transparent; box-shadow:none; }
+body.intro-active #intro-case[data-step="0"] figure::after { box-shadow:none; border:0; }
+body.intro-active #intro-case[data-step="0"] .intro-envelope { filter:drop-shadow(0 20px 24px #000c) saturate(.73); }
+body.intro-active #intro-case[data-step="2"] .intro-time { color:#e0d7c7; }
+body.intro-active .lite-footer .lite-pull[data-mode="intro"] { color:#eee0cd; background:#51241f; border-color:#855449; font-weight:600; }
+body.intro-active .lite-footer .lite-pull[data-mode="intro"]:focus-visible { outline:2px solid #ebd6b0; outline-offset:3px; }
