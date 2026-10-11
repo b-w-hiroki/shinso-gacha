@@ -15,3 +15,12 @@
 .legend-layers details p+p{border-top:1px dashed #a795754d;padding-top:8px}
 .legend-layers button{min-height:44px;max-width:100%;white-space:normal}
 @media (prefers-reduced-motion:reduce){.legend-layers *{animation:none!important;transition:none!important}}
+
+
+.research-editor{margin:18px 0 0;border-top:1px solid #786f5b;padding:14px 0 0;color:#e3d8c5;line-height:1.75}
+.research-editor h4{font-size:17px;margin:0 0 8px}.research-editor>p{font-size:13px;color:#ccc2af}
+.research-editor label{display:block;margin:15px 0;font-size:14px}
+.research-editor textarea,.research-editor select{display:block;box-sizing:border-box;width:100%;margin:7px 0 0;min-height:45px;border:1px solid #80745e;background:#191d1a;color:#e9deca;border-radius:3px;padding:11px;font:16px/1.7 var(--f-body);resize:vertical}
+.research-editor textarea{min-height:100px}.research-editor select:focus-visible,.research-editor textarea:focus-visible{outline:2px solid #d5bc81;outline-offset:2px}
+.research-editor button{min-height:46px;width:100%;white-space:normal}.research-editor details summary{min-height:44px;padding:9px 0}
+.research-editor li{font-size:13px;padding:9px 0;border-bottom:1px dashed #676354;overflow-wrap:anywhere}.research-editor li p{margin:4px 0 0;white-space:pre-wrap}
