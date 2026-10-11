@@ -64,3 +64,5 @@ body.intro-active .lite-footer .lite-pull[data-mode="intro"] { min-height:58px; 
 @media(prefers-reduced-motion:reduce) {
   body.intro-active #intro-case figure::after { animation:none!important; }
 }
+
+body.lite.intro-quiet #intro-case *,body.lite.intro-quiet #intro-case *::before,body.lite.intro-quiet #intro-case *::after,body.lite.intro-quiet .lite-event *,body.lite.intro-quiet .lite-event *::after{animation:none!important;transition:none!important;}
