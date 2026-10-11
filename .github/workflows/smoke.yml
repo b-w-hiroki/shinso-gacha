@@ -75,6 +75,9 @@ jobs:
       - run: node tests/observation.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/observation-location-variants.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/contamination-ui.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
@@ -171,6 +174,10 @@ jobs:
           QA_WEBKIT: 1
           QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/rumor-patrol.cjs
+        env:
+          QA_WEBKIT: 1
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/observation-location-variants.cjs
         env:
           QA_WEBKIT: 1
           QA_FONT: ${{ runner.temp }}/noto.otf

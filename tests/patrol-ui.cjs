@@ -61,6 +61,10 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  }
  await p.evaluate(()=>{const o=observationState(),t=Date.now();o.mode='photo';o.pending={mode:'photo',rarity:1,readyAt:t,expiresAt:t+3600000,sequence:o.sequence,suppression:0};renderObservation();});
  const contact=await p.locator('#obs-image').evaluate(e=>{const im=e.getBoundingClientRect(),f=document.getElementById('obs-frame').getBoundingClientRect();return {x:im.left-f.left+im.width*.4,y:im.top-f.top+im.height*.36};});
+ assert(await p.locator('#obs-frame').evaluate(e=>{
+  const f=e.getBoundingClientRect(),im=document.getElementById('obs-image').getBoundingClientRect();
+  return Math.abs(f.left-im.left)<6&&Math.abs(f.top-im.top)<6&&Math.abs(f.width-im.width)<6&&Math.abs(f.height-im.height)<6;
+ }),'alternate image stays aligned while anomaly moves');
  await p.locator('#obs-frame').click({position:contact});
  assert(await p.evaluate(()=>S.observation.pending.suppression===1),'attack responds only at anomaly');
  assert(await p.locator('#obs-frame').evaluate((e,point)=>e.classList.contains('obs-strike')&&Math.abs(parseFloat(e.style.getPropertyValue('--touch-x'))-point.x)<2&&Math.abs(parseFloat(e.style.getPropertyValue('--touch-y'))-point.y)<2,contact),'contact follows touch');
