@@ -14,7 +14,7 @@ function catalogObservationHistory(mode,rarity){
 function catalogEntries(tab){
  const o=observationState(),collection=o.collection||{},contacts=watchContacts();
  if(tab==='confidential')return LegendModel.ids.filter(id=>LegendModel.count(S.levels,id)===3&&legendLayerStatus(id)?.compared).map((id,i)=>({id,number:i+1,known:true,title:legendTitle(id),sub:'登録のない立会人 ／ 証言照合記録'}));
- if(tab==='people'){const staff=Object.entries(WATCH_COLLEAGUES).map(([id,m],i)=>({id,number:i+1,known:!!contacts[id],title:contacts[id]?m.name:'未面識の課員',sub:contacts[id]?m.role:'課内で話すと記録されます'}));const unknown=LegendModel.ids.filter(id=>LegendModel.count(S.levels,id)===3&&legendLayerStatus(id)?.compared).map((id,i)=>({id:'ghost:'+id,number:staff.length+i+1,known:true,title:'登録のない立会人',sub:legendTitle(id)+' ／ 証言の照合'}));const personnel=PersonnelDiscrepancies.unlocked(S.personnelEvidence,rankIdx()).map((c,i)=>({id:'personnel:'+c.id,number:staff.length+unknown.length+i+1,known:true,title:'課内照合：'+c.title,sub:PersonnelDiscrepancies.detail(S.personnelEvidence,rankIdx(),c.id)?.confirmed?'照合済み':'職員の証言を記録中'}));return staff.concat(unknown,personnel);}
+ if(tab==='people'){const staff=Object.entries(WATCH_COLLEAGUES).map(([id,m],i)=>({id,number:i+1,known:!!contacts[id],title:contacts[id]?m.name:'未面識の課員',sub:contacts[id]?m.role:'課内で話すと記録されます'}));const related=witnessRegistryRecords(),unknown=related.length?[{id:'ghost:registry',number:staff.length+1,known:true,title:'登録のない立会人',sub:'照合済み資料の立会欄 ／ '+related.length+'件'}]:[];const personnel=PersonnelDiscrepancies.unlocked(S.personnelEvidence,rankIdx()).map((c,i)=>({id:'personnel:'+c.id,number:staff.length+unknown.length+i+1,known:true,title:'課内照合：'+c.title,sub:PersonnelDiscrepancies.detail(S.personnelEvidence,rankIdx(),c.id)?.confirmed?'照合済み':'職員の証言を記録中'}));return staff.concat(unknown,personnel);}
  if(tab==='places')return Object.entries(OBSERVATIONS).map(([id,m],i)=>{const known=[0,1,2,3].some(r=>collection[id+':'+r]>0);return {id,number:i+1,known,title:known?m.title:'未記録の場所',sub:known?`${WatchModel.setProgress(o,id)}件の記録`:'観測記録を回収すると記録されます'};});
  const observed=Object.entries(OBSERVATIONS).flatMap(([mode,m])=>[1,2,3].map(r=>({id:mode+':'+r,known:collection[mode+':'+r]>0,title:collection[mode+':'+r]>0?m.records[r]:'未確認の異変',sub:collection[mode+':'+r]>0?m.title+' ／ '+WatchModel.RARITY[r].name:'観測から発見'})));
  return observed.concat(INCURSIONS.map((m,i)=>({id:'inc:'+i,known:S.incursion?.discovered?.[i]===true,title:S.incursion?.discovered?.[i]===true?m.short:'未確認の異変',sub:S.incursion?.discovered?.[i]===true?'封筒調査 ／ '+incursionRarity(i).id:'封筒調査から発見'}))).map((e,i)=>({...e,number:i+1}));
@@ -67,7 +67,7 @@ function openCatalogEntry(id){
  }
  if(encyclopediaTab==='people'){
   if(id.startsWith('personnel:'))return openPersonnelDossier(id.slice('personnel:'.length));
-  if(id.startsWith('ghost:'))return openWitnessDossier(id.slice(6));
+  if(id==='ghost:registry'){const first=witnessRegistryRecords()[0];if(first)return openWitnessDossier(first.id);return;}
   const m=WATCH_COLLEAGUES[id],o=observationState();
   const records=Object.entries(INVESTIGATION_CASES).flatMap(([mode,c])=>c.member===id?[0,1,2,3].filter(r=>o.collection[mode+':'+r]>0).map(r=>({mode,r})):[]);
   const incidents=Object.keys(S.incursion?.discovered||{}).map(Number).filter(k=>S.incursion.discovered[k]===true&&INCURSIONS[k]&&incursionWitnessMember(k).id===id);
