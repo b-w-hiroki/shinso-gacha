@@ -6,6 +6,16 @@
   vision:{id:'alt:vision',mode:'vision',title:'踏切前',source:'LINK 15',file:'vision-crossing-upgraded.webp',notes:['遮断機の手前','踏切の向こうの影','数の合わない横断者','後ろから見ている者']},
   dash:{id:'alt:dash',mode:'dash',title:'海沿いの夜道',source:'DRIVE 19',file:'dash-coast-road-upgraded.webp',notes:['海沿いの走行記録','路肩の白い影','背後に続く灯り','対向車線に残る人影']}
  };
+ /* Independent native-frame tap geometry for each new location and rarity.
+  * The illustrated centers remain at the existing overlay SVG data-hotspots;
+  * contact radii are authored for these scenes, not inherited from older media. */
+ const TARGETS={
+  cctv:{1:[[.51,.34,.16,.22]],2:[[.66,.64,.19,.20]],3:[[.22,.65,.20,.21]]},
+  photo:{1:[[.40,.36,.14,.16]],2:[[.70,.82,.24,.19]],3:[[.59,.065,.16,.13]]},
+  vision:{1:[[.50,.28,.17,.13]],2:[[.28,.38,.13,.17],[.54,.36,.12,.16],[.76,.36,.13,.17]],3:[[.28,.44,.14,.21],[.77,.44,.14,.21]]},
+  dash:{1:[[.20,.29,.14,.16]],2:[[.43,.42,.18,.19]],3:[[.59,.54,.21,.19]]}
+ };
+ const targets=(mode,rarity)=>Object.hasOwn(TARGETS,mode)&&[1,2,3].includes(rarity)?TARGETS[mode][rarity]:null;
  const safeInt=n=>Number.isSafeInteger(n)&&n>=0?n:0;
  function current(mode,rarity,sequence){
   return Object.hasOwn(scenes,mode)&&[0,1,2,3].includes(rarity)&&Number.isSafeInteger(sequence)&&sequence>=0&&sequence%2===1?scenes[mode]:null;
@@ -32,5 +42,5 @@
  function discovered(raw){const state=normalize(raw);return Object.values(scenes).filter(s=>state[s.id]).map(s=>({...s,...state[s.id]}));}
  function byId(id){return Object.values(scenes).find(s=>s.id===id)||null;}
  const overlay=(mode,rarity)=>Object.hasOwn(scenes,mode)&&[1,2,3].includes(rarity)?'assets/observation/alt-overlays/'+mode+'-'+rarity+'.svg':null;
- return {current,normalize,observe,discovered,byId,overlay};
+ return {current,normalize,observe,discovered,byId,overlay,TARGETS,targets};
 });
