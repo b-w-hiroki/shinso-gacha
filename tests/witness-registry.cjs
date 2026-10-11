@@ -28,7 +28,11 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
     assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no horizontal overflow');
     await p.locator('.witness-dossier .btn-paper').scrollIntoViewIfNeeded();
     assert(await p.locator('.witness-dossier .btn-paper').evaluate(e=>e.getBoundingClientRect().height>=44));
-    if(width===390&&!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/witness-registry-390.jpg',quality:85});
+    if(width===390&&!process.env.QA_WEBKIT){
+      await p.screenshot({path:'docs/qa-incursions/witness-registry-detail-390.jpg',quality:85});
+      await p.locator('.witness-photo').scrollIntoViewIfNeeded();
+      await p.screenshot({path:'docs/qa-incursions/witness-registry-390.jpg',quality:85});
+    }
   }
   await p.evaluate(()=>{
    S.legendLayers.noticed.u2=true;S.legendLayers.compared.u2=true;
