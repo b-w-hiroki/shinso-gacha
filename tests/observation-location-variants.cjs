@@ -63,6 +63,15 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  for(const mode of ['cctv','photo','vision','dash'])for(const rarity of [0,1,2,3]){
   await p.evaluate(({mode,rarity})=>{const o=observationState(),t=Date.now();o.mode=mode;o.sequence=1;o.mind.closed=false;o.pending={mode,rarity,readyAt:t,expiresAt:t+3600000,sequence:1,suppression:0};renderObservation();},{mode,rarity});
   assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
+  if(rarity===0){
+   await p.evaluate(async mode=>{
+    const scene=WatchLocations.byId('alt:'+mode),img=new Image();
+    img.src='assets/observation/'+scene.file;
+    await img.decode();
+    if(img.naturalWidth!==1440||img.naturalHeight!==720)throw Error('not the native asset for '+mode);
+   },mode);
+   if(!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/alt-'+mode+'-native-normal-390.jpg',quality:86});
+  }
   assert(await p.locator('#obs-frame').evaluate(frame=>{
    const f=frame.getBoundingClientRect(),im=document.getElementById('obs-image').getBoundingClientRect();
    return Math.abs(f.left-im.left)<8&&Math.abs(f.top-im.top)<8&&Math.abs(f.width-im.width)<8&&Math.abs(f.height-im.height)<8;
