@@ -17,7 +17,9 @@ function catalogEntries(tab){
  if(tab==='people'){const staff=Object.entries(WATCH_COLLEAGUES).map(([id,m],i)=>({id,number:i+1,known:!!contacts[id],title:contacts[id]?m.name:'未面識の課員',sub:contacts[id]?m.role:'課内で話すと記録されます'}));const related=witnessRegistryRecords(),unknown=related.length?[{id:'ghost:registry',number:staff.length+1,known:true,title:'登録のない立会人',sub:'照合済み資料の立会欄 ／ '+related.length+'件'}]:[];const personnel=PersonnelDiscrepancies.unlocked(S.personnelEvidence,rankIdx()).map((c,i)=>({id:'personnel:'+c.id,number:staff.length+unknown.length+i+1,known:true,title:'課内照合：'+c.title,sub:PersonnelDiscrepancies.detail(S.personnelEvidence,rankIdx(),c.id)?.confirmed?'照合済み':'職員の証言を記録中'}));return staff.concat(unknown,personnel);}
  if(tab==='places'){const original=Object.entries(OBSERVATIONS).map(([id,m],i)=>{const known=[0,1,2,3].some(r=>collection[id+':'+r]>0);return {id,number:i+1,known,title:known?m.title:'未記録の場所',sub:known?`${WatchModel.setProgress(o,id)}件の記録`:'観測記録を回収すると記録されます'};});const discovered=WatchLocations.discovered(o.locationRecords).map((scene,i)=>({id:scene.id,number:original.length+i+1,known:true,title:scene.title,sub:scene.source+' ／ '+scene.visits+'回 観測'}));return original.concat(discovered);}
  const observed=Object.entries(OBSERVATIONS).flatMap(([mode,m])=>[1,2,3].map(r=>({id:mode+':'+r,known:collection[mode+':'+r]>0,title:collection[mode+':'+r]>0?m.records[r]:'未確認の異変',sub:collection[mode+':'+r]>0?m.title+' ／ '+WatchModel.RARITY[r].name:'観測から発見'})));
- return observed.concat(INCURSIONS.map((m,i)=>({id:'inc:'+i,known:S.incursion?.discovered?.[i]===true,title:S.incursion?.discovered?.[i]===true?m.short:'未確認の異変',sub:S.incursion?.discovered?.[i]===true?'封筒調査 ／ '+incursionRarity(i).id:'封筒調査から発見'}))).map((e,i)=>({...e,number:i+1}));
+ const inc=INCURSIONS.map((m,i)=>({id:'inc:'+i,known:S.incursion?.discovered?.[i]===true,title:S.incursion?.discovered?.[i]===true?m.short:'未確認の異変',sub:S.incursion?.discovered?.[i]===true?'封筒調査 ／ '+incursionRarity(i).id:'封筒調査から発見'}));
+ const alternate=WatchLocations.discovered(o.locationRecords).flatMap(scene=>[1,2,3].filter(r=>Number(scene.rarities?.[r])>0).map(r=>({id:'alt:'+scene.mode+':'+r,known:true,title:scene.notes[r],sub:scene.title+' ／ '+WatchModel.RARITY[r].name})));
+ return observed.concat(inc,alternate).map((e,i)=>({...e,number:i+1}));
 }
 function openEncyclopedia(tab=encyclopediaTab){
  const tabs=catalogTabs();if(!Object.hasOwn(tabs,tab))tab='anomalies';encyclopediaTab=tab;
@@ -84,6 +86,7 @@ function openCatalogEntry(id){
  const entry=catalogEntries(encyclopediaTab).find(e=>e.id===id);if(!entry?.known)return;
  if(encyclopediaTab==='confidential'){hideSheet();return openLegendCase(id);}
  if(encyclopediaTab==='anomalies'){
+  if(id.startsWith('alt:')){const [,mode,r]=id.split(':');return showAlternateLocationRecord(mode,Number(r));}
   if(id.startsWith('inc:'))return openIncursionRecords(Number(id.slice(4)));
   const [mode,r]=id.split(':');showWatchRecord(mode,Number(r));const detail=document.querySelector('.watch-record-caption');if(detail){detail.insertAdjacentHTML('afterend',catalogObservationHistory(mode,Number(r)));}return;
  }
