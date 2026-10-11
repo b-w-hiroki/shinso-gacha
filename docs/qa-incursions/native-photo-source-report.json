@@ -35,7 +35,7 @@
   },
   {
     "mode": "vision",
-    "source": "https://commons.wikimedia.org/wiki/File:Railway_Crossing_at_Shin-Matsuda_Station_250720_02.jpg",
+    "source": "https://commons.wikimedia.org/wiki/File:Railway_Crossing_at_Shin-Matsuda_Station_250720_03.jpg",
     "license": "CC0-1.0",
     "author": "Aspere",
     "native_original": [
@@ -47,8 +47,8 @@
       1440,
       720
     ],
-    "bytes": 61562,
-    "sha256": "89f73a0033f09c34d5f209d7296b20195bf51a679aa899e7cc69db28d3d90772"
+    "bytes": 105562,
+    "sha256": "e85a28f67fb8f9ba4ed3ae8d11f778fe510eccd77e64e836d528253ee92f6bbd"
   },
   {
     "mode": "dash",
