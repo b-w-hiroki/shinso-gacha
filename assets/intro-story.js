@@ -72,4 +72,4 @@ document.addEventListener('click',e=>{
   }
 });
 
-document.addEventListener('change',e=>{if(e.target.matches('[data-watch-quiet]'))queueMicrotask(()=>document.body.classList.toggle('intro-quiet',!!(S.observation&&S.observation.quiet)));});
+
