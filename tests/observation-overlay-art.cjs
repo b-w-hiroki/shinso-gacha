@@ -11,7 +11,8 @@ for(const mode of ['cctv','photo','vision','dash']){
   assert(match,file+': declared illustrated hotspots');
   assert(!/<script\b|<text\b|<foreignObject\b/i.test(svg),'untrusted scripts or text labels should not be baked into art');
   const points=match[1].split(';').map(v=>v.split(',').map(Number));
-  const targets=WatchModel.TARGETS[mode][rarity];
+  const targets=WatchLocations.targets(mode,rarity);
+  assert.notStrictEqual(targets,WatchModel.TARGETS[mode][rarity],'new sites must own independent targets');
   assert.equal(points.length,targets.length,'all valid touch regions need a visible anomaly: '+file);
   for(let i=0;i<points.length;i++){
    assert(Math.abs(points[i][0]/1000-targets[i][0])<=.001,'wrong x hotspot '+file);
@@ -27,4 +28,4 @@ for(const mode of ['cctv','photo','vision','dash']){
 }
 assert.equal(seen.size,12);
 assert.equal(marks.size,12);
-console.log('Distinct observation art: 12 SVG variants; every visible anomaly center matches native image hit detection; no baked-in text');
+console.log('Distinct observation art: 12 overlays aligned with independent alternate-site geometry; no baked-in text');
