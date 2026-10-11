@@ -73,9 +73,9 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    const valid=await p.evaluate(({mode,rarity})=>WatchLocations.targets(mode,rarity).some(([x,y])=>WatchModel.hit(observationState(),{x,y})),{mode,rarity});
    assert(valid,'matching native image-space target '+mode+rarity);
    const geometry=await p.evaluate(({mode,rarity})=>{
-    const f=document.getElementById('obs-frame').getBoundingClientRect(),v=document.getElementById('obs-site-overlay').getBoundingClientRect();
+    const f=document.getElementById('obs-frame').getBoundingClientRect(),overlay=document.getElementById('obs-site-overlay'),v=getComputedStyle(overlay);
     const pictureWidth=Math.max(f.width,2*f.height),[x,y]=WatchLocations.targets(mode,rarity)[0];
-    return {coverMatches:Math.abs(v.width-pictureWidth)<2&&Math.abs(v.height-pictureWidth/2)<2,
+    return {coverMatches:Math.abs(parseFloat(v.width)-pictureWidth)<2&&Math.abs(parseFloat(v.height)-pictureWidth/2)<2,
      point:{x:f.left+f.width/2+(x-.5)*pictureWidth,y:f.top+f.height/2+(y-.5)*pictureWidth/2},f:{left:f.left,top:f.top,right:f.right,bottom:f.bottom}};
    },{mode,rarity});
    assert(geometry.coverMatches,'visual anomaly overlay must match photographic cover framing '+mode+rarity);
