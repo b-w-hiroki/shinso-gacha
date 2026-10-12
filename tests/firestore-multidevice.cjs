@@ -32,7 +32,12 @@ const CloudSave=require('../assets/cloud-save.js');
   ]);
   assert.equal(outcomes.filter(x=>x.status==='fulfilled').length,1,'only one device may save the same revision');
   assert.equal(outcomes.filter(x=>x.status==='rejected').length,1);
-  assert.equal(outcomes.find(x=>x.status==='rejected').reason.code,'save-conflict');
+  const loserCode=outcomes.find(x=>x.status==='rejected').reason.code;
+  // A true overlapping Firestore transaction can be rejected by security rules
+  // before the client retries and reports the application-level CAS conflict.
+  // Both are safe failures; the server's winning revision is authoritative.
+  assert(['save-conflict','permission-denied'].includes(loserCode),
+   'stale writer must receive a conflict or rules denial, not silently succeed: '+loserCode);
   const beforeDelete=(await getDoc(userA)).data();
   assert.equal(beforeDelete.revision,2);
   assert([151,999].includes(beforeDelete.state.currency));
