@@ -30,4 +30,29 @@ const tampered=M.normalize({entries:{u2:{mode:'dash',issuedAt:evening,observedAt
 assert.equal(M.inspect(tampered,'u2').status,'pending','same-day persisted completion rejected');
 assert.equal(M.inspect(tampered,'u3').status,'pending','invalid rarity rejected');
 assert.equal(M.inspect(tampered,'u999'),null);
+
+// A completed report can acquire a bounded trail of separate, genuinely earned observations.
+// Its first conclusion, prior notification and original rarity stay unchanged.
+let trail=M.issue(null,'u4','vision',evening).state;
+const first=M.collect(trail,{mode:'vision',rarity:0,sequence:11},tomorrow);
+assert.deepEqual(first.matched,['u4']);assert(first.updated);
+trail=first.state;
+assert.equal(M.inspect(trail,'u4').rarity,0);
+assert.equal(M.collect(trail,{mode:'vision',rarity:3,sequence:11},later).updated,false,'same earned observation cannot append');
+const second=M.collect(trail,{mode:'vision',rarity:3,sequence:12},later);
+assert.deepEqual(second.matched,[],'later evidence does not repeat the first-comparison notification');
+assert(second.updated);trail=second.state;
+assert.equal(M.inspect(trail,'u4').rechecks.length,1);
+assert.equal(M.inspect(trail,'u4').rarity,0,'later discovery does not rewrite the original finding');
+assert(M.inspect(trail,'u4').rechecks[0].copy.includes('異変'));
+assert.equal(M.collect(trail,{mode:'dash',rarity:3,sequence:13},later+1000).updated,false,'different media excluded');
+assert.equal(M.collect(trail,{mode:'vision',rarity:3,sequence:12},later+2000).updated,false,'a saved record stays idempotent');
+assert.equal(M.collect(trail,{mode:'vision',rarity:3,sequence:10},later+3000).updated,false,'old sequences cannot replace a later discovery');
+for(let sequence=13;sequence<=15;sequence++)trail=M.collect(trail,{mode:'vision',rarity:sequence%2,sequence},later+sequence*10000).state;
+assert.equal(M.inspect(trail,'u4').rechecks.length,3,'bounded follow-up, no completion/progress counter');
+assert.deepEqual(M.normalize(JSON.parse(JSON.stringify(trail))),trail,'follow-up sequence and dates survive save/reload');
+const forged=M.normalize({entries:{u4:{...trail.entries.u4,rechecks:[{sequence:-1,rarity:2,observedAt:later},{sequence:12,rarity:9,observedAt:later},...trail.entries.u4.rechecks]}}});
+assert.equal(M.inspect(forged,'u4').rechecks.length,3,'corrupt recheck entries are rejected');
+assert.equal(M.inspect(forged,'u1'),null,'unowned report remains hidden');
+
 console.log('Future report: acquisition, midnight, unrelated records, idempotence, frozen history and save migration passed');
