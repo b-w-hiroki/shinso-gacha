@@ -45,5 +45,29 @@
    text:'後日回収した観測と人事台帳を照合した。照会の受付番号だけが、観測以前に確定している。'});
   return results;
  }
- return {inspect,list,revisions};
+ /* The same missing person is classified differently by the three files.
+  * These are distinct visual versions of acquired evidence, not new people. */
+ function editions(rankIndex,owned,currentId){
+  if(!Array.isArray(owned)||!owned.some(x=>x?.id===currentId))return [];
+  const rank=Number.isFinite(rankIndex)?Math.min(19,Math.max(0,Math.floor(rankIndex))):0;
+  const selected=owned.filter(x=>x&&Object.hasOwn(notes,x.id));
+  const count=new Set(selected.map(x=>x.id)).size;
+  if(rank<10||count<2)return [];
+  const versions=[
+   {code:'人事登録・写し01',category:'在籍区分',value:'登録なし',
+    note:'人事側の書類は発行済み。立会印の形だけが、回収された別案件と一致する。'},
+   {code:'受領台帳・写し02',category:'立会区分',value:'課内職員',
+    note:'人員側に該当者はいない。受領側では同じ印影を担当者として扱っている。'}
+  ];
+  if(rank>=14&&count>=3)versions.push(
+   {code:'監視対象・写し03',category:'分類区分',value:'観測対象',
+    note:'先の二枚と同じ受付番号が、職員ではなく観測対象の欄へ移されている。'}
+  );
+  if(rank>=17&&count>=3&&selected.find(x=>x.id===currentId)?.extra)versions.push(
+   {code:'事後受領・写し04',category:'受領時刻',value:'観測より前',
+    note:'後日の観測記録を回収した後で、最初から存在したとされる訂正欄が発見された。'}
+  );
+  return versions;
+ }
+ return {inspect,list,revisions,editions};
 });
