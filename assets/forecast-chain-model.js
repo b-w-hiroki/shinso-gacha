@@ -29,7 +29,8 @@
   if(!current)return null;
   const related=valid.filter(row=>row.mode===current.mode);
   if(related.length<3)return null;
-  const picked=related.slice(0,4),uniform=new Set(picked.map(row=>row.rarity)).size===1;
+  const picked=[current,...related.filter(row=>row.id!==current.id)].slice(0,4);
+  const uniform=new Set(picked.map(row=>row.rarity)).size===1;
   const entries=picked.map(row=>({
    id:row.id,
    type:row.rarity===0?'平常':row.rarity===1?'R':row.rarity===2?'SR':'SSR',
