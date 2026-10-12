@@ -33,6 +33,10 @@ const server=http.createServer((request,response)=>{
    seen.add(current.mode+':'+current.rarity);
    assert((await page.locator('#trial-index').innerText()).includes((i+1)+' / 16'));
    const css=await page.locator('#scene').evaluate(e=>getComputedStyle(e).backgroundImage);
+   assert(await page.locator('#scene').evaluate(e=>{
+    const s=e.getBoundingClientRect(),f=e.parentElement.getBoundingClientRect();
+    return s.width>100&&s.height>60&&Math.abs(s.width-f.width)<5&&Math.abs(s.height-f.height)<5;
+   }),'the 2:1 stimulus must fill the intended photo viewport');
    assert(css.includes(WatchFileName(current.mode)),'canonical scene photo missing '+current.mode);
    if(i===0&&!process.env.QA_WEBKIT){
     const dir='docs/qa-incursions';fs.mkdirSync(dir,{recursive:true});
