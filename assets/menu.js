@@ -24,6 +24,15 @@ GAME_MAIL.push({id:'unregistered-personnel',from:'第六文書課・人事登録
  body:'調査記録の立会欄に署名があります。人事台帳では、対応する職員を確認できません。原本をそのまま保管してください。',
  reward:0,witnessRegistry:true,when:()=>!isLite()&&LegendModel.ids.some(id=>LegendModel.count(S.levels,id)===3&&legendLayerStatus(id)?.compared)
 });
+// Another notification comes only after at least two genuinely compared cases
+// and the clearance needed to read conflicting versions of the same personnel file.
+GAME_MAIL.push({id:'personnel-ledger-versions',from:'第六文書課・人事登録室',
+ title:'人事台帳の版が一致しません',
+ body:'同じ立会者に二種類の人員区分が割り当てられています。どちらも有効な台帳です。原本の順序は訂正しないでください。',
+ reward:0,witnessRegistry:true,
+ when:()=>!isLite()&&rankIdx()>=10&&LegendModel.ids.filter(id=>
+  LegendModel.count(S.levels,id)===3&&legendLayerStatus(id)?.compared).length>=2
+});
 // A personnel file produces one quietly delivered notice only after explicit comparison.
 for(const c of PersonnelDiscrepancies.CASES)GAME_MAIL.push({
  id:'personnel-'+c.id,from:'第六文書課・人事台帳',title:'照合対象の登録について',
