@@ -10,6 +10,10 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  assert.equal(await p.locator('#obs-name').innerText(),'地下通路');
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
  assert((await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).backgroundImage)).includes('cctv-1.svg'));
+ await p.evaluate(()=>{const o=observationState();o.mind.closed=true;renderObservation();});
+ assert.equal(await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).visibility),'hidden','closed monitor cannot leak photograph or anomaly art');
+ await p.evaluate(()=>{const o=observationState();o.mind.closed=false;renderObservation();});
+ assert.equal(await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).visibility),'visible','restored monitor shows the visual evidence');
  const targetCheck=await p.evaluate(()=>{
   const o=observationState(),site=WatchLocations.targets(o.mode,o.pending.rarity),legacy=WatchModel.TARGETS[o.mode][o.pending.rarity];
   if(WatchModel.activeTargets(o)!==site||site===legacy)return false;
@@ -78,7 +82,9 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
   }),'all four sources and all four rarity states stay in frame during live motion');
   const overlay=await p.evaluate(()=>{const e=document.getElementById('obs-site-overlay');return e?getComputedStyle(e).backgroundImage:null;});
   assert(overlay!==null,'site overlay element must exist in DOM');
-  if(rarity===0)assert.equal(overlay,'none');
+  const originalPhoto=await p.evaluate(m=>WatchLocations.byId('alt:'+m).file,mode);
+  assert(overlay.includes(originalPhoto),'original photograph must be visible at full width '+mode+rarity);
+  if(rarity===0)assert(!overlay.includes('alt-overlays/'),'ordinary footage never includes anomaly art');
   else{
    assert(overlay.includes(mode+'-'+rarity+'.svg'));
    const valid=await p.evaluate(({mode,rarity})=>WatchLocations.targets(mode,rarity).some(([x,y])=>WatchModel.hit(observationState(),{x,y})),{mode,rarity});
@@ -93,11 +99,18 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
      x:f.left+rect.left+x*rect.width,y:f.top+rect.top+y*rect.height
     }));
     return {containMatches:Math.abs(parseFloat(v.width)-pictureWidth)<2&&Math.abs(parseFloat(v.height)-pictureHeight)<2,
-     imageFit:getComputedStyle(document.getElementById('obs-image')).backgroundSize,
+     atmosphereFit:getComputedStyle(document.getElementById('obs-image')).backgroundSize,
+     atmosphereFilter:getComputedStyle(document.getElementById('obs-image')).filter,
+     photoFit:v.backgroundSize,foreground:v.backgroundImage,
      points,projected:points.map(({x,y})=>WatchLocations.imagePoint(x-f.left,y-f.top,f.width,f.height)),
      targets:WatchLocations.targets(mode,rarity),f:{left:f.left,top:f.top,right:f.right,bottom:f.bottom}};
    },{mode,rarity});
-   assert(geometry.containMatches&&geometry.imageFit==='contain','anomaly and complete photograph must share contain framing '+mode+rarity);
+   assert(await p.locator('#obs-site-overlay').evaluate(e=>e.parentElement?.id==='obs-frame'),
+    'the photo must be a sibling of the blurred layer, not its child');
+   assert(geometry.containMatches&&geometry.atmosphereFit==='cover'&&geometry.atmosphereFilter.includes('blur('),
+    'ambient enlargement does not crop photographic evidence '+mode+rarity);
+   assert(geometry.photoFit.startsWith('100% 100%')&&geometry.foreground.includes(originalPhoto),
+    'sharp native photograph and visual anomaly share an image-space rectangle '+mode+rarity);
    const f=geometry.f;
    for(let i=0;i<geometry.points.length;i++){
     const q=geometry.points[i],point=geometry.projected[i],target=geometry.targets[i];

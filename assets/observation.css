@@ -13,7 +13,7 @@
 #obs-atmosphere{margin:8px 0 12px;color:#bfb6a4;font:14px/1.8 var(--f-body);overflow-wrap:anywhere}
 #obs-feedback{margin:4px 0 12px;color:#d6cebb;font:13px/1.7 var(--f-body);overflow-wrap:anywhere}#obs-feedback:empty{display:none}
 .obs-secondary{display:flex;gap:8px;margin:8px 0 4px}.obs-secondary button{flex:1;min-width:0;min-height:48px;padding:10px 6px;color:#ded6c2;border:1px solid #5c5749;border-radius:2px;background:#161a14;font:14px/1.5 var(--f-body);white-space:nowrap}.obs-secondary button[hidden]{display:none}
-.obs-frame[data-closed=true] #obs-image,.obs-frame[data-closed=true] .obs-effect{visibility:hidden}
+.obs-frame[data-closed=true] #obs-image,.obs-frame[data-closed=true] #obs-site-overlay,.obs-frame[data-closed=true] .obs-effect{visibility:hidden}
 .obs-frame[data-closed=true]::before,.obs-frame[data-closed=true]::after{display:none}
 #obs-closed{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#d4cdbd;background:#0c0f0b;font:16px/1.8 var(--f-body);padding:24px;text-align:center}
 #obs-closed[hidden]{display:none}#obs-closed small{font-size:13px;max-width:24em}
@@ -153,15 +153,26 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
 .obs-frame[data-quiet="true"] #obs-image::after{display:none}
 @media(prefers-reduced-motion:reduce){.obs-frame[data-trace="1"] #obs-image::after{display:none}}
 
-/* New locations are complete pictures; legacy anomaly sprites keep their original image-space coordinate system. */
-.obs-frame[data-scene-alt='true'] #obs-image{top:0;left:0;width:100%;height:100%;aspect-ratio:auto;transform:none;background-size:contain;background-position:center;filter:saturate(.8) contrast(1.05)}
-
-
-/* Site-specific visual differences stay on the same native coordinate system as the touch targets. */
-#obs-site-overlay{display:block;position:absolute;inset:0;z-index:1;pointer-events:none;background-size:100% 100%;background-position:center;background-repeat:no-repeat}
-/* Align the squared, intentionally stretchable SVG hotspot layer with the actual 2:1
-   complete 2:1 photograph. Letterbox space is noninteractive. Do not change the monitor height. */
-.obs-frame[data-scene-alt='true'] #obs-site-overlay{inset:auto;top:50%;left:50%;width:min(100%,calc(var(--obs-height) * 2));height:auto;aspect-ratio:2 / 1;transform:translate(-50%,-50%);background-size:100% 100%}
+/* Keep the monitor stable. Only an atmospheric, non-interactive enlargement
+   covers the letterbox; the original image and anomalies use uncropped 2:1 art. */
+.obs-frame[data-scene-alt='true'] #obs-image{
+ top:0;left:0;width:100%;height:100%;aspect-ratio:auto;transform:none;
+ background-size:cover;background-position:center;
+ filter:blur(7px) brightness(.43) saturate(.7);pointer-events:none;
+}
+/* Layer 1: native 2:1 photograph; layer 2 (when earned): SVG visual evidence.
+   Both share precisely the same coordinates and immutable touch targets. */
+#obs-site-overlay{
+ display:block;position:absolute;inset:0;z-index:1;pointer-events:none;
+ background-size:100% 100%;background-position:center;background-repeat:no-repeat;
+}
+.obs-frame[data-scene-alt='true'] #obs-site-overlay{
+ inset:auto;top:50%;left:50%;width:min(100%,calc(var(--obs-height) * 2));
+ height:auto;aspect-ratio:2 / 1;transform:translate(-50%,-50%);
+ background-size:100% 100%,100% 100%;
+ filter:saturate(.86) contrast(1.06);
+ box-shadow:0 0 22px 7px rgba(3,8,7,.46);
+}
 .watch-site-record-image{position:relative;width:100%;aspect-ratio:2 / 1;background-color:#111816;background-size:cover;background-position:center;overflow:hidden;border:1px solid #555b52}
 .watch-site-record-overlay{position:absolute;inset:0;display:block;pointer-events:none;background-size:100% 100%;background-position:center;background-repeat:no-repeat}
 .watch-site-record-overlay[hidden]{display:none}
@@ -170,6 +181,11 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
 
 /* Full-frame locations use their own transform origin. Legacy sprite offsets must never
    displace an alternate image or its normalized touch coordinates. */
+/* Alternate scenes always keep their enlarged copy dim and out of focus,
+   including anomaly, source-condition and quiet states. The readable image
+   remains the foreground 2:1 photo rather than this atmospheric backdrop. */
+#obs-frame[data-scene-alt='true'] #obs-image{filter:blur(7px) brightness(.43) saturate(.7)}
+
 @keyframes obs-anomaly-warp-alt{from{transform:scale(1)}to{transform:scale(.984,.995)}}
 .obs-frame[data-scene-alt='true'][data-anomaly]:not([data-anomaly='0']):not([data-quiet='true']) #obs-image{
  animation-name:obs-anomaly-warp-alt;
