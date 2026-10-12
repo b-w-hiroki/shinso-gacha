@@ -39,4 +39,19 @@ assert.deepEqual(tier5.map(x=>x.tier),[2,3,4,5],'deepest evidence requires a rea
 assert.deepEqual(Registry.revisions(17,deepest,'u2').map(x=>x.tier),[2,3,4],'unobserved case cannot borrow a later observation');
 assert.deepEqual(Registry.revisions(17,deepest,'u1'),tier5,'reading does not mutate evidence');
 
+// Contradictory paperwork requires multiple recovered witness files and clearance.
+const two=all.slice(0,2),three=all.slice(0,3);
+assert.deepEqual(Registry.editions(19,[], 'u1'),[],'no filed evidence, no personnel editions');
+assert.deepEqual(Registry.editions(19,two,'u9'),[],'unknown case cannot expose another file');
+assert.deepEqual(Registry.editions(9,two,'u1'),[],'below the rank threshold stays redacted');
+assert.deepEqual(Registry.editions(10,two,'u1').map(x=>x.value),['登録なし','課内職員']);
+assert.equal(Registry.editions(14,two,'u1').length,2,'third version needs three acquired files');
+assert.equal(Registry.editions(14,three,'u1').length,3);
+assert.equal(Registry.editions(17,three,'u1').length,3,'future version needs actual after-observation');
+const acquiredFuture=[{...three[0],extra:'観測記録に立会印の矛盾があった。'},...three.slice(1)];
+assert.equal(Registry.editions(17,acquiredFuture,'u1').length,4);
+assert.equal(Registry.editions(17,acquiredFuture,'u2').length,3,'only current acquired case may unlock future edition');
+const original=JSON.stringify(acquiredFuture);
+assert.deepEqual(Registry.editions(17,acquiredFuture,'u1'),Registry.editions(17,acquiredFuture,'u1'),'read-only ledger');
+assert.equal(JSON.stringify(acquiredFuture),original,'inspect must not mutate owned evidence');
 console.log('Unregistered witness registry: acquired-only, distinct records, future tie-in and no mutations passed');
