@@ -1083,11 +1083,13 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 
     <div class="home-pane" data-hpane="desk">
       <section class="thread-radar" aria-label="観測映像">
-        <div class="obs-topline"><span id="obs-source" hidden></span><span id="obs-name"></span></div>
+        <div class="obs-topline">
+          <span id="obs-source" hidden></span><span id="obs-name"></span>
+          <div class="obs-zoom-tools"><div><button id="obs-zoom-toggle" type="button" aria-pressed="false" aria-label="観測画像を2倍に拡大">拡大 2×</button><small class="obs-zoom-hint" id="obs-zoom-hint" hidden>指で移動・矢印キーでも探索</small></div><button id="obs-enhance-toggle" type="button" aria-pressed="false" aria-label="暗い観測映像の暗部を補正" hidden>暗部補正</button></div>
+        </div>
         <button id="obs-frame" class="obs-frame" data-mode="cctv" aria-label="観測映像を確認">
           <span id="obs-closed" hidden>回線を遮断しました<small>画面から目を離し、しばらく休んでください。</small></span><span id="obs-image" aria-hidden="true"></span><span id="obs-site-overlay" aria-hidden="true"></span><span class="obs-effect" aria-hidden="true"></span>
         </button>
-        <div class="obs-zoom-tools"><div><button id="obs-zoom-toggle" type="button" aria-pressed="false" aria-label="観測画像を2倍に拡大">拡大 2×</button><small class="obs-zoom-hint" id="obs-zoom-hint" hidden>指で移動・矢印キーでも探索</small></div><button id="obs-enhance-toggle" type="button" aria-pressed="false" aria-label="暗い観測映像の暗部を補正" hidden>暗部補正</button></div>
         <div class="obs-status"><span id="obs-ready" hidden>記録を受信</span><span id="obs-first-hint" hidden>映像に触れて観測する</span><span id="obs-timer"></span><button id="obs-help" data-watch="target" hidden>対処方法</button></div>
         <p id="obs-atmosphere" aria-live="off"></p>
         <p id="obs-feedback" role="status" aria-live="polite"></p>
