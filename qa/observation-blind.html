@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>観測の発見性・ブラインド検収｜真相ガチャ</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,-apple-system,'Hiragino Sans','Yu Gothic',sans-serif;background:#101311;color:#ece4d4}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% 0,#252b25,#101311 70%);min-height:100dvh}
+main{max-width:560px;margin:auto;padding:20px 14px calc(24px + env(safe-area-inset-bottom))}
+header{border-bottom:1px solid #5d6859;padding-bottom:13px}header small{color:#a4b3a4;font-size:11px;letter-spacing:.16em}
+h1{font-size:21px;font-weight:600;line-height:1.45;margin:6px 0}p{font-size:14px;line-height:1.75;color:#d5d0c2}
+.panel{padding:18px 15px;background:#1a201c;border:1px solid #495649;margin:16px 0}
+.panel h2{font-size:18px;margin:0 0 12px}.muted{color:#aeb7ad;font-size:12px}
+button{font:inherit;cursor:pointer;color:#f5ebdb;background:#26352e;border:1px solid #758471;border-radius:3px;min-height:48px;padding:12px 15px}
+button:hover{background:#354638}button:focus-visible{outline:3px solid #c3b38b;outline-offset:3px}
+button:disabled{opacity:.45;cursor:default}button.primary{background:#54503a;border-color:#b1a176;font-weight:700}
+.actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:14px}
+[hidden]{display:none!important}.progress{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12px;color:#c5cbbf;margin:16px 0}
+#frame{position:relative;display:block;padding:0;border:1px solid #687268;width:100%;min-height:44px;aspect-ratio:2/1;background:#151916;overflow:hidden;touch-action:manipulation}
+#scene{display:block;width:100%;height:100%;background-size:100% 100%;background-position:center;background-repeat:no-repeat;pointer-events:none}
+#frame::after{content:'';position:absolute;inset:0;border:1px solid #555f57;pointer-events:none}
+#trial-note{min-height:2em;margin:12px 0;color:#d9d0bc}
+#result dl{display:grid;grid-template-columns:1fr auto;gap:10px;font-size:14px}
+#result dd{margin:0;font-variant-numeric:tabular-nums;color:#e4d6b8}
+fieldset{border:1px solid #465b4d;margin:15px 0;padding:13px}legend{padding:0 6px;font-size:14px}
+.survey-row{display:flex;gap:9px;flex-wrap:wrap}.survey-row label{min-width:44px;min-height:44px;display:flex;align-items:center;gap:3px;justify-content:center;cursor:pointer}
+.survey-row input{accent-color:#c9ae76}
+#session-info{color:#d4c9b5;font-size:12px}
+@media(max-width:350px){main{padding-inline:10px}.panel{padding-inline:10px}.actions button{font-size:13px;padding-inline:6px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main>
+<header><small>第六文書課 ／ 開発検収用</small><h1>観測の発見性・ブラインド検収</h1></header>
+<section class="panel" id="intro">
+<h2>無作為に提示された映像を確認</h2>
+<p>16枚の映像について、違和感を見つけたら映像のその位置に触れてください。何も見つからなければ「異変は見つからない」を選択してください。結果の正誤は最後まで表示しません。</p>
+<p class="muted">制作素材の人間による発見時間、誤タップ、主観評価を測るためのページです。ゲームのアカウント、進行、抽選には接続しません。端末や氏名などは収集しません。回答はサーバーへ送信せず、明示的に保存を選んだ場合だけJSONを出力します。</p>
+<button id="begin" class="primary" type="button">検収を開始</button>
+</section>
+<section id="test" hidden>
+<div class="progress"><span id="trial-index"></span><span>映像を見て異変位置に触れる</span></div>
+<button id="frame" type="button" aria-label="映像内の違和感を見つけた位置をタップ"><span id="scene" aria-hidden="true"></span></button>
+<p id="trial-note" aria-live="polite">見つからなければ下のボタンを選んでください。</p>
+<div class="actions"><button id="none" type="button">異変は見つからない</button><button id="skip" type="button">判断できない</button></div>
+</section>
+<section class="panel" id="result" hidden>
+<h2>検収の記録</h2>
+<p>映像の答え合わせは検収後の記録ファイルで確認できます。表示値は診断用であり、ゲームの恐怖・見つけやすさを自動的に評価するものではありません。</p>
+<dl><dt>回答済み</dt><dd id="result-count"></dd><dt>正しい異変位置へのタップ</dt><dd id="result-hits"></dd><dt>誤タップ</dt><dd id="result-false"></dd><dt>見逃し</dt><dd id="result-missed"></dd><dt>発見時間の中央値</dt><dd id="result-time"></dd></dl>
+<fieldset><legend>不気味さ（任意）</legend><div class="survey-row" data-survey="unease"></div></fieldset>
+<fieldset><legend>操作の分かりやすさ（任意）</legend><div class="survey-row" data-survey="clarity"></div></fieldset>
+<fieldset><legend>また調べたいか（任意）</legend><div class="survey-row" data-survey="return"></div></fieldset>
+<div class="actions"><button id="export" class="primary" type="button">匿名JSONを保存</button><button id="restart" type="button">もう一度検収</button></div>
+<p id="session-info">未送信。個人情報や実プレイ進行は記録しません。</p>
+</section>
+</main>
+<script src="../assets/observation-location-model.js"></script>
+<script src="observation-blind.js"></script>
+</body>
+</html>
