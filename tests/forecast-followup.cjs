@@ -77,6 +77,32 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
   await p.evaluate(()=>save());await p.reload();
   assert.equal(await p.evaluate(()=>ForecastFollowup.inspect(S.forecastFollowups,'u2').rechecks.length),1,'real subsequent observations survive reload');
   assert.equal(await p.evaluate(()=>S.currency),initial+48);
+  // Two legitimately acquired tomorrow reports from the same observation medium
+  // may be compared without unlocking a third person's unowned investigation.
+  await p.evaluate(()=>{
+   S.levels.u1=3;S.levels.u6=3;
+   const now=Date.now(),issuedAt=now-86400000*2;
+   const kept=ForecastFollowup.normalize(S.forecastFollowups);
+   kept.entries.u1={mode:'cctv',issuedAt,observedAt:now-3600000,rarity:1,firstSequence:7};
+   kept.entries.u6={mode:'cctv',issuedAt,observedAt:now-1500000,rarity:0,firstSequence:9};
+   S.forecastFollowups=kept;
+   openLegendCase('u1');
+  });
+  const beforeCross=await p.evaluate(()=>JSON.stringify({currency:S.currency,followups:S.forecastFollowups,levels:S.levels}));
+  assert.equal(await p.locator('.forecast-cross-case').count(),1);
+  await p.locator('.forecast-cross-case summary').click();
+  assert.equal(await p.locator('.forecast-cross-case [data-legend="case"]').count(),1);
+  assert((await p.locator('.forecast-cross-case').innerText()).includes('照合'));
+  assert(!(await p.locator('.forecast-cross-case').innerText()).includes('u9'),'an unowned report is never referenced');
+  if(!process.env.QA_WEBKIT){
+   await p.setViewportSize({width:390,height:844});
+   await p.locator('.forecast-cross-case').scrollIntoViewIfNeeded();
+   await p.screenshot({path:'docs/qa-incursions/forecast-cross-case-390.jpg',quality:85});
+  }
+  await p.locator('.forecast-cross-case [data-legend="case"][data-id="u6"]').click();
+  assert((await p.locator('.legend-case h2').innerText()).length>0,'linked report can open its acquired case');
+  assert.equal(await p.evaluate(()=>JSON.stringify({currency:S.currency,followups:S.forecastFollowups,levels:S.levels})),beforeCross,
+   'cross-report reading is strictly non-rewarding and read-only');
   assert.deepEqual(errors,[]);
   console.log('Next-day forecast UI: gated issuance, real observation, one-time comparison and mail, responsive and persisted passed');
  }finally{await browser.close();server.close();}
