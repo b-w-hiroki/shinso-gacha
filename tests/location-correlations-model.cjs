@@ -27,4 +27,27 @@ assert.deepEqual(M.list(JSON.parse(JSON.stringify([one,two]))),M.list([one,two])
 assert.equal(M.list([one,{...two,visits:0}]).length,0,'unearned zero-visit item rejected');
 assert.equal(M.list([one,{...two,id:'alt:bad'}]).length,0,'unknown site rejected');
 assert.equal(M.list([one,two]).length,1,'no mutation during rereading');
+// A third independently recovered abnormal photo opens one archived contradiction.
+// Ordinary footage alone, zero visits, and unearned locations never qualify.
+assert.equal(M.triad([one,two,other],'alt:cctv'),null);
+assert.equal(M.triad([one,two,other],'alt:vision'),null);
+assert.equal(M.triad([one,two,other,fourth],'alt:vision'),null,'only two anomalous sites');
+const abnormal=[
+ {...one,rarities:{0:1,1:1}},
+ {...two,rarities:{0:1,2:1}},
+ other
+];
+const triad=M.triad(abnormal,'alt:cctv');
+assert(triad&&triad.title.includes('三地点'));
+assert.deepEqual(triad.sites.map(x=>x.id),['alt:cctv','alt:photo','alt:vision']);
+assert(triad.record.includes('区分は食い違'));
+assert.equal(triad.sites.length,3);
+assert.equal(M.triad(abnormal,'alt:dash'),null,'unowned site cannot access triad');
+assert.equal(M.triad([...abnormal,{...fourth,visits:0}],'alt:dash'),null);
+assert.equal(M.triad(abnormal.slice(0,2),'alt:cctv'),null);
+const common=M.triad([
+ {...one,rarities:{1:1}},{...two,rarities:{1:1}},{...other,rarities:{1:1}}
+],'alt:photo');
+assert(common.record.includes('同じ段階'));
+assert.deepEqual(M.triad(abnormal,'alt:cctv'),triad,'read-only comparison must be deterministic');
 console.log('Cross-site archive: earned-only links, pair IDs, individual copy, rare clues and save stability passed');
