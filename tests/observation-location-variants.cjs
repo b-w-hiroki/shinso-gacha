@@ -10,6 +10,7 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  assert.equal(await p.locator('#obs-name').innerText(),'地下通路');
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
  assert((await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).backgroundImage)).includes('cctv-1.svg'));
+ assert((await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).backgroundImage)).includes('cctv-1.webp'));
  await p.evaluate(()=>{const o=observationState();o.mind.closed=true;renderObservation();});
  assert.equal(await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).visibility),'hidden','closed monitor cannot leak photograph or anomaly art');
  await p.evaluate(()=>{const o=observationState();o.mind.closed=false;renderObservation();});
@@ -84,9 +85,15 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
   assert(overlay!==null,'site overlay element must exist in DOM');
   const originalPhoto=await p.evaluate(m=>WatchLocations.byId('alt:'+m).file,mode);
   assert(overlay.includes(originalPhoto),'original photograph must be visible at full width '+mode+rarity);
-  if(rarity===0)assert(!overlay.includes('alt-overlays/'),'ordinary footage never includes anomaly art');
+  if(rarity===0)assert(!overlay.includes('alt-overlays/')&&!overlay.includes('photo-deltas/'),'ordinary footage never includes anomaly art');
   else{
    assert(overlay.includes(mode+'-'+rarity+'.svg'));
+   assert(overlay.includes('photo-deltas/'+mode+'-'+rarity+'.webp'),'photographic anomaly must share source photo: '+mode+rarity);
+   await p.evaluate(async ({mode,rarity})=>{
+    const url=WatchLocations.photoDelta(mode,rarity),img=new Image();
+    img.src=url;await img.decode();
+    if(img.naturalWidth!==1440||img.naturalHeight!==720)throw Error('native photo evidence dimension changed: '+url);
+   },{mode,rarity});
    const valid=await p.evaluate(({mode,rarity})=>WatchLocations.targets(mode,rarity).some(([x,y])=>WatchModel.hit(observationState(),{x,y})),{mode,rarity});
    assert(valid,'matching native image-space target '+mode+rarity);
    // Browser animation can keep Playwright's element-stability waiter pending in WebKit.
