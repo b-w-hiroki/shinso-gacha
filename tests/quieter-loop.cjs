@@ -12,7 +12,14 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  await p.screenshot({path:'docs/qa-incursions/route-unlocked-390.jpg'});
  await p.evaluate(()=>{S.currency=5000;const o=observationState();o.collected=20;o.pending=null;go('lab');renderObservationLab();});await p.locator('.watch-upgrades summary').click();
  assert(await p.locator('[data-watch-upgrade="patrol"]').isVisible());assert.equal(await p.locator('[data-watch-upgrade="suppression"]').count(),0);
- await p.locator('[data-watch-upgrade="patrol"]').click();
+ // On short phones the fixed bottom menu can intercept Playwright's default
+ // auto-scroll target. Scroll the real button into the usable center, then
+ // assert it is actually hit-testable (never force-click or bypass the UI).
+ const patrol=p.locator('[data-watch-upgrade="patrol"]');
+ await patrol.evaluate(e=>e.scrollIntoView({block:'center',inline:'nearest',behavior:'instant'}));
+ assert(await patrol.evaluate(e=>{const r=e.getBoundingClientRect(),nav=document.querySelector('.nav');const bottom=nav?.getBoundingClientRect().top??innerHeight;const cx=r.left+r.width/2,cy=r.top+r.height/2;return r.top>=0&&r.bottom<bottom&&e.contains(document.elementFromPoint(cx,cy));}),
+  'patrol upgrade must remain genuinely tappable above fixed bottom navigation');
+ await patrol.click();
  await p.evaluate(()=>{go('home');setHomeTab('desk');const o=observationState();o.tapProgress=0;o.autoLastAt=Date.now()-6000;watchLastTick=0;renderObservation();});
  const money=await p.evaluate(()=>S.currency);await p.evaluate(()=>observationTick());assert.equal(await p.evaluate(()=>S.observation.tapProgress),1);assert.equal(await p.evaluate(()=>S.currency),money,'Automatic input is not a manual 1pt tap');
  await p.evaluate(()=>{const o=observationState();o.manualSuppressions=10;go('lab');renderObservationLab();});await p.locator('.watch-upgrades summary').click();await p.locator('[data-watch-upgrade="suppression"]').click();
