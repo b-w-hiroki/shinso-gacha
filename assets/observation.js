@@ -89,7 +89,7 @@ function observationReward(result,auto=false){
  WatchLocations.observe(observationState(),record);record.reward=Math.round(record.reward*(1+.1*upLv('lens')));
  S.currency+=record.reward;
  const followup=ForecastFollowup.collect(S.forecastFollowups,record,Date.now());
- if(followup.matched.length)S.forecastFollowups=followup.state;
+ if(followup.updated)S.forecastFollowups=followup.state;
  if(!auto){S.clicks++;bump('click');if(record.rarity>=2)incursionInvestigate();}
  watchMessage=`${result.kind==='anomaly'?'干渉停止。観測を継続してください。':'記録を転送しました。'} +${record.reward}pt`;watchMessageUntil=Date.now()+4500;
  markDirty();render();if(!auto)buzz(result.kind==='anomaly'?30:8);

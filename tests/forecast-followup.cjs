@@ -55,6 +55,28 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
   assert.equal(await p.evaluate(()=>ForecastFollowup.inspect(S.forecastFollowups,'u2').status),'compared');
   assert.equal(await p.evaluate(()=>S.communications.mail['forecast-u2'].read),true);
   assert.equal(await p.evaluate(()=>S.currency),initial+32);
+  // A different earned observation of the same media appends a separate contradiction.
+  await p.evaluate(()=>{
+   const o=observationState(),now=Date.now();o.mode='dash';o.mind.closed=false;
+   o.pending={mode:'dash',rarity:0,readyAt:now,expiresAt:now+600000,sequence:o.sequence,suppression:0};
+   const record=WatchModel.claim(o,now);if(!record)throw Error('expected additional real observation');
+   observationReward({kind:'patrol',record});
+  });
+  const later=await p.evaluate(()=>ForecastFollowup.inspect(S.forecastFollowups,'u2'));
+  assert.equal(later.rarity,0,'first report finding stays frozen');
+  assert.equal(later.rechecks.length,1);
+  assert.equal(await p.evaluate(()=>S.currency),initial+48,'one real dash patrol only, no forecast bonus');
+  assert.equal(await p.evaluate(()=>Object.keys(S.communications.mail).filter(k=>k==='forecast-u2').length),1,'follow-ups do not reissue the first mail');
+  await p.setViewportSize({width:390,height:844});
+  await p.evaluate(()=>openLegendCase('u2'));
+  assert.equal(await p.locator('.forecast-rechecks summary').count(),1);
+  await p.locator('.forecast-rechecks summary').click();
+  await p.locator('.forecast-rechecks').scrollIntoViewIfNeeded();
+  assert((await p.locator('.forecast-rechecks').innerText()).includes('最初の照合結果は書き換えられていません'));
+  if(!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/forecast-followup-rechecks-390.jpg',quality:85});
+  await p.evaluate(()=>save());await p.reload();
+  assert.equal(await p.evaluate(()=>ForecastFollowup.inspect(S.forecastFollowups,'u2').rechecks.length),1,'real subsequent observations survive reload');
+  assert.equal(await p.evaluate(()=>S.currency),initial+48);
   assert.deepEqual(errors,[]);
   console.log('Next-day forecast UI: gated issuance, real observation, one-time comparison and mail, responsive and persisted passed');
  }finally{await browser.close();server.close();}
