@@ -24,6 +24,7 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  await zoomButton.click();
  assert.equal(await zoomButton.getAttribute('aria-pressed'),'true');
  assert.equal(await p.locator('#obs-frame').getAttribute('data-zoom'),'2');
+ await p.evaluate(()=>document.getElementById('obs-frame').scrollIntoView({block:'center',behavior:'instant'}));
  const zoomTap=await p.evaluate(()=>{
   const f=document.getElementById('obs-image').getBoundingClientRect();
   const target=WatchLocations.targets('cctv',1)[0],r=WatchZoom.rect(f.width,f.height,2);
@@ -31,7 +32,6 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
   if(!WatchZoom.point(x-f.left,y-f.top,f.width,f.height,2))throw Error('zoom target not visible');
   return {x,y};
  });
- await p.evaluate(()=>document.getElementById('obs-frame').scrollIntoView({block:'center',behavior:'instant'}));
  await p.mouse.click(zoomTap.x,zoomTap.y);
  assert.equal(await p.evaluate(()=>observationState().pending.suppression),1,'2x projected real tap must count exactly once');
  if(!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/alt-cctv-zoom-2x-390.jpg',quality:87});
