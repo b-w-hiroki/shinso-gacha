@@ -37,14 +37,21 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  await tap(p.locator('[data-watch-upgrade="sensitivity"]'));assert.equal(await p.evaluate(()=>S.observation.upgrades.sensitivity),2);
  for(const [width,height] of [[320,568],[390,844],[844,390]]){
   await p.setViewportSize({width,height});
-  for(let id=0;id<9;id++){
+  for(let id=0;id<12;id++){
    await p.evaluate(id=>{go('home');setHomeTab('desk');const t=Date.now(),o=observationState();o.mind.closed=false;S.playerSeepage={event:{id,key:'qa:'+id,start:t,end:t+90000,glimpsed:false},nextAt:t+120000};renderObservation();},id);
-   if(id>=6){await tap(p.locator('#obs-colleagues'));await tap(p.locator(`[data-watch-member="${['records','equipment','senior'][id-6]}"]`));assert(await p.locator('.seep-colleague-line').isVisible());assert.equal(await p.locator('[data-seep-odd="true"]').count(),1);assert.equal(await p.locator('#player-seepage-edge').evaluate(e=>getComputedStyle(e,'::after').pointerEvents),'none');}
-   if(id<3){assert((await p.locator('.seep-margin-copy').innerText()).length>0);assert.equal(await p.locator('body').getAttribute('data-player-seepage'),'caption');}
-   if(id>=3&&id<6){assert(await p.locator('#player-seepage-edge').evaluate(e=>e.classList.contains('seep-glimpse')));await p.waitForTimeout(250);}
+    if((id>=6&&id<=8)||id===11){
+     const member={6:'records',7:'equipment',8:'senior',11:'records'}[id];
+     await tap(p.locator('#obs-colleagues'));
+     await tap(p.locator('[data-watch-member="'+member+'"]'));
+     assert(await p.locator('.seep-colleague-line').isVisible());
+     assert.equal(await p.locator('[data-seep-odd="true"]').count(),1);
+     assert.equal(await p.locator('#player-seepage-edge').evaluate(e=>getComputedStyle(e,'::after').pointerEvents),'none');
+    }
+   if(id<3||id===9){assert((await p.locator('.seep-margin-copy').innerText()).length>0);assert.equal(await p.locator('body').getAttribute('data-player-seepage'),'caption');}
+   if((id>=3&&id<6)||id===10){assert(await p.locator('#player-seepage-edge').evaluate(e=>e.classList.contains('seep-glimpse')));await p.waitForTimeout(250);}
    assert.equal(await p.locator('#player-seepage-edge').evaluate(e=>getComputedStyle(e).pointerEvents),'none');
    assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no horizontal overflow');
-   if(width===390&&[0,3,6].includes(id)){await p.locator('#player-seepage-edge img,.watch-speaker img').evaluateAll(imgs=>Promise.all(imgs.filter(i=>i.src).map(i=>i.decode())));if(id===3)await p.locator('.seep-reflection').evaluate(e=>e.getAnimations().forEach(a=>{a.pause();a.currentTime=400;}));await p.screenshot({path:`docs/qa-incursions/seepage-${id}-390.jpg`});}
+   if(width===390&&[0,3,6,9,10,11].includes(id)){await p.locator('#player-seepage-edge img,.watch-speaker img').evaluateAll(imgs=>Promise.all(imgs.filter(i=>i.src).map(i=>i.decode())));if(id===3||id===10)await p.locator('.seep-reflection').evaluate(e=>e.getAnimations().forEach(a=>{a.pause();a.currentTime=400;}));await p.screenshot({path:`docs/qa-incursions/seepage-${id}-390.jpg`});}
   }
  }
  // Rest is an actual choice, and does not change acquired evidence or currency.
@@ -58,5 +65,5 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  await p.evaluate(()=>{observationState().quiet=true;renderObservation();});assert(await p.locator('#player-seepage-edge').isHidden());assert.equal(await p.locator('body').getAttribute('data-player-seepage'),'');
  await p.evaluate(()=>{observationState().quiet=false;S.incursion.quiet=true;renderIncursion();});assert(await p.locator('#player-seepage-edge').isHidden());
  await p.evaluate(()=>{S.incursion.quiet=false;renderObservation();});await tap(p.locator('#obs-rest'));assert.equal(await p.evaluate(()=>S.playerSeepage.event),null);
- assert.deepEqual(errors,[]);console.log('Actual trigger, sensitivity purchases, 9 spillovers × 3 sizes, reward isolation, rest, reload, quiet and reduced motion passed');
+ assert.deepEqual(errors,[]);console.log('Actual trigger, sensitivity purchases, 12 spillovers × 3 sizes, reward isolation, rest, reload, quiet and reduced motion passed');
 }finally{await b.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});
