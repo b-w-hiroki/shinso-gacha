@@ -42,7 +42,11 @@ function renderObservation(){
  const paint=`${o.mode}/${p?.sequence??o.sequence}/${r}/${condition}/${alternative}`;
  if(paint!==watchPaint){
   const im=document.getElementById('obs-image'),layer=document.getElementById('obs-site-overlay');im.style.backgroundImage=`url("${src}")`;im.style.backgroundPosition=alternative?'center':`${side} center`;
-  layer.style.backgroundImage=alternate&&r>0?`url("${WatchLocations.overlay(o.mode,r)}")`:'none';
+  // A dim, enlarged copy fills the fixed monitor; the native 2:1 photograph
+  // and its anomaly layer stay sharp, complete and aligned in the foreground.
+  layer.style.backgroundImage=alternate
+   ?(r>0?`url("${WatchLocations.overlay(o.mode,r)}"), url("${src}")`:`url("${src}")`)
+   :'none';
   f.style.setProperty('--obs-ratio',m.ratio);f.dataset.mode=o.mode;f.dataset.rarity=r;f.dataset.condition=String(condition);f.dataset.sceneAlt=String(alternative);
   f.classList.remove('obs-change');if(watchPaint){void f.offsetWidth;f.classList.add('obs-change');}watchPaint=paint;
  }
