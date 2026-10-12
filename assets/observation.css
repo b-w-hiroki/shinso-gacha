@@ -181,6 +181,11 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
 
 /* Full-frame locations use their own transform origin. Legacy sprite offsets must never
    displace an alternate image or its normalized touch coordinates. */
+/* Alternate scenes always keep their enlarged copy dim and out of focus,
+   including anomaly, source-condition and quiet states. The readable image
+   remains the foreground 2:1 photo rather than this atmospheric backdrop. */
+#obs-frame[data-scene-alt='true'] #obs-image{filter:blur(7px) brightness(.43) saturate(.7)}
+
 @keyframes obs-anomaly-warp-alt{from{transform:scale(1)}to{transform:scale(.984,.995)}}
 .obs-frame[data-scene-alt='true'][data-anomaly]:not([data-anomaly='0']):not([data-quiet='true']) #obs-image{
  animation-name:obs-anomaly-warp-alt;
