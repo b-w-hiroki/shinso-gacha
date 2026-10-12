@@ -37,3 +37,12 @@ Asset: assets/colleagues/miwa.webp
 Prompt:
 
 Use case: stylized-concept. Asset type: portrait for a fictional Japanese bureaucratic horror game's dialogue UI. Generate ONE individual portrait, vertical 3:4 composition. Subject: Older Japanese male investigator, slim tall silhouette, longer slightly dishevelled hair, old rumpled suit jacket, narrow necktie, standing in half profile; distinct tall angular silhouette. Photographic cinematic realism, quiet psychological unease, deserted municipal archive office at night, muted olive black and tobacco brown, tiny warm back rim light outlining shoulders and hair. Face almost entirely obscured in natural shadow, no visible identifiable eyes or facial features, no monstrous face. Figure readable as a person even at small thumbnail size; head and upper torso centered, generous safe space around head and shoulders. Dark softly defocused shelves in background, fade gently into nearly black edges. Restrained subtle photographic grain, no scanlines, no grids, no hard frame, no torn edges. No text, labels, logos, badges, watermark, blood, gore or extra people. This is a reusable fictional colleague silhouette, not a UI mockup.
+
+
+## 未登録立会人の矛盾する人事台帳（2026-10-12）
+
+- 「登録のない立会人」は図鑑上あくまで一人。証拠を実際に2事件以上照合しRANK11相当に達したとき、人事記録と受領台帳の2つの版を同じ人物ファイルから並べて閲覧できる。
+- 照合済み3事件＋RANK15相当で「職員ではなく観測対象」という3枚目、さらに当該事件の**実際の翌日観測照合**とRANK18相当で4枚目が増える。追加版を読むことは新しい人物の獲得・ポイント・メールの再取得にならない。
+- 版の見た目は独立した二枚以上の紙片。肖像の欠落を意図的な未登録写真枠として保ち、実人物・実名・未入手事件の情報をDOMに出さない。文字が滲む演出は行わず、UIの視認性を優先。
+- 条件達成後、ゲーム内人事登録室から一度だけ無報酬の照合通知を送る。受信箱から人物図鑑へ戻れる。旧版保存キー・既存の通知IDは変更しない。
+- WebKit/Chromium、390×844画面、レスポンシブ、reduced-motion、メール一度きりを検証。物理iPhoneと本番FirebaseはIssue #75に残る。
