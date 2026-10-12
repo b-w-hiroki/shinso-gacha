@@ -38,7 +38,14 @@ body:has(.agent-home:not([hidden])) main{padding-bottom:calc(84px + env(safe-are
 .watch-mode>div,.watch-upgrades article>div{min-width:0}.watch-mode b,.watch-upgrades b{display:block;font-size:16px}.watch-mode small,.watch-upgrades small{display:block;font-size:13px;color:#d5cdbd;margin-top:4px}
 .watch-mode button,.watch-upgrades button{flex:0 0 auto;min-width:90px;min-height:44px;padding:8px;background:#29392d;border:0;border-radius:4px;color:#f6ead1;font:700 13px/1.5 var(--f-body)}
 .watch-mode button:disabled,.watch-upgrades button:disabled{opacity:1;background:#24241f;color:#b6b3a6}.watch-mode.equipped button{color:#e9d392;background:transparent}
-.watch-upgrades>summary{display:flex;justify-content:space-between;align-items:center;min-height:48px;padding:12px 0;cursor:pointer}.watch-upgrades>summary span{font-size:12px;color:#d3c4a2}
+.watch-upgrades>summary{display:flex;justify-content:space-between;align-items:center;min-height:48px;padding:12px 0;cursor:pointer}
+/* The laboratory remains in a scrollable page, while the fixed bottom nav
+   stays above it. Scroll-to-action must leave room for the nav on short phones;
+   otherwise unlocked upgrades are visually present but impossible to tap. */
+html:has(.lab-scene:not([hidden])){scroll-padding-bottom:calc(var(--nav-h) + 28px + env(safe-area-inset-bottom,0px))}
+.lab-scene .watch-upgrades button{scroll-margin-block:calc(var(--nav-h) + 24px + env(safe-area-inset-bottom,0px))}
+body:has(.lab-scene:not([hidden])) main{padding-bottom:calc(var(--nav-h) + 104px + env(safe-area-inset-bottom,0px))}
+.watch-upgrades>summary span{font-size:12px;color:#d3c4a2}
 .watch-note{font-size:12px;line-height:1.7;color:#c7bfae}.watch-settings h2{font-size:20px}.watch-settings p,.watch-settings li{font-size:14px;line-height:1.8}.watch-settings>label,.watch-settings summary{display:block;padding:12px 0;min-height:44px}.watch-settings button{min-height:44px}.watch-settings ul{padding-left:20px}
 @media(max-height:500px){.obs-frame{--obs-height:300px}}
 
