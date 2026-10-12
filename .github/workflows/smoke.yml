@@ -196,7 +196,23 @@ jobs:
         env:
           QA_WEBKIT: 1
           QA_FONT: ${{ runner.temp }}/noto.otf
-      - run: node tests/observation-location-variants.cjs
+      - name: Verify low-light and zoom real inputs in isolated WebKit contexts
+        shell: bash
+        run: |
+          set -euo pipefail
+          for mode in cctv photo vision dash; do
+            QA_OBSERVATION_MODE="$mode" node tests/observation-lowlight-isolated.cjs
+          done
+        env:
+          QA_WEBKIT: 1
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - name: Verify all four native photographic modes in independent WebKit processes
+        shell: bash
+        run: |
+          set -euo pipefail
+          for mode in cctv photo vision dash; do
+            QA_OBSERVATION_MODE="$mode" QA_LOWLIGHT_ISOLATED=1 node tests/observation-location-variants.cjs
+          done
         env:
           QA_WEBKIT: 1
           QA_FONT: ${{ runner.temp }}/noto.otf

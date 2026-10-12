@@ -3,10 +3,42 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
 (async()=>{await new Promise(done=>server.listen(0,'127.0.0.1',done));const b=await (process.env.QA_WEBKIT?webkit:chromium).launch(process.env.QA_WEBKIT?{}:{executablePath:process.env.CHROMIUM_EXECUTABLE||undefined,args:['--no-sandbox','--disable-dev-shm-usage','--no-zygote','--single-process']});
  try{const p=await b.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'}),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.route('https://**/*',route=>route.abort());await p.goto('http://127.0.0.1:'+server.address().port);
  if(process.env.QA_FONT){await p.addStyleTag({content:"@font-face{font-family:QAJP;src:url('/font.otf')}body,button{font-family:QAJP}"});await p.evaluate(()=>document.fonts.load('16px QAJP'));}
+ // CSS animation may keep WebKit's locator stability heuristic pending.
+ // A real coordinate pointer click with elementFromPoint hit testing is the
+ // stronger user-facing contract; never force/dispatch a synthetic click.
+ const clickRealViewerControl=async selector=>{
+  const loc=p.locator(selector);
+  await loc.evaluate(el=>el.scrollIntoView({block:'center',behavior:'instant'}));
+  const point=await loc.evaluate(el=>{
+   const r=el.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;
+   const target=document.elementFromPoint(x,y);
+   return {x,y,width:r.width,height:r.height,inViewport:x>=0&&x<innerWidth&&y>=0&&y<innerHeight,
+     actualHit:target===el||el.contains(target)};
+  });
+  assert(point.inViewport&&point.actualHit&&point.width>=44&&point.height>=44,
+   selector+': not really tappable above evidence/navigation '+JSON.stringify(point));
+  await p.mouse.click(point.x,point.y);
+ };
  await p.evaluate(()=>{S.role='agent';S.onboarded=true;S.lite={intro:{done:true}};S.lastTick=Date.now()+900000;S.streak={last:dayKey(),n:1};S.observation=WatchModel.create(Date.now(),42);S.incursion={version:1,level:0,history:[]};S.currency=5000;applyMode();go('home');render();});
  await p.evaluate(()=>openEncyclopedia('places'));assert.equal(await p.locator('[data-catalog-entry^="alt:"]').count(),0,'unknown places absent');
  await p.evaluate(()=>openEncyclopedia('anomalies'));assert.equal(await p.locator('[data-catalog-entry^="alt:"]').count(),0,'unknown anomaly locations absent');
  await p.evaluate(()=>{hideSheet();go('home');const o=observationState(),now=Date.now();o.mode='cctv';o.sequence=1;o.mind.closed=false;o.pending={mode:'cctv',rarity:1,readyAt:now,expiresAt:now+3600000,sequence:1,suppression:0};renderObservation();});
+ // No guide, zoom control or dark-area control may cover the footage.
+ for(const [width,height] of [[320,568],[390,844],[430,932],[844,390]]){
+  await p.setViewportSize({width,height});
+  await p.evaluate(()=>fitObservation());
+  const geometry=await p.evaluate(()=>{
+   const image=document.getElementById('obs-frame').getBoundingClientRect();
+   const controls=document.querySelector('.obs-zoom-tools').getBoundingClientRect();
+   const guide=document.getElementById('obs-zoom-hint').getBoundingClientRect();
+   return {imageTop:image.top,controlsBottom:controls.bottom,guideWidth:guide.width};
+  });
+  assert(geometry.controlsBottom<=geometry.imageTop+1,'viewer controls overlap evidence at '+width+'x'+height);
+  assert(geometry.guideWidth<=1,'instruction must be screen-reader-only at '+width+'x'+height);
+ }
+ await p.setViewportSize({width:390,height:844});
+ await p.evaluate(()=>fitObservation());
+ if(!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/observation-guide-outside-footage-390.jpg',quality:86});
  assert.equal(await p.locator('#obs-name').innerText(),'地下通路');
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
  assert((await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).backgroundImage)).includes('cctv-1.svg'));
@@ -114,7 +146,14 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  await p.setViewportSize({width:390,height:844});
  await p.emulateMedia({reducedMotion:'no-preference'});
  let projectedContactTaps=0;
- for(const mode of ['cctv','photo','vision','dash'])for(const rarity of [0,1,2,3]){
+ // Each WebKit run uses a fresh browser process for one photographic source,
+ // avoiding a long-lived 16-scene layered WebP/animation cache. CI executes
+ // ALL four runs; Chromium keeps the complete matrix in one process.
+ const everyMode=['cctv','photo','vision','dash'];
+ const selectedMode=process.env.QA_OBSERVATION_MODE;
+ assert(!selectedMode||everyMode.includes(selectedMode),'unsupported QA observation mode');
+ const allModes=selectedMode?[selectedMode]:everyMode;
+ for(const mode of allModes)for(const rarity of [0,1,2,3]){
   await p.evaluate(({mode,rarity})=>{const o=observationState(),t=Date.now();o.mode=mode;o.sequence=1;o.mind.closed=false;o.pending={mode,rarity,readyAt:t,expiresAt:t+3600000,sequence:1,suppression:0};renderObservation();},{mode,rarity});
   assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
   if(rarity===0){
@@ -125,29 +164,35 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
     if(img.naturalWidth!==1440||img.naturalHeight!==720)throw Error('not the native asset for '+mode);
    },mode);
    if(!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/alt-'+mode+'-native-normal-390.jpg',quality:86});
+   // WebKit exercises this full optional display control interaction in an
+   // isolated browser process to avoid GPU resource accumulation before
+   // sixteen heavy 1440x720 layered photo/raster variants.
+   if(!process.env.QA_LOWLIGHT_ISOLATED){
    const enhance=p.locator('#obs-enhance-toggle');
    assert(await enhance.isVisible(),'optional low-light control must be reachable: '+mode);
    assert.equal(await enhance.getAttribute('aria-pressed'),'false');
    const beforeEnhance=await p.evaluate(()=>JSON.stringify({currency:S.currency,suppression:observationState().pending?.suppression,collection:observationState().collection}));
    const regular=await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).filter);
-   await enhance.click();
+   await clickRealViewerControl('#obs-enhance-toggle');
    assert.equal(await enhance.getAttribute('aria-pressed'),'true','display compensation is explicit opt-in');
    assert.equal(await p.locator('#obs-frame').getAttribute('data-enhance'),'true');
    const corrected=await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).filter);
-   assert(corrected.includes('brightness(')&&regular!==corrected,'correction changes only display filter '+mode);
+   assert.equal(corrected,'none','enhanced imagery uses light-weight backing rather than GPU brightness filter: '+mode);
+   assert.notEqual(corrected,regular,'correction must change render pipeline: '+mode);
    assert(await p.locator('#obs-frame').evaluate(e=>e.getBoundingClientRect().width>0));
    if((mode==='vision'||mode==='dash')&&!process.env.QA_WEBKIT)
     await p.screenshot({path:'docs/qa-incursions/alt-'+mode+'-lowlight-on-390.jpg',quality:87});
-   await p.locator('#obs-zoom-toggle').click();
+   await clickRealViewerControl('#obs-zoom-toggle');
    assert.equal(await p.locator('#obs-frame').getAttribute('data-zoom'),'2');
    assert.equal(await p.locator('#obs-frame').getAttribute('data-enhance'),'true','correction remains available while zooming');
-   await p.locator('#obs-zoom-toggle').click();
-   await enhance.click();
+   await clickRealViewerControl('#obs-zoom-toggle');
+   await clickRealViewerControl('#obs-enhance-toggle');
    assert.equal(await enhance.getAttribute('aria-pressed'),'false');
    assert.equal(await p.locator('#obs-frame').getAttribute('data-enhance'),'false');
    assert.equal(await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).filter),regular,'original dim appearance returns exactly');
    assert.equal(await p.evaluate(()=>JSON.stringify({currency:S.currency,suppression:observationState().pending?.suppression,collection:observationState().collection})),beforeEnhance,
     'changing the display must never grant or withdraw rewards or mutate observation state');
+   }
   }
   assert(await p.locator('#obs-frame').evaluate(frame=>{
    const f=frame.getBoundingClientRect(),im=document.getElementById('obs-image').getBoundingClientRect();
@@ -161,10 +206,21 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
   else{
    assert(overlay.includes(mode+'-'+rarity+'.svg'));
    assert(overlay.includes('photo-deltas/'+mode+'-'+rarity+'.webp'),'photographic anomaly must share source photo: '+mode+rarity);
+   // The photo evidence already renders in the CSS layer. Decoding a second
+   // full-size off-DOM Image for every rarity can exhaust WebKit GPU memory.
+   // Verify the actual served RIFF/VP8X payload and source-native dimensions
+   // instead; all 12 live visual layers and real hotspot clicks remain tested.
    await p.evaluate(async ({mode,rarity})=>{
-    const url=WatchLocations.photoDelta(mode,rarity),img=new Image();
-    img.src=url;await img.decode();
-    if(img.naturalWidth!==1440||img.naturalHeight!==720)throw Error('native photo evidence dimension changed: '+url);
+    const url=WatchLocations.photoDelta(mode,rarity);
+    const response=await fetch(url,{cache:'no-store'});
+    if(!response.ok)throw Error('missing photographed anomaly evidence: '+url);
+    const b=new Uint8Array(await response.arrayBuffer());
+    const ascii=(at,n)=>String.fromCharCode(...b.slice(at,at+n));
+    if(b.length<30||ascii(0,4)!=='RIFF'||ascii(8,4)!=='WEBP'||ascii(12,4)!=='VP8X')
+     throw Error('invalid native WebP evidence: '+url);
+    const w=1+b[24]+(b[25]<<8)+(b[26]<<16),
+          h=1+b[27]+(b[28]<<8)+(b[29]<<16);
+    if(w!==1440||h!==720)throw Error('native photo evidence dimension changed: '+url);
    },{mode,rarity});
    const valid=await p.evaluate(({mode,rarity})=>WatchLocations.targets(mode,rarity).some(([x,y])=>WatchModel.hit(observationState(),{x,y})),{mode,rarity});
    assert(valid,'matching native image-space target '+mode+rarity);

@@ -230,17 +230,65 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
 .obs-zoom-tools{gap:6px;align-items:flex-start}
 .obs-zoom-tools #obs-enhance-toggle{min-width:78px;padding-inline:7px}
 .obs-zoom-tools #obs-enhance-toggle[aria-pressed='true']{border-color:#a6bfa8;color:#f2ffe7;background:#304137}
+/* Use a lightweight inset screen lift rather than a costly full-frame
+   multi-texture CSS brightness filter. Keep photos/touch coordinates intact,
+   and avoid WebKit's animated GPU-filter compositor shutdown. */
 .obs-frame[data-scene-alt='true'][data-enhance='true'] #obs-site-overlay{
- filter:saturate(.92) contrast(1.10) brightness(1.22);
+ filter:none;
 }
-.obs-frame[data-scene-alt='true'][data-enhance='true'][data-mode='vision'] #obs-site-overlay{
- filter:saturate(.91) contrast(1.10) brightness(1.43);
+.obs-frame[data-scene-alt='true'][data-enhance='true'] #obs-site-overlay::after{
+ content:'';position:absolute;inset:0;pointer-events:none;
+ background:rgba(191,202,191,.12);
 }
-.obs-frame[data-scene-alt='true'][data-enhance='true'][data-mode='dash'] #obs-site-overlay{
- filter:saturate(.9) contrast(1.09) brightness(1.62);
+.obs-frame[data-scene-alt='true'][data-enhance='true'][data-mode='vision'] #obs-site-overlay::after{
+ background:rgba(191,202,191,.23);
+}
+.obs-frame[data-scene-alt='true'][data-enhance='true'][data-mode='dash'] #obs-site-overlay::after{
+ background:rgba(191,202,191,.30);
 }
 @media(max-width:350px){
  .obs-zoom-tools{gap:4px;right:9px}
  .obs-zoom-tools button{font-size:12px;min-width:74px}
  .obs-zoom-tools #obs-enhance-toggle{min-width:72px;padding-inline:5px}
+}
+
+/* Observation controls belong to the source heading, not over the evidence.
+   Keep the photograph entirely free of labels, guides and action buttons. */
+.agent-home .thread-radar{grid-template-rows:52px auto var(--obs-status-row) var(--obs-copy-row) var(--obs-control-row)}
+.agent-home .obs-topline{grid-area:1/1;align-self:start;min-height:48px;padding-right:192px;align-items:center}
+.agent-home .obs-zoom-tools{
+ position:relative;grid-area:1/1;justify-self:end;align-self:center;
+ top:auto;right:auto;left:auto;z-index:1;min-height:44px;
+ margin:0;gap:6px;align-items:center;
+}
+.agent-home .obs-zoom-tools button{min-height:44px}
+.agent-home .obs-zoom-tools .obs-zoom-hint{
+ position:absolute;width:1px;height:1px;overflow:hidden;
+ clip:rect(0,0,0,0);white-space:nowrap;border:0;padding:0;margin:0;
+}
+@media(max-width:350px){
+ .agent-home .obs-topline{padding-right:156px}
+ .agent-home .obs-zoom-tools{gap:4px}
+ .agent-home .obs-zoom-tools button{min-width:70px;padding-inline:5px;font-size:12px}
+}
+
+/* Nested source toolbar: the label and both controls now share one real
+   flex row. Avoid two independently overlapping CSS grid items (WebKit
+   could display the enhance button while its clickable box was unstable). */
+.agent-home .obs-topline{
+ padding-right:0;display:flex;align-items:center;
+ justify-content:space-between;gap:6px;min-width:0;
+}
+.agent-home .obs-topline #obs-name{
+ flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;
+ white-space:nowrap;
+}
+.agent-home .obs-topline .obs-zoom-tools{
+ position:static;display:flex;flex:0 0 auto;z-index:auto;
+ align-self:center;justify-self:auto;grid-area:auto;
+ min-height:44px;margin:0;
+}
+@media(max-width:350px){
+ .agent-home .obs-topline{padding-right:0;gap:4px}
+ .agent-home .obs-topline .obs-zoom-tools button{font-size:12px}
 }
