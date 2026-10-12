@@ -16,13 +16,19 @@
   dash:{1:[[.20,.29,.14,.16]],2:[[.43,.42,.18,.19]],3:[[.59,.54,.21,.19]]}
  };
  const targets=(mode,rarity)=>Object.hasOwn(TARGETS,mode)&&[1,2,3].includes(rarity)?TARGETS[mode][rarity]:null;
- /* The alternate WebP is always 2:1 and shown with CSS background-size:cover.
-  * A tap is relative to the visible monitor; convert it into original image
-  * coordinates before testing the site-owned (native-image) hotspots. */
+ /* Keep the complete 2:1 photograph and anomaly layer in view. A cropped
+  * hotspot is impossible to discover, especially on short/wide screens.
+  * Return null for touches in letterbox space; only image pixels can suppress. */
+ function imageRect(frameWidth,frameHeight){
+  if(![frameWidth,frameHeight].every(Number.isFinite)||frameWidth<=0||frameHeight<=0)return null;
+  const width=Math.min(frameWidth,frameHeight*2),height=width/2;
+  return {left:(frameWidth-width)/2,top:(frameHeight-height)/2,width,height};
+ }
  function imagePoint(localX,localY,frameWidth,frameHeight){
-  if(![localX,localY,frameWidth,frameHeight].every(Number.isFinite)||frameWidth<=0||frameHeight<=0)return null;
-  const width=Math.max(frameWidth,frameHeight*2),height=width/2;
-  return {x:(localX+(width-frameWidth)/2)/width,y:(localY+(height-frameHeight)/2)/height};
+  if(!Number.isFinite(localX)||!Number.isFinite(localY))return null;
+  const rect=imageRect(frameWidth,frameHeight);
+  if(!rect||localX<rect.left||localY<rect.top||localX>rect.left+rect.width||localY>rect.top+rect.height)return null;
+  return {x:(localX-rect.left)/rect.width,y:(localY-rect.top)/rect.height};
  }
  const safeInt=n=>Number.isSafeInteger(n)&&n>=0?n:0;
  function current(mode,rarity,sequence){
@@ -50,5 +56,5 @@
  function discovered(raw){const state=normalize(raw);return Object.values(scenes).filter(s=>state[s.id]).map(s=>({...s,...state[s.id]}));}
  function byId(id){return Object.values(scenes).find(s=>s.id===id)||null;}
  const overlay=(mode,rarity)=>Object.hasOwn(scenes,mode)&&[1,2,3].includes(rarity)?'assets/observation/alt-overlays/'+mode+'-'+rarity+'.svg':null;
- return {current,normalize,observe,discovered,byId,overlay,TARGETS,targets,imagePoint};
+ return {current,normalize,observe,discovered,byId,overlay,TARGETS,targets,imageRect,imagePoint};
 });
