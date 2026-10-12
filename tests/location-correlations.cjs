@@ -64,6 +64,50 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
   await p.evaluate(()=>save());await p.reload();
   assert.equal(await p.evaluate(()=>LocationCorrelations.list(WatchLocations.discovered(observationState().locationRecords)).length),3,'links are derived from saved sites');
   assert.equal(await p.evaluate(()=>S.currency),original.currency);
+  // Three acquired sites are not enough: the player must have actually
+  // collected at least one anomaly from EACH independent location.
+  await p.evaluate(()=>openEncyclopedia('places'));
+  await p.locator('[data-catalog-entry="alt:cctv"]').click();
+  assert.equal(await p.locator('[data-location-triad]').count(),0);
+  await p.evaluate(()=>{
+   const o=observationState(),records=o.locationRecords;
+   records['alt:cctv'].rarities[1]=1;
+   records['alt:photo'].rarities[2]=1;
+   openEncyclopedia('places');
+  });
+  await p.locator('[data-catalog-entry="alt:cctv"]').click();
+  assert(await p.locator('[data-location-triad="alt:cctv"]').isVisible());
+  assert(!(await p.locator('.catalog-detail').innerText()).includes('海沿いの夜道'),
+   'the fourth unearned original must remain secret');
+  const triadOriginal=await p.evaluate(()=>JSON.stringify({
+   currency:S.currency,records:S.observation.locationRecords,collected:S.observation.collected
+  }));
+  await p.locator('[data-location-triad="alt:cctv"]').click();
+  assert(await p.locator('.site-triad').isVisible());
+  const triadText=await p.locator('.site-triad').innerText();
+  for(const title of ['地下通路','夜の教室','踏切前'])assert(triadText.includes(title));
+  assert(!triadText.includes('海沿いの夜道'));
+  assert.equal(await p.locator('.site-triad-images img').count(),3);
+  await p.waitForFunction(()=>{
+   const images=[...document.querySelectorAll('.site-triad-images img')];
+   return images.length===3&&images.every(im=>im.complete&&im.naturalWidth===1440&&im.naturalHeight===720);
+  },null,{timeout:10000});
+  for(const [width,height] of [[320,568],[390,844],[844,390]]){
+   await p.setViewportSize({width,height});
+   assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'triad must never overflow horizontally');
+   const last=p.locator('.site-triad [data-catalog-entry="alt:vision"]');
+   await last.scrollIntoViewIfNeeded();
+   assert(await last.evaluate(e=>e.getBoundingClientRect().height>=44),'all three return routes must be tappable');
+   if(width===390&&!process.env.QA_WEBKIT){
+    await p.evaluate(()=>{document.getElementById('sheet').scrollTop=0;});
+    await p.screenshot({path:'docs/qa-incursions/site-triad-390.jpg',quality:85});
+   }
+  }
+  assert.equal(await p.evaluate(()=>JSON.stringify({
+   currency:S.currency,records:S.observation.locationRecords,collected:S.observation.collected
+  })),triadOriginal,'three-site examination must not reward or mutate progress');
+  await p.locator('.site-triad [data-catalog-entry="alt:vision"]').click();
+  assert((await p.locator('.catalog-detail h2').first().innerText()).includes('踏切前'));
   assert.deepEqual(errors,[]);
   console.log('Cross-location links: acquisition gating, original image comparison, narrow screen, return route and save passed');
  }finally{await b.close();server.close();}
