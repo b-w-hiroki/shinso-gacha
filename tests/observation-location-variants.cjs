@@ -125,6 +125,29 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
     if(img.naturalWidth!==1440||img.naturalHeight!==720)throw Error('not the native asset for '+mode);
    },mode);
    if(!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/alt-'+mode+'-native-normal-390.jpg',quality:86});
+   const enhance=p.locator('#obs-enhance-toggle');
+   assert(await enhance.isVisible(),'optional low-light control must be reachable: '+mode);
+   assert.equal(await enhance.getAttribute('aria-pressed'),'false');
+   const beforeEnhance=await p.evaluate(()=>JSON.stringify({currency:S.currency,suppression:observationState().pending?.suppression,collection:observationState().collection}));
+   const regular=await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).filter);
+   await enhance.click();
+   assert.equal(await enhance.getAttribute('aria-pressed'),'true','display compensation is explicit opt-in');
+   assert.equal(await p.locator('#obs-frame').getAttribute('data-enhance'),'true');
+   const corrected=await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).filter);
+   assert(corrected.includes('brightness(')&&regular!==corrected,'correction changes only display filter '+mode);
+   assert(await p.locator('#obs-frame').evaluate(e=>e.getBoundingClientRect().width>0));
+   if((mode==='vision'||mode==='dash')&&!process.env.QA_WEBKIT)
+    await p.screenshot({path:'docs/qa-incursions/alt-'+mode+'-lowlight-on-390.jpg',quality:87});
+   await p.locator('#obs-zoom-toggle').click();
+   assert.equal(await p.locator('#obs-frame').getAttribute('data-zoom'),'2');
+   assert.equal(await p.locator('#obs-frame').getAttribute('data-enhance'),'true','correction remains available while zooming');
+   await p.locator('#obs-zoom-toggle').click();
+   await enhance.click();
+   assert.equal(await enhance.getAttribute('aria-pressed'),'false');
+   assert.equal(await p.locator('#obs-frame').getAttribute('data-enhance'),'false');
+   assert.equal(await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).filter),regular,'original dim appearance returns exactly');
+   assert.equal(await p.evaluate(()=>JSON.stringify({currency:S.currency,suppression:observationState().pending?.suppression,collection:observationState().collection})),beforeEnhance,
+    'changing the display must never grant or withdraw rewards or mutate observation state');
   }
   assert(await p.locator('#obs-frame').evaluate(frame=>{
    const f=frame.getBoundingClientRect(),im=document.getElementById('obs-image').getBoundingClientRect();
@@ -193,6 +216,7 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
  await p.evaluate(()=>{const o=observationState();o.sequence=2;renderObservation();});
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'false','idle scene switch repaints the original');
+ assert.equal(await p.locator('#obs-enhance-toggle').isVisible(),false,'old media cannot expose a nonfunctional light control');
  assert.equal(await p.locator('#obs-zoom-toggle').isHidden(),true,'legacy media must not expose a nonworking zoom control');
  await p.evaluate(()=>{const o=observationState();o.sequence=3;renderObservation();});
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true','later idle scene returns to its own image');
