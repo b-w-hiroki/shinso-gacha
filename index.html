@@ -1086,6 +1086,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
         <button id="obs-frame" class="obs-frame" data-mode="cctv" aria-label="観測映像を確認">
           <span id="obs-closed" hidden>回線を遮断しました<small>画面から目を離し、しばらく休んでください。</small></span><span id="obs-image" aria-hidden="true"></span><span id="obs-site-overlay" aria-hidden="true"></span><span class="obs-effect" aria-hidden="true"></span>
         </button>
+        <div class="obs-zoom-tools"><button id="obs-zoom-toggle" type="button" aria-pressed="false" aria-label="観測画像を2倍に拡大">拡大 2×</button></div>
         <div class="obs-status"><span id="obs-ready" hidden>記録を受信</span><span id="obs-first-hint" hidden>映像に触れて観測する</span><span id="obs-timer"></span><button id="obs-help" data-watch="target" hidden>対処方法</button></div>
         <p id="obs-atmosphere" aria-live="off"></p>
         <p id="obs-feedback" role="status" aria-live="polite"></p>
@@ -1285,6 +1286,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 <script src="assets/personnel-discrepancies-model.js"></script>
 <script src="assets/absence-traces-model.js"></script>
 <script src="assets/observation-location-model.js"></script>
+<script src="assets/observation-zoom-model.js"></script>
 <script src="assets/location-correlations-model.js"></script>
 <script src="assets/observation.js"></script>
 <script src="assets/investigation.js"></script>
