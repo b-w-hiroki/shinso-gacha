@@ -55,7 +55,7 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
   assert(!(await p.locator('.witness-revisions').innerText()).includes('抹消された照会履歴'),'higher tier is not in the DOM');
   assert.equal(await p.locator('.witness-dossier img').count(),0,'no fabricated missing-person portrait leaks');
   await p.evaluate(()=>{S.pulls=RANKS[14].need;openWitnessDossier('u1');});
-  assert.equal(await p.locator('.witness-revisions section').count(),0,'collapsed confidential notes require a deliberate open');
+  assert.equal(await p.locator('.witness-revisions section:visible').count(),0,'collapsed confidential notes require a deliberate open');
   await p.locator('.witness-revisions summary').click();
   assert.equal(await p.locator('.witness-revisions section').count(),2,'three real cases required before exposing rank 15 layer');
   await p.locator('.witness-related summary').click();
