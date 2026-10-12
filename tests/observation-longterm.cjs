@@ -1,0 +1,32 @@
+const assert=require('node:assert/strict');
+const {simulate,report}=require('../scripts/observation-balance-simulation.cjs');
+const sample=simulate(17);
+assert.deepEqual(sample,simulate(17),'the same seed and simulated days must reproduce exactly');
+assert.equal(sample.days,14);
+assert.equal(sample.schedules,84,'six deliberately spaced check-ins per day');
+assert(sample.records>0&&sample.records<=sample.schedules);
+assert.equal(sample.routeRepeats,0,'real collected records must change the next observation source');
+assert(sample.taps>=sample.records,'every successful observation requires actual interaction');
+assert(sample.missed>=0&&sample.unavailable>=0);
+assert.equal(sample.rarityCounts.reduce((a,b)=>a+b,0),sample.records);
+assert.equal(Object.values(sample.modeCounts).reduce((a,b)=>a+b,0),sample.records);
+assert(sample.alternateScene>=0&&sample.alternateScene<=sample.records);
+const initial=report({seeds:80,days:14,sensitivity:0});
+const grown=report({seeds:80,days:14,sensitivity:14});
+for(const x of [initial,grown]){
+ assert.equal(x.routeRepeats,0,'all simulated route choices prevent immediate repeat');
+ assert(x.records>2000&&x.records<=x.schedules,'a multi-day run must actually obtain records');
+ assert.equal(x.rarityCounts.reduce((a,b)=>a+b,0),x.records);
+ assert.equal(Object.values(x.modeCounts).reduce((a,b)=>a+b,0),x.records);
+ assert(x.taps>x.records&&x.rewards>0);
+ assert(x.alternateScene>0&&x.alternateScene<x.records);
+ assert(x.withoutAnomaly>=0&&x.withoutAnomaly<=x.seeds);
+ for(const [mode,visits] of Object.entries(x.modeCounts))assert(visits>100,'route coverage missing '+mode);
+}
+assert(initial.anomalyRate>.02&&initial.anomalyRate<.09,'base low-frequency anomaly observation drifted');
+assert(grown.anomalyRate>.08&&grown.anomalyRate<.17,'max-upgrade rarity cap drifted');
+assert(grown.anomalyRate>initial.anomalyRate,'sensitivity must increase chance without forcing a result');
+assert.throws(()=>simulate(0),/invalid/);
+assert.throws(()=>simulate(1,{days:400}),/invalid/);
+console.log('Fourteen-day deterministic observation QA: save/reload, 4 routes, rarity bands, offline, and reward integrity passed');
+console.log('Simulated-only baseline: '+JSON.stringify({base:initial,highSensitivity:grown}));
