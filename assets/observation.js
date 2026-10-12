@@ -32,14 +32,42 @@ function observationSync(now=Date.now()){
 }
 function watchDuration(ms){const minutes=Math.max(0,Math.ceil(ms/60000));return minutes>=60?`${Math.floor(minutes/60)}時間${minutes%60?`${minutes%60}分`:''}`:`${minutes}分`;}
 function watchElapsed(ms){const minutes=Math.max(1,Math.floor(ms/60000));return minutes>=60?`${Math.floor(minutes/60)}時間${minutes%60?`${minutes%60}分`:''}`:`${minutes}分`;}
-let watchZoom=1;
+let watchZoom=1,watchPanX=1,watchPanY=1;
+const WATCH_PAN_NAMES=[['左上','上','右上'],['左','中央','右'],['左下','下','右下']];
+function syncWatchZoom(){
+ const frame=document.getElementById('obs-frame'),zoom=document.getElementById('obs-zoom-toggle'),pan=document.getElementById('obs-zoom-pan');
+ if(!frame)return;
+ const alt=frame.dataset.sceneAlt==='true';
+ if(!alt){watchZoom=1;watchPanX=1;watchPanY=1;}
+ const f=frame.getBoundingClientRect(),r=WatchZoom.rect(f.width,f.height,watchZoom,watchPanX,watchPanY);
+ if(r){
+  frame.style.setProperty('--watch-pan-x',`${Math.round((r.left-(f.width-r.width)/2)*100)/100}px`);
+  frame.style.setProperty('--watch-pan-y',`${Math.round((r.top-(f.height-r.height)/2)*100)/100}px`);
+ }
+ frame.dataset.zoom=String(watchZoom);
+ if(zoom){zoom.hidden=!alt;zoom.setAttribute('aria-pressed',String(watchZoom===2));zoom.textContent=watchZoom===2?'全体表示':'拡大 2×';}
+ if(pan){pan.hidden=!alt||watchZoom!==2;pan.textContent='表示位置 '+WATCH_PAN_NAMES[watchPanY][watchPanX];}
+}
 function watchZoomToggle(){
  watchZoom=watchZoom===1?2:1;
- const f=document.getElementById('obs-frame'),button=document.getElementById('obs-zoom-toggle');
- if(f)f.dataset.zoom=String(watchZoom);
- if(button){button.setAttribute('aria-pressed',String(watchZoom===2));button.textContent=watchZoom===2?'全体表示':'拡大 2×';}
+ if(watchZoom===1){watchPanX=1;watchPanY=1;}
+ syncWatchZoom();
+}
+function watchPanPicker(){
+ if(watchZoom!==2)return;
+ const buttons=WATCH_PAN_NAMES.flatMap((row,y)=>row.map((name,x)=>
+  '<button type="button" data-zoom-pan="'+x+':'+y+'" aria-pressed="'+(x===watchPanX&&y===watchPanY)+'">'+name+'</button>')).join('');
+ sheet('観測映像の表示位置','<div class="watch-zoom-pan"><p>拡大した画像の見る位置を選択します。触れた地点の判定と報酬は変わりません。</p><div class="watch-zoom-pan-grid">'+buttons+'</div></div>');
 }
 document.getElementById('obs-zoom-toggle')?.addEventListener('click',watchZoomToggle);
+document.getElementById('obs-zoom-pan')?.addEventListener('click',watchPanPicker);
+document.addEventListener('click',e=>{
+ const b=e.target.closest('[data-zoom-pan]');if(!b)return;
+ const parts=b.dataset.zoomPan.split(':').map(Number);
+ if(parts.length!==2||parts.some(x=>![0,1,2].includes(x)))return;
+ [watchPanX,watchPanY]=parts;syncWatchZoom();hideSheet();
+ document.getElementById('obs-frame')?.focus();
+});
 function renderObservation(){
  const f=document.getElementById('obs-frame');if(!f||isLite())return;
  const o=observationSync(),p=o.pending,m=OBSERVATIONS[o.mode],r=p?.rarity??0;
@@ -59,6 +87,7 @@ function renderObservation(){
   f.style.setProperty('--obs-ratio',m.ratio);f.dataset.mode=o.mode;f.dataset.rarity=r;f.dataset.condition=String(condition);f.dataset.sceneAlt=String(alternative);
   f.classList.remove('obs-change');if(watchPaint){void f.offsetWidth;f.classList.add('obs-change');}watchPaint=paint;
  }
+ syncWatchZoom();
  const quiet=o.quiet||!!S.incursion?.quiet;
  f.dataset.trace=String(r>0&&condition===2&&!quiet?'1':'0');
  f.dataset.quiet=String(quiet);f.dataset.ready=String(!o.mind.closed);f.dataset.closed=String(o.mind.closed);f.disabled=o.mind.closed;f.setAttribute('aria-disabled',String(o.mind.closed));
@@ -139,7 +168,7 @@ function observationCollect(event){
  if(strike){
   const image=document.getElementById('obs-image'),r=image.getBoundingClientRect();
   const isAlt=!!WatchLocations.current(o.mode,o.pending.rarity,o.pending.sequence);
-  point=isAlt?WatchZoom.point(event.clientX-r.left,event.clientY-r.top,r.width,r.height,watchZoom)
+  point=isAlt?WatchZoom.point(event.clientX-r.left,event.clientY-r.top,r.width,r.height,watchZoom,watchPanX,watchPanY)
              :{x:(event.clientX-r.left)/r.width,y:(event.clientY-r.top)/r.height};
  }
  const contact=strike&&WatchModel.hit(o,point);
@@ -397,6 +426,7 @@ function fitObservation(){
  const minimum=innerHeight>=innerWidth?140:180;
  const height=Math.floor(Math.max(minimum,Math.min(560,innerHeight-navHeight-top-reserved)));
  if(Math.abs(height-f.height)>1)frame.style.setProperty('--obs-height',`${height}px`);
+ syncWatchZoom();
 }
 const scheduleObservationFit=RuntimeSafety.frame(fitObservation);
 addEventListener('resize',scheduleObservationFit);
