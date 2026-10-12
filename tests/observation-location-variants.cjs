@@ -3,6 +3,22 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
 (async()=>{await new Promise(done=>server.listen(0,'127.0.0.1',done));const b=await (process.env.QA_WEBKIT?webkit:chromium).launch(process.env.QA_WEBKIT?{}:{executablePath:process.env.CHROMIUM_EXECUTABLE||undefined,args:['--no-sandbox','--disable-dev-shm-usage','--no-zygote','--single-process']});
  try{const p=await b.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'}),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.route('https://**/*',route=>route.abort());await p.goto('http://127.0.0.1:'+server.address().port);
  if(process.env.QA_FONT){await p.addStyleTag({content:"@font-face{font-family:QAJP;src:url('/font.otf')}body,button{font-family:QAJP}"});await p.evaluate(()=>document.fonts.load('16px QAJP'));}
+ // CSS animation may keep WebKit's locator stability heuristic pending.
+ // A real coordinate pointer click with elementFromPoint hit testing is the
+ // stronger user-facing contract; never force/dispatch a synthetic click.
+ const clickRealViewerControl=async selector=>{
+  const loc=p.locator(selector);
+  await loc.evaluate(el=>el.scrollIntoView({block:'center',behavior:'instant'}));
+  const point=await loc.evaluate(el=>{
+   const r=el.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;
+   const target=document.elementFromPoint(x,y);
+   return {x,y,width:r.width,height:r.height,inViewport:x>=0&&x<innerWidth&&y>=0&&y<innerHeight,
+     actualHit:target===el||el.contains(target)};
+  });
+  assert(point.inViewport&&point.actualHit&&point.width>=44&&point.height>=44,
+   selector+': not really tappable above evidence/navigation '+JSON.stringify(point));
+  await p.mouse.click(point.x,point.y);
+ };
  await p.evaluate(()=>{S.role='agent';S.onboarded=true;S.lite={intro:{done:true}};S.lastTick=Date.now()+900000;S.streak={last:dayKey(),n:1};S.observation=WatchModel.create(Date.now(),42);S.incursion={version:1,level:0,history:[]};S.currency=5000;applyMode();go('home');render();});
  await p.evaluate(()=>openEncyclopedia('places'));assert.equal(await p.locator('[data-catalog-entry^="alt:"]').count(),0,'unknown places absent');
  await p.evaluate(()=>openEncyclopedia('anomalies'));assert.equal(await p.locator('[data-catalog-entry^="alt:"]').count(),0,'unknown anomaly locations absent');
@@ -146,7 +162,7 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    assert.equal(await enhance.getAttribute('aria-pressed'),'false');
    const beforeEnhance=await p.evaluate(()=>JSON.stringify({currency:S.currency,suppression:observationState().pending?.suppression,collection:observationState().collection}));
    const regular=await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).filter);
-   await enhance.click();
+   await clickRealViewerControl('#obs-enhance-toggle');
    assert.equal(await enhance.getAttribute('aria-pressed'),'true','display compensation is explicit opt-in');
    assert.equal(await p.locator('#obs-frame').getAttribute('data-enhance'),'true');
    const corrected=await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).filter);
@@ -154,11 +170,11 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    assert(await p.locator('#obs-frame').evaluate(e=>e.getBoundingClientRect().width>0));
    if((mode==='vision'||mode==='dash')&&!process.env.QA_WEBKIT)
     await p.screenshot({path:'docs/qa-incursions/alt-'+mode+'-lowlight-on-390.jpg',quality:87});
-   await p.locator('#obs-zoom-toggle').click();
+   await clickRealViewerControl('#obs-zoom-toggle');
    assert.equal(await p.locator('#obs-frame').getAttribute('data-zoom'),'2');
    assert.equal(await p.locator('#obs-frame').getAttribute('data-enhance'),'true','correction remains available while zooming');
-   await p.locator('#obs-zoom-toggle').click();
-   await enhance.click();
+   await clickRealViewerControl('#obs-zoom-toggle');
+   await clickRealViewerControl('#obs-enhance-toggle');
    assert.equal(await enhance.getAttribute('aria-pressed'),'false');
    assert.equal(await p.locator('#obs-frame').getAttribute('data-enhance'),'false');
    assert.equal(await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).filter),regular,'original dim appearance returns exactly');
