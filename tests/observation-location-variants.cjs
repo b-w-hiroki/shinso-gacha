@@ -105,6 +105,8 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
      points,projected:points.map(({x,y})=>WatchLocations.imagePoint(x-f.left,y-f.top,f.width,f.height)),
      targets:WatchLocations.targets(mode,rarity),f:{left:f.left,top:f.top,right:f.right,bottom:f.bottom}};
    },{mode,rarity});
+   assert(await p.locator('#obs-site-overlay').evaluate(e=>e.parentElement?.id==='obs-frame'),
+    'the photo must be a sibling of the blurred layer, not its child');
    assert(geometry.containMatches&&geometry.atmosphereFit==='cover'&&geometry.atmosphereFilter.includes('blur('),
     'ambient enlargement does not crop photographic evidence '+mode+rarity);
    assert(geometry.photoFit.startsWith('100% 100%')&&geometry.foreground.includes(originalPhoto),
