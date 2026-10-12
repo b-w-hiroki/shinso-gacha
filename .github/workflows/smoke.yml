@@ -32,6 +32,7 @@ jobs:
       - run: node tests/forecast-archive.cjs
       - run: node tests/witness-registry-model.cjs
       - run: node tests/forecast-followup-model.cjs
+      - run: node tests/forecast-chain-model.cjs
       - run: node tests/player-seepage-model.cjs
       - run: node tests/observation-model.cjs
       - run: node tests/observation-location-model.cjs
