@@ -28,5 +28,22 @@
  function list(levels,cases,compared,followups){
   return Object.keys(notes).map(id=>inspect(id,levels,cases,compared?.[id]===true,followups?.[id])).filter(Boolean);
  }
- return {inspect,list};
+ /* Read-only classified overlays: nothing about a future case enters the DOM.
+  * Each line needs actual owned evidence AND the current clearance rank. */
+ function revisions(rankIndex,owned,currentId){
+  if(!Array.isArray(owned)||!owned.some(x=>x?.id===currentId))return [];
+  const rank=Number.isFinite(rankIndex)?Math.max(0,Math.min(19,Math.floor(rankIndex))):0;
+  const current=owned.find(x=>x?.id===currentId),count=new Set(owned.map(x=>x?.id).filter(id=>Object.hasOwn(notes,id))).size;
+  const results=[];
+  if(count>=2&&rank>=6)results.push({tier:2,heading:'勤務記録の重複',
+   text:'別々に回収された立会資料に、同じ形で欠けた受領印がある。印影の原本は両方とも残っている。'});
+  if(count>=2&&rank>=10)results.push({tier:3,heading:'人員区分の不一致',
+   text:'同一の立会印について、一方の台帳は職員、もう一方は調査対象として分類している。照会先の管理番号は空欄。'});
+  if(count>=3&&rank>=14)results.push({tier:4,heading:'抹消された照会履歴',
+   text:'複数の記録を再照合すると、照会処理のほうが立会記録より古い。訂正の申請者は記録されていない。'});
+  if(count>=3&&rank>=17&&current?.extra)results.push({tier:5,heading:'未来の受領番号',
+   text:'後日回収した観測と人事台帳を照合した。照会の受付番号だけが、観測以前に確定している。'});
+  return results;
+ }
+ return {inspect,list,revisions};
 });

@@ -42,6 +42,8 @@ function openWitnessDossier(id){
  const records=witnessRegistryRecords(),entry=records.find(x=>x.id===id);
  if(!entry)return;
  const forecast=ForecastArchive.inspect(id,S.levels,LegendModel.CASES,legendProof(id),legendLayerStatus(id));
+ const revisionNotes=WitnessRegistry.revisions(rankIdx(),records,id);
+ const revisions=revisionNotes.length?'<details class="witness-revisions"><summary>閲覧権限で復元された人事台帳の追記</summary>'+revisionNotes.map(note=>'<section><small>照会深度 '+note.tier+'</small><h3>'+escapeHTML(note.heading)+'</h3><p>'+escapeHTML(note.text)+'</p></section>').join('')+'</details>':'';
  const related=records.length>1?'<details class="witness-related"><summary>別の資料に残された痕跡</summary>'+records.filter(x=>x.id!==id).map(x=>'<button class="btn-line" data-witness-case="'+x.id+'">'+escapeHTML(legendTitle(x.id))+'の立会記録を見る</button>').join('')+'</details>':'';
  sheet('人物図鑑・人事記録',`<article class="catalog-detail witness-dossier">
   <small>第六文書課 ／ 人事台帳 照会不一致</small>
@@ -57,6 +59,7 @@ function openWitnessDossier(id){
   </section>
   ${forecast?'<section class="forecast-archive witness-forecast"><h3>未来の調査記録</h3><p>'+escapeHTML(forecast.forecast)+'</p>'+(entry.extra?'<p>'+escapeHTML(entry.extra)+'</p>':'<p>後日の観測記録との照合結果は、まだありません。</p>')+'</section>':''}
   ${related}
+  ${revisions}
   <button class="btn-paper" data-legend="case" data-id="${id}">この立会人が記された調査へ戻る</button>
  </article>`);
 }
