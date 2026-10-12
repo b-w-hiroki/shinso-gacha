@@ -49,6 +49,7 @@ jobs:
           name: observation-photo-deltas-generated
           path: |
             assets/observation/photo-deltas/
+            assets/observation/*-native.webp
             docs/qa-incursions/photo-deltas-grid.jpg
       - name: Commit binary photo evidence to same feature branch
         if: github.event_name == 'push'
