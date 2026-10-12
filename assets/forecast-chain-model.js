@@ -11,7 +11,7 @@
   return owned.filter(x=>x.id!==current.id&&x.mode===current.mode&&!visited.has(x.id)&&visited.add(x.id)).slice(0,3).map(x=>({
    id:x.id,rarity:x.rarity,
    note:x.rarity===current.rarity?'別々に回収した映像が、同じ観測区分で受領されている。受付番号の前後関係が説明できない。':
-    '同じ観測方式の記録なのに、片方は平常、片方は別の異変として受領されている。どちらの報告も訂正されていない。'
+    '同じ観測方式の記録なのに、回収された区分は一致しない。どちらの未来報告も訂正されていない。'
   }));
  }
 }));
