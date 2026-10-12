@@ -164,6 +164,10 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
     if(img.naturalWidth!==1440||img.naturalHeight!==720)throw Error('not the native asset for '+mode);
    },mode);
    if(!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/alt-'+mode+'-native-normal-390.jpg',quality:86});
+   // WebKit exercises this full optional display control interaction in an
+   // isolated browser process to avoid GPU resource accumulation before
+   // sixteen heavy 1440x720 layered photo/raster variants.
+   if(!process.env.QA_LOWLIGHT_ISOLATED){
    const enhance=p.locator('#obs-enhance-toggle');
    assert(await enhance.isVisible(),'optional low-light control must be reachable: '+mode);
    assert.equal(await enhance.getAttribute('aria-pressed'),'false');
@@ -188,6 +192,7 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    assert.equal(await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).filter),regular,'original dim appearance returns exactly');
    assert.equal(await p.evaluate(()=>JSON.stringify({currency:S.currency,suppression:observationState().pending?.suppression,collection:observationState().collection})),beforeEnhance,
     'changing the display must never grant or withdraw rewards or mutate observation state');
+   }
   }
   assert(await p.locator('#obs-frame').evaluate(frame=>{
    const f=frame.getBoundingClientRect(),im=document.getElementById('obs-image').getBoundingClientRect();
