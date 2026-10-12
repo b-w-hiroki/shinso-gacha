@@ -201,10 +201,21 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
   else{
    assert(overlay.includes(mode+'-'+rarity+'.svg'));
    assert(overlay.includes('photo-deltas/'+mode+'-'+rarity+'.webp'),'photographic anomaly must share source photo: '+mode+rarity);
+   // The photo evidence already renders in the CSS layer. Decoding a second
+   // full-size off-DOM Image for every rarity can exhaust WebKit GPU memory.
+   // Verify the actual served RIFF/VP8X payload and source-native dimensions
+   // instead; all 12 live visual layers and real hotspot clicks remain tested.
    await p.evaluate(async ({mode,rarity})=>{
-    const url=WatchLocations.photoDelta(mode,rarity),img=new Image();
-    img.src=url;await img.decode();
-    if(img.naturalWidth!==1440||img.naturalHeight!==720)throw Error('native photo evidence dimension changed: '+url);
+    const url=WatchLocations.photoDelta(mode,rarity);
+    const response=await fetch(url,{cache:'no-store'});
+    if(!response.ok)throw Error('missing photographed anomaly evidence: '+url);
+    const b=new Uint8Array(await response.arrayBuffer());
+    const ascii=(at,n)=>String.fromCharCode(...b.slice(at,at+n));
+    if(b.length<30||ascii(0,4)!=='RIFF'||ascii(8,4)!=='WEBP'||ascii(12,4)!=='VP8X')
+     throw Error('invalid native WebP evidence: '+url);
+    const w=1+b[24]+(b[25]<<8)+(b[26]<<16),
+          h=1+b[27]+(b[28]<<8)+(b[29]<<16);
+    if(w!==1440||h!==720)throw Error('native photo evidence dimension changed: '+url);
    },{mode,rarity});
    const valid=await p.evaluate(({mode,rarity})=>WatchLocations.targets(mode,rarity).some(([x,y])=>WatchModel.hit(observationState(),{x,y})),{mode,rarity});
    assert(valid,'matching native image-space target '+mode+rarity);
