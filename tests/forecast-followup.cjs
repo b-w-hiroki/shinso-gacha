@@ -67,9 +67,11 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
   assert.equal(later.rechecks.length,1);
   assert.equal(await p.evaluate(()=>S.currency),initial+48,'one real dash patrol only, no forecast bonus');
   assert.equal(await p.evaluate(()=>Object.keys(S.communications.mail).filter(k=>k==='forecast-u2').length),1,'follow-ups do not reissue the first mail');
+  await p.setViewportSize({width:390,height:844});
   await p.evaluate(()=>openLegendCase('u2'));
   assert.equal(await p.locator('.forecast-rechecks summary').count(),1);
   await p.locator('.forecast-rechecks summary').click();
+  await p.locator('.forecast-rechecks').scrollIntoViewIfNeeded();
   assert((await p.locator('.forecast-rechecks').innerText()).includes('最初の照合結果は書き換えられていません'));
   if(!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/forecast-followup-rechecks-390.jpg',quality:85});
   await p.evaluate(()=>save());await p.reload();
