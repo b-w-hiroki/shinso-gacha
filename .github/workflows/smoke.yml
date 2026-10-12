@@ -35,6 +35,7 @@ jobs:
       - run: node tests/forecast-chain-model.cjs
       - run: node tests/player-seepage-model.cjs
       - run: node tests/observation-model.cjs
+      - run: node tests/observation-longterm.cjs
       - run: node tests/observation-location-model.cjs
       - run: node tests/observation-overlay-art.cjs
       - run: node tests/observation-site-targets.cjs
