@@ -24,10 +24,16 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  await zoomButton.click();
  assert.equal(await zoomButton.getAttribute('aria-pressed'),'true');
  assert.equal(await p.locator('#obs-frame').getAttribute('data-zoom'),'2');
+ assert(await p.locator('#obs-zoom-pan').isVisible(),'zoom mode offers accessible 3x3 inspection');
+ await p.locator('#obs-zoom-pan').click();
+ assert.equal(await p.locator('[data-zoom-pan]').count(),9,'all directions available');
+ await p.locator('[data-zoom-pan="2:2"]').click();
+ assert((await p.locator('#obs-zoom-pan').innerText()).includes('右下'));
+ assert(await p.locator('#obs-frame').evaluate(e=>parseFloat(e.style.getPropertyValue('--watch-pan-x'))<0),'image moves to reveal its right half');
  await p.evaluate(()=>document.getElementById('obs-frame').scrollIntoView({block:'center',behavior:'instant'}));
  const zoomTap=await p.evaluate(()=>{
   const f=document.getElementById('obs-image').getBoundingClientRect();
-  const target=WatchLocations.targets('cctv',1)[0],r=WatchZoom.rect(f.width,f.height,2);
+  const original=WatchLocations.targets('cctv',1)[0],target=[original[0]+.10,original[1]],r=WatchZoom.rect(f.width,f.height,2,2,2);
   const x=f.left+r.left+target[0]*r.width,y=f.top+r.top+target[1]*r.height;
   if(!WatchZoom.point(x-f.left,y-f.top,f.width,f.height,2))throw Error('zoom target not visible');
   return {x,y};
