@@ -82,7 +82,7 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
   }),'all four sources and all four rarity states stay in frame during live motion');
   const overlay=await p.evaluate(()=>{const e=document.getElementById('obs-site-overlay');return e?getComputedStyle(e).backgroundImage:null;});
   assert(overlay!==null,'site overlay element must exist in DOM');
-  const originalPhoto=WatchLocations.byId('alt:'+mode).file;
+  const originalPhoto=await p.evaluate(m=>WatchLocations.byId('alt:'+m).file,mode);
   assert(overlay.includes(originalPhoto),'original photograph must be visible at full width '+mode+rarity);
   if(rarity===0)assert(!overlay.includes('alt-overlays/'),'ordinary footage never includes anomaly art');
   else{
@@ -107,7 +107,7 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    },{mode,rarity});
    assert(geometry.containMatches&&geometry.atmosphereFit==='cover'&&geometry.atmosphereFilter.includes('blur('),
     'ambient enlargement does not crop photographic evidence '+mode+rarity);
-   assert(geometry.photoFit.startsWith('100% 100%')&&geometry.foreground.includes(WatchLocations.byId('alt:'+mode).file),
+   assert(geometry.photoFit.startsWith('100% 100%')&&geometry.foreground.includes(originalPhoto),
     'sharp native photograph and visual anomaly share an image-space rectangle '+mode+rarity);
    const f=geometry.f;
    for(let i=0;i<geometry.points.length;i++){
