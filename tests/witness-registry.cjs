@@ -19,6 +19,7 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
   await entry.click();
   assert(await p.locator('.witness-dossier').isVisible());
   assert.equal(await p.locator('.witness-revisions').count(),0,'classified revisions are not present before rank and extra records');
+  assert.equal(await p.locator('.witness-editions').count(),0,'conflicting editions require acquired other cases and clearance');
   assert(await p.locator('.witness-photo').isVisible(),'deliberately missing portrait renders without a broken image');
   assert.equal(await p.locator('.witness-dossier img').count(),0);
   assert((await p.locator('.witness-dossier').innerText()).includes('巡回票'));
@@ -48,8 +49,17 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
   await entry.click();
   assert.equal(await p.locator('[data-witness-case]').count(),1);
   assert.equal(await p.locator('.witness-revisions').count(),0,'owned records still require high clearance');
+  assert.equal(await p.locator('.witness-editions').count(),0,'two acquired reports without clearance do not expose editions');
+  await p.evaluate(()=>renderMenuBadge());
+  assert.equal(await p.evaluate(()=>!!S.communications?.mail?.['personnel-ledger-versions']),false,'no pre-clearance personnel mail');
   await p.evaluate(()=>{S.pulls=RANKS[10].need;openWitnessDossier('u1');});
   assert.equal(await p.locator('.witness-revisions').count(),1);
+  assert.equal(await p.locator('.witness-editions').count(),1,'two recovered files and rank unlock conflicting versions');
+  await p.locator('.witness-editions summary').click();
+  assert.equal(await p.locator('.witness-edition').count(),2);
+  assert((await p.locator('.witness-editions').innerText()).includes('観測対象')===false,'higher rank revision remains locked');
+  await p.evaluate(()=>renderMenuBadge());
+  assert.equal(await p.evaluate(()=>!!S.communications?.mail?.['personnel-ledger-versions']),true,'one earned personnel revision mail is delivered');
   await p.locator('.witness-revisions summary').click();
   assert.equal(await p.locator('.witness-revisions section').count(),2,'rank 11 reveals only two earned layers');
   assert(!(await p.locator('.witness-revisions').innerText()).includes('抹消された照会履歴'),'higher tier is not in the DOM');
@@ -61,6 +71,15 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
   assert.equal(await p.locator('.witness-revisions section:visible').count(),0,'collapsed confidential notes require a deliberate open');
   await p.locator('.witness-revisions summary').click();
   assert.equal(await p.locator('.witness-revisions section').count(),2,'three real cases required before exposing rank 15 layer');
+  await p.evaluate(()=>{
+   S.levels.u3=3;S.legendLayers.noticed.u3=true;S.legendLayers.compared.u3=true;
+   openWitnessDossier('u1');
+  });
+  await p.locator('.witness-editions summary').click();
+  assert.equal(await p.locator('.witness-edition').count(),3,'three owned cases and rank 15 unlock third conflicting edition');
+  await p.setViewportSize({width:390,height:844});
+  await p.locator('.witness-editions').scrollIntoViewIfNeeded();
+  if(!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/witness-editions-390.jpg',quality:85});
   await p.locator('.witness-related summary').click();
   await p.locator('[data-witness-case="u2"]').click();
   assert((await p.locator('.witness-record').innerText()).includes('列車に乗っていない'));
@@ -68,6 +87,7 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
   assert.equal(await p.evaluate(()=>S.currency),wallet);
   await p.evaluate(()=>{hideSheet();openGameInbox();});
   assert.equal(await p.locator('[data-mail="unregistered-personnel"]').count(),1,'one registered mail');
+  assert.equal(await p.locator('[data-mail="personnel-ledger-versions"]').count(),1,'one gated ledger-version mail');
   await p.locator('[data-mail="unregistered-personnel"]').click();
   await p.locator('[data-witness-registry]').click();
   assert(await p.locator('.witness-dossier').isVisible(),'mail links to dedicated person');
