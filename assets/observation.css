@@ -200,7 +200,7 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
 }
 
 
-.obs-zoom-tools{display:flex;justify-content:flex-end;margin:-1px 0 2px;min-height:36px}
+.obs-zoom-tools{position:absolute;right:14px;top:32px;z-index:3;display:flex;justify-content:flex-end;margin:0;min-height:36px}
 .obs-zoom-tools button{min-height:36px;min-width:96px;border:1px solid #6b7469;background:#202924;color:#f0e6d0;font:600 13px var(--f-body);border-radius:4px}
 .obs-zoom-tools button[aria-pressed=true]{border-color:#d4bc8a;color:#ffe5b5}
 .obs-frame[data-scene-alt='true'][data-zoom='2'] #obs-site-overlay{width:min(200%,calc(var(--obs-height) * 4));}
