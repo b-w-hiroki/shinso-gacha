@@ -264,3 +264,24 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
  .agent-home .obs-zoom-tools{gap:4px}
  .agent-home .obs-zoom-tools button{min-width:70px;padding-inline:5px;font-size:12px}
 }
+
+/* Nested source toolbar: the label and both controls now share one real
+   flex row. Avoid two independently overlapping CSS grid items (WebKit
+   could display the enhance button while its clickable box was unstable). */
+.agent-home .obs-topline{
+ padding-right:0;display:flex;align-items:center;
+ justify-content:space-between;gap:6px;min-width:0;
+}
+.agent-home .obs-topline #obs-name{
+ flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;
+ white-space:nowrap;
+}
+.agent-home .obs-topline .obs-zoom-tools{
+ position:static;display:flex;flex:0 0 auto;z-index:auto;
+ align-self:center;justify-self:auto;grid-area:auto;
+ min-height:44px;margin:0;
+}
+@media(max-width:350px){
+ .agent-home .obs-topline{padding-right:0;gap:4px}
+ .agent-home .obs-topline .obs-zoom-tools button{font-size:12px}
+}
