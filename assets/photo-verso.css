@@ -1,0 +1,14 @@
+/* The reverse of an actually recovered photograph. Same paper design for
+ * all four locations, separate from the scene artwork and tap targets. */
+.site-verso{margin:20px 0;border:1px solid #665a49;padding:8px 11px;background:#171b17}
+.site-verso>summary{cursor:pointer;padding:12px 4px;min-height:48px;font:600 14px/1.6 var(--f-body);color:#e8d8bd}
+.site-verso>summary:focus-visible{outline:2px solid #d7b67d;outline-offset:2px}
+.site-verso-paper{position:relative;margin:8px 0 12px;padding:23px 19px;min-height:210px;border:1px solid #bfb5a2;color:#292a25;background:repeating-linear-gradient(0deg,#ded6c3 0 31px,#c7bdab 32px),#ded6c3;box-shadow:3px 6px 0 #070a09}
+.site-verso-paper>small{display:block;font:600 12px/1.6 var(--f-mono);color:#5d5145;letter-spacing:.05em}
+.site-verso-paper h3{font:700 19px/1.5 var(--f-display);margin:12px 0 8px;color:#302a26}
+.site-verso-paper p{font:14px/1.85 var(--f-body);color:#413a32;margin:9px 0}
+.site-verso-paper .site-verso-stamp{display:inline-block;margin-top:15px;padding:5px 12px;border:2px double #934f48;color:#934f48;font:700 14px var(--f-body);transform:rotate(-7deg)}
+.site-verso-paper .site-verso-comparison{padding:9px 10px 8px;border-left:3px solid #896647;background:#ffffff36;color:#302b25}
+.site-verso-paper .site-verso-pending{font-size:13px;color:#67584c}
+@media(max-width:350px){.site-verso-paper{padding:18px 13px}.site-verso-paper h3{font-size:17px}}
+@media(prefers-reduced-motion:reduce){.site-verso *{animation:none!important;transition:none!important}}
