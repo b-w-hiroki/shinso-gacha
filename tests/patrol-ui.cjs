@@ -60,7 +60,7 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
   }
  }
  await p.evaluate(()=>{const o=observationState(),t=Date.now();o.mode='photo';o.pending={mode:'photo',rarity:1,readyAt:t,expiresAt:t+3600000,sequence:o.sequence,suppression:0};renderObservation();});
- const contact=await p.locator('#obs-image').evaluate(e=>{const im=e.getBoundingClientRect(),f=document.getElementById('obs-frame').getBoundingClientRect();return {x:im.left-f.left+im.width*.4,y:im.top-f.top+im.height*.36};});
+ const contact=await p.locator('#obs-image').evaluate(e=>{const im=e.getBoundingClientRect(),f=document.getElementById('obs-frame').getBoundingClientRect(),rect=WatchLocations.imageRect(im.width,im.height);return {x:im.left-f.left+rect.left+rect.width*.4,y:im.top-f.top+rect.top+rect.height*.36};});
  assert(await p.locator('#obs-frame').evaluate(e=>{
   const f=e.getBoundingClientRect(),im=document.getElementById('obs-image').getBoundingClientRect();
   return Math.abs(f.left-im.left)<6&&Math.abs(f.top-im.top)<6&&Math.abs(f.width-im.width)<6&&Math.abs(f.height-im.height)<6;

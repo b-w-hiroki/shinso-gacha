@@ -40,21 +40,23 @@ try {
    assert.equal(Model.hit(fresh,{x:coords[0][0],y:coords[0][1]}),true,'pending observation is same before/after reload');
   }
  }
- // CSS cover projects 2:1 photography into stable monitor dimensions.
- for(const [w,h] of [[390,280],[320,240],[844,240],[640,320]]){
-  const nativeWidth=Math.max(w,2*h),nativeHeight=nativeWidth/2;
+ // CSS contain projects the whole 2:1 photograph and each hotspot at any size.
+ for(const [w,h] of [[320,320],[390,280],[320,240],[844,240],[640,320]]){
+  const rect=Sites.imageRect(w,h);
+  assert(rect.width<=w&&rect.height<=h,'photo never crops');
   for(const mode of ['cctv','photo','vision','dash'])for(const rarity of [1,2,3]){
    for(const [x,y] of Sites.targets(mode,rarity)){
-    const px=w/2+(x-.5)*nativeWidth,py=h/2+(y-.5)*nativeHeight;
+    const px=rect.left+x*rect.width,py=rect.top+y*rect.height;
+    assert(px>=0&&px<=w&&py>=0&&py<=h,'all site hotspots remain visible');
     const projected=Sites.imagePoint(px,py,w,h);
     assert(Math.abs(projected.x-x)<1e-9&&Math.abs(projected.y-y)<1e-9,'native hotspot projection '+mode+'/'+rarity);
-    if(px>=0&&px<=w&&py>=0&&py<=h){
-     const o=Model.normalize(Model.create(T,17));o.mode=mode;
-     o.pending={mode,rarity,sequence:1,readyAt:T,expiresAt:T+3*Model.HOUR,suppression:0};
-     assert(Model.hit(o,projected),'visual center is clickable after cover crop');
-    }
+    const o=Model.normalize(Model.create(T,17));o.mode=mode;
+    o.pending={mode,rarity,sequence:1,readyAt:T,expiresAt:T+3*Model.HOUR,suppression:0};
+    assert(Model.hit(o,projected),'full-image visual center is reachable');
    }
   }
+  if(rect.top>0)assert.equal(Sites.imagePoint(w/2,rect.top/2,w,h),null,'letterbox above image is not a contact');
+  if(rect.left>0)assert.equal(Sites.imagePoint(rect.left/2,h/2,w,h),null,'letterbox beside image is not a contact');
  }
  assert.equal(Sites.imagePoint(1,1,0,200),null);
  assert.equal(Sites.imagePoint(NaN,1,400,200),null);

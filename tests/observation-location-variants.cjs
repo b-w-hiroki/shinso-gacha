@@ -88,22 +88,31 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    await p.evaluate(()=>document.getElementById('obs-frame').scrollIntoView({block:'center',behavior:'instant'}));
    const geometry=await p.evaluate(({mode,rarity})=>{
     const f=document.getElementById('obs-frame').getBoundingClientRect(),overlay=document.getElementById('obs-site-overlay'),v=getComputedStyle(overlay);
-    const pictureWidth=Math.max(f.width,2*f.height),[x,y]=WatchLocations.targets(mode,rarity)[0];
-    return {coverMatches:Math.abs(parseFloat(v.width)-pictureWidth)<2&&Math.abs(parseFloat(v.height)-pictureWidth/2)<2,
-     point:{x:f.left+f.width/2+(x-.5)*pictureWidth,y:f.top+f.height/2+(y-.5)*pictureWidth/2},f:{left:f.left,top:f.top,right:f.right,bottom:f.bottom}};
+    const pictureWidth=Math.min(f.width,2*f.height),pictureHeight=pictureWidth/2,rect=WatchLocations.imageRect(f.width,f.height);
+    const points=WatchLocations.targets(mode,rarity).map(([x,y])=>({
+     x:f.left+rect.left+x*rect.width,y:f.top+rect.top+y*rect.height
+    }));
+    return {containMatches:Math.abs(parseFloat(v.width)-pictureWidth)<2&&Math.abs(parseFloat(v.height)-pictureHeight)<2,
+     imageFit:getComputedStyle(document.getElementById('obs-image')).backgroundSize,
+     points,projected:points.map(({x,y})=>WatchLocations.imagePoint(x-f.left,y-f.top,f.width,f.height)),
+     targets:WatchLocations.targets(mode,rarity),f:{left:f.left,top:f.top,right:f.right,bottom:f.bottom}};
    },{mode,rarity});
-   assert(geometry.coverMatches,'visual anomaly overlay must match photographic cover framing '+mode+rarity);
-   const q=geometry.point,f=geometry.f;
-   if(q.x>=f.left+2&&q.x<=f.right-2&&q.y>=f.top+2&&q.y<=f.bottom-2){
-    const reachable=await p.evaluate(point=>{
-      const hit=document.elementFromPoint(point.x,point.y);
-      return hit===document.getElementById('obs-frame')||document.getElementById('obs-frame').contains(hit);
-    },q);
-    assert(reachable,'actual rendered hotspot must not be obscured by UI '+mode+rarity);
-    await p.mouse.click(q.x,q.y);
-    projectedContactTaps++;
-    assert.equal(await p.evaluate(()=>observationState().pending?.suppression),1,'clicking actual projected visual hotspot must suppress '+mode+rarity);
+   assert(geometry.containMatches&&geometry.imageFit==='contain','anomaly and complete photograph must share contain framing '+mode+rarity);
+   const f=geometry.f;
+   for(let i=0;i<geometry.points.length;i++){
+    const q=geometry.points[i],point=geometry.projected[i],target=geometry.targets[i];
+    assert(q.x>=f.left&&q.x<=f.right&&q.y>=f.top&&q.y<=f.bottom,'no illustrated hotspot can be cropped '+mode+rarity);
+    assert(point&&Math.abs(point.x-target[0])<.0001&&Math.abs(point.y-target[1])<.0001,'image tap position matches its SVG hotspot '+mode+rarity);
    }
+   const q=geometry.points[0];
+   const reachable=await p.evaluate(point=>{
+    const hit=document.elementFromPoint(point.x,point.y);
+    return hit===document.getElementById('obs-frame')||document.getElementById('obs-frame').contains(hit);
+   },q);
+   assert(reachable,'actual rendered hotspot must not be obscured by UI '+mode+rarity);
+   await p.mouse.click(q.x,q.y);
+   projectedContactTaps++;
+   assert.equal(await p.evaluate(()=>observationState().pending?.suppression),1,'clicking projected visual hotspot must suppress '+mode+rarity);
   }
   if(rarity>0&&!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/alt-'+mode+'-'+rarity+'-390.jpg',quality:85});
  }
