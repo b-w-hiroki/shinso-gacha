@@ -15,10 +15,17 @@ function forecastFollowupHTML(id){
  if(!c||LegendModel.count(S.levels,id)!==3)return '';
  const entry=ForecastFollowup.inspect(S.forecastFollowups,id);
  if(!entry)return '<div class="forecast-action"><button class="btn-line" data-forecast-issue="'+id+'">翌日の照合を依頼する</button><p>この依頼で異変の出現率や観測結果は変わりません。</p></div>';
+ const acquiredReports=LegendModel.ids.filter(otherId=>LegendModel.count(S.levels,otherId)===3)
+  .map(otherId=>({id:otherId,...ForecastFollowup.inspect(S.forecastFollowups,otherId)}))
+  .filter(x=>x.status==='compared');
+ const crossLinks=ForecastChain.links(id,acquiredReports);
+ const crossCase=entry.status==='compared'&&crossLinks.length
+  ?'<details class="forecast-cross-case"><summary>別案件の未来報告と照合</summary><p>実際に回収した二つの記録だけを比較しています。新しい異変を抽選したものではありません。</p>'+
+   crossLinks.map(link=>'<article><small>'+escapeHTML(link.note)+'</small><button class="btn-line" data-legend="case" data-id="'+link.id+'">'+escapeHTML(legendTitle(link.id))+'の取得済み調査を開く</button></article>').join('')+'</details>':'';
  const later=entry.status==='compared'&&entry.rechecks?.length
   ?'<details class="forecast-rechecks"><summary>その後の観測記録を照合</summary><ol>'+entry.rechecks.map(row=>'<li><small>'+escapeHTML(row.observed)+' ／ '+(row.rarity?'異変':'平常')+'</small><p>'+escapeHTML(row.copy)+'</p></li>').join('')+'</ol><p>最初の照合結果は書き換えられていません。</p></details>'
   :'';
- return '<div class="forecast-action"><small>照合依頼 ／ '+escapeHTML(entry.issued)+'</small><p>'+escapeHTML(entry.copy)+'</p>'+(entry.status==='compared'?'<p>照合記録 ／ '+escapeHTML(entry.observed)+'</p>':'<p>'+escapeHTML(OBSERVATIONS[c.mode].title)+'の観測を続けてください。回線を閉じても構いません。</p>')+later+'</div>';
+ return '<div class="forecast-action"><small>照合依頼 ／ '+escapeHTML(entry.issued)+'</small><p>'+escapeHTML(entry.copy)+'</p>'+(entry.status==='compared'?'<p>照合記録 ／ '+escapeHTML(entry.observed)+'</p>':'<p>'+escapeHTML(OBSERVATIONS[c.mode].title)+'の観測を続けてください。回線を閉じても構いません。</p>')+later+crossCase+'</div>';
 }
 document.addEventListener('click',e=>{
  const b=e.target.closest('[data-forecast-issue]');if(!b||isLite())return;
