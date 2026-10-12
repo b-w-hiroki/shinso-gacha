@@ -15,7 +15,10 @@ function forecastFollowupHTML(id){
  if(!c||LegendModel.count(S.levels,id)!==3)return '';
  const entry=ForecastFollowup.inspect(S.forecastFollowups,id);
  if(!entry)return '<div class="forecast-action"><button class="btn-line" data-forecast-issue="'+id+'">翌日の照合を依頼する</button><p>この依頼で異変の出現率や観測結果は変わりません。</p></div>';
- return '<div class="forecast-action"><small>照合依頼 ／ '+escapeHTML(entry.issued)+'</small><p>'+escapeHTML(entry.copy)+'</p>'+(entry.status==='compared'?'<p>照合記録 ／ '+escapeHTML(entry.observed)+'</p>':'<p>'+escapeHTML(OBSERVATIONS[c.mode].title)+'の観測を続けてください。回線を閉じても構いません。</p>')+'</div>';
+ const later=entry.status==='compared'&&entry.rechecks?.length
+  ?'<details class="forecast-rechecks"><summary>その後の観測記録を照合</summary><ol>'+entry.rechecks.map(row=>'<li><small>'+escapeHTML(row.observed)+' ／ '+(row.rarity?'異変':'平常')+'</small><p>'+escapeHTML(row.copy)+'</p></li>').join('')+'</ol><p>最初の照合結果は書き換えられていません。</p></details>'
+  :'';
+ return '<div class="forecast-action"><small>照合依頼 ／ '+escapeHTML(entry.issued)+'</small><p>'+escapeHTML(entry.copy)+'</p>'+(entry.status==='compared'?'<p>照合記録 ／ '+escapeHTML(entry.observed)+'</p>':'<p>'+escapeHTML(OBSERVATIONS[c.mode].title)+'の観測を続けてください。回線を閉じても構いません。</p>')+later+'</div>';
 }
 document.addEventListener('click',e=>{
  const b=e.target.closest('[data-forecast-issue]');if(!b||isLite())return;
