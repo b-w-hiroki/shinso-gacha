@@ -146,7 +146,14 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  await p.setViewportSize({width:390,height:844});
  await p.emulateMedia({reducedMotion:'no-preference'});
  let projectedContactTaps=0;
- for(const mode of ['cctv','photo','vision','dash'])for(const rarity of [0,1,2,3]){
+ // Each WebKit run uses a fresh browser process for one photographic source,
+ // avoiding a long-lived 16-scene layered WebP/animation cache. CI executes
+ // ALL four runs; Chromium keeps the complete matrix in one process.
+ const everyMode=['cctv','photo','vision','dash'];
+ const selectedMode=process.env.QA_OBSERVATION_MODE;
+ assert(!selectedMode||everyMode.includes(selectedMode),'unsupported QA observation mode');
+ const allModes=selectedMode?[selectedMode]:everyMode;
+ for(const mode of allModes)for(const rarity of [0,1,2,3]){
   await p.evaluate(({mode,rarity})=>{const o=observationState(),t=Date.now();o.mode=mode;o.sequence=1;o.mind.closed=false;o.pending={mode,rarity,readyAt:t,expiresAt:t+3600000,sequence:1,suppression:0};renderObservation();},{mode,rarity});
   assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
   if(rarity===0){
