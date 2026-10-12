@@ -13,7 +13,7 @@
 #obs-atmosphere{margin:8px 0 12px;color:#bfb6a4;font:14px/1.8 var(--f-body);overflow-wrap:anywhere}
 #obs-feedback{margin:4px 0 12px;color:#d6cebb;font:13px/1.7 var(--f-body);overflow-wrap:anywhere}#obs-feedback:empty{display:none}
 .obs-secondary{display:flex;gap:8px;margin:8px 0 4px}.obs-secondary button{flex:1;min-width:0;min-height:48px;padding:10px 6px;color:#ded6c2;border:1px solid #5c5749;border-radius:2px;background:#161a14;font:14px/1.5 var(--f-body);white-space:nowrap}.obs-secondary button[hidden]{display:none}
-.obs-frame[data-closed=true] #obs-image,.obs-frame[data-closed=true] .obs-effect{visibility:hidden}
+.obs-frame[data-closed=true] #obs-image,.obs-frame[data-closed=true] #obs-site-overlay,.obs-frame[data-closed=true] .obs-effect{visibility:hidden}
 .obs-frame[data-closed=true]::before,.obs-frame[data-closed=true]::after{display:none}
 #obs-closed{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#d4cdbd;background:#0c0f0b;font:16px/1.8 var(--f-body);padding:24px;text-align:center}
 #obs-closed[hidden]{display:none}#obs-closed small{font-size:13px;max-width:24em}
