@@ -6,7 +6,7 @@
   s.seen=Array.isArray(s.seen)?s.seen.filter(x=>typeof x==='string').slice(-24):[];
   s.nextAt=number(s.nextAt);s.lastAt=number(s.lastAt);
   const e=s.event;
-  if(!e||!Number.isInteger(e.id)||e.id<0||e.id>8||typeof e.key!=='string'||!Number.isFinite(e.start)||!Number.isFinite(e.end)||e.end<=e.start||e.end-e.start>DURATION)s.event=null;
+  if(!e||!Number.isInteger(e.id)||e.id<0||e.id>11||typeof e.key!=='string'||!Number.isFinite(e.start)||!Number.isFinite(e.end)||e.end<=e.start||e.end-e.start>DURATION)s.event=null;
   return s;
  }
  function hash(key,seed){let n=seed>>>0;for(const c of key)n=Math.imul(n^c.charCodeAt(0),16777619)>>>0;return n;}
@@ -18,7 +18,11 @@
   const n=hash(encounter,seed);
   // Only 35% of actual anomalies bleed out; revisiting/reloading never rerolls.
   if(n%100>=35)return changed;
-  s.event={id:Math.floor(n/100)%9,key:encounter,start:now,end:now+DURATION,glimpsed:false};
+  // Keep the same 35% overall trigger rate and all old 0..8 story IDs.
+  // A minority of *new* encounters now picks one of three subtler additions;
+  // existing persisted encounters never reroll.
+  const id=(n>>>18)%5===0?9+((n>>>11)%3):Math.floor(n/100)%9;
+  s.event={id,key:encounter,start:now,end:now+DURATION,glimpsed:false};
   s.nextAt=now+COOLDOWN;return changed;
  }
  function calm(s,now){normalize(s);s.event=null;s.nextAt=Math.max(s.nextAt,number(now)+COOLDOWN);}
