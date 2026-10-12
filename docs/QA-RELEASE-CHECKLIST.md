@@ -24,7 +24,7 @@
 | smoke | JS/HTMLの基本契約、ガチャ・観測モデル、レアリティ、証言/人事、保存、安全、CSP一致 |
 | browser | Playwright Chromium。320/390/430/横等で導入、観測、異変100種類、課員、図鑑、アカウント、レイアウト |
 | webkit | Playwright WebKit。人物・記録・侵入、quiet/演出軽減、iOSに近いブラウザーエンジン |
-| security-rules | Firebase Firestoreエミュレーターによる権限・削除済み印・不正書込の拒否 |
+| security-rules | Firebase Firestoreエミュレーターでの権限・削除済み印と、実トランザクション2端末競合・削除後復活拒否 |
 | screenshots/artifacts | QA出力の画像・結果JSON。PRのコード差分と一緒にレビュー |
 
 代表的な実行：\`node tests/smoke.mjs\`、\`node tests/observation-model.cjs\`、\`node tests/intro.cjs\`、\`node tests/personnel-discrepancies.cjs\`、\`node tests/account-catalog.cjs\`。ブラウザテストはPlaywrightとブラウザ・日本語フォントが必要。実行できない環境ではCI結果を根拠にし、**ローカル実行したと偽らない**。
@@ -90,6 +90,8 @@ PRのhead固定 → 各CI成功 → ブラウザartifact目視
 3. iPhone実機のSafariで縦・横、タップ、画像比較、異変ターゲット、下部ナビ、低刺激設定、スクロール・復帰を検証。
 4. 100事件のID・バイナリ、追加観測地点の品質を追跡。生成済み素材を公開済みと混同しない。
 5. 第0章初回体験と翌日再訪を複数人で確認。脱落率・恐怖・理解・再訪を分けて記録する。
+
+**本番・実機手順と記録方法**：[本番Firebase・iPhone Safari検収記録](FIREBASE-PRODUCTION-QA.md)（Issue #75）。
 
 **これらは未検証であり、コードの変更だけでチェックを付けない。**
 
