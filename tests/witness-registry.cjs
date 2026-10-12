@@ -18,6 +18,7 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
   assert(!(await p.locator('.catalog').innerText()).includes('きさらぎ駅'),'not acquired report title is absent');
   await entry.click();
   assert(await p.locator('.witness-dossier').isVisible());
+  assert.equal(await p.locator('.witness-revisions').count(),0,'classified revisions are not present before rank and extra records');
   assert(await p.locator('.witness-photo').isVisible(),'deliberately missing portrait renders without a broken image');
   assert.equal(await p.locator('.witness-dossier img').count(),0);
   assert((await p.locator('.witness-dossier').innerText()).includes('巡回票'));
@@ -46,6 +47,17 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
   assert((await entry.innerText()).includes('2件'));
   await entry.click();
   assert.equal(await p.locator('[data-witness-case]').count(),1);
+  assert.equal(await p.locator('.witness-revisions').count(),0,'owned records still require high clearance');
+  await p.evaluate(()=>{S.pulls=RANKS[10].need;openWitnessDossier('u1');});
+  assert.equal(await p.locator('.witness-revisions').count(),1);
+  await p.locator('.witness-revisions summary').click();
+  assert.equal(await p.locator('.witness-revisions section').count(),2,'rank 11 reveals only two earned layers');
+  assert(!(await p.locator('.witness-revisions').innerText()).includes('抹消された照会履歴'),'higher tier is not in the DOM');
+  assert.equal(await p.locator('.witness-dossier img').count(),0,'no fabricated missing-person portrait leaks');
+  await p.evaluate(()=>{S.pulls=RANKS[14].need;openWitnessDossier('u1');});
+  assert.equal(await p.locator('.witness-revisions section').count(),0,'collapsed confidential notes require a deliberate open');
+  await p.locator('.witness-revisions summary').click();
+  assert.equal(await p.locator('.witness-revisions section').count(),2,'three real cases required before exposing rank 15 layer');
   await p.locator('.witness-related summary').click();
   await p.locator('[data-witness-case="u2"]').click();
   assert((await p.locator('.witness-record').innerText()).includes('列車に乗っていない'));
