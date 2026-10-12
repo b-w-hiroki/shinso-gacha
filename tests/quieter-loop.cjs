@@ -12,6 +12,20 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  await p.screenshot({path:'docs/qa-incursions/route-unlocked-390.jpg'});
  await p.evaluate(()=>{S.currency=5000;const o=observationState();o.collected=20;o.pending=null;go('lab');renderObservationLab();});await p.locator('.watch-upgrades summary').click();
  assert(await p.locator('[data-watch-upgrade="patrol"]').isVisible());assert.equal(await p.locator('[data-watch-upgrade="suppression"]').count(),0);
+ // A fixed navigation must never obstruct the first newly available upgrade.
+ // Validate the real hit target on narrow portrait and short landscape phones.
+ for(const [width,height] of [[320,568],[390,680],[844,390]]){
+  await p.setViewportSize({width,height});
+  const button=p.locator('[data-watch-upgrade="patrol"]');
+  await button.scrollIntoViewIfNeeded();
+  assert(await button.evaluate(e=>{
+   const r=e.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2,hit=document.elementFromPoint(x,y);
+   const nav=document.querySelector('.nav')?.getBoundingClientRect();
+   return r.width>=44&&r.height>=44&&y>0&&y<innerHeight&&
+    (!nav||y<nav.top)&&!!hit&&(hit===e||e.contains(hit));
+  }),'patrol upgrade must be directly tappable above fixed nav at '+width+'x'+height);
+ }
+ await p.setViewportSize({width:390,height:680});
  await p.locator('[data-watch-upgrade="patrol"]').click();
  await p.evaluate(()=>{go('home');setHomeTab('desk');const o=observationState();o.tapProgress=0;o.autoLastAt=Date.now()-6000;watchLastTick=0;renderObservation();});
  const money=await p.evaluate(()=>S.currency);await p.evaluate(()=>observationTick());assert.equal(await p.evaluate(()=>S.observation.tapProgress),1);assert.equal(await p.evaluate(()=>S.currency),money,'Automatic input is not a manual 1pt tap');
