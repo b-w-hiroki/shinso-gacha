@@ -7,8 +7,8 @@
  const file=({mode,rarity})=>{
   const photos=[source(mode)];
   if(rarity>0)photos.unshift(
-   '../assets/observation/photo-deltas/'+mode+'-'+rarity+'.webp',
-   '../assets/observation/alt-overlays/'+mode+'-'+rarity+'.svg'
+   '../assets/observation/alt-overlays/'+mode+'-'+rarity+'.svg',
+   '../assets/observation/photo-deltas/'+mode+'-'+rarity+'.webp'
   );
   return photos;
  };
