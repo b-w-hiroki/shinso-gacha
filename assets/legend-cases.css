@@ -31,3 +31,14 @@
 .forecast-cross-case p,.forecast-cross-case small{display:block;font-size:13px;line-height:1.75;color:#d1c5b2}
 .forecast-cross-case article{margin:12px 0;padding:10px;border-left:2px solid #8b7860;background:#262a2344}
 .forecast-cross-case article button{display:block;min-height:44px;width:100%;margin-top:10px;white-space:normal;text-align:left}
+
+/* Three independently earned reports form a restrained paper register. */
+.forecast-triple{margin:14px 0 5px;padding:4px 12px 12px;border:1px solid #716351;background:#282820}
+.forecast-triple>summary{min-height:48px;padding:12px 0;cursor:pointer;color:#f3e3c6;font:600 15px/1.6 var(--f-body)}
+.forecast-triple p{color:#ded0bb;font:14px/1.75 var(--f-body);margin:12px 0}
+.forecast-triple ol{padding:0;margin:12px 0;list-style:none;display:grid;gap:7px}
+.forecast-triple li{display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px 12px;border-bottom:1px solid #5c5545;padding:9px 0;font:14px/1.6 var(--f-body)}
+.forecast-triple li small{color:#d9bd8a;font:12px/1.65 var(--f-mono)}
+.forecast-triple>small{display:block;color:#c5b9a4;font:12px/1.65 var(--f-body)}
+@media(max-width:350px){.forecast-triple{padding-inline:9px}.forecast-triple li{display:block}}
+@media(prefers-reduced-motion:reduce){.forecast-triple *{animation:none!important;transition:none!important}}
