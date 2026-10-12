@@ -32,14 +32,61 @@ function observationSync(now=Date.now()){
 }
 function watchDuration(ms){const minutes=Math.max(0,Math.ceil(ms/60000));return minutes>=60?`${Math.floor(minutes/60)}時間${minutes%60?`${minutes%60}分`:''}`:`${minutes}分`;}
 function watchElapsed(ms){const minutes=Math.max(1,Math.floor(ms/60000));return minutes>=60?`${Math.floor(minutes/60)}時間${minutes%60?`${minutes%60}分`:''}`:`${minutes}分`;}
-let watchZoom=1;
-function watchZoomToggle(){
- watchZoom=watchZoom===1?2:1;
+let watchZoom=1,watchPanX=0,watchPanY=0,watchPanPointer=null,watchPanConsumed=false;
+function watchZoomPaint(){
  const f=document.getElementById('obs-frame'),button=document.getElementById('obs-zoom-toggle');
- if(f)f.dataset.zoom=String(watchZoom);
- if(button){button.setAttribute('aria-pressed',String(watchZoom===2));button.textContent=watchZoom===2?'全体表示':'拡大 2×';}
+ if(!f)return;
+ const box=document.getElementById('obs-image').getBoundingClientRect();
+ const pan=WatchZoom.clampPan(box.width,box.height,watchZoom,watchPanX,watchPanY);
+ if(pan){watchPanX=pan.x;watchPanY=pan.y;}
+ f.dataset.zoom=String(watchZoom);
+ f.style.setProperty('--obs-pan-x',watchPanX+'px');
+ f.style.setProperty('--obs-pan-y',watchPanY+'px');
+ f.setAttribute('aria-label',watchZoom===2?'観測映像。ドラッグまたは矢印キーで移動、タップで観測':'観測映像を確認');
+ if(button){
+  button.setAttribute('aria-pressed',String(watchZoom===2));
+  button.setAttribute('aria-label',watchZoom===2?'全体表示へ戻す。拡大中は画像をドラッグか矢印キーで移動できます':'観測画像を2倍に拡大');
+  button.textContent=watchZoom===2?'全体表示':'拡大 2×';
+ }
+}
+function watchZoomToggle(){
+ watchZoom=watchZoom===1?2:1;watchPanX=0;watchPanY=0;watchPanPointer=null;
+ watchZoomPaint();
 }
 document.getElementById('obs-zoom-toggle')?.addEventListener('click',watchZoomToggle);
+const watchPanFrame=document.getElementById('obs-frame');
+watchPanFrame?.addEventListener('pointerdown',event=>{
+ watchPanConsumed=false;
+ if(watchZoom!==2||watchPanFrame.dataset.sceneAlt!=='true'||watchPanFrame.disabled)return;
+ watchPanPointer={id:event.pointerId,x:event.clientX,y:event.clientY,startX:event.clientX,startY:event.clientY,moved:false};
+});
+watchPanFrame?.addEventListener('pointermove',event=>{
+ const drag=watchPanPointer;
+ if(!drag||watchZoom!==2||event.pointerId!==drag.id)return;
+ const distance=Math.hypot(event.clientX-drag.startX,event.clientY-drag.startY);
+ if(distance>9)drag.moved=true;
+ if(!drag.moved)return;
+ watchPanX+=event.clientX-drag.x;watchPanY+=event.clientY-drag.y;
+ drag.x=event.clientX;drag.y=event.clientY;
+ watchZoomPaint();
+ if(event.cancelable)event.preventDefault();
+});
+watchPanFrame?.addEventListener('pointerup',event=>{
+ if(watchPanPointer?.id!==event.pointerId)return;
+ if(watchPanPointer.moved)watchPanConsumed=true;
+ watchPanPointer=null;
+});
+watchPanFrame?.addEventListener('pointercancel',()=>{
+ watchPanConsumed=false;watchPanPointer=null;
+});
+watchPanFrame?.addEventListener('keydown',event=>{
+ if(watchZoom!==2||watchPanFrame.dataset.sceneAlt!=='true'||watchPanFrame.disabled)return;
+ const movement={ArrowLeft:[40,0],ArrowRight:[-40,0],ArrowUp:[0,40],ArrowDown:[0,-40]}[event.key];
+ if(!movement)return;
+ event.preventDefault();
+ watchPanX+=movement[0];watchPanY+=movement[1];
+ watchZoomPaint();
+});
 function renderObservation(){
  const f=document.getElementById('obs-frame');if(!f||isLite())return;
  const o=observationSync(),p=o.pending,m=OBSERVATIONS[o.mode],r=p?.rarity??0;
@@ -130,6 +177,7 @@ function observationTouchFeedback(event,strike){
  watchTouchTimer=setTimeout(()=>frame.classList.remove('obs-touched','obs-strike'),180);
 }
 function observationCollect(event){
+ if(watchPanConsumed){watchPanConsumed=false;return;} // a drag cannot also gain 1 pt
  if(isLite())return;
  const o=observationSync();if(o.mind.closed)return;
  const strike=!!o.pending&&o.pending.rarity>0;
@@ -139,7 +187,7 @@ function observationCollect(event){
  if(strike){
   const image=document.getElementById('obs-image'),r=image.getBoundingClientRect();
   const isAlt=!!WatchLocations.current(o.mode,o.pending.rarity,o.pending.sequence);
-  point=isAlt?WatchZoom.point(event.clientX-r.left,event.clientY-r.top,r.width,r.height,watchZoom)
+  point=isAlt?WatchZoom.point(event.clientX-r.left,event.clientY-r.top,r.width,r.height,watchZoom,watchPanX,watchPanY)
              :{x:(event.clientX-r.left)/r.width,y:(event.clientY-r.top)/r.height};
  }
  const contact=strike&&WatchModel.hit(o,point);
@@ -396,7 +444,7 @@ function fitObservation(){
  const reserved=['--obs-status-row','--obs-copy-row','--obs-control-row'].reduce((n,key)=>n+parseFloat(rows.getPropertyValue(key)),18);
  const minimum=innerHeight>=innerWidth?140:180;
  const height=Math.floor(Math.max(minimum,Math.min(560,innerHeight-navHeight-top-reserved)));
- if(Math.abs(height-f.height)>1)frame.style.setProperty('--obs-height',`${height}px`);
+ if(Math.abs(height-f.height)>1){frame.style.setProperty('--obs-height',`${height}px`);if(watchZoom===2)requestAnimationFrame(watchZoomPaint);}
 }
 const scheduleObservationFit=RuntimeSafety.frame(fitObservation);
 addEventListener('resize',scheduleObservationFit);
