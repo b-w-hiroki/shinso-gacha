@@ -21,8 +21,13 @@ for(let i=0;i<1000;i++){
  assert.deepEqual(copy.event,s.event);M.tick(copy,{now:now+M.DURATION,encounter:'watch:'+i,seed:42,engaged:true});assert.equal(copy.event,null);
  M.tick(copy,{now:now+M.COOLDOWN+1,encounter:'watch:'+i,seed:42,engaged:true});assert.equal(copy.event,null,'same anomaly cannot recur');
 }
-assert.equal(states.size,9);assert(accepted>280&&accepted<420);
+assert.equal(states.size,12,'old nine plus three new atmospheric variants must all be reachable');assert(accepted>280&&accepted<420);
 for(const flags of [{visible:false},{quiet:true},{engaged:false}]){const s={};M.tick(s,{now,encounter:'watch:1',seed:42,engaged:true,...flags});assert.equal(s.event,null);assert.equal(s.seen.length,0);}
 const s={event:{id:6,key:'test',start:now,end:now+90000},nextAt:0};M.calm(s,now+1000);assert.equal(s.event,null);assert.equal(s.nextAt,now+121000);
 assert.equal(M.normalize({event:{id:99},seen:[null,3,'valid']}).event,null);
-console.log('All nine spillovers, probability, reload/no reroll, cooldown, expiry, quiet/hidden/idle and calm passed');
+for(const id of [0,3,6,8,9,10,11]){
+ const event={id,key:'persist:'+id,start:now,end:now+90000};
+ assert.deepEqual(M.normalize({event:{...event}}).event,event,'old and new variants survive normalization');
+}
+assert.equal(M.normalize({event:{id:12,key:'bad',start:now,end:now+90000}}).event,null);
+console.log('All twelve spillovers, unchanged 35% trigger, reload/no reroll, cooldown, expiry, quiet/hidden/idle and calm passed');
