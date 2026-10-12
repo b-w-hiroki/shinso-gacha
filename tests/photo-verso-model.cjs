@@ -1,0 +1,14 @@
+const assert=require('node:assert/strict'),Verso=require('../assets/photo-verso-model.js');
+assert.equal(Verso.inspect('photo',1,null),null);
+assert.equal(Verso.inspect('cctv',1,{rarities:{1:1}}),null);
+assert.equal(Verso.inspect('photo',3,{rarities:{0:2,1:1}}),null);
+assert.equal(Verso.inspect('photo',1,{rarities:{1:0}}),null);
+assert.equal(Verso.inspect('photo',-1,{rarities:{1:1}}),null);
+assert.equal(Verso.inspect('photo',99,{rarities:{1:1}}),null);
+const records={rarities:{0:1,1:1,3:1}};
+const original=JSON.stringify(records);
+const known=[0,1,3].map(i=>Verso.inspect('photo',i,records));
+assert(known.every(Boolean));assert.equal(new Set(known.map(x=>x.title)).size,3);
+assert(!JSON.stringify(known).includes('在室者欄の照会'),'rarity 2 must remain undisclosed');
+assert.equal(JSON.stringify(records),original,'verso must not mutate acquired records');
+console.log('Photograph reverse: exact rarity gates, no reward/state mutation or unowned text passed');
