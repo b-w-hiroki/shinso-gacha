@@ -8,7 +8,10 @@ const SEEPAGE_CASES=[
  {kind:'reflection',copy:'閉じたはずの窓に、誰かが立っていた。',member:'senior'},
  {kind:'colleague',copy:'白瀬は、あなたと同じ筆跡で同じ一文を書き続けている。「まだ、あなたが書き終わっていません」',member:'records'},
  {kind:'colleague',copy:'榊の唇は動いていない。机の下から、榊の声がする。「回線は、あなたの側に残っています」',member:'equipment'},
- {kind:'colleague',copy:'三輪の視線だけが、あなたの背後に残る。「そこは、私の席だったはずです」',member:'senior'}
+ {kind:'colleague',copy:'三輪の視線だけが、あなたの背後に残る。「そこは、私の席だったはずです」',member:'senior'},
+ {kind:'caption',copy:'照会結果：あなたの確認印が、操作前から押されています',member:'records'},
+ {kind:'reflection',copy:'モニタの縁に、誰も座っていない席が映る。',member:'equipment'},
+ {kind:'colleague',copy:'白瀬はまだ返事をしていない。机の下の受領票には、同じ言葉が書き終えられている。「お待ちしていました」',member:'records'}
 ];
 let seepageTimer=null,seepageGlimpseKey='';
 function playerSeepageState(){
