@@ -170,6 +170,23 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'false','idle scene switch repaints the original');
  await p.evaluate(()=>{const o=observationState();o.sequence=3;renderObservation();});
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true','later idle scene returns to its own image');
+ // Reverse-side paper exists only for an actually acquired classroom image variant.
+ await p.evaluate(()=>{
+  const o=observationState();
+  o.locationRecords['alt:photo']={visits:1,lastSequence:1,firstAt:Date.now(),rarities:{1:1}};
+  showAlternateLocationRecord('photo',1);
+ });
+ assert.equal(await p.locator('.site-verso').count(),1,'earned classroom photograph reveals a reverse page');
+ await p.locator('.site-verso summary').click();
+ assert((await p.locator('.site-verso-paper').innerText()).includes('座席配置'));
+ assert(!(await p.locator('.site-verso-paper').innerText()).includes('在室者欄'),'unowned rarity must not leak its reverse');
+ if(!process.env.QA_WEBKIT){
+  await p.setViewportSize({width:390,height:844});
+  await p.locator('.site-verso').scrollIntoViewIfNeeded();
+  await p.screenshot({path:'docs/qa-incursions/acquired-photo-verso-390.jpg',quality:85});
+ }
+ await p.evaluate(()=>showAlternateLocationRecord('cctv',1));
+ assert.equal(await p.locator('.site-verso').count(),0,'unrelated surveillance footage has no photographic backside');
  await p.evaluate(()=>save());await p.reload();assert.equal(await p.evaluate(()=>WatchLocations.discovered(S.observation.locationRecords)[0].rarities[1]),1);
  assert.equal(await p.evaluate(()=>S.currency),wallet+projectedContactTaps,'real coordinate taps earn their normal 1pt each');
  assert.deepEqual(errors,[]);console.log('New scenes: earned R/SR/SSR, original suppression coordinates, mobile image, save and secrecy passed');
