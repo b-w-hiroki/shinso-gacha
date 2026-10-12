@@ -8,7 +8,15 @@ const SEEPAGE_CASES=[
  {kind:'reflection',copy:'閉じたはずの窓に、誰かが立っていた。',member:'senior'},
  {kind:'colleague',copy:'白瀬は、あなたと同じ筆跡で同じ一文を書き続けている。「まだ、あなたが書き終わっていません」',member:'records'},
  {kind:'colleague',copy:'榊の唇は動いていない。机の下から、榊の声がする。「回線は、あなたの側に残っています」',member:'equipment'},
- {kind:'colleague',copy:'三輪の視線だけが、あなたの背後に残る。「そこは、私の席だったはずです」',member:'senior'}
+ {kind:'colleague',copy:'三輪の視線だけが、あなたの背後に残る。「そこは、私の席だったはずです」',member:'senior'},
+ // Only after actually recovered multiple anomalies + clearance. These fictional
+ // cues are atmospheric, never controls or real surveillance assertions.
+ {kind:'caption',copy:'この操作の受領印は、触れる前に押されていました',member:'records'},
+ {kind:'caption',copy:'閲覧者欄が先に増えている。あなたの名前は、まだありません',member:'equipment'},
+ {kind:'reflection',copy:'こちらが動くより先に、反射だけが画面の端へ移った',member:'records'},
+ {kind:'reflection',copy:'映像を閉じても、記録したはずのない後ろ姿だけが残った',member:'senior'},
+ {kind:'colleague',copy:'白瀬が真っ白な票に二度目の受領印を押す。「一度目は、あなたが来る前でした」',member:'records'},
+ {kind:'colleague',copy:'三輪が空の受信箱に頷く。「返事はもう届いている。まだ質問していないのか」',member:'senior'}
 ];
 let seepageTimer=null,seepageGlimpseKey='';
 function playerSeepageState(){
@@ -25,7 +33,12 @@ function renderPlayerSeepage(){
  const modal=!!document.querySelector('dialog[open]')||!document.getElementById('sheet-bg').hidden||!document.getElementById('stage').hidden;
  const allowed=!quiet&&!document.hidden&&!modal&&!document.querySelector('[data-view="menu"]:not([hidden])');
  const previous=s.event;
- const changed=SeepageModel.tick(s,{now,encounter,seed:o.seed,engaged,visible:allowed,quiet});
+ // No new scare frequency. Deep variants only widen the fiction after real
+ // collected anomalies and rank, not after waiting idle or buying sensitivity.
+ const recovered=Object.entries(o.collection||{}).filter(([key,n])=>
+  Number.isSafeInteger(n)&&n>0&&/:[123]$/.test(key)).length;
+ const deep=rankIdx()>=6&&recovered>=2;
+ const changed=SeepageModel.tick(s,{now,encounter,seed:o.seed,engaged,visible:allowed,quiet,deep});
  if(s.event&&s.event!==previous&&typeof legendSeepageContext==='function')s.event.legendId=o.pending?.rarity>0?(Object.hasOwn(o.pending,'legendId')?o.pending.legendId:legendSeepageContext()):echo?echo.legendId:legendSeepageContext();
  if(changed)markDirty();
  const e=allowed?s.event:null,base=e?SEEPAGE_CASES[e.id]:null,c=e&&typeof legendSeepageCopy==='function'?legendSeepageCopy(e,base):base;
