@@ -135,6 +135,7 @@ function renderObservation(){
  const quiet=o.quiet||!!S.incursion?.quiet;
  f.dataset.trace=String(r>0&&condition===2&&!quiet?'1':'0');
  f.dataset.quiet=String(quiet);f.dataset.ready=String(!o.mind.closed);f.dataset.closed=String(o.mind.closed);f.disabled=o.mind.closed;f.setAttribute('aria-disabled',String(o.mind.closed));
+ const enhanceButton=document.getElementById('obs-enhance-toggle');if(enhanceButton)enhanceButton.disabled=o.mind.closed;
  const danger=!!p&&p.rarity>0;
  document.querySelectorAll('[data-watch="settings"]').forEach(b=>b.hidden=!watchSettingsUnlocked());
  document.getElementById('obs-rest').textContent=o.mind.closed?'観測を再開':'回線を切る';
