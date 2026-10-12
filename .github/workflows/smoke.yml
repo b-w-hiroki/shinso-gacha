@@ -41,6 +41,7 @@ jobs:
       - run: node tests/observation-photo-asset-audit.cjs
       - run: node tests/observation-single-master-delta.cjs
       - run: node tests/observation-photo-deltas.cjs
+      - run: node tests/observation-backside-model.cjs
       - run: node tests/observation-zoom.cjs
       - run: node tests/location-correlations-model.cjs
       - run: node tests/contamination-model.cjs
@@ -84,6 +85,9 @@ jobs:
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/observation-location-variants.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/observation-backside.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/location-correlations.cjs
@@ -189,6 +193,10 @@ jobs:
           QA_WEBKIT: 1
           QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/observation-location-variants.cjs
+        env:
+          QA_WEBKIT: 1
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/observation-backside.cjs
         env:
           QA_WEBKIT: 1
           QA_FONT: ${{ runner.temp }}/noto.otf
