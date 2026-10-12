@@ -29,5 +29,28 @@
   if(id!==undefined&&!knownIds.has(id))return [];
   return PAIRS.map(x=>inspect(discovered,x.id)).filter(x=>x&&(id===undefined||x.left.id===id||x.right.id===id));
  }
- return {inspect,list};
+ /* Three actual independently acquired anomalous locations create one
+  * fictional cross-source discrepancy; no extra reward or game state.
+  * Read-only; every returned site must be an acquired original. */
+ function triad(discovered,selectedId){
+  if(!knownIds.has(selectedId))return null;
+  const records=earned(discovered);
+  const current=records.get(selectedId);
+  if(!current||![1,2,3].some(r=>Number(current.rarities?.[r])>0))return null;
+  const candidates=Array.from(records.values()).filter(item=>
+   [1,2,3].some(r=>Number(item.rarities?.[r])>0));
+  if(candidates.length<3)return null;
+  const sites=[current,...candidates.filter(item=>item.id!==selectedId)].slice(0,3);
+  const rarities=sites.map(site=>[1,2,3].find(r=>Number(site.rarities?.[r])>0));
+  const sameStage=new Set(rarities).size===1;
+  return {
+   sites:sites.map((site,index)=>({id:site.id,title:site.title,source:site.source,file:site.file,rarity:rarities[index]})),
+   title:'三地点に残る同じ欠番',
+   record:sameStage
+    ?'離れた三地点が、同じ段階の異変として保管されている。照会簿では三件とも一つの空欄にまとめられていた。'
+    :'異なる段階で取得された三地点の映像が、一つの欠番で照会されている。原本の区分は食い違っている。',
+   warning:'原本は別々に回収された。照会者と照会理由は記録されていない。'
+  };
+ }
+ return {inspect,list,triad};
 });
