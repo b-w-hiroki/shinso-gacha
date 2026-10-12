@@ -15,6 +15,30 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  assert.equal(await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).visibility),'hidden','closed monitor cannot leak photograph or anomaly art');
  await p.evaluate(()=>{const o=observationState();o.mind.closed=false;renderObservation();});
  assert.equal(await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).visibility),'visible','restored monitor shows the visual evidence');
+
+ // This is a real pointer interaction, not just a mathematical transform test.
+ // Zooming must retain the same single earned point and hotspot as the 1x view.
+ const zoomButton=p.locator('#obs-zoom-toggle');
+ assert(await zoomButton.isVisible());
+ assert.equal(await zoomButton.getAttribute('aria-pressed'),'false');
+ await zoomButton.click();
+ assert.equal(await zoomButton.getAttribute('aria-pressed'),'true');
+ assert.equal(await p.locator('#obs-frame').getAttribute('data-zoom'),'2');
+ const zoomTap=await p.evaluate(()=>{
+  const f=document.getElementById('obs-image').getBoundingClientRect();
+  const target=WatchLocations.targets('cctv',1)[0],r=WatchZoom.rect(f.width,f.height,2);
+  const x=f.left+r.left+target[0]*r.width,y=f.top+r.top+target[1]*r.height;
+  if(!WatchZoom.point(x-f.left,y-f.top,f.width,f.height,2))throw Error('zoom target not visible');
+  return {x,y};
+ });
+ await p.evaluate(()=>document.getElementById('obs-frame').scrollIntoView({block:'center',behavior:'instant'}));
+ await p.mouse.click(zoomTap.x,zoomTap.y);
+ assert.equal(await p.evaluate(()=>observationState().pending.suppression),1,'2x projected real tap must count exactly once');
+ if(!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/alt-cctv-zoom-2x-390.jpg',quality:87});
+ await zoomButton.click();
+ assert.equal(await p.locator('#obs-frame').getAttribute('data-zoom'),'1');
+ await p.evaluate(()=>{observationState().pending.suppression=0;});
+
  const targetCheck=await p.evaluate(()=>{
   const o=observationState(),site=WatchLocations.targets(o.mode,o.pending.rarity),legacy=WatchModel.TARGETS[o.mode][o.pending.rarity];
   if(WatchModel.activeTargets(o)!==site||site===legacy)return false;
