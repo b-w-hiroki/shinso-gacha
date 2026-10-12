@@ -1,0 +1,60 @@
+name: build observation photo deltas
+on:
+  push:
+    branches:
+      - 'feat/observation-photo-deltas-*'
+    paths:
+      - 'scripts/build-observation-photo-deltas.py'
+      - '.github/workflows/build-observation-photo-deltas.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-photo-deltas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --disable-pip-version-check pillow==11.3.0 numpy==2.2.6
+      - name: Build image-relative WebP anomalies from committed original photo masters
+        run: python scripts/build-observation-photo-deltas.py
+      - name: Render reference montages of all four scenes
+        run: |
+          python - <<'PY'
+          from PIL import Image, ImageOps, ImageDraw
+          from pathlib import Path
+          base=Path('assets/observation')
+          scenes={'cctv':'cctv-underground-native.webp','photo':'photo-classroom-native.webp','vision':'vision-crossing-native.webp','dash':'dash-coast-road-native.webp'}
+          w,h=560,280
+          out=Image.new('RGB',(w*4,h*4),'#101212')
+          for row,(mode,file) in enumerate(scenes.items()):
+              master=Image.open(base/file).convert('RGBA')
+              for col,r in enumerate([0,1,2,3]):
+                  img=master.copy()
+                  if r:img=Image.alpha_composite(img,Image.open(base/'photo-deltas'/f'{mode}-{r}.webp').convert('RGBA'))
+                  img=ImageOps.fit(img.convert('RGB'),(w,h))
+                  out.paste(img,(col*w,row*h))
+          Path('docs/qa-incursions').mkdir(exist_ok=True,parents=True)
+          out.save('docs/qa-incursions/photo-deltas-grid.jpg',quality=89)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: observation-photo-deltas-generated
+          path: |
+            assets/observation/photo-deltas/
+            assets/observation/*-native.webp
+            docs/qa-incursions/photo-deltas-grid.jpg
+      - name: Commit binary photo evidence to same feature branch
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/observation/photo-deltas/
+          git diff --cached --quiet || (git commit -m "art(observation): integrate 12 photo-native WebP deltas" && git push origin HEAD:"$GITHUB_REF_NAME")

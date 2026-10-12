@@ -167,8 +167,8 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
  background-size:cover;background-position:center;
  filter:blur(7px) brightness(.43) saturate(.7);pointer-events:none;
 }
-/* Layer 1: native 2:1 photograph; layer 2 (when earned): SVG visual evidence.
-   Both share precisely the same coordinates and immutable touch targets. */
+/* Photo master + transparent native-photo perturbation + recognizable SVG clue.
+   All layers remain uncut in the same image-space coordinate system. */
 #obs-site-overlay{
  display:block;position:absolute;inset:0;z-index:1;pointer-events:none;
  background-size:100% 100%;background-position:center;background-repeat:no-repeat;
@@ -176,12 +176,12 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
 .obs-frame[data-scene-alt='true'] #obs-site-overlay{
  inset:auto;top:50%;left:50%;width:min(100%,calc(var(--obs-height) * 2));
  height:auto;aspect-ratio:2 / 1;transform:translate(-50%,-50%);
- background-size:100% 100%,100% 100%;
+ background-size:100% 100%,100% 100%,100% 100%;
  filter:saturate(.86) contrast(1.06);
  box-shadow:0 0 22px 7px rgba(3,8,7,.46);
 }
 .watch-site-record-image{position:relative;width:100%;aspect-ratio:2 / 1;background-color:#111816;background-size:cover;background-position:center;overflow:hidden;border:1px solid #555b52}
-.watch-site-record-overlay{position:absolute;inset:0;display:block;pointer-events:none;background-size:100% 100%;background-position:center;background-repeat:no-repeat}
+.watch-site-record-overlay{position:absolute;inset:0;display:block;pointer-events:none;background-size:100% 100%,100% 100%;background-position:center;background-repeat:no-repeat}
 .watch-site-record-overlay[hidden]{display:none}
 @media(prefers-reduced-motion:reduce){#obs-site-overlay,.watch-site-record-overlay{animation:none!important;transition:none!important}}
 

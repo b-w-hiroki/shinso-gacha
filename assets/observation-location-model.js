@@ -56,5 +56,6 @@
  function discovered(raw){const state=normalize(raw);return Object.values(scenes).filter(s=>state[s.id]).map(s=>({...s,...state[s.id]}));}
  function byId(id){return Object.values(scenes).find(s=>s.id===id)||null;}
  const overlay=(mode,rarity)=>Object.hasOwn(scenes,mode)&&[1,2,3].includes(rarity)?'assets/observation/alt-overlays/'+mode+'-'+rarity+'.svg':null;
- return {current,normalize,observe,discovered,byId,overlay,TARGETS,targets,imageRect,imagePoint};
+ const photoDelta=(mode,rarity)=>Object.hasOwn(scenes,mode)&&[1,2,3].includes(rarity)?'assets/observation/photo-deltas/'+mode+'-'+rarity+'.webp':null;
+ return {current,normalize,observe,discovered,byId,overlay,photoDelta,TARGETS,targets,imageRect,imagePoint};
 });

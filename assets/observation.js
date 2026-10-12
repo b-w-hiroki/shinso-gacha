@@ -42,10 +42,11 @@ function renderObservation(){
  const paint=`${o.mode}/${p?.sequence??o.sequence}/${r}/${condition}/${alternative}`;
  if(paint!==watchPaint){
   const im=document.getElementById('obs-image'),layer=document.getElementById('obs-site-overlay');im.style.backgroundImage=`url("${src}")`;im.style.backgroundPosition=alternative?'center':`${side} center`;
-  // A dim, enlarged copy fills the fixed monitor; the native 2:1 photograph
-  // and its anomaly layer stay sharp, complete and aligned in the foreground.
+  // The site photograph is always intact. An acquired anomaly adds both
+  // source-textured photographic evidence and the independently authored clue.
+  // All three share one uncropped native 2:1 image coordinate system.
   layer.style.backgroundImage=alternate
-   ?(r>0?`url("${WatchLocations.overlay(o.mode,r)}"), url("${src}")`:`url("${src}")`)
+   ?(r>0?`url("${WatchLocations.overlay(o.mode,r)}"), url("${WatchLocations.photoDelta(o.mode,r)}"), url("${src}")`:`url("${src}")`)
    :'none';
   f.style.setProperty('--obs-ratio',m.ratio);f.dataset.mode=o.mode;f.dataset.rarity=r;f.dataset.condition=String(condition);f.dataset.sceneAlt=String(alternative);
   f.classList.remove('obs-change');if(watchPaint){void f.offsetWidth;f.classList.add('obs-change');}watchPaint=paint;
@@ -195,9 +196,9 @@ function watchResearchHTML(o,mode){
 function showAlternateLocationRecord(mode,rarity){
  const o=observationState(),scene=WatchLocations.byId('alt:'+mode),entry=WatchLocations.discovered(o.locationRecords).find(s=>s.id==='alt:'+mode);
  if(!scene||![0,1,2,3].includes(rarity)||!entry?.rarities?.[rarity])return;
- const overlay=WatchLocations.overlay(mode,rarity),canCompare=rarity>0&&!!entry.rarities[0];
+ const overlay=WatchLocations.overlay(mode,rarity),delta=WatchLocations.photoDelta(mode,rarity),canCompare=rarity>0&&!!entry.rarities[0];
  const compare=canCompare?`<div class="watch-compare"><p id="watch-site-compare-status" aria-live="polite">発見した記録：${escapeHTML(scene.notes[rarity])}</p><button class="btn-paper" data-site-compare="${mode}:${rarity}" aria-pressed="false">平常の映像と見比べる</button></div>`:'';
- sheet('観測資料・追加地点',`<div class="watch-site-record-image" role="img" aria-label="${escapeHTML(scene.notes[rarity])}" style="background-image:url('assets/observation/${scene.file}')">${overlay?`<span class="watch-site-record-overlay" style="background-image:url('${overlay}')"></span>`:''}</div><div class="watch-record-caption"><b>${WatchModel.RARITY[rarity].name} ／ ${escapeHTML(scene.notes[rarity])}</b><span>この場所で回収 ${entry.rarities[rarity]}件</span></div>${compare}<p class="watch-note">この場所で実際に記録された映像。元の資料は変更されていません。</p>`);
+ sheet('観測資料・追加地点',`<div class="watch-site-record-image" role="img" aria-label="${escapeHTML(scene.notes[rarity])}" style="background-image:url('assets/observation/${scene.file}')">${overlay?`<span class="watch-site-record-overlay" style="background-image:url('${overlay}'),url('${delta}')"></span>`:''}</div><div class="watch-record-caption"><b>${WatchModel.RARITY[rarity].name} ／ ${escapeHTML(scene.notes[rarity])}</b><span>この場所で回収 ${entry.rarities[rarity]}件</span></div>${compare}<p class="watch-note">この場所で実際に記録された映像。元の資料は変更されていません。</p>`);
 }
 function showWatchRecord(mode,rarity,restored=false){
  const o=observationState(),key=mode+':'+rarity,m=OBSERVATIONS[mode];if(!m||!o.collection[key])return;

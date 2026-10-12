@@ -125,6 +125,7 @@ for(const [mode,title] of [['cctv','地下通路'],['photo','夜の教室'],['vi
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
  assert((await p.locator('#obs-image').evaluate(e=>getComputedStyle(e).backgroundImage)).includes(WatchLocations.byId('alt:'+mode).file));
  assert((await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).backgroundImage)).includes(mode+'-2.svg'));
+ assert((await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).backgroundImage)).includes('photo-deltas/'+mode+'-2.webp'));
 }
 // Acquired alternative locations are separate records, unseen ones have no placeholders.
 await p.setViewportSize({width:390,height:844});
