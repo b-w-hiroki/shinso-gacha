@@ -53,6 +53,9 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
   await p.locator('.witness-revisions summary').click();
   assert.equal(await p.locator('.witness-revisions section').count(),2,'rank 11 reveals only two earned layers');
   assert(!(await p.locator('.witness-revisions').innerText()).includes('抹消された照会履歴'),'higher tier is not in the DOM');
+  await p.setViewportSize({width:390,height:844});
+  await p.locator('.witness-revisions').scrollIntoViewIfNeeded();
+  if(!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/witness-revisions-390.jpg',quality:85});
   assert.equal(await p.locator('.witness-dossier img').count(),0,'no fabricated missing-person portrait leaks');
   await p.evaluate(()=>{S.pulls=RANKS[14].need;openWitnessDossier('u1');});
   assert.equal(await p.locator('.witness-revisions section:visible').count(),0,'collapsed confidential notes require a deliberate open');
