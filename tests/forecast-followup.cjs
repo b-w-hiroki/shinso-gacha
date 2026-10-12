@@ -103,6 +103,36 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
   assert((await p.locator('.legend-case h2').innerText()).length>0,'linked report can open its acquired case');
   assert.equal(await p.evaluate(()=>JSON.stringify({currency:S.currency,followups:S.forecastFollowups,levels:S.levels})),beforeCross,
    'cross-report reading is strictly non-rewarding and read-only');
+  // Third genuine acquired investigation and later observation unlock the
+  // shared three-report register without creating new reward/state counters.
+  await p.evaluate(()=>{
+   openLegendCase('u1');
+  });
+  assert.equal(await p.locator('.forecast-triple').count(),0,'only two reports: triple archive absent from DOM');
+  await p.evaluate(()=>{
+   S.levels.u9=3;
+   const now=Date.now(),day=now-3*86400000;
+   const state=ForecastFollowup.normalize(S.forecastFollowups);
+   state.entries.u9={mode:'cctv',issuedAt:day,observedAt:now-500000,rarity:2,firstSequence:11};
+   S.forecastFollowups=state;
+   openLegendCase('u1');
+  });
+  const beforeTriple=await p.evaluate(()=>JSON.stringify({currency:S.currency,followups:S.forecastFollowups,levels:S.levels}));
+  assert.equal(await p.locator('.forecast-triple').count(),1);
+  await p.locator('.forecast-cross-case summary').first().click();
+  await p.locator('.forecast-triple summary').click();
+  assert.equal(await p.locator('.forecast-triple li').count(),3);
+  assert((await p.locator('.forecast-triple').innerText()).includes('食い違う'));
+  assert(!(await p.locator('.forecast-triple').innerText()).includes('u8'),'unknown cases absent');
+  if(!process.env.QA_WEBKIT){
+   await p.setViewportSize({width:390,height:844});
+   await p.locator('.forecast-triple').scrollIntoViewIfNeeded();
+   await p.screenshot({path:'docs/qa-incursions/forecast-three-report-390.jpg',quality:85});
+  }
+  assert.equal(await p.evaluate(()=>JSON.stringify({currency:S.currency,followups:S.forecastFollowups,levels:S.levels})),beforeTriple,
+   'three-report archive reading never writes or rewards');
+  await p.evaluate(()=>{S.levels.u9=0;openLegendCase('u1');});
+  assert.equal(await p.locator('.forecast-triple').count(),0,'unearned third case must never leak');
   assert.deepEqual(errors,[]);
   console.log('Next-day forecast UI: gated issuance, real observation, one-time comparison and mail, responsive and persisted passed');
  }finally{await browser.close();server.close();}
