@@ -230,14 +230,21 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
 .obs-zoom-tools{gap:6px;align-items:flex-start}
 .obs-zoom-tools #obs-enhance-toggle{min-width:78px;padding-inline:7px}
 .obs-zoom-tools #obs-enhance-toggle[aria-pressed='true']{border-color:#a6bfa8;color:#f2ffe7;background:#304137}
+/* Use a lightweight inset screen lift rather than a costly full-frame
+   multi-texture CSS brightness filter. Keep photos/touch coordinates intact,
+   and avoid WebKit's animated GPU-filter compositor shutdown. */
 .obs-frame[data-scene-alt='true'][data-enhance='true'] #obs-site-overlay{
- filter:saturate(.92) contrast(1.10) brightness(1.22);
+ filter:none;
 }
-.obs-frame[data-scene-alt='true'][data-enhance='true'][data-mode='vision'] #obs-site-overlay{
- filter:saturate(.91) contrast(1.10) brightness(1.43);
+.obs-frame[data-scene-alt='true'][data-enhance='true'] #obs-site-overlay::after{
+ content:'';position:absolute;inset:0;pointer-events:none;
+ background:rgba(191,202,191,.12);
 }
-.obs-frame[data-scene-alt='true'][data-enhance='true'][data-mode='dash'] #obs-site-overlay{
- filter:saturate(.9) contrast(1.09) brightness(1.62);
+.obs-frame[data-scene-alt='true'][data-enhance='true'][data-mode='vision'] #obs-site-overlay::after{
+ background:rgba(191,202,191,.23);
+}
+.obs-frame[data-scene-alt='true'][data-enhance='true'][data-mode='dash'] #obs-site-overlay::after{
+ background:rgba(191,202,191,.30);
 }
 @media(max-width:350px){
  .obs-zoom-tools{gap:4px;right:9px}
