@@ -224,3 +224,23 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
 }
 .obs-zoom-tools .obs-zoom-hint[hidden]{display:none}
 @media(max-height:500px){.obs-zoom-tools .obs-zoom-hint{display:none}}
+
+/* Readability only: an optional per-source dark-area lift for phone displays.
+   Preserve the unmodified CC0 master, photographic evidence and touch geometry. */
+.obs-zoom-tools{gap:6px;align-items:flex-start}
+.obs-zoom-tools #obs-enhance-toggle{min-width:78px;padding-inline:7px}
+.obs-zoom-tools #obs-enhance-toggle[aria-pressed='true']{border-color:#a6bfa8;color:#f2ffe7;background:#304137}
+.obs-frame[data-scene-alt='true'][data-enhance='true'] #obs-site-overlay{
+ filter:saturate(.92) contrast(1.10) brightness(1.22);
+}
+.obs-frame[data-scene-alt='true'][data-enhance='true'][data-mode='vision'] #obs-site-overlay{
+ filter:saturate(.91) contrast(1.10) brightness(1.43);
+}
+.obs-frame[data-scene-alt='true'][data-enhance='true'][data-mode='dash'] #obs-site-overlay{
+ filter:saturate(.9) contrast(1.09) brightness(1.62);
+}
+@media(max-width:350px){
+ .obs-zoom-tools{gap:4px;right:9px}
+ .obs-zoom-tools button{font-size:12px;min-width:74px}
+ .obs-zoom-tools #obs-enhance-toggle{min-width:72px;padding-inline:5px}
+}
