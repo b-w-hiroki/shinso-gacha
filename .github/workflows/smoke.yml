@@ -196,7 +196,13 @@ jobs:
         env:
           QA_WEBKIT: 1
           QA_FONT: ${{ runner.temp }}/noto.otf
-      - run: node tests/observation-location-variants.cjs
+      - name: Verify all four photo modes in independent WebKit processes
+        shell: bash
+        run: |
+          set -euo pipefail
+          for mode in cctv photo vision dash; do
+            QA_OBSERVATION_MODE="$mode" node tests/observation-location-variants.cjs
+          done
         env:
           QA_WEBKIT: 1
           QA_FONT: ${{ runner.temp }}/noto.otf
