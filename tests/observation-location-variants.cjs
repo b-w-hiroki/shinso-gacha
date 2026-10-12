@@ -7,6 +7,22 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  await p.evaluate(()=>openEncyclopedia('places'));assert.equal(await p.locator('[data-catalog-entry^="alt:"]').count(),0,'unknown places absent');
  await p.evaluate(()=>openEncyclopedia('anomalies'));assert.equal(await p.locator('[data-catalog-entry^="alt:"]').count(),0,'unknown anomaly locations absent');
  await p.evaluate(()=>{hideSheet();go('home');const o=observationState(),now=Date.now();o.mode='cctv';o.sequence=1;o.mind.closed=false;o.pending={mode:'cctv',rarity:1,readyAt:now,expiresAt:now+3600000,sequence:1,suppression:0};renderObservation();});
+ // No guide, zoom control or dark-area control may cover the footage.
+ for(const [width,height] of [[320,568],[390,844],[430,932],[844,390]]){
+  await p.setViewportSize({width,height});
+  await p.evaluate(()=>fitObservation());
+  const geometry=await p.evaluate(()=>{
+   const image=document.getElementById('obs-frame').getBoundingClientRect();
+   const controls=document.querySelector('.obs-zoom-tools').getBoundingClientRect();
+   const guide=document.getElementById('obs-zoom-hint').getBoundingClientRect();
+   return {imageTop:image.top,controlsBottom:controls.bottom,guideWidth:guide.width};
+  });
+  assert(geometry.controlsBottom<=geometry.imageTop+1,'viewer controls overlap evidence at '+width+'x'+height);
+  assert(geometry.guideWidth<=1,'instruction must be screen-reader-only at '+width+'x'+height);
+ }
+ await p.setViewportSize({width:390,height:844});
+ await p.evaluate(()=>fitObservation());
+ if(!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/observation-guide-outside-footage-390.jpg',quality:86});
  assert.equal(await p.locator('#obs-name').innerText(),'地下通路');
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
  assert((await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).backgroundImage)).includes('cctv-1.svg'));
