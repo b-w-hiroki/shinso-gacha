@@ -32,7 +32,22 @@ function observationSync(now=Date.now()){
 }
 function watchDuration(ms){const minutes=Math.max(0,Math.ceil(ms/60000));return minutes>=60?`${Math.floor(minutes/60)}時間${minutes%60?`${minutes%60}分`:''}`:`${minutes}分`;}
 function watchElapsed(ms){const minutes=Math.max(1,Math.floor(ms/60000));return minutes>=60?`${Math.floor(minutes/60)}時間${minutes%60?`${minutes%60}分`:''}`:`${minutes}分`;}
-let watchZoom=1,watchPanX=0,watchPanY=0,watchPanPointer=null,watchPanConsumed=false,watchZoomScene=null;
+let watchZoom=1,watchPanX=0,watchPanY=0,watchPanPointer=null,watchPanConsumed=false,watchZoomScene=null,watchEnhance=false;
+function watchEnhancePaint(){
+ const frame=document.getElementById('obs-frame'),button=document.getElementById('obs-enhance-toggle');
+ if(!frame||!button)return;
+ const enabled=watchEnhance&&frame.dataset.sceneAlt==='true';
+ frame.dataset.enhance=String(enabled);
+ button.hidden=frame.dataset.sceneAlt!=='true';
+ button.setAttribute('aria-pressed',String(enabled));
+ button.setAttribute('aria-label',enabled?'観測映像の暗部補正を解除':'暗い観測映像の暗部を補正');
+ button.textContent=enabled?'補正解除':'暗部補正';
+}
+document.getElementById('obs-enhance-toggle')?.addEventListener('click',()=>{
+ const frame=document.getElementById('obs-frame');
+ if(!frame||frame.dataset.sceneAlt!=='true'||frame.disabled)return;
+ watchEnhance=!watchEnhance;watchEnhancePaint();
+});
 function watchZoomPaint(){
  const f=document.getElementById('obs-frame'),button=document.getElementById('obs-zoom-toggle');
  if(!f)return;
@@ -100,7 +115,7 @@ function renderObservation(){
  const paint=`${o.mode}/${p?.sequence??o.sequence}/${r}/${condition}/${alternative}`;
  const sceneKey=`${o.mode}/${p?.sequence??o.sequence}/${alternative}`;
  if(sceneKey!==watchZoomScene){
-  watchZoomScene=sceneKey;watchZoom=1;watchPanX=0;watchPanY=0;watchPanPointer=null;
+  watchZoomScene=sceneKey;watchZoom=1;watchPanX=0;watchPanY=0;watchPanPointer=null;watchEnhance=false;
   watchZoomPaint();
  }
  const zoomButton=document.getElementById('obs-zoom-toggle');
@@ -116,6 +131,7 @@ function renderObservation(){
   f.style.setProperty('--obs-ratio',m.ratio);f.dataset.mode=o.mode;f.dataset.rarity=r;f.dataset.condition=String(condition);f.dataset.sceneAlt=String(alternative);
   f.classList.remove('obs-change');if(watchPaint){void f.offsetWidth;f.classList.add('obs-change');}watchPaint=paint;
  }
+ watchEnhancePaint();
  const quiet=o.quiet||!!S.incursion?.quiet;
  f.dataset.trace=String(r>0&&condition===2&&!quiet?'1':'0');
  f.dataset.quiet=String(quiet);f.dataset.ready=String(!o.mind.closed);f.dataset.closed=String(o.mind.closed);f.disabled=o.mind.closed;f.setAttribute('aria-disabled',String(o.mind.closed));
