@@ -32,6 +32,14 @@ function observationSync(now=Date.now()){
 }
 function watchDuration(ms){const minutes=Math.max(0,Math.ceil(ms/60000));return minutes>=60?`${Math.floor(minutes/60)}時間${minutes%60?`${minutes%60}分`:''}`:`${minutes}分`;}
 function watchElapsed(ms){const minutes=Math.max(1,Math.floor(ms/60000));return minutes>=60?`${Math.floor(minutes/60)}時間${minutes%60?`${minutes%60}分`:''}`:`${minutes}分`;}
+let watchZoom=1;
+function watchZoomToggle(){
+ watchZoom=watchZoom===1?2:1;
+ const f=document.getElementById('obs-frame'),button=document.getElementById('obs-zoom-toggle');
+ if(f)f.dataset.zoom=String(watchZoom);
+ if(button){button.setAttribute('aria-pressed',String(watchZoom===2));button.textContent=watchZoom===2?'全体表示':'拡大 2×';}
+}
+document.getElementById('obs-zoom-toggle')?.addEventListener('click',watchZoomToggle);
 function renderObservation(){
  const f=document.getElementById('obs-frame');if(!f||isLite())return;
  const o=observationSync(),p=o.pending,m=OBSERVATIONS[o.mode],r=p?.rarity??0;
@@ -131,7 +139,7 @@ function observationCollect(event){
  if(strike){
   const image=document.getElementById('obs-image'),r=image.getBoundingClientRect();
   const isAlt=!!WatchLocations.current(o.mode,o.pending.rarity,o.pending.sequence);
-  point=isAlt?WatchLocations.imagePoint(event.clientX-r.left,event.clientY-r.top,r.width,r.height)
+  point=isAlt?WatchZoom.point(event.clientX-r.left,event.clientY-r.top,r.width,r.height,watchZoom)
              :{x:(event.clientX-r.left)/r.width,y:(event.clientY-r.top)/r.height};
  }
  const contact=strike&&WatchModel.hit(o,point);
