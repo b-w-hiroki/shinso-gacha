@@ -10,6 +10,10 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  assert.equal(await p.locator('#obs-name').innerText(),'地下通路');
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
  assert((await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).backgroundImage)).includes('cctv-1.svg'));
+ await p.evaluate(()=>{const o=observationState();o.mind.closed=true;renderObservation();});
+ assert.equal(await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).visibility),'hidden','closed monitor cannot leak photograph or anomaly art');
+ await p.evaluate(()=>{const o=observationState();o.mind.closed=false;renderObservation();});
+ assert.equal(await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).visibility),'visible','restored monitor shows the visual evidence');
  const targetCheck=await p.evaluate(()=>{
   const o=observationState(),site=WatchLocations.targets(o.mode,o.pending.rarity),legacy=WatchModel.TARGETS[o.mode][o.pending.rarity];
   if(WatchModel.activeTargets(o)!==site||site===legacy)return false;
