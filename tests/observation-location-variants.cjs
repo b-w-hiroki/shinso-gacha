@@ -166,7 +166,8 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    assert.equal(await enhance.getAttribute('aria-pressed'),'true','display compensation is explicit opt-in');
    assert.equal(await p.locator('#obs-frame').getAttribute('data-enhance'),'true');
    const corrected=await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).filter);
-   assert(corrected.includes('brightness(')&&regular!==corrected,'correction changes only display filter '+mode);
+   assert.equal(corrected,'none','enhanced imagery uses light-weight backing rather than GPU brightness filter: '+mode);
+   assert.notEqual(corrected,regular,'correction must change render pipeline: '+mode);
    assert(await p.locator('#obs-frame').evaluate(e=>e.getBoundingClientRect().width>0));
    if((mode==='vision'||mode==='dash')&&!process.env.QA_WEBKIT)
     await p.screenshot({path:'docs/qa-incursions/alt-'+mode+'-lowlight-on-390.jpg',quality:87});
