@@ -22,6 +22,13 @@
 .witness-lead{border-left:2px solid #86775b;padding:5px 0 5px 13px;font-size:14px;line-height:1.9}
 .witness-record,.witness-forecast{border-top:1px solid #555448;padding-top:12px;margin:18px 0;line-height:1.8}
 .witness-record-note{font-size:14px;color:#bdb8a7}.witness-related summary{min-height:46px;padding:9px 0}
+.witness-revisions{margin:18px 0;border-block:1px solid #67604d;padding:6px 0}
+.witness-revisions>summary{cursor:pointer;min-height:48px;padding:12px 4px;color:#e7d5ba;font-size:14px;line-height:1.55}
+.witness-revisions section{border-left:2px solid #71604d;margin:12px 0 16px;padding:3px 12px;background:linear-gradient(90deg,#33332944,transparent)}
+.witness-revisions section small{font:12px/1.5 var(--f-mono);color:#c5b18c}
+.witness-revisions section h3{font:600 16px/1.5 var(--f-body);margin:5px 0}
+.witness-revisions section p{font:14px/1.85 var(--f-body);margin:4px 0;color:#d5c9b4}
+
 @media(max-width:360px){.witness-card{grid-template-columns:minmax(86px,34%) minmax(0,1fr);gap:10px}.witness-photo{min-height:157px}.witness-identity h2{font-size:17px}}
 @media(prefers-reduced-motion:reduce){.witness-dossier *{animation:none!important;transition:none!important}}
 
