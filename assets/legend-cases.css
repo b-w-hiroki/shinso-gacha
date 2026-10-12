@@ -24,3 +24,10 @@
 .research-editor textarea{min-height:100px}.research-editor select:focus-visible,.research-editor textarea:focus-visible{outline:2px solid #d5bc81;outline-offset:2px}
 .research-editor button{min-height:46px;width:100%;white-space:normal}.research-editor details summary{min-height:44px;padding:9px 0}
 .research-editor li{font-size:13px;padding:9px 0;border-bottom:1px dashed #676354;overflow-wrap:anywhere}.research-editor li p{margin:4px 0 0;white-space:pre-wrap}
+
+/* Acquired-only case-to-case forecast links. No total/unowned clues are rendered. */
+.forecast-cross-case{margin:16px 0;padding:7px 11px;border:1px solid #6c6455;background:#1b211d}
+.forecast-cross-case>summary{cursor:pointer;min-height:48px;padding:12px 0;font-size:14px;color:#f0ddbc}
+.forecast-cross-case p,.forecast-cross-case small{display:block;font-size:13px;line-height:1.75;color:#d1c5b2}
+.forecast-cross-case article{margin:12px 0;padding:10px;border-left:2px solid #8b7860;background:#262a2344}
+.forecast-cross-case article button{display:block;min-height:44px;width:100%;margin-top:10px;white-space:normal;text-align:left}
