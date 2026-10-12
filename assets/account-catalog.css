@@ -65,3 +65,18 @@
  background:rgba(19,24,20,.45);pointer-events:none}
 @media(max-width:350px){.witness-edition{padding:12px}.witness-edition strong{font-size:19px}}
 @media(prefers-reduced-motion:reduce){.witness-editions *{animation:none!important;transition:none!important}}
+
+/* Third site is a new discovery from already-owned evidence, not another count. */
+.catalog-triad-entry{margin:14px 0;padding:12px 10px;border:1px solid #69614d;background:#25261f}
+.catalog-triad-entry small{display:block;color:#d4c2a0;font:12px/1.65 var(--f-body);margin-bottom:7px}
+.catalog-triad-entry button{display:block;min-height:48px;width:100%;white-space:normal;color:#f2e0c3;text-align:left}
+.site-triad{overflow-wrap:anywhere;color:#e8ddcb}
+.site-triad h2{font:600 20px/1.55 var(--f-body);margin:14px 0}
+.site-triad-images{display:grid;grid-template-columns:1fr;gap:12px;margin:16px 0}
+.site-triad-images figure{margin:0;min-width:0}
+.site-triad-images img{display:block;width:100%;aspect-ratio:2/1;object-fit:contain;border:1px solid #706c5d;background:#101512}
+.site-triad-images figcaption{padding:6px 2px;color:#c6b99e;font:13px/1.5 var(--f-body)}
+.site-triad-copy{border-left:2px solid #978260;background:#27251f;padding:12px;color:#e9ddc7;font:15px/1.85 var(--f-body)}
+.site-triad [data-catalog-entry]{min-height:48px;width:100%;white-space:normal;text-align:left}
+@media(min-width:430px){.site-triad-images{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.site-triad-images img{aspect-ratio:2/1}.site-triad-images figcaption{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.site-triad *{animation:none!important;transition:none!important}}
