@@ -12,3 +12,9 @@
 .site-verso-paper .site-verso-pending{font-size:13px;color:#67584c}
 @media(max-width:350px){.site-verso-paper{padding:18px 13px}.site-verso-paper h3{font-size:17px}}
 @media(prefers-reduced-motion:reduce){.site-verso *{animation:none!important;transition:none!important}}
+
+/* The stored photo is not an action; on short screens it must never consume a
+   pointer meant for the lower expandable evidence controls. Live camera taps
+   remain owned by #obs-frame, not this read-only catalogue thumbnail. */
+.watch-site-record-image{pointer-events:none}
+.site-verso{scroll-margin-block:85px}
