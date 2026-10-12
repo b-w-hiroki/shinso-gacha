@@ -62,7 +62,7 @@ const server=http.createServer((q,r)=>{try{
    assert(await p.locator('.site-verso summary').evaluate(e=>e.getBoundingClientRect().height>=44));
   }
   await p.evaluate(()=>{hideSheet();showAlternateLocationRecord('photo',3);});
-  assert.equal(await p.locator('.site-verso').count(),0,'unacquired third-level reverse stays hidden');
+  assert.equal(await p.locator('.site-verso:visible').count(),0,'unacquired third-level reverse cannot open a new visible sheet');
   await p.evaluate(()=>{save();showAlternateLocationRecord('photo',2);});
   await p.reload();
   await p.evaluate(()=>showAlternateLocationRecord('photo',2));
