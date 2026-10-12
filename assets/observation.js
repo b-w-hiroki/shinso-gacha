@@ -32,7 +32,7 @@ function observationSync(now=Date.now()){
 }
 function watchDuration(ms){const minutes=Math.max(0,Math.ceil(ms/60000));return minutes>=60?`${Math.floor(minutes/60)}時間${minutes%60?`${minutes%60}分`:''}`:`${minutes}分`;}
 function watchElapsed(ms){const minutes=Math.max(1,Math.floor(ms/60000));return minutes>=60?`${Math.floor(minutes/60)}時間${minutes%60?`${minutes%60}分`:''}`:`${minutes}分`;}
-let watchZoom=1,watchPanX=0,watchPanY=0,watchPanPointer=null,watchPanConsumed=false;
+let watchZoom=1,watchPanX=0,watchPanY=0,watchPanPointer=null,watchPanConsumed=false,watchZoomScene=null;
 function watchZoomPaint(){
  const f=document.getElementById('obs-frame'),button=document.getElementById('obs-zoom-toggle');
  if(!f)return;
@@ -48,6 +48,8 @@ function watchZoomPaint(){
   button.setAttribute('aria-label',watchZoom===2?'全体表示へ戻す。拡大中は画像をドラッグか矢印キーで移動できます':'観測画像を2倍に拡大');
   button.textContent=watchZoom===2?'全体表示':'拡大 2×';
  }
+ const hint=document.getElementById('obs-zoom-hint');
+ if(hint)hint.hidden=watchZoom!==2||f.dataset.sceneAlt!=='true';
 }
 function watchZoomToggle(){
  watchZoom=watchZoom===1?2:1;watchPanX=0;watchPanY=0;watchPanPointer=null;
@@ -59,6 +61,7 @@ watchPanFrame?.addEventListener('pointerdown',event=>{
  watchPanConsumed=false;
  if(watchZoom!==2||watchPanFrame.dataset.sceneAlt!=='true'||watchPanFrame.disabled)return;
  watchPanPointer={id:event.pointerId,x:event.clientX,y:event.clientY,startX:event.clientX,startY:event.clientY,moved:false};
+ try{watchPanFrame.setPointerCapture(event.pointerId);}catch{ /* browser may revoke capture during focus changes */ }
 });
 watchPanFrame?.addEventListener('pointermove',event=>{
  const drag=watchPanPointer;
@@ -95,6 +98,13 @@ function renderObservation(){
  const src=alternate?`assets/observation/${alternate.file}`:`assets/observation/${o.mode}${advanced?'-variants':''}.webp`;
  const condition=observationCondition(o);
  const paint=`${o.mode}/${p?.sequence??o.sequence}/${r}/${condition}/${alternative}`;
+ const sceneKey=`${o.mode}/${p?.sequence??o.sequence}/${alternative}`;
+ if(sceneKey!==watchZoomScene){
+  watchZoomScene=sceneKey;watchZoom=1;watchPanX=0;watchPanY=0;watchPanPointer=null;
+  watchZoomPaint();
+ }
+ const zoomButton=document.getElementById('obs-zoom-toggle');
+ if(zoomButton)zoomButton.hidden=!alternative;
  if(paint!==watchPaint){
   const im=document.getElementById('obs-image'),layer=document.getElementById('obs-site-overlay');im.style.backgroundImage=`url("${src}")`;im.style.backgroundPosition=alternative?'center':`${side} center`;
   // The site photograph is always intact. An acquired anomaly adds both
