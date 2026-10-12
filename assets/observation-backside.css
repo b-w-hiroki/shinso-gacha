@@ -1,0 +1,14 @@
+/* Acquired evidence pouch, not an actionable gacha. Keep the rear annotation
+ * smaller than the photograph but large enough to read at 320px. */
+.watch-site-backside{margin:15px 0 18px;border:1px solid #655d4b;background:#20211d;color:#e8ddc7}
+.watch-site-backside>summary{cursor:pointer;min-height:48px;padding:12px 14px;font:600 14px/1.6 var(--f-body)}
+.watch-site-backside>summary:focus-visible{outline:2px solid #d4b888;outline-offset:2px}
+.watch-site-backside>section{position:relative;margin:0 10px 12px;padding:18px 15px 17px;background:linear-gradient(155deg,#333025 0%,#282821 65%,#1b211c 100%);border:1px solid #7c6d4e;box-shadow:0 8px 24px #0004}
+.watch-site-backside>section::before{content:"保管用・再照合";position:absolute;right:13px;top:15px;color:#ad9271;font:10px/1.2 var(--f-mono);letter-spacing:.10em;opacity:.58;transform:rotate(-3deg);pointer-events:none}
+.watch-site-backside h3{font:600 17px/1.5 var(--f-body);color:#f1e5cc;margin:13px 0 11px;max-width:85%}
+.watch-site-backside p{font:14px/1.8 var(--f-body);color:#e2d5bf;margin:8px 0}
+.watch-site-backside small{display:block;font:11px/1.7 var(--f-mono);color:#bbaa91}
+.watch-site-backside .watch-backside-compare{border-left:2px solid #b49a6e;padding:5px 0 5px 11px;color:#f1e2c5}
+.watch-site-backside .watch-backside-locked{color:#bfb49e}
+@media(max-width:350px){.watch-site-backside>section{padding:14px 11px}.watch-site-backside h3{font-size:16px}.watch-site-backside p{font-size:14px}}
+@media(prefers-reduced-motion:reduce){.watch-site-backside *{animation:none!important;transition:none!important}}
