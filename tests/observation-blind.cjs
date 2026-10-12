@@ -34,6 +34,10 @@ const server=http.createServer((request,response)=>{
    assert((await page.locator('#trial-index').innerText()).includes((i+1)+' / 16'));
    const css=await page.locator('#scene').evaluate(e=>getComputedStyle(e).backgroundImage);
    assert(css.includes(WatchFileName(current.mode)),'canonical scene photo missing '+current.mode);
+   if(i===0&&!process.env.QA_WEBKIT){
+    const dir='docs/qa-incursions';fs.mkdirSync(dir,{recursive:true});
+    await page.screenshot({path:dir+'/blind-observation-first-390.jpg',quality:86});
+   }
    if(current.rarity===0){
     assert(!css.includes('photo-deltas')&&!css.includes('alt-overlays'),'ordinary view must not show anomaly');
     await page.locator('#none').click();
@@ -43,10 +47,6 @@ const server=http.createServer((request,response)=>{
     const rect=await page.locator('#frame').boundingBox();
     const target=await page.evaluate(({mode,rarity})=>WatchLocations.targets(mode,rarity)[0],current);
     await page.mouse.click(rect.x+rect.width*target[0],rect.y+rect.height*target[1]);
-   }
-   if(i===0&&!process.env.QA_WEBKIT){
-    const dir='docs/qa-incursions';fs.mkdirSync(dir,{recursive:true});
-    await page.screenshot({path:dir+'/blind-observation-first-390.jpg',quality:86});
    }
   }
   assert.equal(seen.size,16,'one baseline and each three tiers across all four sites');
