@@ -205,3 +205,22 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
 .obs-zoom-tools button[aria-pressed=true]{border-color:#d4bc8a;color:#ffe5b5}
 .obs-frame[data-scene-alt='true'][data-zoom='2'] #obs-site-overlay{width:min(200%,calc(var(--obs-height) * 4));}
 @media(max-height:500px){.obs-zoom-tools{min-height:30px}.obs-zoom-tools button{min-height:30px}}
+
+/* Pan moves the sharp photo+both evidence layers as one unit. The softly blurred
+   monitor background stays still. All 1x and legacy sprites retain old geometry. */
+.obs-frame[data-scene-alt='true'][data-zoom='2']{
+ touch-action:none;cursor:grab;
+}
+.obs-frame[data-scene-alt='true'][data-zoom='2']:active{cursor:grabbing}
+.obs-frame[data-scene-alt='true'][data-zoom='2'] #obs-site-overlay{
+ left:calc(50% + var(--obs-pan-x,0px));
+ top:calc(50% + var(--obs-pan-y,0px));
+}
+.obs-zoom-tools button{min-height:44px}
+.obs-zoom-tools .obs-zoom-hint{
+ display:block;max-width:164px;padding:4px 8px;margin-top:5px;
+ font:12px/1.45 var(--f-body);color:#f0dfc4;
+ background:rgba(11,17,15,.85);border:1px solid #53584b;pointer-events:none;
+}
+.obs-zoom-tools .obs-zoom-hint[hidden]{display:none}
+@media(max-height:500px){.obs-zoom-tools .obs-zoom-hint{display:none}}
