@@ -87,6 +87,8 @@ jobs:
       - run: node tests/observation-location-variants.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
+      - name: Measure observation visual differences (diagnostic only)
+        run: node tests/observation-visibility-metrics.cjs
       - run: node tests/photo-verso.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
