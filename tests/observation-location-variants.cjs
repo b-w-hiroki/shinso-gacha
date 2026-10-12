@@ -35,7 +35,32 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  await p.mouse.click(zoomTap.x,zoomTap.y);
  assert.equal(await p.evaluate(()=>observationState().pending.suppression),1,'2x projected real tap must count exactly once');
  if(!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/alt-cctv-zoom-2x-390.jpg',quality:87});
+ // A drag pans the source pixels, never counts as touching an anomaly or earning pt.
+ const beforeDrag=await p.evaluate(()=>({currency:S.currency,suppression:observationState().pending.suppression}));
+ const center=await p.locator('#obs-frame').evaluate(e=>{const r=e.getBoundingClientRect();return{x:r.left+r.width*.5,y:r.top+r.height*.5};});
+ await p.mouse.move(center.x,center.y);
+ await p.mouse.down();
+ await p.mouse.move(center.x-76,center.y-18,{steps:6});
+ await p.mouse.up();
+ const afterDrag=await p.evaluate(()=>({currency:S.currency,suppression:observationState().pending.suppression,
+  panX:watchPanX,panY:watchPanY,limits:WatchZoom.limits(document.getElementById('obs-image').clientWidth,document.getElementById('obs-image').clientHeight,2)}));
+ assert.equal(afterDrag.currency,beforeDrag.currency,'a pan gesture never creates a manual tap reward');
+ assert.equal(afterDrag.suppression,beforeDrag.suppression,'drag is not a suppress action');
+ assert(afterDrag.panX<0&&Math.abs(afterDrag.panX)<=afterDrag.limits.x,'drag pans but respects original photo edge');
+ await p.locator('#obs-frame').focus();
+ await p.keyboard.press('ArrowRight');
+ assert((await p.evaluate(()=>watchPanX))<=afterDrag.panX,'keyboard right arrow can also reach image edge');
+ const afterPanTap=await p.evaluate(()=>{
+  const f=document.getElementById('obs-image').getBoundingClientRect();
+  const target=WatchLocations.targets('cctv',1)[0],r=WatchZoom.rect(f.width,f.height,2,watchPanX,watchPanY);
+  return {x:f.left+r.left+target[0]*r.width,y:f.top+r.top+target[1]*r.height};
+ });
+ await p.mouse.click(afterPanTap.x,afterPanTap.y);
+ assert.equal(await p.evaluate(()=>observationState().pending.suppression),2,'panned projection must suppress the same native hotspot');
+ assert.equal(await p.evaluate(()=>S.currency),beforeDrag.currency+1,'only the genuine follow-up tap earns 1pt');
+ if(!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/alt-cctv-pan-2x-390.jpg',quality:87});
  await zoomButton.click();
+ assert.equal(await p.evaluate(()=>watchPanX),0,'returning to full frame recenters the scene');
  assert.equal(await p.locator('#obs-frame').getAttribute('data-zoom'),'1');
  await p.evaluate(()=>{observationState().pending.suppression=0;});
 
@@ -168,6 +193,7 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
  await p.evaluate(()=>{const o=observationState();o.sequence=2;renderObservation();});
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'false','idle scene switch repaints the original');
+ assert.equal(await p.locator('#obs-zoom-toggle').isHidden(),true,'legacy media must not expose a nonworking zoom control');
  await p.evaluate(()=>{const o=observationState();o.sequence=3;renderObservation();});
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true','later idle scene returns to its own image');
  await p.evaluate(()=>save());await p.reload();assert.equal(await p.evaluate(()=>WatchLocations.discovered(S.observation.locationRecords)[0].rarities[1]),1);
