@@ -25,4 +25,18 @@ const all=Registry.list(levels,cases,compared,{});
 assert.equal(all.length,12);
 assert.equal(new Set(all.map(x=>x.record)).size,12,'unique acquired evidence');
 assert.deepEqual(Registry.list(levels,cases,compared,{}),all,'read-only projection');
+// The personnel dossier reveals only actually acquired evidence at each clearance level.
+assert.deepEqual(Registry.revisions(19,[], 'u1'),[],'unknown witness is always absent');
+assert.deepEqual(Registry.revisions(19,baseline,'u2'),[],'unowned case never exposes a revision');
+assert.deepEqual(Registry.revisions(19,baseline,'u1'),[],'one owned case cannot fabricate cross-document anomalies');
+assert.deepEqual(Registry.revisions(5,all,'u1'),[],'below rank threshold stays redacted');
+const tier2=Registry.revisions(6,all,'u1');assert.deepEqual(tier2.map(x=>x.tier),[2]);
+const tier3=Registry.revisions(10,all,'u1');assert.deepEqual(tier3.map(x=>x.tier),[2,3]);
+const tier4=Registry.revisions(14,all,'u1');assert.deepEqual(tier4.map(x=>x.tier),[2,3,4]);
+const deepest=Registry.list(levels,cases,compared,{u1:{status:'compared',rarity:1}});
+const tier5=Registry.revisions(17,deepest,'u1');
+assert.deepEqual(tier5.map(x=>x.tier),[2,3,4,5],'deepest evidence requires a real owned later observation');
+assert.deepEqual(Registry.revisions(17,deepest,'u2').map(x=>x.tier),[2,3,4],'unobserved case cannot borrow a later observation');
+assert.deepEqual(Registry.revisions(17,deepest,'u1'),tier5,'reading does not mutate evidence');
+
 console.log('Unregistered witness registry: acquired-only, distinct records, future tie-in and no mutations passed');
