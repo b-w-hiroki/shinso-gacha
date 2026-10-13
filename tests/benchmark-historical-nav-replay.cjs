@@ -63,7 +63,11 @@ async function run(root,label,browser){
   try { await target.click({timeout:5500}); }
   catch(error) {clickError=String(error);}
   const after=await page.evaluate(()=>observationState().upgrades.patrol);
-  const location=await target.evaluate(el=>{
+  // A historic failure can detach or hide the target. Do not let a
+  // follow-up locator timeout mask the original real-click interception.
+  const location=await page.evaluate(()=>{
+   const el=document.querySelector('[data-watch-upgrade="patrol"]');
+   if(!el)return {target_missing_after_click:true,viewport:[innerWidth,innerHeight]};
    const r=el.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;
    const hit=document.elementFromPoint(x,y);
    return {
