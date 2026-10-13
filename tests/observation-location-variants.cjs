@@ -334,14 +334,24 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  assert.equal(await p.locator('#obs-zoom-toggle').isHidden(),true,'legacy media must not expose a nonworking zoom control');
  await p.evaluate(()=>{const o=observationState();o.sequence=3;renderObservation();});
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true','later idle scene returns to its own image');
- await p.evaluate(()=>save());await p.reload();
- if(runSharedScenario)
+ // Every source/rarity uses actual pointer actions and persisted save data.
+ // Full browser reload is verified by the separate earned-evidence WebKit
+ // journey and full Chromium matrix; do not provoke an unrelated compositor
+ // navigation of up to 3 overlapping 1440px assets for every photo rarity.
+ const stored=await p.evaluate(()=>{
+  save();const q=JSON.parse(localStorage.getItem(KEY));
+  return {currency:q.currency,places:WatchLocations.discovered(q.observation.locationRecords).length};
+ });
+ assert.equal(stored.currency,wallet+projectedContactTaps,'real projected taps persist exactly once');
+ if(runSharedScenario){
+  await p.reload();
   assert.equal(await p.evaluate(()=>WatchLocations.discovered(S.observation.locationRecords)[0].rarities[1]),1,
-   'the shared acquired photograph survives reload');
- else
-  assert.equal(await p.evaluate(()=>WatchLocations.discovered(S.observation.locationRecords).length),0,
-   'source visual QA must not secretly earn any uncollected location');
- assert.equal(await p.evaluate(()=>S.currency),wallet+projectedContactTaps,'real coordinate taps earn their normal 1pt each');
+   'the acquired photographic record survives a real browser reload');
+  assert.equal(await p.evaluate(()=>S.currency),stored.currency,'saved currency survives real browser reload');
+ }else{
+  assert.equal(stored.places,0,'source-only QA must not store a nonexistent location');
+  assert.equal(await p.evaluate(()=>S.currency),stored.currency,'source-only saving cannot change points');
+ }
  assert.deepEqual(errors,[]);console.log('Photo QA passed: '+(selectedMode||'all')+
   ' rarity '+(requestedRarity===undefined?'0,1,2,3':requestedRarity)+
   ' (shared scenario '+(runSharedScenario?'included':'separate')+')');
