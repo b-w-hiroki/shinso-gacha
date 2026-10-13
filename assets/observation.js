@@ -1,16 +1,6 @@
 /* The home is one live scene. Management and explanations live off the scene. */
 // Eligibility is checked in the model for both purchase and execution.
 const WATCH_AUTOMATION_AVAILABLE=true;
-/* Safari/WebKit can retain large composited photographic surfaces while
-   navigating away. Release those transient GPU-backed backgrounds before the
-   next document is loaded; progress and owned evidence remain in the normal
-   persistent save. The next visit re-renders the photo from its source. */
-window.addEventListener('pagehide',()=>{
- for(const id of ['obs-image','obs-site-overlay']){
-  const layer=document.getElementById(id);
-  if(layer)layer.style.backgroundImage='none';
- }
-});
 const OBSERVATIONS={
  cctv:{title:'公園',source:'CAM 04',ratio:1.2,records:['日中の公園','風のないブランコ','影だけの来園者','砂場の整列']},
  photo:{title:'食卓',source:'PHOTO 03',ratio:.75,records:['三人分の夕食','浮いた箸','四人目の夕食','窓の内側']},
