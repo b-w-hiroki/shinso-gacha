@@ -193,10 +193,15 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
    remains the foreground 2:1 photo rather than this atmospheric backdrop. */
 #obs-frame[data-scene-alt='true'] #obs-image{filter:blur(7px) brightness(.43) saturate(.7)}
 
-@keyframes obs-anomaly-warp-alt{from{transform:scale(1)}to{transform:scale(.984,.995)}}
+/* The native-photo atmospheric copy is already blurred and color-filtered.
+   Animating that large bitmap (and its masked duplicate) can exhaust WebKit's
+   compositor after repeated scene changes. Preserve the actual photographic
+   evidence, anomaly overlay, touch mapping and lightweight edge-bleed cue. */
 .obs-frame[data-scene-alt='true'][data-anomaly]:not([data-anomaly='0']):not([data-quiet='true']) #obs-image{
- animation-name:obs-anomaly-warp-alt;
- transform-origin:center center;
+ animation:none;
+}
+.obs-frame[data-scene-alt='true'][data-anomaly]:not([data-anomaly='0']):not([data-quiet='true']) #obs-image::after{
+ content:none;
 }
 
 
