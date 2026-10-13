@@ -269,12 +269,7 @@ jobs:
           QA_OBSERVATION_MODE: ${{ matrix.mode }}
           QA_FONT: ${{ runner.temp }}/noto.otf
       - name: Source photo, native WebP, four rarities and real hotspot QA
-        shell: bash
-        run: |
-          set -euo pipefail
-          for rarity in 0 1 2 3; do
-            QA_OBSERVATION_RARITY="$rarity" node tests/observation-location-variants.cjs
-          done
+        run: node tests/observation-location-variants.cjs
         env:
           QA_WEBKIT: 1
           QA_OBSERVATION_MODE: ${{ matrix.mode }}

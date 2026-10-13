@@ -191,17 +191,7 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
 /* Alternate scenes always keep their enlarged copy dim and out of focus,
    including anomaly, source-condition and quiet states. The readable image
    remains the foreground 2:1 photo rather than this atmospheric backdrop. */
-/* This source is shown twice (ambient + full-resolution evidence). Applying
-   GPU blur/brightness/saturation to the animated 1440x720 ambient and a
-   second full-frame filter to the 3-layer evidence triggered WebKit page
-   crashes during image-state changes and reloads. Keep the *same* source
-   image as ambience, dim it with an unfiltered translucent veil, and keep
-   original evidence pixels untouched in the sharp foreground. */
-#obs-frame[data-scene-alt='true'] #obs-image{filter:none}
-#obs-frame[data-scene-alt='true'] #obs-image::before{
- content:'';position:absolute;inset:0;background:rgba(5,9,8,.7);pointer-events:none;
-}
-#obs-frame[data-scene-alt='true'] #obs-site-overlay{filter:none;box-shadow:none}
+#obs-frame[data-scene-alt='true'] #obs-image{filter:blur(7px) brightness(.43) saturate(.7)}
 
 /* The native-photo atmospheric copy is already blurred and color-filtered.
    Animating that large bitmap (and its masked duplicate) can exhaust WebKit's

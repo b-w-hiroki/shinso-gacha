@@ -221,19 +221,13 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    assert(await enhance.isVisible(),'optional low-light control must be reachable: '+mode);
    assert.equal(await enhance.getAttribute('aria-pressed'),'false');
    const beforeEnhance=await p.evaluate(()=>JSON.stringify({currency:S.currency,suppression:observationState().pending?.suppression,collection:observationState().collection}));
-   const regular=await p.locator('#obs-site-overlay').evaluate(e=>({
-    filter:getComputedStyle(e).filter,
-    veil:getComputedStyle(e,'::after').backgroundColor,
-   }));
+   const regular=await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).filter);
    await clickRealViewerControl('#obs-enhance-toggle');
    assert.equal(await enhance.getAttribute('aria-pressed'),'true','display compensation is explicit opt-in');
    assert.equal(await p.locator('#obs-frame').getAttribute('data-enhance'),'true');
-   const corrected=await p.locator('#obs-site-overlay').evaluate(e=>({
-    filter:getComputedStyle(e).filter,
-    veil:getComputedStyle(e,'::after').backgroundColor,
-   }));
-   assert.equal(corrected.filter,'none','enhancement must not invoke an expensive GPU image filter: '+mode);
-   assert.notEqual(corrected.veil,regular.veil,'user-selected compensation must visibly change the evidence: '+mode);
+   const corrected=await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).filter);
+   assert.equal(corrected,'none','enhanced imagery uses light-weight backing rather than GPU brightness filter: '+mode);
+   assert.notEqual(corrected,regular,'correction must change render pipeline: '+mode);
    assert(await p.locator('#obs-frame').evaluate(e=>e.getBoundingClientRect().width>0));
    if((mode==='vision'||mode==='dash')&&!process.env.QA_WEBKIT)
     await p.screenshot({path:'docs/qa-incursions/alt-'+mode+'-lowlight-on-390.jpg',quality:87});
@@ -244,10 +238,7 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    await clickRealViewerControl('#obs-enhance-toggle');
    assert.equal(await enhance.getAttribute('aria-pressed'),'false');
    assert.equal(await p.locator('#obs-frame').getAttribute('data-enhance'),'false');
-   assert.deepEqual(await p.locator('#obs-site-overlay').evaluate(e=>({
-    filter:getComputedStyle(e).filter,
-    veil:getComputedStyle(e,'::after').backgroundColor,
-   })),regular,'original unenhanced evidence appearance returns exactly');
+   assert.equal(await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).filter),regular,'original dim appearance returns exactly');
    assert.equal(await p.evaluate(()=>JSON.stringify({currency:S.currency,suppression:observationState().pending?.suppression,collection:observationState().collection})),beforeEnhance,
     'changing the display must never grant or withdraw rewards or mutate observation state');
    }
@@ -309,8 +300,8 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    },{mode,rarity});
    assert(await p.locator('#obs-site-overlay').evaluate(e=>e.parentElement?.id==='obs-frame'),
     'the photo must be a sibling of the blurred layer, not its child');
-   assert(geometry.containMatches&&geometry.atmosphereFit==='cover'&&geometry.atmosphereFilter==='none',
-    'unfiltered ambient backing cannot crop native photographic evidence '+mode+rarity);
+   assert(geometry.containMatches&&geometry.atmosphereFit==='cover'&&geometry.atmosphereFilter.includes('blur('),
+    'ambient enlargement does not crop photographic evidence '+mode+rarity);
    assert(geometry.photoFit.startsWith('100% 100%')&&geometry.foreground.includes(originalPhoto),
     'sharp native photograph and visual anomaly share an image-space rectangle '+mode+rarity);
    const f=geometry.f;
@@ -343,28 +334,14 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  assert.equal(await p.locator('#obs-zoom-toggle').isHidden(),true,'legacy media must not expose a nonworking zoom control');
  await p.evaluate(()=>{const o=observationState();o.sequence=3;renderObservation();});
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true','later idle scene returns to its own image');
- // Persist every source's real pointer-earned rewards before teardown.
- // A full WebKit navigation while 3 native-size photo layers are active is a
- // separate stress case and can terminate Playwright's renderer. The shared
- // acquired-record scenario still exercises actual save -> browser reload ->
- // restored evidence and currency in WebKit; Chromium covers the full matrix.
- // Source-only processes independently inspect their persisted JSON, not skip
- // saving or native photo/hotspot interaction.
- const saved=await p.evaluate(()=>{
-  save();
-  const state=JSON.parse(localStorage.getItem(KEY));
-  return {currency:state.currency,places:WatchLocations.discovered(state.observation.locationRecords).length};
- });
- assert.equal(saved.currency,wallet+projectedContactTaps,'every real tap must persist exactly one earned point');
- if(runSharedScenario){
-  await p.reload({waitUntil:'domcontentloaded'});
+ await p.evaluate(()=>save());await p.reload();
+ if(runSharedScenario)
   assert.equal(await p.evaluate(()=>WatchLocations.discovered(S.observation.locationRecords)[0].rarities[1]),1,
-   'earned photographic evidence must survive an actual browser reload');
-  assert.equal(await p.evaluate(()=>S.currency),saved.currency,'earned currency survives reload');
- }else{
-  assert.equal(saved.places,0,'source-only QA must not secretly save an uncollected place');
-  assert.equal(await p.evaluate(()=>S.currency),saved.currency,'save does not change in-memory currency');
- }
+   'the shared acquired photograph survives reload');
+ else
+  assert.equal(await p.evaluate(()=>WatchLocations.discovered(S.observation.locationRecords).length),0,
+   'source visual QA must not secretly earn any uncollected location');
+ assert.equal(await p.evaluate(()=>S.currency),wallet+projectedContactTaps,'real coordinate taps earn their normal 1pt each');
  assert.deepEqual(errors,[]);console.log('Photo QA passed: '+(selectedMode||'all')+
   ' rarity '+(requestedRarity===undefined?'0,1,2,3':requestedRarity)+
   ' (shared scenario '+(runSharedScenario?'included':'separate')+')');
