@@ -268,11 +268,21 @@ jobs:
           QA_WEBKIT: 1
           QA_OBSERVATION_MODE: ${{ matrix.mode }}
           QA_FONT: ${{ runner.temp }}/noto.otf
+      - name: Verify acquired evidence, pan, compare and actual persistence on WebKit
+        if: matrix.mode == 'cctv'
+        run: node tests/observation-location-variants.cjs
+        env:
+          QA_WEBKIT: 1
+          QA_OBSERVATION_MODE: cctv
+          QA_OBSERVATION_RARITY: 1
+          QA_LOWLIGHT_ISOLATED: 1
+          QA_FONT: ${{ runner.temp }}/noto.otf
       - name: Source photo, native WebP, four rarities and real hotspot QA
         run: node tests/observation-location-variants.cjs
         env:
           QA_WEBKIT: 1
           QA_OBSERVATION_MODE: ${{ matrix.mode }}
+          QA_SOURCE_ONLY: 1
           QA_LOWLIGHT_ISOLATED: 1
           QA_FONT: ${{ runner.temp }}/noto.otf
 

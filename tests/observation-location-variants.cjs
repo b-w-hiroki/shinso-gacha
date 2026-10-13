@@ -29,7 +29,7 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  const requestedRarity=process.env.QA_OBSERVATION_RARITY;
  assert(requestedRarity===undefined||['0','1','2','3'].includes(requestedRarity),'invalid isolated QA rarity');
  const runSharedScenario=!process.env.QA_WEBKIT||!process.env.QA_OBSERVATION_MODE||
-  (process.env.QA_OBSERVATION_MODE==='cctv'&&(requestedRarity===undefined||requestedRarity==='1'));
+  (process.env.QA_OBSERVATION_MODE==='cctv'&&process.env.QA_SOURCE_ONLY!=='1'&&(requestedRarity===undefined||requestedRarity==='1'));
  if(runSharedScenario){
  await p.evaluate(()=>openEncyclopedia('places'));assert.equal(await p.locator('[data-catalog-entry^="alt:"]').count(),0,'unknown places absent');
  await p.evaluate(()=>openEncyclopedia('anomalies'));assert.equal(await p.locator('[data-catalog-entry^="alt:"]').count(),0,'unknown anomaly locations absent');
