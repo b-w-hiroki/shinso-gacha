@@ -1,0 +1,44 @@
+name: Historical nav regression replay (isolated read-only)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tests/benchmark-historical-nav-replay.cjs'
+      - '.github/workflows/benchmark-historical-nav-replay.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tests/benchmark-historical-nav-replay.cjs'
+      - '.github/workflows/benchmark-historical-nav-replay.yml'
+permissions:
+  contents: read
+jobs:
+  historical-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout current tested branch
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Checkout exact historical failing SHA into isolated subdirectory
+        uses: actions/checkout@v4
+        with:
+          ref: 2769ec27710f4efecf3e49aea9ff5738e298a4ca
+          path: historical
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save --package-lock=false playwright@1.62.1
+      - run: npx playwright install --with-deps chromium
+      - name: Test same real patrol click on historical and fixed screen
+        run: node tests/benchmark-historical-nav-replay.cjs
+      - name: Keep failure screenshots and sanitized report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: historical-nav-replay-evidence
+          path: artifacts/benchmark-nav-historical/
+          if-no-files-found: warn
+          retention-days: 14
