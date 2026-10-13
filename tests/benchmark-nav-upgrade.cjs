@@ -63,12 +63,20 @@ const server=http.createServer((request,response)=>{
    }));
    assert.deepEqual(state,{points:965,retention:1,scrollOverflows:false},
     source+' '+width+'x'+height+': real touch failed to apply one 35pt upgrade');
+   // The wallet uses requestAnimationFrame even in reduced-motion mode.
+   // Wait for the user-visible number before taking the after screenshot.
+   await page.waitForFunction(()=>document.getElementById('pt')?.textContent===
+    String(Math.floor(S.currency)),null,{timeout:3000});
+   assert.equal(await page.locator('#pt').innerText(),'965',
+    'rendered wallet must match the actual saved balance');
    if(width===390)await page.screenshot({path:path.join(outDir,'nav-after-'+source+'-390.png')});
    // Explicit save tests persisted data without claiming autosave or Firebase QA.
    await page.evaluate(()=>save());
    await page.reload({waitUntil:'load'});
    assert.deepEqual(await page.evaluate(()=>({points:S.currency,retention:S.observation.upgrades.retention})),
     {points:965,retention:1},'saved wallet/retention changed after browser reload');
+   await page.waitForFunction(()=>document.getElementById('pt')?.textContent===
+    String(Math.floor(S.currency)),null,{timeout:3000});
    assert.deepEqual(errors,[],'unexpected JS exceptions');
    await page.close();
    console.log('PASS '+source+' '+width+'x'+height+': actual touch, 35pt spent once, saved restore');
