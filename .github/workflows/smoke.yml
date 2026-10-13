@@ -196,26 +196,6 @@ jobs:
         env:
           QA_WEBKIT: 1
           QA_FONT: ${{ runner.temp }}/noto.otf
-      - name: Verify low-light and zoom real inputs in isolated WebKit contexts
-        shell: bash
-        run: |
-          set -euo pipefail
-          for mode in cctv photo vision dash; do
-            QA_OBSERVATION_MODE="$mode" node tests/observation-lowlight-isolated.cjs
-          done
-        env:
-          QA_WEBKIT: 1
-          QA_FONT: ${{ runner.temp }}/noto.otf
-      - name: Verify all four native photographic modes in independent WebKit processes
-        shell: bash
-        run: |
-          set -euo pipefail
-          for mode in cctv photo vision dash; do
-            QA_OBSERVATION_MODE="$mode" QA_LOWLIGHT_ISOLATED=1 node tests/observation-location-variants.cjs
-          done
-        env:
-          QA_WEBKIT: 1
-          QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/photo-verso.cjs
         env:
           QA_WEBKIT: 1
@@ -261,6 +241,40 @@ jobs:
         with:
           name: webkit-loop-qa
           path: docs/qa-incursions/
+
+  # Four photographic sources are tested on independent runners, not only
+  # fresh browser processes: WebKit's filtered 1440px photo compositing can
+  # retain GPU/memory state across otherwise isolated browser invocations.
+  # Every source still verifies low-light/zoom input AND all four rarity states.
+  webkit-photo-matrix:
+    name: WebKit photographic QA (${{ matrix.mode }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [cctv, photo, vision, dash]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save --package-lock=false playwright@1.62.1
+      - run: npx playwright install --with-deps webkit
+      - name: Japanese font
+        run: curl --fail --location --retry 2 --output "$RUNNER_TEMP/noto.otf" https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/OTF/Japanese/NotoSansCJKjp-Regular.otf
+      - name: Real low-light and zoom pointer QA
+        run: node tests/observation-lowlight-isolated.cjs
+        env:
+          QA_WEBKIT: 1
+          QA_OBSERVATION_MODE: ${{ matrix.mode }}
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - name: Source photo, native WebP, four rarities and real hotspot QA
+        run: node tests/observation-location-variants.cjs
+        env:
+          QA_WEBKIT: 1
+          QA_OBSERVATION_MODE: ${{ matrix.mode }}
+          QA_LOWLIGHT_ISOLATED: 1
+          QA_FONT: ${{ runner.temp }}/noto.otf
 
   security-rules:
     runs-on: ubuntu-latest
