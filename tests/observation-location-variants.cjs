@@ -45,7 +45,7 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    return {imageTop:image.top,controlsBottom:controls.bottom,guideWidth:guide.width};
   });
   const sourceLayout=await p.evaluate(()=>{
-   const src=document.getElementById('obs-source'),name=document.getElementById('obs-name');
+   const src=document.getElementById('obs-viewpoint-label'),name=document.getElementById('obs-name');
    const a=src.getBoundingClientRect(),b=name.getBoundingClientRect(),controls=document.querySelector('.obs-zoom-tools').getBoundingClientRect();
    const image=document.getElementById('obs-frame').getBoundingClientRect();
    return {label:src.textContent,name:name.textContent,visible:getComputedStyle(src).display!=='none',
@@ -189,7 +189,7 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  for(const mode of allModes)for(const rarity of selectedRarities){
   await p.evaluate(({mode,rarity})=>{const o=observationState(),t=Date.now();o.mode=mode;o.sequence=1;o.mind.closed=false;o.pending={mode,rarity,readyAt:t,expiresAt:t+3600000,sequence:1,suppression:0};renderObservation();},{mode,rarity});
   assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
-  const perspective=await p.locator('#obs-source').innerText();
+  const perspective=await p.locator('#obs-viewpoint-label').innerText();
   assert.equal(perspective,{cctv:'監視カメラ',photo:'写真記録',vision:'視界ジャック',dash:'車載カメラ'}[mode],
    'viewpoint is always tied to current mode, not another source');
   if(rarity===0){

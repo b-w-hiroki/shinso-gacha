@@ -41,10 +41,10 @@ const server=http.createServer((req,res)=>{
    renderObservation();fitObservation();
   },mode);
   assert.equal(await page.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
-  assert.equal(await page.locator('#obs-source').innerText(),
+  assert.equal(await page.locator('#obs-viewpoint-label').innerText(),
    {cctv:'監視カメラ',photo:'写真記録',vision:'視界ジャック',dash:'車載カメラ'}[mode]);
   const headerHit=await page.evaluate(()=>{
-   const source=document.getElementById('obs-source').getBoundingClientRect();
+   const source=document.getElementById('obs-viewpoint-label').getBoundingClientRect();
    const place=document.getElementById('obs-name').getBoundingClientRect();
    const buttons=document.querySelector('.obs-zoom-tools').getBoundingClientRect();
    const footage=document.getElementById('obs-frame').getBoundingClientRect();

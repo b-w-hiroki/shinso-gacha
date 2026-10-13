@@ -304,7 +304,7 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
  display:flex;flex:1 1 auto;min-width:0;flex-direction:column;justify-content:center;
  gap:1px;overflow:hidden;
 }
-.agent-home .obs-topline #obs-source{
+.agent-home .obs-topline #obs-viewpoint-label{
  display:block;flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
  color:#c4cdbf;font:600 12px/1.35 var(--f-body);
 }
