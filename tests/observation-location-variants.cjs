@@ -343,7 +343,11 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  assert.equal(await p.locator('#obs-zoom-toggle').isHidden(),true,'legacy media must not expose a nonworking zoom control');
  await p.evaluate(()=>{const o=observationState();o.sequence=3;renderObservation();});
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true','later idle scene returns to its own image');
- await p.evaluate(()=>save());await p.reload();
+ // WebKit may never dispatch the full window load event while background
+ // photographic assets continue decoding; the application becomes usable at
+ // DOMContentLoaded. Reload and verify actual restored game state rather than
+ // waiting for every unrelated image request to settle.
+ await p.evaluate(()=>save());await p.reload({waitUntil:'domcontentloaded'});
  if(runSharedScenario)
   assert.equal(await p.evaluate(()=>WatchLocations.discovered(S.observation.locationRecords)[0].rarities[1]),1,
    'the shared acquired photograph survives reload');
