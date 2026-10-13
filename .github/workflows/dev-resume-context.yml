@@ -1,0 +1,48 @@
+name: dev-resume-context (read-only)
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '41 1 * * *'
+  push:
+    branches: [main]
+    paths:
+      - AGENTS.md
+      - docs/AI-RESUME.md
+      - scripts/dev-resume.mjs
+      - tests/dev-resume.cjs
+      - .github/workflows/dev-resume-context.yml
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+  actions: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/dev-resume.cjs
+      - name: Collect read-only resume context
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/dev-resume.mjs --output "$RUNNER_TEMP/dev-resume.json"
+      - name: Record restart link and immutable SHA
+        shell: bash
+        run: |
+          {
+            echo '## Development Resume — read-only'
+            echo 'This is not an AI worker or an implementation/merge result.'
+            echo 'Latest metadata is an artifact. Fetch GitHub again before code writes.'
+            echo '~~~json'
+            cat "$RUNNER_TEMP/dev-resume.json"
+            echo '~~~'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dev-resume-context
+          path: ${{ runner.temp }}/dev-resume.json
+          retention-days: 14
