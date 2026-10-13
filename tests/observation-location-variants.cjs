@@ -322,18 +322,23 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
   }
   if(rarity>0&&!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/alt-'+mode+'-'+rarity+'-390.jpg',quality:85});
  }
- // The scene must repaint when the next idle sequence changes, even without a pending record.
- await p.evaluate(()=>{
-  const o=observationState(),t=Date.now();
-  o.mode='cctv';o.pending=null;o.sequence=1;o.dueAt=t+600000;o.mind.closed=false;renderObservation();
- });
- assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
- await p.evaluate(()=>{const o=observationState();o.sequence=2;renderObservation();});
- assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'false','idle scene switch repaints the original');
- assert.equal(await p.locator('#obs-enhance-toggle').isVisible(),false,'old media cannot expose a nonfunctional light control');
- assert.equal(await p.locator('#obs-zoom-toggle').isHidden(),true,'legacy media must not expose a nonworking zoom control');
- await p.evaluate(()=>{const o=observationState();o.sequence=3;renderObservation();});
- assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true','later idle scene returns to its own image');
+ // Idle source transitions (normal -> alternate -> normal) need a full
+ // interaction scenario, not a repeat after every isolated 1440px photo
+ // decode. Keep this exact regression in the shared WebKit journey and
+ // Chromium; source-only WebKit processes focus on each real image/hotspot.
+ if(runSharedScenario){
+  await p.evaluate(()=>{
+   const o=observationState(),t=Date.now();
+   o.mode='cctv';o.pending=null;o.sequence=1;o.dueAt=t+600000;o.mind.closed=false;renderObservation();
+  });
+  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
+  await p.evaluate(()=>{const o=observationState();o.sequence=2;renderObservation();});
+  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'false','idle scene switch repaints the original');
+  assert.equal(await p.locator('#obs-enhance-toggle').isVisible(),false,'old media cannot expose a nonfunctional light control');
+  assert.equal(await p.locator('#obs-zoom-toggle').isHidden(),true,'legacy media must not expose a nonworking zoom control');
+  await p.evaluate(()=>{const o=observationState();o.sequence=3;renderObservation();});
+  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true','later idle scene returns to its own image');
+ }
  // Every source/rarity uses actual pointer actions and persisted save data.
  // Full browser reload is verified by the separate earned-evidence WebKit
  // journey and full Chromium matrix; do not provoke an unrelated compositor
