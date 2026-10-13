@@ -20,6 +20,17 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
   await p.mouse.click(point.x,point.y);
  };
  await p.evaluate(()=>{S.role='agent';S.onboarded=true;S.lite={intro:{done:true}};S.lastTick=Date.now()+900000;S.streak={last:dayKey(),n:1};S.observation=WatchModel.create(Date.now(),42);S.incursion={version:1,level:0,history:[]};S.currency=5000;applyMode();go('home');render();});
+ // The full earned-evidence, catalog, zoom/pan, and save/restore scenario
+ // is shared across source types. Execute it once in WebKit (cctv), rather
+ // than repeatedly creating high-resolution photo layers in the same process
+ // before each source-specific 4-rarity inspection. Chromium still runs it
+ // alongside the complete 16-state matrix.
+ let wallet;
+ const requestedRarity=process.env.QA_OBSERVATION_RARITY;
+ assert(requestedRarity===undefined||['0','1','2','3'].includes(requestedRarity),'invalid isolated QA rarity');
+ const runSharedScenario=!process.env.QA_WEBKIT||!process.env.QA_OBSERVATION_MODE||
+  (process.env.QA_OBSERVATION_MODE==='cctv'&&process.env.QA_SOURCE_ONLY!=='1'&&(requestedRarity===undefined||requestedRarity==='1'));
+ if(runSharedScenario){
  await p.evaluate(()=>openEncyclopedia('places'));assert.equal(await p.locator('[data-catalog-entry^="alt:"]').count(),0,'unknown places absent');
  await p.evaluate(()=>openEncyclopedia('anomalies'));assert.equal(await p.locator('[data-catalog-entry^="alt:"]').count(),0,'unknown anomaly locations absent');
  await p.evaluate(()=>{hideSheet();go('home');const o=observationState(),now=Date.now();o.mode='cctv';o.sequence=1;o.mind.closed=false;o.pending={mode:'cctv',rarity:1,readyAt:now,expiresAt:now+3600000,sequence:1,suppression:0};renderObservation();});
@@ -105,7 +116,7 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  assert.equal(await p.evaluate(()=>S.observation.collection['cctv:1']),1);
  const visits=await p.evaluate(()=>WatchLocations.discovered(S.observation.locationRecords));
  assert.equal(visits.length,1);assert.equal(visits[0].id,'alt:cctv');assert.equal(visits[0].rarities[1],1);assert.equal(visits[0].rarities[0]||0,0);
- const wallet=await p.evaluate(()=>S.currency);
+ wallet=await p.evaluate(()=>S.currency);
  await p.evaluate(()=>openEncyclopedia('anomalies'));
  assert.equal(await p.locator('[data-catalog-entry^="alt:"]').count(),1,'only acquired location anomaly is shown');
  assert((await p.locator('[data-catalog-entry="alt:cctv:1"]').innerText()).includes('通路に残る足跡'));
@@ -143,6 +154,14 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  assert.equal(await p.evaluate(()=>JSON.stringify({currency:S.currency,collected:S.observation.collected,locations:S.observation.locationRecords})),beforeCompare,'comparison never changes saved state');
  for(const [w,h]of [[320,568],[390,844],[844,390]]){await p.setViewportSize({width:w,height:h});assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));if(w===390&&!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/alt-location-rarity-390.jpg',quality:85});}
  await p.evaluate(()=>{hideSheet();go('home');});
+ }else{
+  // The independent WebKit process starts directly from a clean observation.
+  // The normal/missing/anomalous photo contract and real pointer hits below
+  // still run for every single source+rarity without skipping an image state.
+  await p.evaluate(()=>{hideSheet();go('home');setHomeTab('desk');});
+  wallet=await p.evaluate(()=>S.currency);
+ }
+
  await p.setViewportSize({width:390,height:844});
  await p.emulateMedia({reducedMotion:'no-preference'});
  let projectedContactTaps=0;
@@ -153,16 +172,46 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  const selectedMode=process.env.QA_OBSERVATION_MODE;
  assert(!selectedMode||everyMode.includes(selectedMode),'unsupported QA observation mode');
  const allModes=selectedMode?[selectedMode]:everyMode;
- for(const mode of allModes)for(const rarity of [0,1,2,3]){
+ const selectedRarities=requestedRarity===undefined?[0,1,2,3]:[Number(requestedRarity)];
+ for(const mode of allModes)for(const rarity of selectedRarities){
   await p.evaluate(({mode,rarity})=>{const o=observationState(),t=Date.now();o.mode=mode;o.sequence=1;o.mind.closed=false;o.pending={mode,rarity,readyAt:t,expiresAt:t+3600000,sequence:1,suppression:0};renderObservation();},{mode,rarity});
   assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
   if(rarity===0){
-   await p.evaluate(async mode=>{
-    const scene=WatchLocations.byId('alt:'+mode),img=new Image();
-    img.src='assets/observation/'+scene.file;
-    await img.decode();
-    if(img.naturalWidth!==1440||img.naturalHeight!==720)throw Error('not the native asset for '+mode);
-   },mode);
+   if(process.env.QA_WEBKIT){
+    // WebKit has already decoded/rendered the CSS-backed photo in this live
+    // monitor. Creating a *second* native-size Image in the same page can
+    // terminate WebKit's image compositor (most visible for the road source).
+    // Validate the actual served RIFF/VP8 frame's native dimensions instead;
+    // Chromium still calls Image.decode(), and both browsers inspect and tap
+    // the real composited source and every anomaly variant.
+    await p.evaluate(async mode=>{
+     const scene=WatchLocations.byId('alt:'+mode);
+     const response=await fetch('assets/observation/'+scene.file,{cache:'no-store'});
+     if(!response.ok)throw Error('missing native photographic source '+mode);
+     const b=new Uint8Array(await response.arrayBuffer());
+     const fourcc=(at,n)=>String.fromCharCode(...b.slice(at,at+n));
+     if(b.length<30||fourcc(0,4)!=='RIFF'||fourcc(8,4)!=='WEBP')
+      throw Error('corrupted original WebP '+mode);
+     let width,height;
+     if(fourcc(12,4)==='VP8 '){
+      if(b[23]!==0x9d||b[24]!==0x01||b[25]!==0x2a)
+       throw Error('invalid lossy WebP frame header '+mode);
+      width=(b[26]|(b[27]<<8))&0x3fff;
+      height=(b[28]|(b[29]<<8))&0x3fff;
+     }else if(fourcc(12,4)==='VP8X'){
+      width=1+b[24]+(b[25]<<8)+(b[26]<<16);
+      height=1+b[27]+(b[28]<<8)+(b[29]<<16);
+     }else throw Error('unsupported original WebP encoding '+mode);
+     if(width!==1440||height!==720)throw Error('native source dimensions changed '+mode);
+    },mode);
+   }else{
+    await p.evaluate(async mode=>{
+     const scene=WatchLocations.byId('alt:'+mode),img=new Image();
+     img.src='assets/observation/'+scene.file;
+     await img.decode();
+     if(img.naturalWidth!==1440||img.naturalHeight!==720)throw Error('not the native asset for '+mode);
+    },mode);
+   }
    if(!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/alt-'+mode+'-native-normal-390.jpg',quality:86});
    // WebKit exercises this full optional display control interaction in an
    // isolated browser process to avoid GPU resource accumulation before
@@ -202,6 +251,15 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
   assert(overlay!==null,'site overlay element must exist in DOM');
   const originalPhoto=await p.evaluate(m=>WatchLocations.byId('alt:'+m).file,mode);
   assert(overlay.includes(originalPhoto),'original photograph must be visible at full width '+mode+rarity);
+  if(rarity>0){
+   const compositor=await p.evaluate(()=>{
+    const ambient=document.getElementById('obs-image');
+    return {animation:getComputedStyle(ambient).animationName,
+      duplicate:getComputedStyle(ambient,'::after').content};
+   });
+   assert.equal(compositor.animation,'none','large photographic ambient backdrop must not animate '+mode+rarity);
+   assert.equal(compositor.duplicate,'none','large filtered photographic copy must not be duplicated '+mode+rarity);
+  }
   if(rarity===0)assert(!overlay.includes('alt-overlays/')&&!overlay.includes('photo-deltas/'),'ordinary footage never includes anomaly art');
   else{
    assert(overlay.includes(mode+'-'+rarity+'.svg'));
@@ -264,20 +322,43 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
   }
   if(rarity>0&&!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/alt-'+mode+'-'+rarity+'-390.jpg',quality:85});
  }
- // The scene must repaint when the next idle sequence changes, even without a pending record.
- await p.evaluate(()=>{
-  const o=observationState(),t=Date.now();
-  o.mode='cctv';o.pending=null;o.sequence=1;o.dueAt=t+600000;o.mind.closed=false;renderObservation();
+ // Idle source transitions (normal -> alternate -> normal) need a full
+ // interaction scenario, not a repeat after every isolated 1440px photo
+ // decode. Keep this exact regression in the shared WebKit journey and
+ // Chromium; source-only WebKit processes focus on each real image/hotspot.
+ if(runSharedScenario){
+  await p.evaluate(()=>{
+   const o=observationState(),t=Date.now();
+   o.mode='cctv';o.pending=null;o.sequence=1;o.dueAt=t+600000;o.mind.closed=false;renderObservation();
+  });
+  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
+  await p.evaluate(()=>{const o=observationState();o.sequence=2;renderObservation();});
+  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'false','idle scene switch repaints the original');
+  assert.equal(await p.locator('#obs-enhance-toggle').isVisible(),false,'old media cannot expose a nonfunctional light control');
+  assert.equal(await p.locator('#obs-zoom-toggle').isHidden(),true,'legacy media must not expose a nonworking zoom control');
+  await p.evaluate(()=>{const o=observationState();o.sequence=3;renderObservation();});
+  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true','later idle scene returns to its own image');
+ }
+ // Every source/rarity uses actual pointer actions and persisted save data.
+ // Full browser reload is verified by the separate earned-evidence WebKit
+ // journey and full Chromium matrix; do not provoke an unrelated compositor
+ // navigation of up to 3 overlapping 1440px assets for every photo rarity.
+ const stored=await p.evaluate(()=>{
+  save();const q=JSON.parse(localStorage.getItem(KEY));
+  return {currency:q.currency,places:WatchLocations.discovered(q.observation.locationRecords).length};
  });
- assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
- await p.evaluate(()=>{const o=observationState();o.sequence=2;renderObservation();});
- assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'false','idle scene switch repaints the original');
- assert.equal(await p.locator('#obs-enhance-toggle').isVisible(),false,'old media cannot expose a nonfunctional light control');
- assert.equal(await p.locator('#obs-zoom-toggle').isHidden(),true,'legacy media must not expose a nonworking zoom control');
- await p.evaluate(()=>{const o=observationState();o.sequence=3;renderObservation();});
- assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true','later idle scene returns to its own image');
- await p.evaluate(()=>save());await p.reload();assert.equal(await p.evaluate(()=>WatchLocations.discovered(S.observation.locationRecords)[0].rarities[1]),1);
- assert.equal(await p.evaluate(()=>S.currency),wallet+projectedContactTaps,'real coordinate taps earn their normal 1pt each');
- assert.deepEqual(errors,[]);console.log('New scenes: earned R/SR/SSR, original suppression coordinates, mobile image, save and secrecy passed');
+ assert.equal(stored.currency,wallet+projectedContactTaps,'real projected taps persist exactly once');
+ if(runSharedScenario){
+  await p.reload();
+  assert.equal(await p.evaluate(()=>WatchLocations.discovered(S.observation.locationRecords)[0].rarities[1]),1,
+   'the acquired photographic record survives a real browser reload');
+  assert.equal(await p.evaluate(()=>S.currency),stored.currency,'saved currency survives real browser reload');
+ }else{
+  assert.equal(stored.places,0,'source-only QA must not store a nonexistent location');
+  assert.equal(await p.evaluate(()=>S.currency),stored.currency,'source-only saving cannot change points');
+ }
+ assert.deepEqual(errors,[]);console.log('Photo QA passed: '+(selectedMode||'all')+
+  ' rarity '+(requestedRarity===undefined?'0,1,2,3':requestedRarity)+
+  ' (shared scenario '+(runSharedScenario?'included':'separate')+')');
  }finally{await b.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
