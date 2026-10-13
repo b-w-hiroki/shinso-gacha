@@ -1,6 +1,7 @@
 /* The home is one live scene. Management and explanations live off the scene. */
 // Eligibility is checked in the model for both purchase and execution.
 const WATCH_AUTOMATION_AVAILABLE=true;
+const OBS_PERSPECTIVES=Object.freeze({cctv:'監視カメラ',photo:'写真記録',vision:'視界ジャック',dash:'車載カメラ'});
 const OBSERVATIONS={
  cctv:{title:'公園',source:'CAM 04',ratio:1.2,records:['日中の公園','風のないブランコ','影だけの来園者','砂場の整列']},
  photo:{title:'食卓',source:'PHOTO 03',ratio:.75,records:['三人分の夕食','浮いた箸','四人目の夕食','窓の内側']},
@@ -141,7 +142,10 @@ function renderObservation(){
  document.getElementById('obs-rest').textContent=o.mind.closed?'観測を再開':'回線を切る';
  document.getElementById('obs-closed').hidden=!o.mind.closed;
  f.setAttribute('aria-label',o.mind.closed?'観測モニタは閉じています':`${alternate?.title||m.title}。${danger?'違和感のある場所をタップ。キーボードでは場所を選んで対処':'タップで観測を進める'}`);
+ const viewpoint=document.getElementById('obs-viewpoint-label');
+ viewpoint.textContent=OBS_PERSPECTIVES[o.mode];
  document.getElementById('obs-source').textContent=(alternate?.source||m.source)+' ／ '+OBS_SCENE_CONDITIONS[o.mode][condition];
+ viewpoint.title=document.getElementById('obs-source').textContent;
  document.getElementById('obs-name').textContent=alternate?.title||m.title;
  document.getElementById('obs-ready').hidden=!danger||o.mind.closed;
  document.getElementById('obs-ready').textContent=danger?'異変の場所を繰り返しタップ':'記録を受信';

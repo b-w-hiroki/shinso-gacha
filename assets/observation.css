@@ -297,3 +297,18 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
  .agent-home .obs-topline{padding-right:0;gap:4px}
  .agent-home .obs-topline .obs-zoom-tools button{font-size:12px}
 }
+
+/* The live viewpoint is part of the evidence heading, never printed on top
+   of the photo. Short semantic source + place remain visible at phone widths. */
+.agent-home .obs-topline .obs-viewpoint{
+ display:flex;flex:1 1 auto;min-width:0;flex-direction:column;justify-content:center;
+ gap:1px;overflow:hidden;
+}
+.agent-home .obs-topline #obs-viewpoint-label{
+ display:block;flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ color:#c4cdbf;font:600 12px/1.35 var(--f-body);
+}
+.agent-home .obs-topline #obs-name{
+ display:block;flex:none;min-width:0;overflow:hidden;text-overflow:ellipsis;
+ white-space:nowrap;color:#e8e1d0;font:500 14px/1.35 var(--f-body);
+}
