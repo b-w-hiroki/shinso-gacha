@@ -1,5 +1,7 @@
 # 真相ガチャ
 
+**AI開発を再開する入口：** [docs/AI-RESUME.md](docs/AI-RESUME.md)（新しいチャットでは「真相ガチャ、開発再開」で可）。GitHubの最新状態が正本で、古いチャットの引き継ぎ文は不要です。read-only snapshotは無人実装を開始しません。
+
 > **現行ドキュメント（2026-10-11基準）：[docs/INDEX.md](docs/INDEX.md)** ／ [実装仕様](docs/CURRENT-SPEC.md) ／ [アーキテクチャ](docs/SYSTEM-ARCHITECTURE.md) ／ [制作ワークフロー](docs/DEVELOPMENT-WORKFLOW.md) ／ [再利用ノウハウ](docs/REUSABLE-PLAYBOOK.md)。以下は初期からの製品紹介と変遷を含むため、数値・画面・解放条件が最新mainと異なる箇所は現行仕様とコードを優先してください。
 
 都市伝説と陰謀論を集めて、黒塗りを剥がしていく収集ガチャ。
