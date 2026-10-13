@@ -221,13 +221,19 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    assert(await enhance.isVisible(),'optional low-light control must be reachable: '+mode);
    assert.equal(await enhance.getAttribute('aria-pressed'),'false');
    const beforeEnhance=await p.evaluate(()=>JSON.stringify({currency:S.currency,suppression:observationState().pending?.suppression,collection:observationState().collection}));
-   const regular=await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).filter);
+   const regular=await p.locator('#obs-site-overlay').evaluate(e=>({
+    filter:getComputedStyle(e).filter,
+    veil:getComputedStyle(e,'::after').backgroundColor,
+   }));
    await clickRealViewerControl('#obs-enhance-toggle');
    assert.equal(await enhance.getAttribute('aria-pressed'),'true','display compensation is explicit opt-in');
    assert.equal(await p.locator('#obs-frame').getAttribute('data-enhance'),'true');
-   const corrected=await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).filter);
-   assert.equal(corrected,'none','enhanced imagery uses light-weight backing rather than GPU brightness filter: '+mode);
-   assert.notEqual(corrected,regular,'correction must change render pipeline: '+mode);
+   const corrected=await p.locator('#obs-site-overlay').evaluate(e=>({
+    filter:getComputedStyle(e).filter,
+    veil:getComputedStyle(e,'::after').backgroundColor,
+   }));
+   assert.equal(corrected.filter,'none','enhancement must not invoke an expensive GPU image filter: '+mode);
+   assert.notEqual(corrected.veil,regular.veil,'user-selected compensation must visibly change the evidence: '+mode);
    assert(await p.locator('#obs-frame').evaluate(e=>e.getBoundingClientRect().width>0));
    if((mode==='vision'||mode==='dash')&&!process.env.QA_WEBKIT)
     await p.screenshot({path:'docs/qa-incursions/alt-'+mode+'-lowlight-on-390.jpg',quality:87});
@@ -238,7 +244,10 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    await clickRealViewerControl('#obs-enhance-toggle');
    assert.equal(await enhance.getAttribute('aria-pressed'),'false');
    assert.equal(await p.locator('#obs-frame').getAttribute('data-enhance'),'false');
-   assert.equal(await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).filter),regular,'original dim appearance returns exactly');
+   assert.deepEqual(await p.locator('#obs-site-overlay').evaluate(e=>({
+    filter:getComputedStyle(e).filter,
+    veil:getComputedStyle(e,'::after').backgroundColor,
+   })),regular,'original unenhanced evidence appearance returns exactly');
    assert.equal(await p.evaluate(()=>JSON.stringify({currency:S.currency,suppression:observationState().pending?.suppression,collection:observationState().collection})),beforeEnhance,
     'changing the display must never grant or withdraw rewards or mutate observation state');
    }
@@ -300,8 +309,8 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    },{mode,rarity});
    assert(await p.locator('#obs-site-overlay').evaluate(e=>e.parentElement?.id==='obs-frame'),
     'the photo must be a sibling of the blurred layer, not its child');
-   assert(geometry.containMatches&&geometry.atmosphereFit==='cover'&&geometry.atmosphereFilter.includes('blur('),
-    'ambient enlargement does not crop photographic evidence '+mode+rarity);
+   assert(geometry.containMatches&&geometry.atmosphereFit==='cover'&&geometry.atmosphereFilter==='none',
+    'unfiltered ambient backing cannot crop native photographic evidence '+mode+rarity);
    assert(geometry.photoFit.startsWith('100% 100%')&&geometry.foreground.includes(originalPhoto),
     'sharp native photograph and visual anomaly share an image-space rectangle '+mode+rarity);
    const f=geometry.f;
