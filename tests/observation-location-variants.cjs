@@ -202,6 +202,15 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
   assert(overlay!==null,'site overlay element must exist in DOM');
   const originalPhoto=await p.evaluate(m=>WatchLocations.byId('alt:'+m).file,mode);
   assert(overlay.includes(originalPhoto),'original photograph must be visible at full width '+mode+rarity);
+  if(rarity>0){
+   const compositor=await p.evaluate(()=>{
+    const ambient=document.getElementById('obs-image');
+    return {animation:getComputedStyle(ambient).animationName,
+      duplicate:getComputedStyle(ambient,'::after').content};
+   });
+   assert.equal(compositor.animation,'none','large photographic ambient backdrop must not animate '+mode+rarity);
+   assert.equal(compositor.duplicate,'none','large filtered photographic copy must not be duplicated '+mode+rarity);
+  }
   if(rarity===0)assert(!overlay.includes('alt-overlays/')&&!overlay.includes('photo-deltas/'),'ordinary footage never includes anomaly art');
   else{
    assert(overlay.includes(mode+'-'+rarity+'.svg'));
