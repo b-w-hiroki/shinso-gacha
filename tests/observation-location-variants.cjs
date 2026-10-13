@@ -26,7 +26,11 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  // before each source-specific 4-rarity inspection. Chromium still runs it
  // alongside the complete 16-state matrix.
  let wallet;
- if(!process.env.QA_WEBKIT||!process.env.QA_OBSERVATION_MODE||process.env.QA_OBSERVATION_MODE==='cctv'){
+ const requestedRarity=process.env.QA_OBSERVATION_RARITY;
+ assert(requestedRarity===undefined||['0','1','2','3'].includes(requestedRarity),'invalid isolated QA rarity');
+ const runSharedScenario=!process.env.QA_WEBKIT||!process.env.QA_OBSERVATION_MODE||
+  (process.env.QA_OBSERVATION_MODE==='cctv'&&(requestedRarity===undefined||requestedRarity==='1'));
+ if(runSharedScenario){
  await p.evaluate(()=>openEncyclopedia('places'));assert.equal(await p.locator('[data-catalog-entry^="alt:"]').count(),0,'unknown places absent');
  await p.evaluate(()=>openEncyclopedia('anomalies'));assert.equal(await p.locator('[data-catalog-entry^="alt:"]').count(),0,'unknown anomaly locations absent');
  await p.evaluate(()=>{hideSheet();go('home');const o=observationState(),now=Date.now();o.mode='cctv';o.sequence=1;o.mind.closed=false;o.pending={mode:'cctv',rarity:1,readyAt:now,expiresAt:now+3600000,sequence:1,suppression:0};renderObservation();});
@@ -168,7 +172,8 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  const selectedMode=process.env.QA_OBSERVATION_MODE;
  assert(!selectedMode||everyMode.includes(selectedMode),'unsupported QA observation mode');
  const allModes=selectedMode?[selectedMode]:everyMode;
- for(const mode of allModes)for(const rarity of [0,1,2,3]){
+ const selectedRarities=requestedRarity===undefined?[0,1,2,3]:[Number(requestedRarity)];
+ for(const mode of allModes)for(const rarity of selectedRarities){
   await p.evaluate(({mode,rarity})=>{const o=observationState(),t=Date.now();o.mode=mode;o.sequence=1;o.mind.closed=false;o.pending={mode,rarity,readyAt:t,expiresAt:t+3600000,sequence:1,suppression:0};renderObservation();},{mode,rarity});
   assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
   if(rarity===0){
@@ -330,13 +335,15 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  await p.evaluate(()=>{const o=observationState();o.sequence=3;renderObservation();});
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true','later idle scene returns to its own image');
  await p.evaluate(()=>save());await p.reload();
- if(!process.env.QA_WEBKIT||!selectedMode||selectedMode==='cctv')
+ if(runSharedScenario)
   assert.equal(await p.evaluate(()=>WatchLocations.discovered(S.observation.locationRecords)[0].rarities[1]),1,
    'the shared acquired photograph survives reload');
  else
   assert.equal(await p.evaluate(()=>WatchLocations.discovered(S.observation.locationRecords).length),0,
    'source visual QA must not secretly earn any uncollected location');
  assert.equal(await p.evaluate(()=>S.currency),wallet+projectedContactTaps,'real coordinate taps earn their normal 1pt each');
- assert.deepEqual(errors,[]);console.log('New scenes: earned R/SR/SSR, original suppression coordinates, mobile image, save and secrecy passed');
+ assert.deepEqual(errors,[]);console.log('Photo QA passed: '+(selectedMode||'all')+
+  ' rarity '+(requestedRarity===undefined?'0,1,2,3':requestedRarity)+
+  ' (shared scenario '+(runSharedScenario?'included':'separate')+')');
  }finally{await b.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
