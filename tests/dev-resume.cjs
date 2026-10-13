@@ -1,0 +1,52 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { pathToFileURL } = require('node:url');
+const { resolve } = require('node:path');
+const repo='b-w-hiroki/shinso-gacha',sha='1'.repeat(40);
+let mod;
+test.before(async()=>{mod=await import(pathToFileURL(resolve(__dirname,'../scripts/dev-resume.mjs')).href);});
+function fake({issues=[],pulls=[],runs=[],drift=false}={}){
+ let reads=0;
+ return async p=>{
+  if(p.includes('/branches/main'))return {commit:{sha:++reads>1&&drift?'2'.repeat(40):sha}};
+  if(p.includes('/issues?'))return issues;
+  if(p.includes('/pulls?'))return pulls;
+  if(p.includes('/actions/runs?'))return {workflow_runs:runs};
+  throw Error('Unexpected '+p);
+ };
+}
+test('SHA-matched CI, opt-in, blocking and secrecy',async()=>{
+ const issue={number:15,state:'open',title:'P1: improve diagram',
+  labels:[{name:'priority:p1'},{name:'autopilot:ready'}],
+  body:'- [ ] rendered diagram\nprivate detail not for snapshot'};
+ const run={name:'smoke',event:'push',head_sha:sha,status:'completed',
+  conclusion:'success',run_attempt:2,html_url:'https://github.com/example/runs/1'};
+ const s=await mod.buildSnapshot(repo,fake({issues:[issue,
+  {number:75,state:'open',title:'公開前QA: 本番FirebaseとiPhone実機'}],
+  runs:[{...run,head_sha:'f'.repeat(40),conclusion:'failure'},run]}),
+  new Date('2026-10-13T05:00:00Z'));
+ assert.equal(s.main_sha,sha);
+ assert.equal(s.queue.selected.number,15);
+ assert.equal(s.queue.human_required[0].number,75);
+ assert.equal(s.main_checks[0].attempt,2);
+ assert.equal(s.queue.execution_started,false);
+ assert.equal(s.queue.automatic_merge,false);
+ assert.ok(!JSON.stringify(s).includes('private detail'));
+});
+test('open PR locks issue and missing opt-in does not execute',async()=>{
+ const issue={number:12,state:'open',title:'P0: repair image',
+  labels:['autopilot:ready','priority:p0'],body:'- [ ] fixed'};
+ const x=await mod.buildSnapshot(repo,fake({issues:[issue],
+  pulls:[{number:11,title:'existing',body:'Fixes #12',head:{sha}}]}));
+ assert.equal(x.queue.selected,null);
+ assert.deepEqual(x.queue.blocked_by_open_pr,[12]);
+ const y=await mod.buildSnapshot(repo,fake({issues:[{number:141,state:'open',
+  title:'P0: WebKit instability',body:'- [ ] fix'}]}));
+ assert.equal(y.queue.status,'triage_required');
+ assert.equal(y.queue.suggested[0].number,141);
+});
+test('rejects SHA race, invalid repo and truncated pages',async()=>{
+ await assert.rejects(mod.buildSnapshot(repo,fake({drift:true})),/main advanced/);
+ await assert.rejects(mod.buildSnapshot(repo,fake({issues:Array(100).fill({})})),/truncated/);
+ await assert.rejects(mod.buildSnapshot('bad',fake()),/invalid repository/);
+});
