@@ -16,14 +16,25 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  // Validate the real hit target on narrow portrait and short landscape phones.
  for(const [width,height] of [[320,568],[390,680],[844,390]]){
   await p.setViewportSize({width,height});
-  const button=p.locator('[data-watch-upgrade="patrol"]');
-  await button.scrollIntoViewIfNeeded();
-  assert(await button.evaluate(e=>{
-   const r=e.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2,hit=document.elementFromPoint(x,y);
+  // Render ticks can replace the upgrade button between locator resolution and
+  // scrollIntoViewIfNeeded. Scroll and hit-test the *same live DOM node* in
+  // one page task; still require physical size, viewport clearance and actual
+  // elementFromPoint ownership. Never bypass the later genuine click.
+  const geometry=await p.evaluate(()=>{
+   const e=document.querySelector('[data-watch-upgrade="patrol"]');
+   if(!e) return {present:false};
+   e.scrollIntoView({block:'center',behavior:'instant'});
+   const r=e.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;
+   const hit=document.elementFromPoint(x,y);
    const nav=document.querySelector('.nav')?.getBoundingClientRect();
-   return r.width>=44&&r.height>=44&&y>0&&y<innerHeight&&
-    (!nav||y<nav.top)&&!!hit&&(hit===e||e.contains(hit));
-  }),'patrol upgrade must be directly tappable above fixed nav at '+width+'x'+height);
+   return {present:true,width:r.width,height:r.height,y,screenHeight:innerHeight,
+     hit:!!hit&&(hit===e||e.contains(hit)),aboveNav:!nav||y<nav.top};
+  });
+  assert(geometry.present&&geometry.width>=44&&geometry.height>=44&&
+    geometry.y>0&&geometry.y<geometry.screenHeight&&
+    geometry.aboveNav&&geometry.hit,
+    'patrol upgrade must be directly tappable above fixed nav at '+width+'x'+height+
+    ': '+JSON.stringify(geometry));
  }
  await p.setViewportSize({width:390,height:680});
  await p.locator('[data-watch-upgrade="patrol"]').click();
