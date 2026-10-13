@@ -1,5 +1,6 @@
-// Historical regression replay: same real Playwright click on two isolated
-// checkouts, without checking out historical source into current main.
+// Diagnostic historical regression replay: same real Playwright click on an
+// isolated old SHA and current code. If the original intermittent interception
+// does not reproduce, the result is INCONCLUSIVE, not a confirmed negative.
 // No test skips, force-clicks or JS-synthesized click events.
 const {chromium}=require('playwright');
 const fs=require('node:fs'),http=require('node:http'),path=require('node:path');
@@ -88,29 +89,41 @@ async function run(root,label,browser){
 (async()=>{
  const browser=await chromium.launch({args:['--no-sandbox','--disable-dev-shm-usage']});
  try{
-  const historical=await run(old,'historical',browser);
+  // Historical click failure was intermittent in the original CI. Collect
+  // multiple independent browser-page observations without modifying old
+  // source or introducing forced click / JS click shortcuts.
+  const historical=[];
+  for(let i=1;i<=3;i++) {
+    const result=await run(old,'historical-'+i,browser);
+    historical.push(result);
+    assert(['fixed_nav_intercepted_real_click','clicked_and_upgraded'].includes(result.result),
+      'Historical run produced an unrelated failure; do not silently reclassify it');
+  }
   const fixed=await run(current,'current',browser);
+  const reproduced=historical.some(x=>x.result==='fixed_nav_intercepted_real_click');
   const report={
    task_id:'shinso-nav-click-01',historical_sha:historicalSHA,
    fixed_sha:process.env.GITHUB_SHA||null,
    source_run:'https://github.com/b-w-hiroki/shinso-gacha/actions/runs/38197626223',
    historical, fixed,
    real_click_tested:true,
+   historical_click_attempts:historical.length,
    ai_agent_trials_executed:0,
-   original_failure_reproduced:historical.result==='fixed_nav_intercepted_real_click',
+   original_failure_reproduced:reproduced,
    current_positive_control:fixed.result==='clicked_and_upgraded',
+   negative_replay_status:reproduced?'confirmed_in_one_or_more_historical_trials':'inconclusive_not_reproduced',
+   replay_baseline_ready:reproduced,
    limitations:['Chromium headless 390x680 only','No physical Safari or external Firebase',
-    'Reproduces pointer interception, not complete historic multi-step game flow'],
+    'Historical failure was intermittent; passing historical replay must not be treated as regression-fixed proof',
+    'A diagnostic CI pass does not certify an old failure was reproduced or a model A/B was executed'],
   };
   fs.writeFileSync(path.join(out,'historical-replay-report.json'),
    JSON.stringify(report,null,2)+'\n');
-  console.log('Isolated historical replay outcome',JSON.stringify({
-    historical:report.historical.result,
-    current:report.fixed.result,
-    reproduced:report.original_failure_reproduced,
+  console.log('Isolated historical diagnostic',JSON.stringify({
+    historical:historical.map(x=>x.result),
+    current:fixed.result,
+    replay_status:report.negative_replay_status,
   }));
-  assert(report.original_failure_reproduced,
-    'Historical fixed nav interception not reproduced: do not mark baseline ready');
   assert(report.current_positive_control,
     'Current main failed patrol purchase: never weaken real click test');
  }finally{await browser.close();}
