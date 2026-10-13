@@ -172,12 +172,41 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
   await p.evaluate(({mode,rarity})=>{const o=observationState(),t=Date.now();o.mode=mode;o.sequence=1;o.mind.closed=false;o.pending={mode,rarity,readyAt:t,expiresAt:t+3600000,sequence:1,suppression:0};renderObservation();},{mode,rarity});
   assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
   if(rarity===0){
-   await p.evaluate(async mode=>{
-    const scene=WatchLocations.byId('alt:'+mode),img=new Image();
-    img.src='assets/observation/'+scene.file;
-    await img.decode();
-    if(img.naturalWidth!==1440||img.naturalHeight!==720)throw Error('not the native asset for '+mode);
-   },mode);
+   if(process.env.QA_WEBKIT){
+    // WebKit has already decoded/rendered the CSS-backed photo in this live
+    // monitor. Creating a *second* native-size Image in the same page can
+    // terminate WebKit's image compositor (most visible for the road source).
+    // Validate the actual served RIFF/VP8 frame's native dimensions instead;
+    // Chromium still calls Image.decode(), and both browsers inspect and tap
+    // the real composited source and every anomaly variant.
+    await p.evaluate(async mode=>{
+     const scene=WatchLocations.byId('alt:'+mode);
+     const response=await fetch('assets/observation/'+scene.file,{cache:'no-store'});
+     if(!response.ok)throw Error('missing native photographic source '+mode);
+     const b=new Uint8Array(await response.arrayBuffer());
+     const fourcc=(at,n)=>String.fromCharCode(...b.slice(at,at+n));
+     if(b.length<30||fourcc(0,4)!=='RIFF'||fourcc(8,4)!=='WEBP')
+      throw Error('corrupted original WebP '+mode);
+     let width,height;
+     if(fourcc(12,4)==='VP8 '){
+      if(b[23]!==0x9d||b[24]!==0x01||b[25]!==0x2a)
+       throw Error('invalid lossy WebP frame header '+mode);
+      width=(b[26]|(b[27]<<8))&0x3fff;
+      height=(b[28]|(b[29]<<8))&0x3fff;
+     }else if(fourcc(12,4)==='VP8X'){
+      width=1+b[24]+(b[25]<<8)+(b[26]<<16);
+      height=1+b[27]+(b[28]<<8)+(b[29]<<16);
+     }else throw Error('unsupported original WebP encoding '+mode);
+     if(width!==1440||height!==720)throw Error('native source dimensions changed '+mode);
+    },mode);
+   }else{
+    await p.evaluate(async mode=>{
+     const scene=WatchLocations.byId('alt:'+mode),img=new Image();
+     img.src='assets/observation/'+scene.file;
+     await img.decode();
+     if(img.naturalWidth!==1440||img.naturalHeight!==720)throw Error('not the native asset for '+mode);
+    },mode);
+   }
    if(!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/alt-'+mode+'-native-normal-390.jpg',quality:86});
    // WebKit exercises this full optional display control interaction in an
    // isolated browser process to avoid GPU resource accumulation before
