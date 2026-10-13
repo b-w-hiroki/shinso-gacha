@@ -41,6 +41,17 @@ const server=http.createServer((req,res)=>{
    renderObservation();fitObservation();
   },mode);
   assert.equal(await page.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
+  assert.equal(await page.locator('#obs-source').innerText(),
+   {cctv:'監視カメラ',photo:'写真記録',vision:'視界ジャック',dash:'車載カメラ'}[mode]);
+  const headerHit=await page.evaluate(()=>{
+   const source=document.getElementById('obs-source').getBoundingClientRect();
+   const place=document.getElementById('obs-name').getBoundingClientRect();
+   const buttons=document.querySelector('.obs-zoom-tools').getBoundingClientRect();
+   const footage=document.getElementById('obs-frame').getBoundingClientRect();
+   return source.height>=14&&source.right<=buttons.left+1&&
+    place.right<=buttons.left+1&&place.bottom<=footage.top+1;
+  });
+  assert(headerHit,'viewpoint must not be covered by image or controls');
   const light=page.locator('#obs-enhance-toggle');
   assert(await light.isVisible(),'enhance button hidden '+mode);
   const baseline=await page.evaluate(()=>({

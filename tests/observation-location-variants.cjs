@@ -44,6 +44,19 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    const guide=document.getElementById('obs-zoom-hint').getBoundingClientRect();
    return {imageTop:image.top,controlsBottom:controls.bottom,guideWidth:guide.width};
   });
+  const sourceLayout=await p.evaluate(()=>{
+   const src=document.getElementById('obs-source'),name=document.getElementById('obs-name');
+   const a=src.getBoundingClientRect(),b=name.getBoundingClientRect(),controls=document.querySelector('.obs-zoom-tools').getBoundingClientRect();
+   const image=document.getElementById('obs-frame').getBoundingClientRect();
+   return {label:src.textContent,name:name.textContent,visible:getComputedStyle(src).display!=='none',
+    sourceBottom:a.bottom,nameBottom:b.bottom,sourceRight:a.right,nameRight:b.right,
+    controlsLeft:controls.left,imageTop:image.top,sourceHeight:a.height};
+  });
+  assert(sourceLayout.visible&&sourceLayout.label==='監視カメラ'&&sourceLayout.name==='地下通路',
+   'viewpoint and location must remain visible at '+width+'x'+height);
+  assert(sourceLayout.sourceHeight>=14&&sourceLayout.nameBottom<=sourceLayout.imageTop+1&&
+   sourceLayout.sourceRight<=sourceLayout.controlsLeft+1&&sourceLayout.nameRight<=sourceLayout.controlsLeft+1,
+   'viewpoint/location must not overlap evidence or controls at '+width+'x'+height);
   assert(geometry.controlsBottom<=geometry.imageTop+1,'viewer controls overlap evidence at '+width+'x'+height);
   assert(geometry.guideWidth<=1,'instruction must be screen-reader-only at '+width+'x'+height);
  }
@@ -176,6 +189,9 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  for(const mode of allModes)for(const rarity of selectedRarities){
   await p.evaluate(({mode,rarity})=>{const o=observationState(),t=Date.now();o.mode=mode;o.sequence=1;o.mind.closed=false;o.pending={mode,rarity,readyAt:t,expiresAt:t+3600000,sequence:1,suppression:0};renderObservation();},{mode,rarity});
   assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
+  const perspective=await p.locator('#obs-source').innerText();
+  assert.equal(perspective,{cctv:'監視カメラ',photo:'写真記録',vision:'視界ジャック',dash:'車載カメラ'}[mode],
+   'viewpoint is always tied to current mode, not another source');
   if(rarity===0){
    if(process.env.QA_WEBKIT){
     // WebKit has already decoded/rendered the CSS-backed photo in this live
