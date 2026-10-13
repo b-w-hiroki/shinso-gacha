@@ -20,6 +20,13 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
   await p.mouse.click(point.x,point.y);
  };
  await p.evaluate(()=>{S.role='agent';S.onboarded=true;S.lite={intro:{done:true}};S.lastTick=Date.now()+900000;S.streak={last:dayKey(),n:1};S.observation=WatchModel.create(Date.now(),42);S.incursion={version:1,level:0,history:[]};S.currency=5000;applyMode();go('home');render();});
+ // The full earned-evidence, catalog, zoom/pan, and save/restore scenario
+ // is shared across source types. Execute it once in WebKit (cctv), rather
+ // than repeatedly creating high-resolution photo layers in the same process
+ // before each source-specific 4-rarity inspection. Chromium still runs it
+ // alongside the complete 16-state matrix.
+ let wallet;
+ if(!process.env.QA_WEBKIT||!process.env.QA_OBSERVATION_MODE||process.env.QA_OBSERVATION_MODE==='cctv'){
  await p.evaluate(()=>openEncyclopedia('places'));assert.equal(await p.locator('[data-catalog-entry^="alt:"]').count(),0,'unknown places absent');
  await p.evaluate(()=>openEncyclopedia('anomalies'));assert.equal(await p.locator('[data-catalog-entry^="alt:"]').count(),0,'unknown anomaly locations absent');
  await p.evaluate(()=>{hideSheet();go('home');const o=observationState(),now=Date.now();o.mode='cctv';o.sequence=1;o.mind.closed=false;o.pending={mode:'cctv',rarity:1,readyAt:now,expiresAt:now+3600000,sequence:1,suppression:0};renderObservation();});
@@ -105,7 +112,7 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  assert.equal(await p.evaluate(()=>S.observation.collection['cctv:1']),1);
  const visits=await p.evaluate(()=>WatchLocations.discovered(S.observation.locationRecords));
  assert.equal(visits.length,1);assert.equal(visits[0].id,'alt:cctv');assert.equal(visits[0].rarities[1],1);assert.equal(visits[0].rarities[0]||0,0);
- const wallet=await p.evaluate(()=>S.currency);
+ wallet=await p.evaluate(()=>S.currency);
  await p.evaluate(()=>openEncyclopedia('anomalies'));
  assert.equal(await p.locator('[data-catalog-entry^="alt:"]').count(),1,'only acquired location anomaly is shown');
  assert((await p.locator('[data-catalog-entry="alt:cctv:1"]').innerText()).includes('通路に残る足跡'));
@@ -143,6 +150,14 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  assert.equal(await p.evaluate(()=>JSON.stringify({currency:S.currency,collected:S.observation.collected,locations:S.observation.locationRecords})),beforeCompare,'comparison never changes saved state');
  for(const [w,h]of [[320,568],[390,844],[844,390]]){await p.setViewportSize({width:w,height:h});assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));if(w===390&&!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/alt-location-rarity-390.jpg',quality:85});}
  await p.evaluate(()=>{hideSheet();go('home');});
+ }else{
+  // The independent WebKit process starts directly from a clean observation.
+  // The normal/missing/anomalous photo contract and real pointer hits below
+  // still run for every single source+rarity without skipping an image state.
+  await p.evaluate(()=>{hideSheet();go('home');setHomeTab('desk');});
+  wallet=await p.evaluate(()=>S.currency);
+ }
+
  await p.setViewportSize({width:390,height:844});
  await p.emulateMedia({reducedMotion:'no-preference'});
  let projectedContactTaps=0;
@@ -285,7 +300,13 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  assert.equal(await p.locator('#obs-zoom-toggle').isHidden(),true,'legacy media must not expose a nonworking zoom control');
  await p.evaluate(()=>{const o=observationState();o.sequence=3;renderObservation();});
  assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true','later idle scene returns to its own image');
- await p.evaluate(()=>save());await p.reload();assert.equal(await p.evaluate(()=>WatchLocations.discovered(S.observation.locationRecords)[0].rarities[1]),1);
+ await p.evaluate(()=>save());await p.reload();
+ if(!process.env.QA_WEBKIT||!selectedMode||selectedMode==='cctv')
+  assert.equal(await p.evaluate(()=>WatchLocations.discovered(S.observation.locationRecords)[0].rarities[1]),1,
+   'the shared acquired photograph survives reload');
+ else
+  assert.equal(await p.evaluate(()=>WatchLocations.discovered(S.observation.locationRecords).length),0,
+   'source visual QA must not secretly earn any uncollected location');
  assert.equal(await p.evaluate(()=>S.currency),wallet+projectedContactTaps,'real coordinate taps earn their normal 1pt each');
  assert.deepEqual(errors,[]);console.log('New scenes: earned R/SR/SSR, original suppression coordinates, mobile image, save and secrecy passed');
  }finally{await b.close();server.close();}
