@@ -1,0 +1,47 @@
+name: Benchmark nav-upgrade real-touch QA
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tests/benchmark-nav-upgrade.cjs'
+      - '.github/workflows/benchmark-nav-upgrade.yml'
+      - 'assets/observation.js'
+      - 'assets/observation.css'
+      - 'index.html'
+  push:
+    branches: [main]
+    paths:
+      - 'tests/benchmark-nav-upgrade.cjs'
+      - '.github/workflows/benchmark-nav-upgrade.yml'
+      - 'assets/observation.js'
+      - 'assets/observation.css'
+      - 'index.html'
+permissions:
+  contents: read
+jobs:
+  pointer-regression:
+    name: Nav upgrade actual touch (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save --package-lock=false playwright@1.62.1
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Run 320/390/landscape real-touch nav and saved progress QA
+        run: node tests/benchmark-nav-upgrade.cjs
+        env:
+          QA_WEBKIT: ${{ matrix.browser == 'webkit' && '1' || '0' }}
+      - name: Upload independent mobile screen evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-nav-upgrade-${{ matrix.browser }}
+          path: docs/qa-benchmarks/nav-*.png
+          if-no-files-found: warn
+          retention-days: 14
