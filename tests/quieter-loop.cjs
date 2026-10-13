@@ -16,9 +16,13 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  // Validate the real hit target on narrow portrait and short landscape phones.
  for(const [width,height] of [[320,568],[390,680],[844,390]]){
   await p.setViewportSize({width,height});
-  const button=p.locator('[data-watch-upgrade="patrol"]');
-  await button.scrollIntoViewIfNeeded();
-  assert(await button.evaluate(e=>{
+  // Responsive lab repaint may replace the button after viewport changes.
+  // Scroll and hit-test the same currently attached DOM element atomically;
+  // the real pointer click later remains mandatory.
+  assert(await p.evaluate(()=>{
+   const e=document.querySelector('[data-watch-upgrade="patrol"]');
+   if(!e)return false;
+   e.scrollIntoView({block:'center',behavior:'instant'});
    const r=e.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2,hit=document.elementFromPoint(x,y);
    const nav=document.querySelector('.nav')?.getBoundingClientRect();
    return r.width>=44&&r.height>=44&&y>0&&y<innerHeight&&
