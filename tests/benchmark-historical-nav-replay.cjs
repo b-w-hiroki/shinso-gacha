@@ -16,8 +16,10 @@ async function run(root,label,browser){
   try{
    const url=new URL(req.url,'http://localhost');
    const relative=decodeURIComponent(url.pathname==='/'?'/index.html':url.pathname);
-   const file=path.resolve(root,'.'+relative);
-   if(!file.startsWith(root+path.sep))throw Error('path outside checkout');
+   const file=(relative==='/font.otf'&&process.env.QA_FONT)
+    ?path.resolve(process.env.QA_FONT)
+    :path.resolve(root,'.'+relative);
+   if(relative!=='/font.otf'&&!file.startsWith(root+path.sep))throw Error('path outside checkout');
    res.setHeader('Content-Type',file.endsWith('.html')?'text/html; charset=utf-8':file.endsWith('.css')?'text/css':file.endsWith('.js')?'application/javascript':'application/octet-stream');
    res.end(fs.readFileSync(file));
   }catch{res.writeHead(404);res.end();}
@@ -28,12 +30,26 @@ async function run(root,label,browser){
  await page.route('https://**/*',route=>route.abort());
  try{
   await page.goto('http://127.0.0.1:'+server.address().port,{waitUntil:'load'});
+  if(process.env.QA_FONT){
+   await page.addStyleTag({content:"@font-face{font-family:QAJP;src:url('/font.otf')} :root{--f-body:QAJP;--f-display:QAJP;--f-mono:QAJP;--f-hand:QAJP}"});
+   await page.evaluate(()=>document.fonts.load('16px QAJP'));
+  }
   await page.evaluate(()=>{
    S.role='agent';S.onboarded=true;S.lite={intro:{done:true}};
    S.lastTick=Date.now()+600000;S.incursion={version:1,level:0,resolved:0,history:[]};
    S.streak={last:dayKey(),n:1};S.observation=WatchModel.create(Date.now(),42);
    S.currency=5000;applyMode();go('home');setHomeTab('desk');render();
   });
+  // Reproduce the original failing CI's prerequisite sequence: Playwright
+  // clock, completed route, and the same unlocked-level transition.
+  await page.clock.install();
+  await page.clock.pauseAt(new Date(Date.now()+1000));
+  await page.evaluate(()=>{
+   const o=observationState();o.collected=5;o.pending=null;
+   S.currency=100;watchMessage='';renderObservation();
+  });
+  await page.evaluate(()=>{observationState().tapProgress=9;});
+  await page.locator('#obs-frame').click();
   await page.evaluate(()=>{
    S.currency=5000;const o=observationState();o.collected=20;o.pending=null;
    go('lab');renderObservationLab();
