@@ -4,8 +4,8 @@
 const {chromium,webkit}=require('playwright');
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http');
 const assert=require('node:assert/strict');
-const source=process.env.QA_WEBKIT?'webkit':'chromium';
-const browserType=process.env.QA_WEBKIT?webkit:chromium;
+const source=process.env.QA_WEBKIT==='1'?'webkit':'chromium';
+const browserType=source==='webkit'?webkit:chromium;
 const outDir=path.join('docs','qa-benchmarks');
 fs.mkdirSync(outDir,{recursive:true});
 const server=http.createServer((request,response)=>{
@@ -19,7 +19,7 @@ const server=http.createServer((request,response)=>{
 });
 (async()=>{
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
- const browser=await browserType.launch(process.env.QA_WEBKIT?{}:{args:['--no-sandbox','--disable-dev-shm-usage']});
+ const browser=await browserType.launch(source==='webkit'?{}:{args:['--no-sandbox','--disable-dev-shm-usage']});
  try{
   for(const [width,height] of [[320,568],[390,844],[844,390]]){
    const page=await browser.newPage({viewport:{width,height},hasTouch:true,reducedMotion:'reduce'});
