@@ -8,17 +8,27 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
 
  await p.clock.install();await p.clock.pauseAt(new Date(Date.now()+1000));
  await p.evaluate(()=>{S.levels={};S.legends={};S.observation=WatchModel.create(Date.now(),42);S.incursion={version:1,level:0,resolved:0,history:[]};go('gacha');render();});
- await p.locator('#cab-desc').click();assert.equal(await p.locator('.legend-case-list button:not([disabled])').count(),0);
+ await p.locator('#cab-desc').click();assert.equal(await p.locator('.legend-case-list button').count(),0,'unowned total must not be inferred from disabled slots');
+ assert.equal(await p.locator('.legend-case-list [data-id]').count(),0,'unknown internal case IDs must not enter the DOM');
+ assert((await p.locator('.legend-case-list').innerText()).includes('入手した噂'),'empty state remains readable');
  assert(!(await p.locator('#sheet').innerText()).includes('きさらぎ駅'),'unowned title stays hidden');await p.keyboard.press('Escape');
  // Real purchase commits a fragment using the existing level-up path.
  await p.evaluate(()=>{const saved=draw;window.restoreLegendDraw=saved;draw=()=>byId('u2');S.currency=1000;});
  await p.locator('[data-pull="1"]').click();await p.evaluate(()=>{draw=window.restoreLegendDraw;});
  assert.equal(await p.evaluate(()=>lv('u2')),1);assert.equal(await p.evaluate(()=>S.currency),990);
  assert(await p.locator('#st-card .legend-pull-evidence').count());await p.evaluate(()=>closeStage());
+ await p.evaluate(()=>openLegendBoard());
+ assert.equal(await p.locator('.legend-case-list [data-id]').count(),1,'only one acquired case appears');
+ assert.equal(await p.locator('.legend-case-list [data-id="u2"]').count(),1);
+ assert.equal(await p.locator('.legend-case-list [data-id="u1"]').count(),0,'unearned case must not appear in the DOM');
+ assert.equal(await p.locator('.legend-case-list button:disabled').count(),0,'no slots reveal the collection total');
  await p.evaluate(()=>openLegendCase('u2'));assert((await p.locator('#sheet').innerText()).includes('あと2段'));
  assert(!(await p.locator('#sheet').innerText()).includes('駅名標の裏'),'unowned evidence is concealed');
  // Retroactive unlock of three distinct fragments, not three copies counted separately.
- await p.evaluate(()=>{S.levels.u2=3;S.levels.u8=3;openLegendCase('u2');});await p.locator('[data-legend="start"]').click();assert.equal(await p.evaluate(()=>S.legends.active),'u2');
+ await p.evaluate(()=>{S.levels.u2=3;S.levels.u8=3;openLegendBoard();});
+ assert.equal(await p.locator('.legend-case-list button').count(),2,'newly owned cases append without exposing hidden total');
+ assert.equal(await p.locator('.legend-case-list [data-id="u12"]').count(),0);
+ await p.evaluate(()=>openLegendCase('u2'));await p.locator('[data-legend="start"]').click();assert.equal(await p.evaluate(()=>S.legends.active),'u2');
  assert.equal(await p.locator('[data-legend="witness"]').count(),0,'requires corroboration');
  await p.evaluate(()=>{S.incursion.discovered={20:true};openLegendCase('u2');});
  await p.locator('[data-legend="proof"]').click();assert(await p.locator('#incursion-dialog').isVisible());assert(await p.locator('.legend-incident-links').count());
