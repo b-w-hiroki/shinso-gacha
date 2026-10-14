@@ -60,6 +60,7 @@ const server=http.createServer((req,res)=>{
    collection:JSON.stringify(observationState().collection),
    filter:getComputedStyle(document.querySelector('#obs-site-overlay')).filter,
   }));
+  assert.equal(baseline.filter,'none','high-resolution native composite should not need a GPU filter');
   const pressReal=async selector=>{
    const loc=page.locator(selector);
    await loc.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));
