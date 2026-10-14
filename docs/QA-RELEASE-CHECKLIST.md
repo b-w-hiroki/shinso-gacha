@@ -68,7 +68,7 @@
 
 - [`.github/workflows/webkit-ssr-stability.yml`](../.github/workflows/webkit-ssr-stability.yml) は毎日・手動起動・対象テスト変更PRで、以前にクラッシュした写真／車載のSSRをWebKitの独立プロセスで反復する。
 - 各媒体で実クリック暗部補正・拡大を3回、通常/R/SR/SSR＋SSR追加3回の計7画像試験を毎回実施。失敗を同一run内のリトライで成功にせず、最初の失敗をrun失敗として残す。
-- `webkit-stability-photo` と `webkit-stability-dash` のartifactにmain SHAと試行ログを30日保持。判定時は連続runの**初回成功数／試行run数**と、対象媒体・具体的失敗ステップを記録する。リトライ後の成功だけを安定化の根拠にしない。
+- `webkit-stability-photo` と `webkit-stability-dash` のartifactにmain SHAと試行ログを30日保持。`results.json` は媒体ごとに暗部補正3回＋映像7回（SSR4回）の計10件を、個々の成功・失敗・終了コード・所要時間とともに記録する。途中の1件が失敗しても残りの実行を続け、最終ジョブは必ず失敗扱いにする（成功への再試行はしない）。判定時は連続runの**初回成功数／試行run数**と、対象媒体・具体的失敗ステップを記録する。リトライ後の成功だけを安定化の根拠にしない。
 - GitHub Actionsの定期実行成功は物理iPhone Safariの実機成功を意味しない。#75 の検収と区別し、#141は必要な証拠が揃うまでOPEN。
 
 ## 6. GitHubと公開判定
