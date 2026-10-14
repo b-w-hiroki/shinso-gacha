@@ -122,13 +122,40 @@ function renderObservation(){
  const zoomButton=document.getElementById('obs-zoom-toggle');
  if(zoomButton)zoomButton.hidden=!alternative;
  if(paint!==watchPaint){
-  const im=document.getElementById('obs-image'),layer=document.getElementById('obs-site-overlay');im.style.backgroundImage=`url("${src}")`;im.style.backgroundPosition=alternative?'center':`${side} center`;
+  const im=document.getElementById('obs-image'),layer=document.getElementById('obs-site-overlay');
+   // Reproduced WebKit crash: photo SSR trial 6/7 terminated after actual touch,
+   // before save inspection. Keep all three evidence layers and target geometry,
+   // but don't decode the same 1440px photo AGAIN as a filtered backdrop in SSR.
+   // Only atmospheric letterboxing changes; the crisp original is still in layer.
+   const lightSsrBackground=alternative&&r===3;
+   im.style.backgroundImage=lightSsrBackground
+    ?'radial-gradient(ellipse at 50% 45%, #304139 0%, #17221d 60%, #0b100d 100%)'
+    :`url("${src}")`;
+   im.style.backgroundPosition=alternative?'center':`${side} center`;
   // The site photograph is always intact. An acquired anomaly adds both
   // source-textured photographic evidence and the independently authored clue.
   // All three share one uncropped native 2:1 image coordinate system.
+  // WebKit repeatedly crashes while resolving the three-layer CSS background
+  // for native-photo SSR. Render the original as one background and put the
+  // photographed delta + SVG clue in separate noninteractive image elements.
+  // All three remain inside the same 2:1 coordinate/zoom/pan surface.
+  const ssrImages=alternative&&r===3;
+  layer.replaceChildren();
   layer.style.backgroundImage=alternate
-   ?(r>0?`url("${WatchLocations.overlay(o.mode,r)}"), url("${WatchLocations.photoDelta(o.mode,r)}"), url("${src}")`:`url("${src}")`)
+   ?(r>0&&!ssrImages?`url("${WatchLocations.overlay(o.mode,r)}"), url("${WatchLocations.photoDelta(o.mode,r)}"), url("${src}")`:`url("${src}")`)
    :'none';
+  if(ssrImages){
+   for(const [kind,url] of [
+    ['delta',WatchLocations.photoDelta(o.mode,r)],
+    ['clue',WatchLocations.overlay(o.mode,r)]
+   ]){
+    const img=document.createElement('img');
+    img.className='obs-ssr-image obs-ssr-'+kind;
+    img.alt='';img.draggable=false;img.decoding='async';
+    img.setAttribute('aria-hidden','true');img.src=url;
+    layer.appendChild(img);
+   }
+  }
   f.style.setProperty('--obs-ratio',m.ratio);f.dataset.mode=o.mode;f.dataset.rarity=r;f.dataset.condition=String(condition);f.dataset.sceneAlt=String(alternative);
   f.classList.remove('obs-change');if(watchPaint){void f.offsetWidth;f.classList.add('obs-change');}watchPaint=paint;
  }

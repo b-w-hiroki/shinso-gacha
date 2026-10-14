@@ -2,6 +2,13 @@ const {chromium,webkit}=require('playwright'),fs=require('fs'),path=require('pat
 const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localhost'),f=u.pathname==='/font.otf'?process.env.QA_FONT:path.join(process.cwd(),u.pathname==='/'?'index.html':u.pathname);r.setHeader('Content-Type',f.endsWith('.html')?'text/html; charset=utf-8':f.endsWith('.js')?'application/javascript':f.endsWith('.svg')?'image/svg+xml':f.endsWith('.css')?'text/css':'application/octet-stream');r.end(fs.readFileSync(f));}catch{r.writeHead(404);r.end();}});
 (async()=>{await new Promise(done=>server.listen(0,'127.0.0.1',done));const b=await (process.env.QA_WEBKIT?webkit:chromium).launch(process.env.QA_WEBKIT?{}:{executablePath:process.env.CHROMIUM_EXECUTABLE||undefined,args:['--no-sandbox','--disable-dev-shm-usage','--no-zygote','--single-process']});
  try{const p=await b.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'}),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.route('https://**/*',route=>route.abort());await p.goto('http://127.0.0.1:'+server.address().port);
+ const isolatedStress=process.env.QA_WEBKIT&&process.env.QA_SOURCE_ONLY==='1';
+ let lastStressStep='page-open';
+ const stressStep=step=>{lastStressStep=step;if(isolatedStress)console.log('WEBKIT_STRESS_STAGE '+step);};
+ if(isolatedStress){
+  p.on('crash',()=>console.error('WEBKIT_PAGE_CRASH last_stage='+lastStressStep));
+  b.on('disconnected',()=>console.error('WEBKIT_BROWSER_DISCONNECTED last_stage='+lastStressStep));
+ }
  if(process.env.QA_FONT){await p.addStyleTag({content:"@font-face{font-family:QAJP;src:url('/font.otf')}body,button{font-family:QAJP}"});await p.evaluate(()=>document.fonts.load('16px QAJP'));}
  // CSS animation may keep WebKit's locator stability heuristic pending.
  // A real coordinate pointer click with elementFromPoint hit testing is the
@@ -189,6 +196,7 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  const allModes=selectedMode?[selectedMode]:everyMode;
  const selectedRarities=requestedRarity===undefined?[0,1,2,3]:[Number(requestedRarity)];
  for(const mode of allModes)for(const rarity of selectedRarities){
+  stressStep('begin:'+mode+':'+rarity);
   await p.evaluate(({mode,rarity})=>{const o=observationState(),t=Date.now();o.mode=mode;o.sequence=1;o.mind.closed=false;o.pending={mode,rarity,readyAt:t,expiresAt:t+3600000,sequence:1,suppression:0};renderObservation();},{mode,rarity});
   assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
   const perspective=await p.locator('#obs-viewpoint-label').innerText();
@@ -269,8 +277,21 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    const f=frame.getBoundingClientRect(),im=document.getElementById('obs-image').getBoundingClientRect();
    return Math.abs(f.left-im.left)<8&&Math.abs(f.top-im.top)<8&&Math.abs(f.width-im.width)<8&&Math.abs(f.height-im.height)<8;
   }),'all four sources and all four rarity states stay in frame during live motion');
-  const overlay=await p.evaluate(()=>{const e=document.getElementById('obs-site-overlay');return e?getComputedStyle(e).backgroundImage:null;});
-  assert(overlay!==null,'site overlay element must exist in DOM');
+  const layers=await p.evaluate(()=>{
+   const e=document.getElementById('obs-site-overlay');
+   return e?{background:getComputedStyle(e).backgroundImage,
+    images:[...e.querySelectorAll('img.obs-ssr-image')].map(img=>img.getAttribute('src'))}:null;
+  });
+  assert(layers!==null,'site overlay element must exist in DOM');
+  const overlay=[layers.background,...layers.images].join(', ');
+  if(rarity===3){
+   assert.equal(layers.images.length,2,'SSR requires independent photographic delta + clue images');
+   const ready=await p.locator('#obs-site-overlay img.obs-ssr-image').evaluateAll(async images=>{
+    await Promise.all(images.map(img=>img.decode()));
+    return images.every(img=>img.naturalWidth>0&&img.naturalHeight>0);
+   });
+   assert(ready,'SSR DOM evidence must decode its photographed anomaly and authored clue');
+  }else assert.equal(layers.images.length,0,'ordinary/R/SR remain on legacy verified CSS sources');
   const originalPhoto=await p.evaluate(m=>WatchLocations.byId('alt:'+m).file,mode);
   assert(overlay.includes(originalPhoto),'original photograph must be visible at full width '+mode+rarity);
   if(rarity>0){
@@ -290,6 +311,7 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    // full-size off-DOM Image for every rarity can exhaust WebKit GPU memory.
    // Verify the actual served RIFF/VP8X payload and source-native dimensions
    // instead; all 12 live visual layers and real hotspot clicks remain tested.
+   stressStep('before-native-photo-fetch:'+mode+':'+rarity);
    await p.evaluate(async ({mode,rarity})=>{
     const url=WatchLocations.photoDelta(mode,rarity);
     const response=await fetch(url,{cache:'no-store'});
@@ -302,6 +324,7 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
           h=1+b[27]+(b[28]<<8)+(b[29]<<16);
     if(w!==1440||h!==720)throw Error('native photo evidence dimension changed: '+url);
    },{mode,rarity});
+   stressStep('after-native-photo-fetch:'+mode+':'+rarity);
    const valid=await p.evaluate(({mode,rarity})=>WatchLocations.targets(mode,rarity).some(([x,y])=>WatchModel.hit(observationState(),{x,y})),{mode,rarity});
    assert(valid,'matching native image-space target '+mode+rarity);
    // Browser animation can keep Playwright's element-stability waiter pending in WebKit.
@@ -316,14 +339,38 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
     return {containMatches:Math.abs(parseFloat(v.width)-pictureWidth)<2&&Math.abs(parseFloat(v.height)-pictureHeight)<2,
      atmosphereFit:getComputedStyle(document.getElementById('obs-image')).backgroundSize,
      atmosphereFilter:getComputedStyle(document.getElementById('obs-image')).filter,
+     atmosphereImage:getComputedStyle(document.getElementById('obs-image')).backgroundImage,
+     foregroundShadow:v.boxShadow,
+     edgeFilter:getComputedStyle(document.querySelector('.obs-effect'),'::after').filter,
+     photoBackgroundLonghands:{
+      position:v.backgroundPosition.split(',').length,
+      repeat:v.backgroundRepeat.split(',').length,
+      origin:v.backgroundOrigin.split(',').length,
+      clip:v.backgroundClip.split(',').length,
+      attachment:v.backgroundAttachment.split(',').length,
+      blend:v.backgroundBlendMode.split(',').length
+     },
      photoFit:v.backgroundSize,foreground:v.backgroundImage,
      points,projected:points.map(({x,y})=>WatchLocations.imagePoint(x-f.left,y-f.top,f.width,f.height)),
      targets:WatchLocations.targets(mode,rarity),f:{left:f.left,top:f.top,right:f.right,bottom:f.bottom}};
    },{mode,rarity});
    assert(await p.locator('#obs-site-overlay').evaluate(e=>e.parentElement?.id==='obs-frame'),
     'the photo must be a sibling of the blurred layer, not its child');
-   assert(geometry.containMatches&&geometry.atmosphereFit==='cover'&&geometry.atmosphereFilter.includes('blur('),
-    'ambient enlargement does not crop photographic evidence '+mode+rarity);
+   const ssrAtmosphere=rarity===3;
+   assert(geometry.containMatches&&geometry.atmosphereFit==='cover',
+    'ambient letterbox must never crop evidence '+mode+rarity);
+   assert(ssrAtmosphere
+    ?geometry.atmosphereFilter==='none'&&geometry.atmosphereImage.includes('radial-gradient')&&
+      !geometry.atmosphereImage.includes(originalPhoto)
+    :geometry.atmosphereFilter.includes('blur(')&&geometry.atmosphereImage.includes(originalPhoto),
+    'SSR must avoid a fourth filtered native-photo texture; other states preserve backdrop '+mode+rarity);
+   for(const [key,count] of Object.entries(geometry.photoBackgroundLonghands))
+    assert.equal(count,rarity===3?1:3,
+     'WebKit CSS background longhands must match actual layers: '+key+' '+mode+rarity);
+   if(ssrAtmosphere){
+    assert(geometry.foregroundShadow==='none'&&geometry.edgeFilter==='none',
+     'SSR cannot allocate decorative blurred box shadow or edge filter '+mode+rarity);
+   }
    assert(geometry.photoFit.startsWith('100% 100%')&&geometry.foreground.includes(originalPhoto),
     'sharp native photograph and visual anomaly share an image-space rectangle '+mode+rarity);
    const f=geometry.f;
@@ -338,7 +385,9 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
     return hit===document.getElementById('obs-frame')||document.getElementById('obs-frame').contains(hit);
    },q);
    assert(reachable,'actual rendered hotspot must not be obscured by UI '+mode+rarity);
+   stressStep('before-real-pointer:'+mode+':'+rarity);
    await p.mouse.click(q.x,q.y);
+   stressStep('after-real-pointer:'+mode+':'+rarity);
    projectedContactTaps++;
    assert.equal(await p.evaluate(()=>observationState().pending?.suppression),1,'clicking projected visual hotspot must suppress '+mode+rarity);
   }
@@ -365,10 +414,12 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  // Full browser reload is verified by the separate earned-evidence WebKit
  // journey and full Chromium matrix; do not provoke an unrelated compositor
  // navigation of up to 3 overlapping 1440px assets for every photo rarity.
+ stressStep('before-save:'+selectedMode+':'+requestedRarity);
  const stored=await p.evaluate(()=>{
   save();const q=JSON.parse(localStorage.getItem(KEY));
   return {currency:q.currency,places:WatchLocations.discovered(q.observation.locationRecords).length};
  });
+ stressStep('after-save:'+selectedMode+':'+requestedRarity);
  assert.equal(stored.currency,wallet+projectedContactTaps,'real projected taps persist exactly once');
  if(runSharedScenario){
   await p.reload();

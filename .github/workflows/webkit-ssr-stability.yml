@@ -10,6 +10,13 @@ on:
       - '.github/workflows/webkit-ssr-stability.yml'
       - 'tests/observation-lowlight-isolated.cjs'
       - 'tests/observation-location-variants.cjs'
+      - 'scripts/webkit-ssr-stability.mjs'
+      - 'tests/webkit-ssr-stability-runner.cjs'
+      - 'assets/observation.js'
+      - 'assets/observation.css'
+      - 'assets/observation-location-model.js'
+      - 'assets/observation/photo-deltas/**'
+      - 'assets/observation/alt-overlays/**'
 
 permissions:
   contents: read
@@ -39,25 +46,8 @@ jobs:
           node-version: 22
       - run: npm install --no-save --package-lock=false playwright@1.62.1
       - run: npx playwright install --with-deps webkit
-      - name: Independent real-pointer low-light and zoom trials
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p docs/qa-webkit-stability
-          printf 'sha=%s\nmode=%s\nrun=%s\n' "$GITHUB_SHA" "$QA_OBSERVATION_MODE" "$GITHUB_RUN_ID" > docs/qa-webkit-stability/run.txt
-          # First failures stay failures: do not retry failed attempts.
-          for attempt in 1 2 3; do
-            echo "lowlight trial=${attempt} mode=$QA_OBSERVATION_MODE" | tee -a docs/qa-webkit-stability/run.txt
-            node tests/observation-lowlight-isolated.cjs 2>&1 | tee -a docs/qa-webkit-stability/run.txt
-          done
-      - name: Independent WebKit photo rarity and repeated SSR trials
-        shell: bash
-        run: |
-          set -euo pipefail
-          for rarity in 0 1 2 3 3 3 3; do
-            echo "rarity=${rarity} mode=$QA_OBSERVATION_MODE" | tee -a docs/qa-webkit-stability/run.txt
-            QA_OBSERVATION_RARITY="$rarity" node tests/observation-location-variants.cjs 2>&1 | tee -a docs/qa-webkit-stability/run.txt
-          done
+      - name: Capture every independent pointer/photo attempt and fail on any regression
+        run: node scripts/webkit-ssr-stability.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
