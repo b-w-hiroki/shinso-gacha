@@ -317,6 +317,8 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
      atmosphereFit:getComputedStyle(document.getElementById('obs-image')).backgroundSize,
      atmosphereFilter:getComputedStyle(document.getElementById('obs-image')).filter,
      atmosphereImage:getComputedStyle(document.getElementById('obs-image')).backgroundImage,
+     foregroundShadow:v.boxShadow,
+     edgeFilter:getComputedStyle(document.querySelector('.obs-effect'),'::after').filter,
      photoFit:v.backgroundSize,foreground:v.backgroundImage,
      points,projected:points.map(({x,y})=>WatchLocations.imagePoint(x-f.left,y-f.top,f.width,f.height)),
      targets:WatchLocations.targets(mode,rarity),f:{left:f.left,top:f.top,right:f.right,bottom:f.bottom}};
@@ -331,6 +333,10 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
       !geometry.atmosphereImage.includes(originalPhoto)
     :geometry.atmosphereFilter.includes('blur(')&&geometry.atmosphereImage.includes(originalPhoto),
     'SSR must avoid a fourth filtered native-photo texture; other states preserve backdrop '+mode+rarity);
+   if(ssrAtmosphere){
+    assert(geometry.foregroundShadow==='none'&&geometry.edgeFilter==='none',
+     'SSR cannot allocate decorative blurred box shadow or edge filter '+mode+rarity);
+   }
    assert(geometry.photoFit.startsWith('100% 100%')&&geometry.foreground.includes(originalPhoto),
     'sharp native photograph and visual anomaly share an image-space rectangle '+mode+rarity);
    const f=geometry.f;
