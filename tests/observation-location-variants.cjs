@@ -316,14 +316,21 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
     return {containMatches:Math.abs(parseFloat(v.width)-pictureWidth)<2&&Math.abs(parseFloat(v.height)-pictureHeight)<2,
      atmosphereFit:getComputedStyle(document.getElementById('obs-image')).backgroundSize,
      atmosphereFilter:getComputedStyle(document.getElementById('obs-image')).filter,
+     atmosphereImage:getComputedStyle(document.getElementById('obs-image')).backgroundImage,
      photoFit:v.backgroundSize,foreground:v.backgroundImage,
      points,projected:points.map(({x,y})=>WatchLocations.imagePoint(x-f.left,y-f.top,f.width,f.height)),
      targets:WatchLocations.targets(mode,rarity),f:{left:f.left,top:f.top,right:f.right,bottom:f.bottom}};
    },{mode,rarity});
    assert(await p.locator('#obs-site-overlay').evaluate(e=>e.parentElement?.id==='obs-frame'),
     'the photo must be a sibling of the blurred layer, not its child');
-   assert(geometry.containMatches&&geometry.atmosphereFit==='cover'&&geometry.atmosphereFilter.includes('blur('),
-    'ambient enlargement does not crop photographic evidence '+mode+rarity);
+   const ssrAtmosphere=rarity===3;
+   assert(geometry.containMatches&&geometry.atmosphereFit==='cover',
+    'ambient letterbox must never crop evidence '+mode+rarity);
+   assert(ssrAtmosphere
+    ?geometry.atmosphereFilter==='none'&&geometry.atmosphereImage.includes('radial-gradient')&&
+      !geometry.atmosphereImage.includes(originalPhoto)
+    :geometry.atmosphereFilter.includes('blur(')&&geometry.atmosphereImage.includes(originalPhoto),
+    'SSR must avoid a fourth filtered native-photo texture; other states preserve backdrop '+mode+rarity);
    assert(geometry.photoFit.startsWith('100% 100%')&&geometry.foreground.includes(originalPhoto),
     'sharp native photograph and visual anomaly share an image-space rectangle '+mode+rarity);
    const f=geometry.f;
