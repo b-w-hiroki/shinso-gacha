@@ -11,14 +11,19 @@
   return s;
  }
  function events(id,level,layer,concluded){
-  if(!/^u(?:[1-9]|1[0-2])$/.test(id)||level<=0)return null;
+  const stage=Number(level);
+  // Undefined and NaN must remain locked: comparing with <=0 is insufficient.
+  if(!/^u(?:[1-9]|1[0-2])$/.test(id)||!Number.isFinite(stage)||stage<1)return null;
   // Deterministic story gates, not extra paid gacha or reward rolls.
-  return {missing:level>=2&&chance('missing:'+id,35),read:level>=1&&chance('read:'+id,40),
-   letter:level>=3&&!!layer?.noticed,vanish:level>=3&&!!layer?.noticed&&chance('vanish:'+id,50),
-   reopened:!!concluded&&!!layer?.compared&&chance('reopen:'+id,60)};
+  return {missing:stage>=2&&chance('missing:'+id,35),read:stage>=1&&chance('read:'+id,40),
+   letter:stage>=3&&layer?.noticed===true,vanish:stage>=3&&layer?.noticed===true&&chance('vanish:'+id,50),
+   reopened:stage>=3&&concluded===true&&layer?.compared===true&&chance('reopen:'+id,60)};
  }
  function record(s,id,key,allowed){
-  if(!allowed||!['noticed','restored','letters','reopened','reads'].includes(key)||s[key][id])return false;
+  if(!/^u(?:[1-9]|1[0-2])$/.test(id)||allowed!==true||
+    !['noticed','restored','letters','reopened','reads'].includes(key)||
+    !s||typeof s!=='object'||!Object.hasOwn(s,key)||
+    !s[key]||typeof s[key]!=='object'||s[key][id]===true)return false;
   s[key][id]=true;return true;
  }
  return {state,events,record};
