@@ -219,12 +219,12 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
  object-fit:fill;pointer-events:none;user-select:none;
 }
 
-/* WebKit's multilayer background shorthand must describe three real images
-   with matching position/repeat/origin/clip/attachment/blend counts. No pixels
-   or image-space coordinates are changed by these explicit declarations. */
+/* Only R/SR still use three CSS image backgrounds. SSR uses one
+   original-photo background and two independent <img> evidence layers:
+   applying these three-entry longhands to SSR overrides its one-layer rules
+   and breaks WebKit's actual image-space compositor contract. */
 #obs-frame[data-scene-alt='true'][data-rarity='1'] #obs-site-overlay,
-#obs-frame[data-scene-alt='true'][data-rarity='2'] #obs-site-overlay,
-#obs-frame[data-scene-alt='true'][data-rarity='3'] #obs-site-overlay{
+#obs-frame[data-scene-alt='true'][data-rarity='2'] #obs-site-overlay{
  background-position:center,center,center;
  background-repeat:no-repeat,no-repeat,no-repeat;
  background-origin:padding-box,padding-box,padding-box;
