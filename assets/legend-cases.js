@@ -106,8 +106,11 @@ function legendResumeHTML(){
  return `<section class="legend-resume" aria-label="前回の調査を再開"><small>調査の続き</small><p><strong>${legendTitle(id)}</strong> ／ ${legendNextStep(id)}</p><button class="btn-paper" data-legend="case" data-id="${id}">調査記録を開く</button>${legendNextActionHTML(id)}</section>`;
 }
 function openLegendBoard(){
- const s=legendState();
- sheet('都市伝説の調査',`<div class="legend-board"><h2>噂が、証拠に変わる。</h2><p>封筒の断片3つから調査へ。既存の解読記録も引き継いでいます。</p>${legendResumeHTML()}<div class="legend-case-list">${LegendModel.ids.map(id=>{const n=LegendModel.count(S.levels,id);return `<button data-legend="case" data-id="${id}" ${n?'':'disabled'}><span><b>${n?legendTitle(id):'未入手の噂'}</b><small>${s.active===id?'追跡中 ／ ':''}${legendStatus(id)}</small></span><span aria-hidden="true">${n?'›':'―'}</span></button>`;}).join('')}</div><button class="btn-paper" data-legend="gacha">封筒から次の断片を探す</button></div>`);
+ const s=legendState(),owned=LegendModel.ids.filter(id=>LegendModel.count(S.levels,id)>0);
+ // Never build undiscovered case IDs or the number of future cases into the DOM.
+ // Unlocking one fragment reveals only that case, not a fixed empty collection grid.
+ const entries=owned.map(id=>`<button data-legend="case" data-id="${id}"><span><b>${escapeHTML(legendTitle(id))}</b><small>${s.active===id?'追跡中 ／ ':''}${legendStatus(id)}</small></span><span aria-hidden="true">›</span></button>`).join('');
+ sheet('都市伝説の調査',`<div class="legend-board"><h2>噂が、証拠に変わる。</h2><p>封筒の断片3つから調査へ。既存の解読記録も引き継いでいます。</p>${legendResumeHTML()}<div class="legend-case-list">${entries||'<p class="menu-empty">入手した噂の断片は、ここへ保管されます。</p>'}</div><button class="btn-paper" data-legend="gacha">封筒から次の断片を探す</button></div>`);
 }
 function openLegendCase(id){
  const n=LegendModel.count(S.levels,id);if(!n)return;

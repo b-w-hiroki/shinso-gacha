@@ -64,6 +64,12 @@
 
 参照：\`assets/incursions.js\`、\`assets/personnel-discrepancies-model.js\`、\`assets/legend-model.js\`、\`assets/investigation-links.js\`、\`assets/encyclopedia.js\`。
 
+### 2026-10-15 都市伝説調査一覧の未発見秘匿
+
+- 調査一覧には少なくとも1断片を**実際に取得した都市伝説**だけを表示し、未取得案件の灰色枠・内部ID・一覧総枠数をDOMにも出さない。
+- 取得前は短い空状態文と封筒導線を表示し、断片取得後はその案件だけを追加する。既存セーブ・追跡中・報酬・抽選・ランクは変更しない。
+- Playwright Chromium/WebKitで空状態、取得後、複数取得、スマホ幅・操作を検証する。実機iPhoneの検証は別途残す。
+
 ## 6. UI情報設計
 
 | 画面 | 第一目的 | 出してよい主要情報 |
