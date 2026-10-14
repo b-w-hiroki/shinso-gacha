@@ -44,6 +44,32 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
   assert.equal(await p.locator('[data-personnel-confirm]').count(),0,'cannot award a comparison twice');
   const summary=await p.evaluate(()=>({confirmed:S.personnelEvidence.confirmed['extra-seat'],mail:!!S.communications.mail['personnel-extra-seat'],currency:S.currency}));
   assert.deepEqual(summary,{confirmed:true,mail:true,currency:wallet},'compare sends one letter without points');
+  // Earned mail returns to the exact already-confirmed file; nothing is
+  // granted by opening or navigating the mail itself.
+  await p.evaluate(()=>{hideSheet();openGameInbox();});
+  await p.locator('[data-mail="personnel-extra-seat"]').click();
+  const originalWallet=await p.evaluate(()=>S.currency);
+  assert.equal(await p.locator('[data-personnel-open="extra-seat"]').count(),1);
+  for(const [width,height] of [[320,568],[390,844],[844,390]]){
+   await p.setViewportSize({width,height});
+   assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'mail must not overflow');
+   const target=p.locator('[data-personnel-open="extra-seat"]');
+   await target.scrollIntoViewIfNeeded();
+   assert(await target.evaluate(e=>e.getBoundingClientRect().height>=44),'mail link must be tappable');
+  }
+  await p.setViewportSize({width:390,height:844});
+  await p.locator('[data-personnel-open="extra-seat"]').click();
+  assert((await p.locator('.catalog-detail').innerText()).includes('三人とも答えなかった'));
+  assert.equal(await p.evaluate(()=>S.currency),originalWallet,'mail/dossier reading awards no points');
+  assert.equal(await p.evaluate(()=>Object.keys(S.communications.mail).filter(k=>k==='personnel-extra-seat').length),1);
+  // Stale or malformed inbox state cannot manufacture a classified link.
+  await p.evaluate(()=>{
+   hideSheet();
+   S.communications.mail['personnel-observer']={read:false,receivedAt:Date.now(),claimed:false};
+   openGameMail('personnel-observer');
+  });
+  assert.equal(await p.locator('[data-personnel-open="observer"]').count(),0,'unearned personnel file must remain unreachable from a stale message');
+  await p.evaluate(()=>{delete S.communications.mail['personnel-observer'];openEncyclopedia('people');});
   await p.evaluate(()=>{S.pulls=190;S.lastTick=Date.now()+600000;markDirty();save();});
   assert.equal(await p.evaluate(()=>PersonnelDiscrepancies.current(rankIdx()).id),'return-log');
   assert.equal(await p.evaluate(()=>PersonnelDiscrepancies.detail(S.personnelEvidence,rankIdx(),'extra-seat').confirmed),true);
