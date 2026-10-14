@@ -177,7 +177,9 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
  inset:auto;top:50%;left:50%;width:min(100%,calc(var(--obs-height) * 2));
  height:auto;aspect-ratio:2 / 1;transform:translate(-50%,-50%);
  background-size:100% 100%,100% 100%,100% 100%;
- filter:saturate(.86) contrast(1.06);
+ /* Three native photo/evidence images already have authored contrast.
+    Avoid adding an offscreen GPU-filter surface for WebKit SSR. */
+ filter:none;
  box-shadow:0 0 22px 7px rgba(3,8,7,.46);
 }
 .watch-site-record-image{position:relative;width:100%;aspect-ratio:2 / 1;background-color:#111816;background-size:cover;background-position:center;overflow:hidden;border:1px solid #555b52}
