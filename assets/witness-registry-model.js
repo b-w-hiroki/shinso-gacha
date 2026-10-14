@@ -69,5 +69,20 @@
   );
   return versions;
  }
- return {inspect,list,revisions,editions};
+ /* Cross-read only material already earned in both evidence collections.
+  * Reading never creates a record, currency or mailbox entry. */
+ const personnelEchoNotes={
+  'extra-seat':'立会印の数と課の席数を並べると、どちらの原簿にも余分な一人がいる。',
+  'return-log':'翌日の受領時刻は帰投簿にもある。どちらも訂正印が押されていない。',
+  'attendance':'無人の日の証言と、この資料の立会欄は、異なる職員名簿を参照している。',
+  'missing-predecessor':'廃棄届の番号は人事原簿と一致する。誰の資料を廃棄したかは書かれていない。',
+  'observer':'対象者番号と調査員番号は同じ欄にある。原本からは主語を特定できない。'
+ };
+ function personnelEchoes(owned,currentId,confirmed){
+  if(!Array.isArray(owned)||!owned.some(x=>x&&x.id===currentId&&Object.hasOwn(notes,x.id))||!Array.isArray(confirmed))return [];
+  const seen=new Set();
+  return confirmed.filter(x=>x&&Object.hasOwn(personnelEchoNotes,x.id)&&x.confirmed===true&&!seen.has(x.id)&&!seen.add(x.id))
+   .map(x=>({id:x.id,title:x.title,note:personnelEchoNotes[x.id]}));
+ }
+ return {inspect,list,revisions,editions,personnelEchoes};
 });
