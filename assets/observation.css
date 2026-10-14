@@ -194,6 +194,10 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
    including anomaly, source-condition and quiet states. The readable image
    remains the foreground 2:1 photo rather than this atmospheric backdrop. */
 #obs-frame[data-scene-alt='true'] #obs-image{filter:blur(7px) brightness(.43) saturate(.7)}
+/* One SSR photo already composites its normal master, native WebP and SVG clue.
+   Avoid loading a fourth filtered 1440px copy under the full-resolution stack.
+   The letterboxed monitor keeps a quiet dark gradient, not a cropped anomaly. */
+#obs-frame[data-scene-alt='true'][data-rarity='3'] #obs-image{filter:none}
 
 /* The native-photo atmospheric copy is already blurred and color-filtered.
    Animating that large bitmap (and its masked duplicate) can exhaust WebKit's
