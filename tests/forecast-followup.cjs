@@ -9,7 +9,27 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
   await p.goto('http://127.0.0.1:'+server.address().port);
   if(process.env.QA_FONT){await p.addStyleTag({content:"@font-face{font-family:QAJP;src:url('/font.otf')} :root{--f-body:QAJP;--f-display:QAJP;--f-mono:QAJP;--f-hand:QAJP}body,button{font-family:QAJP}"});await p.evaluate(()=>document.fonts.load('16px QAJP'));}
   await p.evaluate(()=>{S.role='agent';S.onboarded=true;S.lite={intro:{done:true}};S.levels={u2:3};S.lastTick=Date.now()+600000;S.streak={last:dayKey(),n:1};S.incursion={version:1,level:0,resolved:0,history:[]};S.observation=WatchModel.create(Date.now(),42);S.currency=5000;S.forecastFollowups=undefined;applyMode();go('home');setHomeTab('desk');render();});
-  await p.evaluate(()=>openLegendCase('u1'));
+  // Saved, well-formed future reports must not unlock an unknown case or
+  // mismatched observation medium through the inbox.
+  await p.evaluate(()=>{
+   const issued=new Date();issued.setDate(issued.getDate()-3);
+   S.forecastFollowups={version:1,entries:{u1:{mode:'cctv',issuedAt:issued.getTime(),observedAt:Date.now()-3600000,rarity:2}}};
+   renderMenuBadge();
+  });
+  assert.equal(await p.evaluate(()=>!!S.communications?.mail?.['forecast-u1']),false,'unacquired forecast cannot create mail');
+  await p.evaluate(()=>{
+   S.communications.mail['forecast-u1']={receivedAt:Date.now(),read:false,claimed:false};
+   openGameMail('forecast-u1');
+  });
+  assert.equal(await p.locator('[data-legend="case"][data-id="u1"]').count(),0,'unearned archived letter cannot link to a secret case');
+  await p.evaluate(()=>{
+   delete S.communications.mail['forecast-u1'];
+   const issued=new Date();issued.setDate(issued.getDate()-3);
+   S.forecastFollowups={version:1,entries:{u2:{mode:'photo',issuedAt:issued.getTime(),observedAt:Date.now()-3600000,rarity:2}}};
+   renderMenuBadge();
+  });
+  assert.equal(await p.evaluate(()=>!!S.communications?.mail?.['forecast-u2']),false,'wrong-medium saved report cannot generate mail');
+  await p.evaluate(()=>{S.forecastFollowups=undefined;hideSheet();openLegendCase('u1');});
   assert.equal(await p.locator('[data-forecast-issue]').count(),0,'unacquired reports are hidden');
   await p.evaluate(()=>openLegendCase('u2'));
   assert(await p.locator('[data-forecast-issue="u2"]').isVisible());
