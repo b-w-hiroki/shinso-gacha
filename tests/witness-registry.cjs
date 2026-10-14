@@ -20,6 +20,7 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
   assert(await p.locator('.witness-dossier').isVisible());
   assert.equal(await p.locator('.witness-revisions').count(),0,'classified revisions are not present before rank and extra records');
   assert.equal(await p.locator('.witness-editions').count(),0,'conflicting editions require acquired other cases and clearance');
+  assert.equal(await p.locator('.witness-personnel').count(),0,'independent personnel testimony has not been confirmed');
   assert(await p.locator('.witness-photo').isVisible(),'deliberately missing portrait renders without a broken image');
   assert.equal(await p.locator('.witness-dossier img').count(),0);
   assert((await p.locator('.witness-dossier').innerText()).includes('巡回票'));
@@ -53,6 +54,7 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
   await p.evaluate(()=>renderMenuBadge());
   assert.equal(await p.evaluate(()=>!!S.communications?.mail?.['personnel-ledger-versions']),false,'no pre-clearance personnel mail');
   await p.evaluate(()=>{S.pulls=RANKS[10].need;openWitnessDossier('u1');});
+  assert.equal(await p.locator('.witness-personnel').count(),0,'rank alone cannot invent verified personnel records');
   assert.equal(await p.locator('.witness-revisions').count(),1);
   assert.equal(await p.locator('.witness-editions').count(),1,'two recovered files and rank unlock conflicting versions');
   await p.locator('.witness-editions summary').click();
@@ -67,6 +69,23 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
   await p.locator('.witness-revisions').scrollIntoViewIfNeeded();
   if(!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/witness-revisions-390.jpg',quality:85});
   assert.equal(await p.locator('.witness-dossier img').count(),0,'no fabricated missing-person portrait leaks');
+  // Actual confirmation click, then two-way navigation; no hidden record leaks.
+  await p.evaluate(()=>{
+   for(const staffId of PersonnelDiscrepancies.STAFF)
+    S.personnelEvidence=PersonnelDiscrepancies.record(S.personnelEvidence,rankIdx(),staffId).state;
+   openPersonnelDossier('attendance');
+  });
+  assert.equal(await p.locator('[data-witness-case]').count(),0,'unconfirmed personnel comparison cannot link');
+  await p.locator('[data-personnel-confirm="attendance"]').click();
+  await p.locator('[data-witness-case="u1"]').click();
+  assert(await p.locator('.witness-personnel').isVisible(),'confirmed case connects to earned witness');
+  await p.locator('.witness-personnel summary').click();
+  assert.equal(await p.locator('[data-personnel-open]').count(),1);
+  await p.locator('[data-personnel-open="attendance"]').click();
+  assert((await p.locator('.catalog-detail').innerText()).includes('出勤していない証言者'));
+  await p.locator('[data-witness-case="u1"]').click();
+  assert(await p.locator('.witness-dossier').isVisible(),'two-way navigation without new save data');
+  assert.equal(await p.evaluate(()=>S.currency),wallet,'cross-reading does not award points');
   await p.evaluate(()=>{S.pulls=RANKS[14].need;openWitnessDossier('u1');});
   assert.equal(await p.locator('.witness-revisions section:visible').count(),0,'collapsed confidential notes require a deliberate open');
   await p.locator('.witness-revisions summary').click();
