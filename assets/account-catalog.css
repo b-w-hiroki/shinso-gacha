@@ -80,3 +80,11 @@
 .site-triad [data-catalog-entry]{min-height:48px;width:100%;white-space:normal;text-align:left}
 @media(min-width:430px){.site-triad-images{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.site-triad-images img{aspect-ratio:2/1}.site-triad-images figcaption{font-size:12px}}
 @media(prefers-reduced-motion:reduce){.site-triad *{animation:none!important;transition:none!important}}
+
+/* Earned-only cross-file testimony. No permanent alerts on the observation scene. */
+.witness-personnel{margin:18px 0;padding:7px 0;border-block:1px solid #77664f}
+.witness-personnel>summary{min-height:48px;padding:12px 5px;font:600 14px/1.65 var(--f-body);color:#e8d8b9;cursor:pointer}
+.witness-personnel section{padding:8px 12px 14px;margin:8px 0 14px;border-left:2px solid #86765a;background:#25261f}
+.witness-personnel section h3{font-size:15px;line-height:1.6;margin:4px 0 8px}
+.witness-personnel section p{font-size:14px;line-height:1.85;overflow-wrap:anywhere}
+.witness-personnel section button{min-height:48px}

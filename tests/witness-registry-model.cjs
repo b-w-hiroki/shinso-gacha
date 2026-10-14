@@ -54,4 +54,13 @@ assert.equal(Registry.editions(17,acquiredFuture,'u2').length,3,'only current ac
 const original=JSON.stringify(acquiredFuture);
 assert.deepEqual(Registry.editions(17,acquiredFuture,'u1'),Registry.editions(17,acquiredFuture,'u1'),'read-only ledger');
 assert.equal(JSON.stringify(acquiredFuture),original,'inspect must not mutate owned evidence');
+// No premature cross-archive conclusions and no extra save or rewards.
+const evidence=[{id:'extra-seat',title:'余分な席',confirmed:true},{id:'observer',title:'観測対象',confirmed:false}];
+assert.deepEqual(Registry.personnelEchoes([], 'u1', evidence),[],'unseen witness cannot reveal personnel details');
+assert.deepEqual(Registry.personnelEchoes(all,'u13',evidence),[],'unknown witness remains hidden');
+assert.deepEqual(Registry.personnelEchoes(all,'u1',[{id:'extra-seat',confirmed:false}]),[]);
+assert.deepEqual(Registry.personnelEchoes(all,'u1',[{id:'observer',title:'対象',confirmed:true},{id:'extra-seat',title:'席',confirmed:true}]).map(x=>x.id),['observer','extra-seat']);
+assert.deepEqual(Registry.personnelEchoes(all,'u1',[...evidence,evidence[0]]).map(x=>x.id),['extra-seat'],'duplicates must not render');
+assert.deepEqual(Registry.personnelEchoes(all,'u1',[{id:'__proto__',confirmed:true}]),[]);
+assert.equal(JSON.stringify(acquiredFuture),original,'cross-archive reads are pure');
 console.log('Unregistered witness registry: acquired-only, distinct records, future tie-in and no mutations passed');

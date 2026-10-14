@@ -30,7 +30,9 @@ function openPersonnelDossier(id){
  const item=PersonnelDiscrepancies.detail(S.personnelEvidence,rankIdx(),id);
  if(!item)return;
  const statements=item.statements.map(s=>'<h3>'+escapeHTML(WATCH_COLLEAGUES[s.id].name)+' ／ 証言</h3><blockquote>'+escapeHTML(s.text)+'</blockquote>').join('');
- const action=item.confirmed?'<p>照合済み。記録は保管された。</p><p>'+escapeHTML(item.conclusion)+'</p>':item.complete?'<button class="btn-paper" data-personnel-confirm="'+escapeHTML(id)+'">三人の証言を照合する</button>':'<p>照合に必要な証言は、まだ揃っていない。</p>';
+ const witness=witnessRegistryRecords()[0];
+ const witnessLink=item.confirmed&&witness?'<button class="btn-line" data-witness-case="'+escapeHTML(witness.id)+'">取得済みの立会人記録と照合する</button>':'';
+ const action=item.confirmed?'<p>照合済み。記録は保管された。</p><p>'+escapeHTML(item.conclusion)+'</p>'+witnessLink:item.complete?'<button class="btn-paper" data-personnel-confirm="'+escapeHTML(id)+'">三人の証言を照合する</button>':'<p>照合に必要な証言は、まだ揃っていない。</p>';
  sheet('第六文書課・人事照合', '<article class="catalog-detail"><small>PERSONNEL / CLASSIFIED</small><h2>'+escapeHTML(item.title)+'</h2>'+statements+action+'</article>');
 }
 function witnessRegistryRecords(){
@@ -46,6 +48,10 @@ function openWitnessDossier(id){
  const editions=editionNotes.length?'<details class="witness-editions"><summary>食い違う人事台帳の原本を並べる</summary><div class="witness-edition-grid">'+editionNotes.map(note=>'<article class="witness-edition"><small>'+escapeHTML(note.code)+'</small><h3>'+escapeHTML(note.category)+'</h3><strong>'+escapeHTML(note.value)+'</strong><p>'+escapeHTML(note.note)+'</p></article>').join('')+'</div><p class="witness-edition-footnote">同じ立会者の書類です。新しい職員が増えたわけではありません。</p></details>':'';
  const revisionNotes=WitnessRegistry.revisions(rankIdx(),records,id);
  const revisions=revisionNotes.length?'<details class="witness-revisions"><summary>閲覧権限で復元された人事台帳の追記</summary>'+revisionNotes.map(note=>'<section><small>照会深度 '+note.tier+'</small><h3>'+escapeHTML(note.heading)+'</h3><p>'+escapeHTML(note.text)+'</p></section>').join('')+'</details>':'';
+ const confirmedPersonnel=PersonnelDiscrepancies.unlocked(S.personnelEvidence,rankIdx())
+  .map(c=>PersonnelDiscrepancies.detail(S.personnelEvidence,rankIdx(),c.id)).filter(x=>x?.confirmed);
+ const echoes=WitnessRegistry.personnelEchoes(records,id,confirmedPersonnel);
+ const crossPersonnel=echoes.length?'<details class="witness-personnel"><summary>確定した課内証言との矛盾を照合する</summary>'+echoes.map(x=>'<section><h3>'+escapeHTML(x.title)+'</h3><p>'+escapeHTML(x.note)+'</p><button class="btn-line" data-personnel-open="'+escapeHTML(x.id)+'">三人の証言原本を読む</button></section>').join('')+'</details>':'';
  const related=records.length>1?'<details class="witness-related"><summary>別の資料に残された痕跡</summary>'+records.filter(x=>x.id!==id).map(x=>'<button class="btn-line" data-witness-case="'+x.id+'">'+escapeHTML(legendTitle(x.id))+'の立会記録を見る</button>').join('')+'</details>':'';
  sheet('人物図鑑・人事記録',`<article class="catalog-detail witness-dossier">
   <small>第六文書課 ／ 人事台帳 照会不一致</small>
@@ -63,6 +69,7 @@ function openWitnessDossier(id){
   ${related}
   ${editions}
   ${revisions}
+  ${crossPersonnel}
   <button class="btn-paper" data-legend="case" data-id="${id}">この立会人が記された調査へ戻る</button>
  </article>`);
 }
@@ -122,11 +129,12 @@ function openCatalogEntry(id){
  sheet('場所図鑑',`<article class="catalog-detail"><small>${m.source} ／ ${WatchModel.MODES[id].label}</small><h2>${m.title}</h2><p>この場所で回収した記録 ${WatchModel.setProgress(o,id)}件。平常の記録も比較の手がかりになります。</p><div class="catalog-records">${[0,1,2,3].map(r=>`<button class="btn-line" data-catalog-record="${id}:${r}" ${o.collection[id+':'+r]>0?'':'disabled'}>${o.collection[id+':'+r]>0?m.records[r]:'未観測'}</button>`).join('')}</div>${legends.length?'<h3>関連する噂</h3>'+legends.map(k=>`<button class="btn-line" data-legend="case" data-id="${k}">${escapeHTML(legendTitle(k))}</button>`).join(''):''}<button class="btn-paper" data-watch="return">観測へ戻る</button></article>`);
 }
 document.addEventListener('click',e=>{
- const b=e.target.closest('[data-catalog-tab],[data-catalog-entry],[data-catalog-record],[data-catalog-talk],[data-catalog-incident],[data-personnel-confirm],[data-personnel-list],[data-witness-case],[data-witness-registry],[data-location-record],[data-location-link],[data-location-triad]');if(!b||b.disabled)return;
+ const b=e.target.closest('[data-catalog-tab],[data-catalog-entry],[data-catalog-record],[data-catalog-talk],[data-catalog-incident],[data-personnel-confirm],[data-personnel-open],[data-personnel-list],[data-witness-case],[data-witness-registry],[data-location-record],[data-location-link],[data-location-triad]');if(!b||b.disabled)return;
  if(b.dataset.locationTriad)return showLocationTriad(b.dataset.locationTriad);
  if(b.dataset.locationLink)return showLocationLink(b.dataset.locationLink);
  if(b.dataset.locationRecord){const [prefix,mode,r]=b.dataset.locationRecord.split(':');if(prefix==='alt')return showAlternateLocationRecord(mode,Number(r));return;}
  if(b.dataset.personnelList!==undefined)return openEncyclopedia('people');
+  if(b.dataset.personnelOpen)return openPersonnelDossier(b.dataset.personnelOpen);
  if(b.dataset.witnessCase)return openWitnessDossier(b.dataset.witnessCase);
  if(b.dataset.witnessRegistry!==undefined){const first=witnessRegistryRecords()[0];if(first){hideSheet();return openWitnessDossier(first.id);}return;}
  if(b.dataset.personnelConfirm){const result=PersonnelDiscrepancies.confirm(S.personnelEvidence,rankIdx(),b.dataset.personnelConfirm);if(result.changed){S.personnelEvidence=result.state;markDirty();save();renderMenuBadge();}return openPersonnelDossier(b.dataset.personnelConfirm);}
