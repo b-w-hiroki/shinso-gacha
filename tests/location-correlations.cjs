@@ -108,6 +108,43 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
   })),triadOriginal,'three-site examination must not reward or mutate progress');
   await p.locator('.site-triad [data-catalog-entry="alt:vision"]').click();
   assert((await p.locator('.catalog-detail h2').first().innerText()).includes('踏切前'));
+  // New bridge: a visited place alone must never disclose a related legend.
+  await p.evaluate(()=>{S.levels.u1=3;S.levels.u6=0;S.legendLayers={};openEncyclopedia('places');});
+  await p.locator('[data-catalog-entry="alt:cctv"]').click();
+  assert.equal(await p.locator('.site-legend-echoes').count(),0,'owned fragments without explicit difference record are hidden');
+  const beforeBridge=await p.evaluate(()=>JSON.stringify({currency:S.currency,locations:S.observation.locationRecords,pulls:S.pulls}));
+  await p.evaluate(()=>{
+   S.observation.collection['cctv:1']=1;
+   S.legendLayers={noticed:{u1:true},compared:{},linked:{}};
+   openEncyclopedia('places');
+  });
+  await p.locator('[data-catalog-entry="alt:cctv"]').click();
+  assert.equal(await p.locator('.site-legend-echoes').count(),1,'earned case and visited place unlock the reading');
+  await p.locator('.site-legend-echoes summary').click();
+  assert.equal(await p.locator('.site-legend-echoes [data-legend="case"]').count(),1);
+  assert(!(await p.locator('.site-legend-echoes').innerText()).includes('封鎖校舎'),'unearned case never enters DOM');
+  for(const [width,height] of [[320,568],[390,844],[844,390]]){
+   await p.setViewportSize({width,height});
+   assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'cross-archive text should not overflow');
+   const control=p.locator('.site-legend-echoes [data-legend="case"]');
+   await control.scrollIntoViewIfNeeded();
+   assert(await control.evaluate(el=>el.getBoundingClientRect().height>=44),'cross-archive target is tappable');
+   if(width===390&&!process.env.QA_WEBKIT){
+    await p.evaluate(()=>{document.getElementById('sheet').scrollTop=0;});
+    await p.screenshot({path:'docs/qa-incursions/location-legend-crosscheck-390.jpg',quality:85});
+   }
+  }
+  await p.locator('.site-legend-echoes [data-legend="case"]').click();
+  assert(await p.locator('.legend-location-echo').isVisible(),'acquired location appears in the case dossier');
+  assert.equal(await p.locator('.legend-location-after').count(),1,'only actually acquired anomaly adds an afterword');
+  await p.locator('.legend-location-echo [data-legend="place"]').click();
+  assert((await p.locator('.catalog-detail h2').first().innerText()).includes('地下通路'),'real UI returns to visited original');
+  const afterBridge=await p.evaluate(()=>JSON.stringify({currency:S.currency,locations:S.observation.locationRecords,pulls:S.pulls}));
+  assert.equal(afterBridge,beforeBridge,'new reading and navigation cannot alter save, points or ownership');
+  await p.evaluate(()=>save());await p.reload();
+  await p.evaluate(()=>openLegendCase('u1'));
+  assert.equal(await p.locator('.legend-location-echo').count(),1,'earned bridge survives reload without a new save field');
+  assert.equal(await p.evaluate(()=>S.currency),5000,'no passive read reward');
   assert.deepEqual(errors,[]);
   console.log('Cross-location links: acquisition gating, original image comparison, narrow screen, return route and save passed');
  }finally{await b.close();server.close();}
