@@ -2,6 +2,13 @@ const {chromium,webkit}=require('playwright'),fs=require('fs'),path=require('pat
 const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localhost'),f=u.pathname==='/font.otf'?process.env.QA_FONT:path.join(process.cwd(),u.pathname==='/'?'index.html':u.pathname);r.setHeader('Content-Type',f.endsWith('.html')?'text/html; charset=utf-8':f.endsWith('.js')?'application/javascript':f.endsWith('.svg')?'image/svg+xml':f.endsWith('.css')?'text/css':'application/octet-stream');r.end(fs.readFileSync(f));}catch{r.writeHead(404);r.end();}});
 (async()=>{await new Promise(done=>server.listen(0,'127.0.0.1',done));const b=await (process.env.QA_WEBKIT?webkit:chromium).launch(process.env.QA_WEBKIT?{}:{executablePath:process.env.CHROMIUM_EXECUTABLE||undefined,args:['--no-sandbox','--disable-dev-shm-usage','--no-zygote','--single-process']});
  try{const p=await b.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'}),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.route('https://**/*',route=>route.abort());await p.goto('http://127.0.0.1:'+server.address().port);
+ const isolatedStress=process.env.QA_WEBKIT&&process.env.QA_SOURCE_ONLY==='1';
+ let lastStressStep='page-open';
+ const stressStep=step=>{lastStressStep=step;if(isolatedStress)console.log('WEBKIT_STRESS_STAGE '+step);};
+ if(isolatedStress){
+  p.on('crash',()=>console.error('WEBKIT_PAGE_CRASH last_stage='+lastStressStep));
+  b.on('disconnected',()=>console.error('WEBKIT_BROWSER_DISCONNECTED last_stage='+lastStressStep));
+ }
  if(process.env.QA_FONT){await p.addStyleTag({content:"@font-face{font-family:QAJP;src:url('/font.otf')}body,button{font-family:QAJP}"});await p.evaluate(()=>document.fonts.load('16px QAJP'));}
  // CSS animation may keep WebKit's locator stability heuristic pending.
  // A real coordinate pointer click with elementFromPoint hit testing is the
@@ -189,6 +196,7 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  const allModes=selectedMode?[selectedMode]:everyMode;
  const selectedRarities=requestedRarity===undefined?[0,1,2,3]:[Number(requestedRarity)];
  for(const mode of allModes)for(const rarity of selectedRarities){
+  stressStep('begin:'+mode+':'+rarity);
   await p.evaluate(({mode,rarity})=>{const o=observationState(),t=Date.now();o.mode=mode;o.sequence=1;o.mind.closed=false;o.pending={mode,rarity,readyAt:t,expiresAt:t+3600000,sequence:1,suppression:0};renderObservation();},{mode,rarity});
   assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'true');
   const perspective=await p.locator('#obs-viewpoint-label').innerText();
@@ -290,6 +298,7 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    // full-size off-DOM Image for every rarity can exhaust WebKit GPU memory.
    // Verify the actual served RIFF/VP8X payload and source-native dimensions
    // instead; all 12 live visual layers and real hotspot clicks remain tested.
+   stressStep('before-native-photo-fetch:'+mode+':'+rarity);
    await p.evaluate(async ({mode,rarity})=>{
     const url=WatchLocations.photoDelta(mode,rarity);
     const response=await fetch(url,{cache:'no-store'});
@@ -302,6 +311,7 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
           h=1+b[27]+(b[28]<<8)+(b[29]<<16);
     if(w!==1440||h!==720)throw Error('native photo evidence dimension changed: '+url);
    },{mode,rarity});
+   stressStep('after-native-photo-fetch:'+mode+':'+rarity);
    const valid=await p.evaluate(({mode,rarity})=>WatchLocations.targets(mode,rarity).some(([x,y])=>WatchModel.hit(observationState(),{x,y})),{mode,rarity});
    assert(valid,'matching native image-space target '+mode+rarity);
    // Browser animation can keep Playwright's element-stability waiter pending in WebKit.
@@ -351,7 +361,9 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
     return hit===document.getElementById('obs-frame')||document.getElementById('obs-frame').contains(hit);
    },q);
    assert(reachable,'actual rendered hotspot must not be obscured by UI '+mode+rarity);
+   stressStep('before-real-pointer:'+mode+':'+rarity);
    await p.mouse.click(q.x,q.y);
+   stressStep('after-real-pointer:'+mode+':'+rarity);
    projectedContactTaps++;
    assert.equal(await p.evaluate(()=>observationState().pending?.suppression),1,'clicking projected visual hotspot must suppress '+mode+rarity);
   }
@@ -378,10 +390,12 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  // Full browser reload is verified by the separate earned-evidence WebKit
  // journey and full Chromium matrix; do not provoke an unrelated compositor
  // navigation of up to 3 overlapping 1440px assets for every photo rarity.
+ stressStep('before-save:'+selectedMode+':'+requestedRarity);
  const stored=await p.evaluate(()=>{
   save();const q=JSON.parse(localStorage.getItem(KEY));
   return {currency:q.currency,places:WatchLocations.discovered(q.observation.locationRecords).length};
  });
+ stressStep('after-save:'+selectedMode+':'+requestedRarity);
  assert.equal(stored.currency,wallet+projectedContactTaps,'real projected taps persist exactly once');
  if(runSharedScenario){
   await p.reload();
