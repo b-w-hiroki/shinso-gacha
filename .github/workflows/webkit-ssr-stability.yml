@@ -12,6 +12,11 @@ on:
       - 'tests/observation-location-variants.cjs'
       - 'scripts/webkit-ssr-stability.mjs'
       - 'tests/webkit-ssr-stability-runner.cjs'
+      - 'assets/observation.js'
+      - 'assets/observation.css'
+      - 'assets/observation-location-model.js'
+      - 'assets/observation/photo-deltas/**'
+      - 'assets/observation/alt-overlays/**'
 
 permissions:
   contents: read
