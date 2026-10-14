@@ -285,6 +285,15 @@ jobs:
           for rarity in 0 1 2 3; do
             QA_OBSERVATION_RARITY="$rarity" node tests/observation-location-variants.cjs
           done
+          # Issue #141: photo/dash SSR previously terminated the WebKit renderer.
+          # Repeat SSR in new browser processes on the same runner to expose
+          # intermittent failures without retrying or masking a failed test.
+          if [[ "$QA_OBSERVATION_MODE" == "photo" || "$QA_OBSERVATION_MODE" == "dash" ]]; then
+            for repeat in 1 2; do
+              echo "SSR stability replay $repeat/2: $QA_OBSERVATION_MODE"
+              QA_OBSERVATION_RARITY=3 node tests/observation-location-variants.cjs
+            done
+          fi
         env:
           QA_WEBKIT: 1
           QA_OBSERVATION_MODE: ${{ matrix.mode }}
