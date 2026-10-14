@@ -64,6 +64,12 @@
 
 参照：\`assets/incursions.js\`、\`assets/personnel-discrepancies-model.js\`、\`assets/legend-model.js\`、\`assets/investigation-links.js\`、\`assets/encyclopedia.js\`。
 
+### 2026-10-15 WebKit高解像度写真の合成負荷軽減
+
+- 追加4地点の通常/R/SR/SSRでは、写真・透過WebP・SVGを重ねる前景に`saturate/contrast` CSSフィルターを掛けない。写真の実画素と異変位置は維持。
+- 暗部補正は従来どおり明示的な薄いレイヤーで描き、フィルターの代わりにオフスクリーン合成を増やさない。2倍拡大・ドラッグ・quiet・pt・抽選・保存に変更なし。
+- Chromium/WebKitで4方式×4状態の実タップと暗部補正の表示復帰、元画像・レアリティ・CSPを検査する。これは間欠的不具合の負荷対策であり、物理iPhoneや長期安定性検証は #141 / #75 の残件。
+
 ### 2026-10-15 都市伝説調査一覧の未発見秘匿
 
 - 調査一覧には少なくとも1断片を**実際に取得した都市伝説**だけを表示し、未取得案件の灰色枠・内部ID・一覧総枠数をDOMにも出さない。
