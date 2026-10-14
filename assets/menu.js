@@ -35,7 +35,7 @@ GAME_MAIL.push({id:'personnel-ledger-versions',from:'第六文書課・人事登
 });
 // A personnel file produces one quietly delivered notice only after explicit comparison.
 for(const c of PersonnelDiscrepancies.CASES)GAME_MAIL.push({
- id:'personnel-'+c.id,from:'第六文書課・人事台帳',title:'照合対象の登録について',
+ id:'personnel-'+c.id,from:'第六文書課・人事台帳',title:'照合対象の登録について',personnelCaseId:c.id,
  body:'照合された「'+c.title+'」について、記録者の氏名欄が空白です。追加の署名はしないでください。',
  reward:0,when:()=>!isLite()&&S.personnelEvidence?.confirmed?.[c.id]===true
 });
@@ -88,7 +88,11 @@ function openGameMail(id){
  const m=GAME_MAIL.find(m=>m.id===id),c=menuState();if(!m||!c.mail[id])return;
  c.mail[id].read=true;markDirty();renderMenuBadge();
  const d=new Date(c.mail[id].receivedAt).toLocaleDateString('ja-JP');
- openMenuPage('受信メール',menuBack('inbox')+`<article class="game-message"><small>${m.from} · ${d}</small><h2>${m.title}</h2><p>${m.body}</p>${m.caseId?`<button class="btn-line" data-legend="case" data-id="${m.caseId}">調査報告書を確認する</button>`:``}${m.witnessRegistry?`<button class="btn-line" data-witness-registry>立会人の人物記録を確認する</button>`:``}${m.reward?`<button class="btn-paper" data-mail-claim="${id}" ${c.mail[id].claimed?'disabled':''}>${c.mail[id].claimed?'受取済み':m.reward+'pt を受け取る'}</button>`:''}</article>`);
+ // A saved letter alone is not proof that its classified dossier is still
+ // available. Project the destination from confirmed, rank-gated evidence.
+ const personnel=m.personnelCaseId?PersonnelDiscrepancies.detail(S.personnelEvidence,rankIdx(),m.personnelCaseId):null;
+ const personnelLink=personnel?.confirmed?'<button class="btn-line" data-personnel-open="'+escapeHTML(personnel.id)+'">確定済みの人事照合原本を読む</button>':'';
+ openMenuPage('受信メール',menuBack('inbox')+`<article class="game-message"><small>${m.from} · ${d}</small><h2>${m.title}</h2><p>${m.body}</p>${m.caseId?`<button class="btn-line" data-legend="case" data-id="${m.caseId}">調査報告書を確認する</button>`:``}${m.witnessRegistry?`<button class="btn-line" data-witness-registry>立会人の人物記録を確認する</button>`:``}${personnelLink}${m.reward?`<button class="btn-paper" data-mail-claim="${id}" ${c.mail[id].claimed?'disabled':''}>${c.mail[id].claimed?'受取済み':m.reward+'pt を受け取る'}</button>`:''}</article>`);
 }
 function openMenuSettings(){
  openMenuPage('設定',menuBack()+`<div class="game-message"><p id="menu-sync"></p><label class="watch-quiet-setting"><input type="checkbox" data-watch-quiet ${observationState().quiet?'checked':''}> 揺れ・画面演出を抑える</label>${!isLite()?`${observationState().pending?.rarity>0?'<button class="btn-line" data-menu="target">場所を選んで異変に対処</button>':''}${watchSettingsUnlocked()?'<button class="btn-line" data-menu="observation">観測設定</button>':''}`:''}<button class="btn-line" data-intro="archive">最初の3通を読み返す</button>${localStorage.getItem(KEY+'_conflict_backup')?'<button class="btn-line" data-cloud-choice="backup">退避した記録をダウンロード</button>':''}<button class="btn-paper" data-menu="account">ログイン・アカウント管理</button></div>`);
