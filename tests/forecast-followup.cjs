@@ -29,10 +29,16 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
    renderMenuBadge();
   });
   assert.equal(await p.evaluate(()=>!!S.communications?.mail?.['forecast-u2']),false,'wrong-medium saved report cannot generate mail');
+  assert.equal(await p.evaluate(()=>ForecastArchive.inspect('u1',{},LegendModel.CASES,null,{noticed:true,compared:true})),null,
+   'missing fragment level must not expose a future report');
   await p.evaluate(()=>{S.forecastFollowups=undefined;hideSheet();openLegendCase('u1');});
   assert.equal(await p.locator('[data-forecast-issue]').count(),0,'unacquired reports are hidden');
   await p.evaluate(()=>openLegendCase('u2'));
   assert(await p.locator('[data-forecast-issue="u2"]').isVisible());
+  assert((await p.locator('.forecast-archive').innerText()).includes('運行されていない列車'),
+   'earned report shows a case-specific future contradiction');
+  assert(!(await p.locator('.forecast-archive').innerText()).includes('三つ目の部屋'),
+   'other case forecast must not leak into the acquired dossier');
   const initial=await p.evaluate(()=>S.currency);
   await p.locator('[data-forecast-issue="u2"]').click();
   assert((await p.locator('.forecast-action').innerText()).includes('翌日以降'));
