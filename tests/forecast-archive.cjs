@@ -5,7 +5,7 @@ assert.equal(M.inspect('u13',{u13:3},cases,null,{}),null);
 for(const id of Legend.ids){const a=M.inspect(id,{[id]:3},cases,null,{});assert(a&&a.forecast);assert.equal(a.staff,null);const b=M.inspect(id,{[id]:3},cases,{mode:cases[id].mode,rarity:1},{noticed:true,compared:false});assert(b.comparison.includes('一致しない'));assert.equal(b.staff,null);const c=M.inspect(id,{[id]:3},cases,{incident:2},{noticed:true,compared:true});assert(c.staff?.label==='登録のない立会人');assert.deepEqual(c,M.inspect(id,{[id]:3},cases,{incident:2},{noticed:true,compared:true}));}
 // Missing/invalid saved levels must not disclose the dossier. Before this
 // change, Number(undefined)<3 was false and accidentally passed the gate.
-for(const levels of [undefined,{}, {u1:undefined},{u1:NaN},{u1:Infinity},{u1:2},{u1:-1}]){
+for(const levels of [undefined,{}, {u1:undefined},{u1:NaN},{u1:Infinity},{u1:'3'},{u1:3.5},{u1:true},{u1:2},{u1:-1}]){
  assert.equal(M.inspect('u1',levels,cases,{mode:'cctv'}, {noticed:true,compared:true}),null);
 }
 assert.equal(M.inspect('__proto__',{'__proto__':3},cases,null,{}),null);

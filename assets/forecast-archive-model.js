@@ -18,8 +18,8 @@
  };
  function inspect(id,levels,cases,proof,layer){
   // Number(undefined) is NaN, so !(value>=3) is essential: never rely on value<3.
-  const stage=Number(levels?.[id]);
-  if(!Object.hasOwn(notes,id)||!Object.hasOwn(cases||{},id)||!Number.isFinite(stage)||stage<3)return null;
+  const stage=levels?.[id];
+  if(!Object.hasOwn(notes,id)||!Object.hasOwn(cases||{},id)||!Number.isInteger(stage)||stage<3)return null;
   const mode=cases[id].mode,kind=modes[mode];if(!kind)return null;
   const note=notes[id],hasProof=!!proof,noticed=layer?.noticed===true,compared=layer?.compared===true;
   return {

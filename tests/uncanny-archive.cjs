@@ -1,7 +1,7 @@
 const assert=require('node:assert/strict'),M=require('../assets/uncanny-archive-model');
 let s=M.state({}, {u1:3,u2:3});
 assert.equal(M.events('u3',0,{},false),null,'unowned mystery hidden');
-for(const count of [undefined,NaN,0,null,-1,Infinity]){
+for(const count of [undefined,NaN,0,null,-1,Infinity,'3',3.5,true]){
  assert.equal(M.events('u1',count,{noticed:true,compared:true},true),null,'invalid fragment count cannot expose event');
 }
 assert.equal(M.events('u1',3,{noticed:'true',compared:'true'},'true').letter,false,'string flags are not proof');

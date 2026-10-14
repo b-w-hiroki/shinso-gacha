@@ -11,9 +11,9 @@
   return s;
  }
  function events(id,level,layer,concluded){
-  const stage=Number(level);
+  const stage=level;
   // Undefined and NaN must remain locked: comparing with <=0 is insufficient.
-  if(!/^u(?:[1-9]|1[0-2])$/.test(id)||!Number.isFinite(stage)||stage<1)return null;
+  if(!/^u(?:[1-9]|1[0-2])$/.test(id)||!Number.isInteger(stage)||stage<1)return null;
   // Deterministic story gates, not extra paid gacha or reward rolls.
   return {missing:stage>=2&&chance('missing:'+id,35),read:stage>=1&&chance('read:'+id,40),
    letter:stage>=3&&layer?.noticed===true,vanish:stage>=3&&layer?.noticed===true&&chance('vanish:'+id,50),

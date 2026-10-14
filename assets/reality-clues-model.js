@@ -17,8 +17,8 @@
  const valid=id=>/^u(?:[1-9]|1[0-2])$/.test(id);
  const number=id=>Number(id.slice(1));
  function clue(id,count,compared){
-  const stage=Number(count);
-  if(!valid(id)||!Number.isFinite(stage)||stage<3)return null;
+  const stage=count;
+  if(!valid(id)||!Number.isInteger(stage)||stage<3)return null;
   const d=details[number(id)-1];
   return {tag:d.tag,original:d.plain,observed:compared===true?d.altered:'画像の余白に、不自然な共通部分がある。',revealed:compared===true};
  }
