@@ -130,7 +130,8 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    await control.scrollIntoViewIfNeeded();
    assert(await control.evaluate(el=>el.getBoundingClientRect().height>=44),'cross-archive target is tappable');
    if(width===390&&!process.env.QA_WEBKIT){
-    await p.evaluate(()=>{document.getElementById('sheet').scrollTop=0;});
+    // Photograph the earned connection itself, not the top of a long dossier.
+    await control.evaluate(el=>el.scrollIntoView({block:'center',behavior:'instant'}));
     await p.screenshot({path:'docs/qa-incursions/location-legend-crosscheck-390.jpg',quality:85});
    }
   }
