@@ -88,3 +88,13 @@
 .witness-personnel section h3{font-size:15px;line-height:1.6;margin:4px 0 8px}
 .witness-personnel section p{font-size:14px;line-height:1.85;overflow-wrap:anywhere}
 .witness-personnel section button{min-height:48px}
+
+/* Acquired-only location ↔ legend comparison: readable even with reduced motion. */
+.legend-location-echo,.site-legend-echoes{margin:18px 0;border-block:1px solid #756a56;padding:9px 0;overflow-wrap:anywhere}
+.legend-location-echo h3{margin:7px 0 10px}
+.legend-location-echo p,.site-legend-echoes p{font-size:14px;line-height:1.85;color:#d9ccb6}
+.legend-location-after{border-left:2px solid #93775b;padding:5px 12px;background:#252821;color:#d8cab0}
+.site-legend-echoes>summary{min-height:48px;padding:12px 4px;color:#e5d5b9;cursor:pointer;font:600 14px/1.6 var(--f-body)}
+.site-legend-echoes section{border-top:1px solid #5a594d;padding:9px 2px 15px}
+.legend-location-echo button,.site-legend-echoes button{min-height:48px;text-align:left;white-space:normal}
+@media(prefers-reduced-motion:reduce){.legend-location-echo *,.site-legend-echoes *{animation:none!important;transition:none!important}}
