@@ -113,10 +113,11 @@ function showLocationTriad(id){
  sheet('三地点の照会記録','<article class="catalog-detail site-triad"><small>第六文書課 ／ 回収原本の相互照合</small><h2>'+escapeHTML(match.title)+'</h2><div class="site-triad-images">'+images+'</div><p class="site-triad-copy">'+escapeHTML(match.record)+'</p><p>'+escapeHTML(match.warning)+'</p><p class="site-correlation-note">実際に取得した三地点の異変だけを照合しています。閲覧しても抽選・報酬・記録件数は増えません。</p>'+buttons+'</article>');
 }
 function alternateLocationRecordsHTML(place,entry){
- return '<div class="catalog-records">'+[0,1,2,3].map(r=>{
-  const acquired=!!entry.rarities?.[r],title=acquired?escapeHTML(place.notes[r])+' ／ '+WatchModel.RARITY[r].name:'未観測';
-  return '<button class="btn-line" data-location-record="'+place.id+':'+r+'" '+(acquired?'':'disabled')+'>'+title+'</button>';
- }).join('')+'</div>';
+ const acquired=[0,1,2,3].filter(r=>Number(entry.rarities?.[r])>0);
+ return '<div class="catalog-records">'+acquired.map(r=>
+  '<button class="btn-line" data-location-record="'+escapeHTML(place.id)+':'+r+'">'+
+   escapeHTML(place.notes[r])+' ／ '+WatchModel.RARITY[r].name+'</button>'
+ ).join('')+'</div>';
 }
 function openCatalogEntry(id){
  const entry=catalogEntries(encyclopediaTab).find(e=>e.id===id);if(!entry?.known)return;
@@ -138,7 +139,7 @@ function openCatalogEntry(id){
  if(place){const entry=WatchLocations.discovered(observationState().locationRecords).find(s=>s.id===id);if(!entry)return;const time=entry.firstAt?new Date(entry.firstAt).toLocaleDateString('ja-JP'):'日時不明';sheet('場所図鑑',`<article class="catalog-detail"><small>${escapeHTML(place.source)} ／ ${escapeHTML(WatchModel.MODES[place.mode].label)}</small><h2>${escapeHTML(place.title)}</h2><img src="assets/observation/${place.file}" alt="${escapeHTML(place.title)}の初回観測資料" loading="lazy" style="width:100%;aspect-ratio:2/1;object-fit:cover;border:1px solid #696154;border-radius:3px"><p>記録された訪問 ${entry.visits}回 ／ 最初の観測 ${time}</p><p>別媒体と記録を共有せず、この場所の原本はそのまま保存されます。</p>${alternateLocationRecordsHTML(place,entry)}${locationLegendEchoesHTML(place.id)}${locationLinksHTML(place.id)}${locationTriadHTML(place.id)}<button class="btn-line" data-watch="return">観測へ戻る</button></article>`);return;}
  const m=OBSERVATIONS[id],o=observationState();
  const legends=LegendModel.ids.filter(k=>LegendModel.CASES[k].mode===id&&LegendModel.count(S.levels,k)>0);
- sheet('場所図鑑',`<article class="catalog-detail"><small>${m.source} ／ ${WatchModel.MODES[id].label}</small><h2>${m.title}</h2><p>この場所で回収した記録 ${WatchModel.setProgress(o,id)}件。平常の記録も比較の手がかりになります。</p><div class="catalog-records">${[0,1,2,3].map(r=>`<button class="btn-line" data-catalog-record="${id}:${r}" ${o.collection[id+':'+r]>0?'':'disabled'}>${o.collection[id+':'+r]>0?m.records[r]:'未観測'}</button>`).join('')}</div>${legends.length?'<h3>関連する噂</h3>'+legends.map(k=>`<button class="btn-line" data-legend="case" data-id="${k}">${escapeHTML(legendTitle(k))}</button>`).join(''):''}<button class="btn-paper" data-watch="return">観測へ戻る</button></article>`);
+ sheet('場所図鑑',`<article class="catalog-detail"><small>${m.source} ／ ${WatchModel.MODES[id].label}</small><h2>${m.title}</h2><p>この場所で回収した記録 ${WatchModel.setProgress(o,id)}件。平常の記録も比較の手がかりになります。</p><div class="catalog-records">${[0,1,2,3].filter(r=>Number(o.collection[id+':'+r])>0).map(r=>`<button class="btn-line" data-catalog-record="${id}:${r}">${escapeHTML(m.records[r])}</button>`).join('')}</div>${legends.length?'<h3>関連する噂</h3>'+legends.map(k=>`<button class="btn-line" data-legend="case" data-id="${k}">${escapeHTML(legendTitle(k))}</button>`).join(''):''}<button class="btn-paper" data-watch="return">観測へ戻る</button></article>`);
 }
 document.addEventListener('click',e=>{
  const b=e.target.closest('[data-catalog-tab],[data-catalog-entry],[data-catalog-record],[data-catalog-talk],[data-catalog-incident],[data-personnel-confirm],[data-personnel-open],[data-personnel-list],[data-witness-case],[data-witness-registry],[data-location-record],[data-location-link],[data-location-triad]');if(!b||b.disabled)return;

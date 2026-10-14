@@ -140,7 +140,9 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
  await p.evaluate(()=>openEncyclopedia('places'));
  assert.equal(await p.locator('[data-catalog-entry^="alt:"]').count(),1);
  await p.locator('[data-catalog-entry="alt:cctv"]').click();
+ assert.equal(await p.locator('[data-location-record]').count(),1,'only acquired observation rarity exists in DOM');
  assert.equal(await p.locator('[data-location-record]:enabled').count(),1);
+ assert(!(await p.locator('.catalog-detail').innerText()).includes('未観測'),'hidden rarities have no placeholder controls');
  assert(!(await p.locator('.catalog-detail').innerText()).includes('存在しない階段'),'unowned titles are never disclosed');
  await p.locator('[data-location-record="alt:cctv:1"]').click();
  assert((await p.locator('.watch-record-caption').innerText()).includes('通路に残る足跡'));
