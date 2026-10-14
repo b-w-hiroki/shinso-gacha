@@ -68,7 +68,9 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  assert.equal(await p.locator('.catalog-entry:enabled').count(),2);await p.locator('[data-catalog-entry="cctv:2"]').click();assert((await p.locator('.watch-record-caption').innerText()).includes('影だけの来園者'));assert((await p.locator('.catalog-history').innerText()).includes('回収済み 1回'));await p.keyboard.press('Escape');
  await p.locator('[data-catalog-entry="inc:0"]').click();assert(await p.locator('#incursion-dialog').isVisible());await p.locator('[data-inc="close"]').click();
  await p.locator('[data-catalog-tab="people"]').click();assert.equal(await p.locator('.catalog-entry:enabled').count(),1);await p.locator('[data-catalog-entry="records"]').click();assert(await p.locator('.watch-speaker img').isVisible());await p.keyboard.press('Escape');
- await p.locator('[data-catalog-tab="places"]').click();assert.equal(await p.locator('.catalog-entry:enabled').count(),1);await p.locator('[data-catalog-entry="cctv"]').click();assert.equal(await p.locator('[data-catalog-record]:enabled').count(),2);assert(!(await p.locator('#sheet').innerText()).includes('砂場の整列'));await p.keyboard.press('Escape');
+ await p.locator('[data-catalog-tab="places"]').click();assert.equal(await p.locator('.catalog-entry:enabled').count(),1);await p.locator('[data-catalog-entry="cctv"]').click();assert.equal(await p.locator('[data-catalog-record]:enabled').count(),2);
+ assert.equal(await p.locator('[data-catalog-record]').count(),2,'unacquired rarity buttons must not exist');
+ assert(!(await p.locator('#sheet').innerText()).includes('未観測'),'no rarity capacity leaks inside an acquired place');assert(!(await p.locator('#sheet').innerText()).includes('砂場の整列'));await p.keyboard.press('Escape');
  assert.equal(await p.evaluate(()=>JSON.stringify({currency:S.currency,collection:S.observation.collection,discovered:S.incursion.discovered})),state);
  await p.locator('#toast').waitFor({state:'hidden'});
  for(const [width,height] of [[320,568],[390,844],[844,390]]){
