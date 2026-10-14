@@ -7,6 +7,7 @@
 - 共通の手順：[birdman studio Chat Resume Contract](https://github.com/b-w-hiroki/studio-playbook/blob/main/docs/CHAT-RESUME.md)（Private、GitHub接続の認可要）。アクセスできなければ「未読」とする。
 - Issueキュー：[Open Issues](https://github.com/b-w-hiroki/shinso-gacha/issues?q=is%3Aissue+is%3Aopen)、[ロードマップ #89](https://github.com/b-w-hiroki/shinso-gacha/issues/89)、[本番・実機QA #75](https://github.com/b-w-hiroki/shinso-gacha/issues/75)。
 - Open PR：[一覧](https://github.com/b-w-hiroki/shinso-gacha/pulls)。最新CI：[Actions](https://github.com/b-w-hiroki/shinso-gacha/actions/workflows/smoke.yml)。[Pages](https://github.com/b-w-hiroki/shinso-gacha/actions)／[公開サイト](https://shinso-gacha.birdman-studio.com/)。
+- WebKit SSR日次安定性：[Actions](https://github.com/b-w-hiroki/shinso-gacha/actions/workflows/webkit-ssr-stability.yml)。写真・車載の最初の失敗を残す独立反復QA。成功回数と失敗内訳は #141、実機は #75 で追跡。
 - read-only最新状況：[dev-resume-context Actions](https://github.com/b-w-hiroki/shinso-gacha/actions/workflows/dev-resume-context.yml)。成功した最新runの `dev-resume-context` artifactは**参考スナップショット**。実装前には必ずGitHubからmain/Issue/PR/CIを再確認する。
 
 ## 毎回の起動契約
