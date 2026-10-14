@@ -277,8 +277,21 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    const f=frame.getBoundingClientRect(),im=document.getElementById('obs-image').getBoundingClientRect();
    return Math.abs(f.left-im.left)<8&&Math.abs(f.top-im.top)<8&&Math.abs(f.width-im.width)<8&&Math.abs(f.height-im.height)<8;
   }),'all four sources and all four rarity states stay in frame during live motion');
-  const overlay=await p.evaluate(()=>{const e=document.getElementById('obs-site-overlay');return e?getComputedStyle(e).backgroundImage:null;});
-  assert(overlay!==null,'site overlay element must exist in DOM');
+  const layers=await p.evaluate(()=>{
+   const e=document.getElementById('obs-site-overlay');
+   return e?{background:getComputedStyle(e).backgroundImage,
+    images:[...e.querySelectorAll('img.obs-ssr-image')].map(img=>img.getAttribute('src'))}:null;
+  });
+  assert(layers!==null,'site overlay element must exist in DOM');
+  const overlay=[layers.background,...layers.images].join(', ');
+  if(rarity===3){
+   assert.equal(layers.images.length,2,'SSR requires independent photographic delta + clue images');
+   const ready=await p.locator('#obs-site-overlay img.obs-ssr-image').evaluateAll(async images=>{
+    await Promise.all(images.map(img=>img.decode()));
+    return images.every(img=>img.naturalWidth>0&&img.naturalHeight>0);
+   });
+   assert(ready,'SSR DOM evidence must decode its photographed anomaly and authored clue');
+  }else assert.equal(layers.images.length,0,'ordinary/R/SR remain on legacy verified CSS sources');
   const originalPhoto=await p.evaluate(m=>WatchLocations.byId('alt:'+m).file,mode);
   assert(overlay.includes(originalPhoto),'original photograph must be visible at full width '+mode+rarity);
   if(rarity>0){
@@ -352,7 +365,8 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
     :geometry.atmosphereFilter.includes('blur(')&&geometry.atmosphereImage.includes(originalPhoto),
     'SSR must avoid a fourth filtered native-photo texture; other states preserve backdrop '+mode+rarity);
    for(const [key,count] of Object.entries(geometry.photoBackgroundLonghands))
-    assert.equal(count,3,'three native photo images require matching '+key+' background layers: '+mode+rarity);
+    assert.equal(count,rarity===3?1:3,
+     'WebKit CSS background longhands must match actual layers: '+key+' '+mode+rarity);
    if(ssrAtmosphere){
     assert(geometry.foregroundShadow==='none'&&geometry.edgeFilter==='none',
      'SSR cannot allocate decorative blurred box shadow or edge filter '+mode+rarity);
