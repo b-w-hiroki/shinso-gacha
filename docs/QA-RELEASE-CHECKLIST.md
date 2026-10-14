@@ -64,6 +64,13 @@
 - [ ] 画像のタップ位置が異常の実体に対応する。
 - [ ] 「発見」と「正解の確定」が別。結論を先に明かさない。
 
+## 2026-10-15 WebKit SSR再発率の継続観測（#141）
+
+- [`.github/workflows/webkit-ssr-stability.yml`](../.github/workflows/webkit-ssr-stability.yml) は毎日・手動起動・対象テスト変更PRで、以前にクラッシュした写真／車載のSSRをWebKitの独立プロセスで反復する。
+- 各媒体で実クリック暗部補正・拡大を3回、通常/R/SR/SSR＋SSR追加3回の計7画像試験を毎回実施。失敗を同一run内のリトライで成功にせず、最初の失敗をrun失敗として残す。
+- `webkit-stability-photo` と `webkit-stability-dash` のartifactにmain SHAと試行ログを30日保持。判定時は連続runの**初回成功数／試行run数**と、対象媒体・具体的失敗ステップを記録する。リトライ後の成功だけを安定化の根拠にしない。
+- GitHub Actionsの定期実行成功は物理iPhone Safariの実機成功を意味しない。#75 の検収と区別し、#141は必要な証拠が揃うまでOPEN。
+
 ## 6. GitHubと公開判定
 
 \`\`\`text
