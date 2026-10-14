@@ -240,12 +240,15 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    assert.equal(await enhance.getAttribute('aria-pressed'),'false');
    const beforeEnhance=await p.evaluate(()=>JSON.stringify({currency:S.currency,suppression:observationState().pending?.suppression,collection:observationState().collection}));
    const regular=await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).filter);
+   const regularLift=await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e,'::after').backgroundColor);
+   assert.equal(regular,'none','layered native imagery must avoid offscreen WebKit GPU filtering: '+mode);
    await clickRealViewerControl('#obs-enhance-toggle');
    assert.equal(await enhance.getAttribute('aria-pressed'),'true','display compensation is explicit opt-in');
    assert.equal(await p.locator('#obs-frame').getAttribute('data-enhance'),'true');
    const corrected=await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).filter);
    assert.equal(corrected,'none','enhanced imagery uses light-weight backing rather than GPU brightness filter: '+mode);
-   assert.notEqual(corrected,regular,'correction must change render pipeline: '+mode);
+   const enabledLift=await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e,'::after').backgroundColor);
+   assert.notEqual(enabledLift,regularLift,'low-light tint changes visible pixels without GPU filtering: '+mode);
    assert(await p.locator('#obs-frame').evaluate(e=>e.getBoundingClientRect().width>0));
    if((mode==='vision'||mode==='dash')&&!process.env.QA_WEBKIT)
     await p.screenshot({path:'docs/qa-incursions/alt-'+mode+'-lowlight-on-390.jpg',quality:87});
@@ -256,7 +259,8 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
    await clickRealViewerControl('#obs-enhance-toggle');
    assert.equal(await enhance.getAttribute('aria-pressed'),'false');
    assert.equal(await p.locator('#obs-frame').getAttribute('data-enhance'),'false');
-   assert.equal(await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).filter),regular,'original dim appearance returns exactly');
+   assert.equal(await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e).filter),regular,'native image remains unfiltered');
+   assert.equal(await p.locator('#obs-site-overlay').evaluate(e=>getComputedStyle(e,'::after').backgroundColor),regularLift,'light correction returns to original');
    assert.equal(await p.evaluate(()=>JSON.stringify({currency:S.currency,suppression:observationState().pending?.suppression,collection:observationState().collection})),beforeEnhance,
     'changing the display must never grant or withdraw rewards or mutate observation state');
    }
