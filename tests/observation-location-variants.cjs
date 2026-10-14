@@ -329,6 +329,14 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
      atmosphereImage:getComputedStyle(document.getElementById('obs-image')).backgroundImage,
      foregroundShadow:v.boxShadow,
      edgeFilter:getComputedStyle(document.querySelector('.obs-effect'),'::after').filter,
+     photoBackgroundLonghands:{
+      position:v.backgroundPosition.split(',').length,
+      repeat:v.backgroundRepeat.split(',').length,
+      origin:v.backgroundOrigin.split(',').length,
+      clip:v.backgroundClip.split(',').length,
+      attachment:v.backgroundAttachment.split(',').length,
+      blend:v.backgroundBlendMode.split(',').length
+     },
      photoFit:v.backgroundSize,foreground:v.backgroundImage,
      points,projected:points.map(({x,y})=>WatchLocations.imagePoint(x-f.left,y-f.top,f.width,f.height)),
      targets:WatchLocations.targets(mode,rarity),f:{left:f.left,top:f.top,right:f.right,bottom:f.bottom}};
@@ -343,6 +351,8 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
       !geometry.atmosphereImage.includes(originalPhoto)
     :geometry.atmosphereFilter.includes('blur(')&&geometry.atmosphereImage.includes(originalPhoto),
     'SSR must avoid a fourth filtered native-photo texture; other states preserve backdrop '+mode+rarity);
+   for(const [key,count] of Object.entries(geometry.photoBackgroundLonghands))
+    assert.equal(count,3,'three native photo images require matching '+key+' background layers: '+mode+rarity);
    if(ssrAtmosphere){
     assert(geometry.foregroundShadow==='none'&&geometry.edgeFilter==='none',
      'SSR cannot allocate decorative blurred box shadow or edge filter '+mode+rarity);
