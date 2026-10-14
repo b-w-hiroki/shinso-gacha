@@ -10,6 +10,15 @@ function realityCluesHTML(id){
  if(!clue)return '';
  return '<section class="legend-investigation reality-clues"><h3>写真の成立しない部分</h3><p>'+escapeHTML(clue.tag)+'</p><details><summary>原本の記述と現在の観測を比較</summary><p>原本：'+escapeHTML(clue.original)+'</p><p>現在：'+escapeHTML(clue.observed)+'</p></details></section>';
 }
+function legendLocationEvidenceHTML(id){
+ const row=WatchLocations.caseEcho(id,S.levels,LegendModel.CASES,
+  observationState().locationRecords,legendLayerStatus(id)?.noticed===true);
+ if(!row)return '';
+ return '<section class="legend-investigation legend-location-echo"><h3>観測原本との突き合わせ</h3><p>'+
+  escapeHTML(row.record)+'</p>'+(row.after?'<p class="legend-location-after">'+escapeHTML(row.after)+'</p>':'')+
+  '<button class="btn-line" data-legend="place" data-id="'+escapeHTML(row.placeId)+'">'+
+  escapeHTML(row.placeTitle)+'の原本を見る</button></section>';
+}
 function forecastFollowupHTML(id){
  const c=LegendModel.CASES[id];
  if(!c||LegendModel.count(S.levels,id)!==3)return '';
@@ -105,7 +114,7 @@ function openLegendCase(id){
  const c=LegendModel.CASES[id],s=legendState(),proof=n===3?legendProof(id):null;
  const related=Object.keys(S.incursion?.discovered||{}).map(Number).filter(k=>S.incursion.discovered[k]===true&&LegendModel.related(id,k,incursionProfile));
  const complete=Object.hasOwn(s.conclusions,id);
- sheet('都市伝説の調査',`<article class="legend-case"><button class="btn-line" data-legend="board">‹ 調査案件一覧</button><header><small>第六文書課・架空調査資料</small><h2>${legendTitle(id)}</h2><p>${legendStatus(id)}${s.active===id?' ／ 追跡中':''}</p></header><ol class="legend-fragments">${c.fragments.map(([type,text],i)=>`<li><small>断片 ${i+1} ／ ${i<n?type:'未入手'}</small><p>${i<n?text:'この断片は、まだ封筒の中にある。'}</p></li>`).join('')}</ol>${byId(id).rar==='x'&&n?`<details class="legend-original"><summary>禁の原本</summary><p>${c.original}</p></details>`:''}${n<3?`<p>あと${3-n}段の解読で調査を解放。</p><button class="btn-paper" data-legend="gacha">封筒から続きを探す</button>`:`<section class="legend-investigation"><h3>記録を照合する</h3><p>${OBSERVATIONS[c.mode].title}の観測、または同系統の保管済み異変を裏付けに使えます。関連は仮説であり、同じ怪異とは断定していません。</p><button class="btn-paper" data-legend="start" data-id="${id}" ${s.active===id?'disabled':''}>${s.active===id?'この都市伝説を追跡中':'この都市伝説を追跡する'}</button>${proof?`<button class="btn-line" data-legend="proof" data-id="${id}">裏付けの記録を読む</button><button class="btn-paper" data-legend="witness" data-id="${id}">${WATCH_COLLEAGUES[c.member].name}に照会する</button>`:`<p>裏付けの記録は未取得。</p><button class="btn-line" data-legend="observe" data-id="${id}">${observationState().unlocked.includes(c.mode)?'観測で裏付けを集める':`${OBSERVATIONS[c.mode].title}の観測装備を確認する`}</button>`}${related.length?`<details><summary>関連する保管済み異変 ${related.length}件</summary><div class="legend-related">${related.map(k=>`<button class="btn-line" data-legend="incident" data-kind="${k}">${INCURSIONS[k].short}</button>`).join('')}</div></details>`:''}${complete?`<p class="legend-conclusion">記録した候補：${s.conclusions[id]===0?'記録の側が書き換わっている':'現地の怪異がこちらへ近づいている'}。確定には、まだ矛盾が残る。</p><button class="btn-paper" data-legend="gacha">新しい封筒を調べる</button>`:s.testified[id]&&proof?`<fieldset class="legend-hypotheses"><legend>証言を踏まえ、真相候補を記録</legend><p>どちらも仮説です。正解・不正解やptの増減はありません。</p><button class="btn-line" data-legend="conclude" data-id="${id}" data-choice="0">記録の側が書き換わっている</button><button class="btn-line" data-legend="conclude" data-id="${id}" data-choice="1">現地からこちらへ近づいている</button></fieldset>`:''}</section>${legendLayersHTML(id)}${uncannyHTML(id)}${investigationLinksHTML(id)}${realityCluesHTML(id)}${forecastArchiveHTML(id)}`}</article>`);
+ sheet('都市伝説の調査',`<article class="legend-case"><button class="btn-line" data-legend="board">‹ 調査案件一覧</button><header><small>第六文書課・架空調査資料</small><h2>${legendTitle(id)}</h2><p>${legendStatus(id)}${s.active===id?' ／ 追跡中':''}</p></header><ol class="legend-fragments">${c.fragments.map(([type,text],i)=>`<li><small>断片 ${i+1} ／ ${i<n?type:'未入手'}</small><p>${i<n?text:'この断片は、まだ封筒の中にある。'}</p></li>`).join('')}</ol>${byId(id).rar==='x'&&n?`<details class="legend-original"><summary>禁の原本</summary><p>${c.original}</p></details>`:''}${n<3?`<p>あと${3-n}段の解読で調査を解放。</p><button class="btn-paper" data-legend="gacha">封筒から続きを探す</button>`:`<section class="legend-investigation"><h3>記録を照合する</h3><p>${OBSERVATIONS[c.mode].title}の観測、または同系統の保管済み異変を裏付けに使えます。関連は仮説であり、同じ怪異とは断定していません。</p><button class="btn-paper" data-legend="start" data-id="${id}" ${s.active===id?'disabled':''}>${s.active===id?'この都市伝説を追跡中':'この都市伝説を追跡する'}</button>${proof?`<button class="btn-line" data-legend="proof" data-id="${id}">裏付けの記録を読む</button><button class="btn-paper" data-legend="witness" data-id="${id}">${WATCH_COLLEAGUES[c.member].name}に照会する</button>`:`<p>裏付けの記録は未取得。</p><button class="btn-line" data-legend="observe" data-id="${id}">${observationState().unlocked.includes(c.mode)?'観測で裏付けを集める':`${OBSERVATIONS[c.mode].title}の観測装備を確認する`}</button>`}${related.length?`<details><summary>関連する保管済み異変 ${related.length}件</summary><div class="legend-related">${related.map(k=>`<button class="btn-line" data-legend="incident" data-kind="${k}">${INCURSIONS[k].short}</button>`).join('')}</div></details>`:''}${complete?`<p class="legend-conclusion">記録した候補：${s.conclusions[id]===0?'記録の側が書き換わっている':'現地の怪異がこちらへ近づいている'}。確定には、まだ矛盾が残る。</p><button class="btn-paper" data-legend="gacha">新しい封筒を調べる</button>`:s.testified[id]&&proof?`<fieldset class="legend-hypotheses"><legend>証言を踏まえ、真相候補を記録</legend><p>どちらも仮説です。正解・不正解やptの増減はありません。</p><button class="btn-line" data-legend="conclude" data-id="${id}" data-choice="0">記録の側が書き換わっている</button><button class="btn-line" data-legend="conclude" data-id="${id}" data-choice="1">現地からこちらへ近づいている</button></fieldset>`:''}</section>${legendLayersHTML(id)}${uncannyHTML(id)}${investigationLinksHTML(id)}${realityCluesHTML(id)}${legendLocationEvidenceHTML(id)}${forecastArchiveHTML(id)}`}</article>`);
 }
 function legendWitness(id){
  const c=LegendModel.CASES[id];if(!c||LegendModel.count(S.levels,id)!==3||!legendProof(id))return;
@@ -139,6 +148,10 @@ document.addEventListener('click',e=>{
  if(action==='board')return openLegendBoard();
  if(action==='case')return openLegendCase(id);
  if(action==='gacha'){hideSheet();box='urban';go('gacha');render();fitGacha();return;}
+ if(action==='place'){
+  if(!WatchLocations.discovered(observationState().locationRecords).some(x=>x.id===id))return;
+  encyclopediaTab='places';return openCatalogEntry(id);
+ }
  if(!Object.hasOwn(LegendModel.CASES,id)&&action!=='incident')return;
  if(action==='start'){if(LegendModel.start(legendState(),S.levels,id)){markDirty();save();renderLegendLead();openLegendCase(id);}return;}
  if(action==='witness')return legendWitness(id);
