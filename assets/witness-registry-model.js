@@ -81,7 +81,7 @@
  function personnelEchoes(owned,currentId,confirmed){
   if(!Array.isArray(owned)||!owned.some(x=>x&&x.id===currentId&&Object.hasOwn(notes,x.id))||!Array.isArray(confirmed))return [];
   const seen=new Set();
-  return confirmed.filter(x=>x&&Object.hasOwn(personnelEchoNotes,x.id)&&x.confirmed===true&&!seen.has(x.id)&&!seen.add(x.id))
+  return confirmed.filter(x=>{if(!x||!Object.hasOwn(personnelEchoNotes,x.id)||x.confirmed!==true||seen.has(x.id))return false;seen.add(x.id);return true;})
    .map(x=>({id:x.id,title:x.title,note:personnelEchoNotes[x.id]}));
  }
  return {inspect,list,revisions,editions,personnelEchoes};
