@@ -198,6 +198,14 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
    Avoid loading a fourth filtered 1440px copy under the full-resolution stack.
    The letterboxed monitor keeps a quiet dark gradient, not a cropped anomaly. */
 #obs-frame[data-scene-alt='true'][data-rarity='3'] #obs-image{filter:none}
+/* The SSR master/WebP/SVG already carry the visual clue. All expensive
+   shadows/masks/blur behind it are decoration, not evidence. Eliminate
+   WebKit offscreen filter surfaces specifically for high-resolution SSR. */
+#obs-frame[data-scene-alt='true'][data-rarity='3'] #obs-site-overlay{box-shadow:none}
+#obs-frame[data-scene-alt='true'][data-rarity='3'] .obs-effect::after{
+ filter:none;animation:none;opacity:.42
+}
+#obs-frame[data-scene-alt='true'][data-rarity='3'] #obs-image::after{content:none}
 
 /* The native-photo atmospheric copy is already blurred and color-filtered.
    Animating that large bitmap (and its masked duplicate) can exhaust WebKit's
