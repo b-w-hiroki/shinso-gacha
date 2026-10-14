@@ -207,6 +207,21 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
 }
 #obs-frame[data-scene-alt='true'][data-rarity='3'] #obs-image::after{content:none}
 
+/* WebKit's multilayer background shorthand must describe three real images
+   with matching position/repeat/origin/clip/attachment/blend counts. No pixels
+   or image-space coordinates are changed by these explicit declarations. */
+#obs-frame[data-scene-alt='true'][data-rarity='1'] #obs-site-overlay,
+#obs-frame[data-scene-alt='true'][data-rarity='2'] #obs-site-overlay,
+#obs-frame[data-scene-alt='true'][data-rarity='3'] #obs-site-overlay{
+ background-position:center,center,center;
+ background-repeat:no-repeat,no-repeat,no-repeat;
+ background-origin:padding-box,padding-box,padding-box;
+ background-clip:border-box,border-box,border-box;
+ background-attachment:scroll,scroll,scroll;
+ background-blend-mode:normal,normal,normal;
+}
+
+
 /* The native-photo atmospheric copy is already blurred and color-filtered.
    Animating that large bitmap (and its masked duplicate) can exhaust WebKit's
    compositor after repeated scene changes. Preserve the actual photographic
