@@ -13,11 +13,18 @@ const GAME_MAIL=[
  {id:'records-5',from:'記録保管係',title:'受領数が一致しません',body:'あなたから届いた5件の観測記録を受領しました。保管棚には6件あります。追加分の撮影者欄には、あなたの名前が記入されています。',reward:0,when:()=>!isLite()&&(S.observation?.collected||0)>=5},
  {id:'rare-first',from:'解析班',title:'映像の外側',body:'希少記録の照合が完了しました。被写体はこちらを見ていません。カメラの後ろにいた何かを見ています。次の記録は、周辺も確認してください。',reward:0,when:()=>!isLite()&&Object.entries(S.observation?.collection||{}).some(([k,n])=>n>0&&/:[23]$/.test(k))}
 ];
+// An imported or stale save may contain a report without an acquired case.
+// Only actually owned evidence and the correct medium may reveal its mail.
+function earnedForecastMail(id){
+ const report=ForecastFollowup.inspect(S.forecastFollowups,id);
+ return LegendModel.count(S.levels,id)===3&&report?.status==='compared'&&
+  report.mode===LegendModel.CASES[id]?.mode;
+}
 // The notice appears only after the player both requested and later witnessed a record.
 for(const id of LegendModel.ids)GAME_MAIL.push({
  id:'forecast-'+id,from:'第六文書課・事後照合係',title:'翌日報告の訂正欄',caseId:id,
  body:'翌日付けの調査報告と後日回収した観測記録の照合が終わりました。報告書の結論は、訂正されていません。',
- reward:0,when:()=>!isLite()&&ForecastFollowup.inspect(S.forecastFollowups,id)?.status==='compared'
+ reward:0,when:()=>!isLite()&&earnedForecastMail(id)
 });
 // One in-world personnel message, available only after a real acquired contradiction.
 GAME_MAIL.push({id:'unregistered-personnel',from:'第六文書課・人事登録室',title:'在籍照会の結果',
@@ -91,8 +98,9 @@ function openGameMail(id){
  // A saved letter alone is not proof that its classified dossier is still
  // available. Project the destination from confirmed, rank-gated evidence.
  const personnel=m.personnelCaseId?PersonnelDiscrepancies.detail(S.personnelEvidence,rankIdx(),m.personnelCaseId):null;
+ const forecastLink=m.caseId&&earnedForecastMail(m.caseId);
  const personnelLink=personnel?.confirmed?'<button class="btn-line" data-personnel-open="'+escapeHTML(personnel.id)+'">確定済みの人事照合原本を読む</button>':'';
- openMenuPage('受信メール',menuBack('inbox')+`<article class="game-message"><small>${m.from} · ${d}</small><h2>${m.title}</h2><p>${m.body}</p>${m.caseId?`<button class="btn-line" data-legend="case" data-id="${m.caseId}">調査報告書を確認する</button>`:``}${m.witnessRegistry?`<button class="btn-line" data-witness-registry>立会人の人物記録を確認する</button>`:``}${personnelLink}${m.reward?`<button class="btn-paper" data-mail-claim="${id}" ${c.mail[id].claimed?'disabled':''}>${c.mail[id].claimed?'受取済み':m.reward+'pt を受け取る'}</button>`:''}</article>`);
+ openMenuPage('受信メール',menuBack('inbox')+`<article class="game-message"><small>${m.from} · ${d}</small><h2>${m.title}</h2><p>${m.body}</p>${forecastLink?`<button class="btn-line" data-legend="case" data-id="${m.caseId}">調査報告書を確認する</button>`:``}${m.witnessRegistry?`<button class="btn-line" data-witness-registry>立会人の人物記録を確認する</button>`:``}${personnelLink}${m.reward?`<button class="btn-paper" data-mail-claim="${id}" ${c.mail[id].claimed?'disabled':''}>${c.mail[id].claimed?'受取済み':m.reward+'pt を受け取る'}</button>`:''}</article>`);
 }
 function openMenuSettings(){
  openMenuPage('設定',menuBack()+`<div class="game-message"><p id="menu-sync"></p><label class="watch-quiet-setting"><input type="checkbox" data-watch-quiet ${observationState().quiet?'checked':''}> 揺れ・画面演出を抑える</label>${!isLite()?`${observationState().pending?.rarity>0?'<button class="btn-line" data-menu="target">場所を選んで異変に対処</button>':''}${watchSettingsUnlocked()?'<button class="btn-line" data-menu="observation">観測設定</button>':''}`:''}<button class="btn-line" data-intro="archive">最初の3通を読み返す</button>${localStorage.getItem(KEY+'_conflict_backup')?'<button class="btn-line" data-cloud-choice="backup">退避した記録をダウンロード</button>':''}<button class="btn-paper" data-menu="account">ログイン・アカウント管理</button></div>`);
