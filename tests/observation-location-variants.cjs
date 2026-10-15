@@ -284,16 +284,14 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
   });
   assert(layers!==null,'site overlay element must exist in DOM');
   const overlay=[layers.background,...layers.images].join(', ');
-  if(rarity===3){
-   assert.equal(layers.images.length,2,'SSR requires independent photographic delta + clue images');
-   const ready=await p.locator('#obs-site-overlay img.obs-ssr-image').evaluateAll(async images=>{
-    await Promise.all(images.map(img=>img.decode()));
-    return images.every(img=>img.naturalWidth>0&&img.naturalHeight>0);
-   });
-   assert(ready,'SSR DOM evidence must decode its photographed anomaly and authored clue');
-  }else assert.equal(layers.images.length,0,'ordinary/R/SR remain on legacy verified CSS sources');
+  assert.equal(layers.images.length,0,
+   'all states must use authored CSS image sources without runtime extra full-resolution SSR images');
   const originalPhoto=await p.evaluate(m=>WatchLocations.byId('alt:'+m).file,mode);
-  assert(overlay.includes(originalPhoto),'original photograph must be visible at full width '+mode+rarity);
+  const composite=await p.evaluate(m=>WatchLocations.ssrComposite(m),mode);
+  assert(overlay.includes(rarity===3?composite:originalPhoto),
+   'native imagery must be on the live frame '+mode+rarity);
+  if(rarity===3)assert(!overlay.includes(originalPhoto)&&!overlay.includes('photo-deltas/')&&!overlay.includes('alt-overlays/'),
+   'SSR must decode only the one precomposed 1440px image');
   if(rarity>0){
    const compositor=await p.evaluate(()=>{
     const ambient=document.getElementById('obs-image');
@@ -305,8 +303,16 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
   }
   if(rarity===0)assert(!overlay.includes('alt-overlays/')&&!overlay.includes('photo-deltas/'),'ordinary footage never includes anomaly art');
   else{
-   assert(overlay.includes(mode+'-'+rarity+'.svg'));
-   assert(overlay.includes('photo-deltas/'+mode+'-'+rarity+'.webp'),'photographic anomaly must share source photo: '+mode+rarity);
+   assert(WatchLocations.overlay(mode,rarity)?.includes(mode+'-'+rarity+'.svg'),
+    'authored SVG layer source must remain available');
+   assert(WatchLocations.photoDelta(mode,rarity)?.includes('photo-deltas/'+mode+'-'+rarity+'.webp'),
+    'native photographic source must remain available');
+   if(rarity<3){
+    assert(overlay.includes(mode+'-'+rarity+'.svg'));
+    assert(overlay.includes('photo-deltas/'+mode+'-'+rarity+'.webp'),'R/SR must preserve live layers');
+   }else{
+    assert(overlay.includes('ssr-composites/'+mode+'-3.webp'),'SSR must use the actual generated composite');
+   }
    // The photo evidence already renders in the CSS layer. Decoding a second
    // full-size off-DOM Image for every rarity can exhaust WebKit GPU memory.
    // Verify the actual served RIFF/VP8X payload and source-native dimensions
@@ -371,8 +377,9 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
     assert(geometry.foregroundShadow==='none'&&geometry.edgeFilter==='none',
      'SSR cannot allocate decorative blurred box shadow or edge filter '+mode+rarity);
    }
-   assert(geometry.photoFit.startsWith('100% 100%')&&geometry.foreground.includes(originalPhoto),
-    'sharp native photograph and visual anomaly share an image-space rectangle '+mode+rarity);
+   assert(geometry.photoFit.startsWith('100% 100%')&&
+     geometry.foreground.includes(rarity===3?composite:originalPhoto),
+    'the authored evidence occupies one full image-space rectangle '+mode+rarity);
    const f=geometry.f;
    for(let i=0;i<geometry.points.length;i++){
     const q=geometry.points[i],point=geometry.projected[i],target=geometry.targets[i];
