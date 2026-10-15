@@ -31,7 +31,7 @@ function systemUsage(){
 }
 // Extract only fixed diagnostic categories/stage names into the summary; full logs stay artifacts.
 export function classifyTrial(output,exitCode,signal,oomKillsDelta){
- const stage=[...output.matchAll(/WEBKIT_STRESS_STAGE\\s+([a-z-]+:(?:photo|dash|cctv|vision):[0-3])/g)].at(-1)?.[1]??null;
+ const stage=[...output.matchAll(/WEBKIT_STRESS_STAGE\s+([a-z-]+:(?:photo|dash|cctv|vision):[0-3])/g)].at(-1)?.[1]??null;
  const crashed=/WEBKIT_PAGE_CRASH|Target page, context or browser has been closed/.test(output);
  const timedOut=/timed out|TimeoutError|ETIMEDOUT/i.test(output);
  // Normal Playwright browser.close() also emits WEBKIT_BROWSER_DISCONNECTED.
