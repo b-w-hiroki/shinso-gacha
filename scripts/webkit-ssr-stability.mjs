@@ -142,7 +142,7 @@ async function main(){
  if(summary.timing.slowPhotoTrials>0){
   process.stdout.write('::warning title=Slow WebKit photo QA::'+summary.timing.slowPhotoTrials+
    ' slow photographic trials (>='+SLOW_PHOTO_MS+'ms), max='+summary.timing.maxPhotoDurationMs+
-   'ms; diagnostic only, no pass/fail override\\n'.replace('\\n','\n'));
+   'ms; diagnostic only, no pass/fail override\n');
  }
  process.stdout.write('WebKit '+mode+': '+result.passed+'/'+result.total+' first-attempt trials succeeded\n');
  if(result.failed)process.exitCode=1;
