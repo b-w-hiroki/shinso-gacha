@@ -29,8 +29,7 @@ for(const id of LegendModel.ids)GAME_MAIL.push({
 // A second message requires a genuine re-observation of a compared, acquired
 // forecast. It never awards points or reveals any other unrecovered case.
 function earnedWitnessRecheckId(){
- const acquired=witnessRegistryRecords();
- return acquired.find(entry=>entry.trail?.length>0)?.id||null;
+ return WitnessRegistry.firstEarnedRecheck(witnessRegistryRecords());
 }
 GAME_MAIL.push({id:'witness-recheck-followup',from:'第六文書課・人事登録室',
  title:'訂正されない再観測記録',witnessRecheck:true,
