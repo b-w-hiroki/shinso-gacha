@@ -73,6 +73,8 @@
  function byId(id){return Object.values(scenes).find(s=>s.id===id)||null;}
  const overlay=(mode,rarity)=>Object.hasOwn(scenes,mode)&&[1,2,3].includes(rarity)?'assets/observation/alt-overlays/'+mode+'-'+rarity+'.svg':null;
  const photoDelta=(mode,rarity)=>Object.hasOwn(scenes,mode)&&[1,2,3].includes(rarity)?'assets/observation/photo-deltas/'+mode+'-'+rarity+'.webp':null;
+ // Build-time SSR precomposition: never expose modes outside the four sources.
+ const ssrComposite=mode=>Object.hasOwn(scenes,mode)?'assets/observation/ssr-composites/'+mode+'-3.webp':null;
  // Never expose even the title of an unearned case or unvisited site.
  // A notice is the existing explicit "difference recorded" action.
  function caseEcho(id,levels,cases,rawLocations,noticed){
@@ -92,5 +94,5 @@
    Object.hasOwn(noticedMap||{},id)&&noticedMap[id]===true))
    .filter(entry=>entry?.placeId===siteId);
  }
- return {current,normalize,observe,discovered,byId,overlay,photoDelta,TARGETS,targets,imageRect,imagePoint,caseEcho,siteEchoes};
+ return {current,normalize,observe,discovered,byId,overlay,photoDelta,ssrComposite,TARGETS,targets,imageRect,imagePoint,caseEcho,siteEchoes};
 });
