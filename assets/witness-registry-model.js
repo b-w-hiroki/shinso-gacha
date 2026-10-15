@@ -27,7 +27,7 @@
   // acquired case and the same medium. Reading does not create saved records.
   const trail=v&&Array.isArray(v.rechecks)?v.rechecks.filter(row=>row&&
    [0,1,2,3].includes(row.rarity)&&typeof row.observed==='string'&&
-   /^\\d{4}\\/\\d{1,2}\\/\\d{1,2}$/.test(row.observed)).slice(0,3).map(row=>({
+   /^\d{4}\/\d{1,2}\/\d{1,2}$/.test(row.observed)).slice(0,3).map(row=>({
     observed:row.observed,rarity:row.rarity,
     note:row.rarity===v.rarity
      ?'別の日の受領記録も同じ区分だった。立会人の署名欄は訂正されていない。'
