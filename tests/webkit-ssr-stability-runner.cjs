@@ -23,6 +23,10 @@ const assert=require('node:assert/strict');
   assert.equal(failing.failed,10);
   assert.equal(failing.rows[0].exitCode,137);
  }
+ const usage={availableKb:2000000,cgroupBytes:120000000,webkitProcesses:1,webkitRssKb:12345};
+ const measured=await runTrials('photo',async()=>({ok:true,exitCode:0,usageBefore:usage,usageAfter:usage}));
+ assert.deepEqual(measured.rows[0].usageBefore,usage,'trial preserves resource baseline');
+ assert.deepEqual(measured.rows[9].usageAfter,usage,'trial preserves after-run resource count');
  assert.throws(()=>plan('vision'),/photo or dash/);
  console.log('WebKit SSR run recorder: ten independent trials, no masked failures, full accounting passed');
 })().catch(error=>{console.error(error);process.exitCode=1;});
