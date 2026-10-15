@@ -73,7 +73,25 @@ const server=http.createServer((req,res)=>{
    });
    assert(box.valid&&box.width>=44&&box.height>=44,
     selector+': full real tappable area invalid '+JSON.stringify(box));
-   await page.mouse.click(box.x,box.y);
+   // The old page.mouse.click used a stale point between measuring the box
+   // and WebKit's next layout. Use Playwright's real, unforced pointer click
+   // after its actionability/stability checks; assert the actual DOM click.
+   const countBefore=await loc.evaluate(e=>{
+    if(!e.dataset.qaClickWatch){
+     e.addEventListener('click',event=>{
+      e.dataset.qaClickCount=String(Number(e.dataset.qaClickCount||0)+1);
+      e.dataset.qaLastTrusted=String(event.isTrusted);
+     });
+     e.dataset.qaClickWatch='true';
+    }
+    return Number(e.dataset.qaClickCount||0);
+   });
+   await loc.click({position:{x:box.width/2,y:box.height/2}});
+   const click=await loc.evaluate(e=>({
+    count:Number(e.dataset.qaClickCount||0),trusted:e.dataset.qaLastTrusted
+   }));
+   assert.equal(click.count,countBefore+1,selector+': must deliver exactly one click');
+   assert.equal(click.trusted,'true',selector+': WebKit must receive a genuine pointer click');
   };
   await pressReal('#obs-enhance-toggle');
   assert.equal(await light.getAttribute('aria-pressed'),'true');
