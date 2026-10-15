@@ -50,6 +50,8 @@ const assert=require('node:assert/strict');
   'successful trial classification follows the actual process result');
  assert.equal(classifyTrial('WEBKIT_BROWSER_DISCONNECTED',1,null,0).failureKind,'other-failure',
   'disconnect alone is not proof of a renderer crash');
+ assert.deepEqual(plan('photo').map(x=>x.rarity),[null,null,null,0,1,2,3,3,3,3]);
+ assert.equal(plan('dash')[9].rarity,3);
  assert.throws(()=>plan('vision'),/photo or dash/);
  console.log('WebKit SSR run recorder: ten independent trials, no masked failures, full accounting passed');
 })().catch(error=>{console.error(error);process.exitCode=1;});
