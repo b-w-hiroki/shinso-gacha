@@ -52,6 +52,10 @@ function openWitnessDossier(id){
   .map(c=>PersonnelDiscrepancies.detail(S.personnelEvidence,rankIdx(),c.id)).filter(x=>x?.confirmed);
  const echoes=WitnessRegistry.personnelEchoes(records,id,confirmedPersonnel);
  const crossPersonnel=echoes.length?'<details class="witness-personnel"><summary>確定した課内証言との矛盾を照合する</summary>'+echoes.map(x=>'<section><h3>'+escapeHTML(x.title)+'</h3><p>'+escapeHTML(x.note)+'</p><button class="btn-line" data-personnel-open="'+escapeHTML(x.id)+'">三人の証言原本を読む</button></section>').join('')+'</details>':'';
+ const recheckTrail=entry.trail?.length?'<details class="witness-recheck-trail"><summary>再観測で増えた立会記録</summary>'+
+  entry.trail.map(row=>'<section><small>回収日：'+escapeHTML(row.observed)+'</small><p>'+escapeHTML(row.note)+'</p></section>').join('')+
+  '<p>原本の結論・異変区分・受領報酬は訂正されていません。</p>'+
+  '<button class="btn-line" data-legend="case" data-id="'+escapeHTML(id)+'">翌日報告の原本と照合する</button></details>':'';
  const related=records.length>1?'<details class="witness-related"><summary>別の資料に残された痕跡</summary>'+records.filter(x=>x.id!==id).map(x=>'<button class="btn-line" data-witness-case="'+x.id+'">'+escapeHTML(legendTitle(x.id))+'の立会記録を見る</button>').join('')+'</details>':'';
  sheet('人物図鑑・人事記録',`<article class="catalog-detail witness-dossier">
   <small>第六文書課 ／ 人事台帳 照会不一致</small>
@@ -66,6 +70,7 @@ function openWitnessDossier(id){
    <p class="witness-record-note">${escapeHTML(entry.statement)}</p>
   </section>
   ${forecast?'<section class="forecast-archive witness-forecast"><h3>未来の調査記録</h3><p>'+escapeHTML(forecast.forecast)+'</p>'+(entry.extra?'<p>'+escapeHTML(entry.extra)+'</p>':'<p>後日の観測記録との照合結果は、まだありません。</p>')+'</section>':''}
+  ${recheckTrail}
   ${related}
   ${editions}
   ${revisions}
