@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict');
 (async()=>{
- const {plan,rarities,runTrials,classifyTrial}=await import('../scripts/webkit-ssr-stability.mjs');
+ const {plan,rarities,runTrials,classifyTrial,summarizeTiming,SLOW_PHOTO_MS}=await import('../scripts/webkit-ssr-stability.mjs');
  assert.deepEqual(rarities,[0,1,2,3,3,3,3]);
  for(const mode of ['photo','dash']){
   const expected=plan(mode);
@@ -52,6 +52,19 @@ const assert=require('node:assert/strict');
   'disconnect alone is not proof of a renderer crash');
  assert.deepEqual(plan('photo').map(x=>x.rarity),[null,null,null,0,1,2,3,3,3,3]);
  assert.equal(plan('dash')[9].rarity,3);
+ assert.equal(SLOW_PHOTO_MS,10000);
+ assert.deepEqual(summarizeTiming([]),{slowPhotoTrials:0,maxPhotoDurationMs:null});
+ assert.deepEqual(summarizeTiming([{kind:'lowlight',durationMs:25000},
+  {kind:'photo',durationMs:9999},{kind:'photo',durationMs:10000},
+  {kind:'photo',durationMs:26000},{kind:'photo',durationMs:null}]),
+  {slowPhotoTrials:2,maxPhotoDurationMs:26000},
+  'slow trials are diagnostic and exclude lowlight setup');
+ const slowButSuccessful=await runTrials('photo',async trial=>({
+  ok:true,exitCode:0,durationMs:trial.kind==='photo'?20000:1}));
+ assert.equal(slowButSuccessful.failed,0,'slow calls must not become test failures');
+ assert.equal(summarizeTiming(slowButSuccessful.rows).slowPhotoTrials,7);
+ const failedQuick=await runTrials('photo',async()=>({ok:false,exitCode:1,durationMs:1}));
+ assert.equal(failedQuick.failed,10,'failure must never be hidden by fast timings');
  assert.throws(()=>plan('vision'),/photo or dash/);
  console.log('WebKit SSR run recorder: ten independent trials, no masked failures, full accounting passed');
 })().catch(error=>{console.error(error);process.exitCode=1;});
