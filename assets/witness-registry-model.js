@@ -98,5 +98,14 @@
   return confirmed.filter(x=>{if(!x||!Object.hasOwn(personnelEchoNotes,x.id)||x.confirmed!==true||seen.has(x.id))return false;seen.add(x.id);return true;})
    .map(x=>({id:x.id,title:x.title,note:personnelEchoNotes[x.id]}));
  }
- return {inspect,list,revisions,editions,personnelEchoes};
+ // Mail selection reads the same filtered, owned projection as the dossier.
+ // No direct access to raw save entries or future unseen cases.
+ function firstEarnedRecheck(records){
+  if(!Array.isArray(records))return null;
+  const row=records.find(x=>x&&Object.hasOwn(notes,x.id)&&
+   Array.isArray(x.trail)&&x.trail.some(v=>v&&
+    [0,1,2,3].includes(v.rarity)&&typeof v.observed==='string'));
+  return row?.id||null;
+ }
+ return {inspect,list,revisions,editions,personnelEchoes,firstEarnedRecheck};
 });
