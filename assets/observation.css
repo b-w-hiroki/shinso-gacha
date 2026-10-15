@@ -214,11 +214,6 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
  background-clip:border-box;background-attachment:scroll;
  background-blend-mode:normal;
 }
-#obs-site-overlay>.obs-ssr-image{
- position:absolute;inset:0;display:block;width:100%;height:100%;
- object-fit:fill;pointer-events:none;user-select:none;
-}
-
 /* Only R/SR still use three CSS image backgrounds. SSR uses one
    original-photo background and two independent <img> evidence layers:
    applying these three-entry longhands to SSR overrides its one-layer rules
