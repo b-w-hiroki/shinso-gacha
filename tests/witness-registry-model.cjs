@@ -53,6 +53,20 @@ assert.deepEqual(Registry.inspect('u1',{u1:3},cases,true,
 earnedForecast=ForecastFollowup.collect(earnedForecast,{mode:'cctv',rarity:2,sequence:41},day2+60000).state;
 const ownedRecheck=Registry.inspect('u1',{u1:3},cases,true,ForecastFollowup.inspect(earnedForecast,'u1'));
 assert.equal(ownedRecheck.trail.length,1,'a separate earned follow-up opens exactly one line');
+assert.equal(Registry.firstEarnedRecheck([]),null);
+assert.equal(Registry.firstEarnedRecheck([unrecovered]),null,
+ 'pending future reports must not trigger inbox mail');
+assert.equal(Registry.firstEarnedRecheck([followed]),'u1',
+ 'an acquired witness with verified rechecks is eligible');
+assert.equal(Registry.firstEarnedRecheck([ownedRecheck]),'u1',
+ 'a genuine later observation unlocks mail without altering the save');
+assert.equal(Registry.firstEarnedRecheck([{id:'u999',trail:ownedRecheck.trail}]),null,
+ 'invented case IDs may not produce messages');
+assert.equal(Registry.firstEarnedRecheck([{id:'u1',trail:[{observed:'2026/10/14',rarity:Infinity}]}]),null,
+ 'nonfinite rarity may not create a notice');
+assert.equal(Registry.firstEarnedRecheck([first]),null,
+ 'first evidence without a re-observation stays silent');
+
 assert(ownedRecheck.trail[0].note.includes('異なる区分'));
 assert.equal(Registry.inspect('u2',{u2:3},cases,true,ForecastFollowup.inspect(earnedForecast,'u1')).trail.length,0,
  'a record from another case cannot be projected into an unowned report');
