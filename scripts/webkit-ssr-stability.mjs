@@ -31,7 +31,7 @@ function systemUsage(){
 }
 // Extract only fixed diagnostic categories/stage names into the summary; full logs stay artifacts.
 export function classifyTrial(output,exitCode,signal,oomKillsDelta){
- const stage=[...output.matchAll(/WEBKIT_STRESS_STAGE\\s+([a-z-]+:(?:photo|dash|cctv|vision):[0-3])/g)].at(-1)?.[1]??null;
+ const stage=[...output.matchAll(/WEBKIT_STRESS_STAGE\s+([a-z-]+:(?:photo|dash|cctv|vision):[0-3])/g)].at(-1)?.[1]??null;
  const crashed=/WEBKIT_PAGE_CRASH|Target page, context or browser has been closed/.test(output);
  const timedOut=/timed out|TimeoutError|ETIMEDOUT/i.test(output);
  // Normal Playwright browser.close() also emits WEBKIT_BROWSER_DISCONNECTED.
@@ -42,16 +42,17 @@ export function classifyTrial(output,exitCode,signal,oomKillsDelta){
  return {lastStage:stage,failureKind:reason};
 }
 export const rarities=Object.freeze([0,1,2,3,3,3,3]);
-export function plan(mode){
+export function plan(mode,order='baseline'){
  if(!['photo','dash'].includes(mode))throw new Error('WebKit stability requires photo or dash mode');
- return [
-  ...[1,2,3].map(attempt=>({kind:'lowlight',attempt,rarity:null})),
-  ...rarities.map((rarity,index)=>({kind:'photo',attempt:index+1,rarity}))
- ];
+ const lowlight=[1,2,3].map(attempt=>({kind:'lowlight',attempt,rarity:null}));
+ const photos=rarities.map((rarity,index)=>({kind:'photo',attempt:index+1,rarity}));
+ if(order==='baseline')return [...lowlight,...photos];
+ if(order==='ssr-first')return [...photos.filter(x=>x.rarity===3),...lowlight,...photos.filter(x=>x.rarity!==3)];
+ throw Error('Unsupported WebKit trial order');
 }
-export async function runTrials(mode,execute,onResult=()=>{}){
+export async function runTrials(mode,execute,onResult=()=>{},order='baseline'){
  const rows=[];
- for(const trial of plan(mode)){
+ for(const trial of plan(mode,order)){
   let result;
   try{result=await execute({...trial,mode});}
   catch(err){result={ok:false,exitCode:null,error:String(err?.message||err)};}
@@ -92,11 +93,12 @@ function runNodeTrial(trial,outputDir,index){
 }
 async function main(){
  const mode=process.env.QA_OBSERVATION_MODE;
+ const order=process.env.QA_TRIAL_ORDER||'baseline';
  const dir=resolve(root,'docs/qa-webkit-stability');
  mkdirSync(dir,{recursive:true});
  const summary={schema:1,observedAt:new Date().toISOString(),sha:process.env.GITHUB_SHA||'unknown',
   runId:process.env.GITHUB_RUN_ID||'local',attempt:process.env.GITHUB_RUN_ATTEMPT||'1',
-  mode,platform:'playwright-webkit',status:'incomplete',rows:[]};
+  mode,order,platform:'playwright-webkit',status:'incomplete',rows:[]};
  const persist=()=>writeFileSync(join(dir,'results.json'),JSON.stringify(summary,null,2)+'\n');
  persist();
  let index=0;
@@ -106,7 +108,7 @@ async function main(){
   process.stdout.write('WebKit '+row.mode+' '+row.kind+' #'+row.attempt+
    (row.rarity===null?'':' rarity='+row.rarity)+' '+(row.ok?'PASS':'FAIL')+
    ' duration='+row.durationMs+'ms'+(row.ok?'':' failure='+row.failureKind+' stage='+(row.lastStage||'unknown'))+'\n');
- });
+ },order);
  Object.assign(summary,{status:result.failed?'failed':'passed',total:result.total,
   passed:result.passed,failed:result.failed,completedAt:new Date().toISOString()});
  persist();
