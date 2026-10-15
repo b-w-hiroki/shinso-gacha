@@ -68,10 +68,19 @@ def visual_metrics(base: Image.Image, composed: Image.Image, targets: list[list[
                    ((v - t[1]) / max(.001, 1.5 * t[3])) ** 2 <= 1 for t in targets):
                 near_energy += magnitude
     total = SAMPLE_SIZE[0] * SAMPLE_SIZE[1]
+    coverage = changed / total
+    locality = near_energy / all_energy if all_energy else 0.0
+    # Non-gating prompts for visual inspection: no arbitrary 'quality pass' score.
+    concerns = []
+    if coverage < .02:
+        concerns.append("sparse-difference-under-2-percent")
+    if all_energy and locality < .65:
+        concerns.append("change-extends-beyond-hotspots")
     return {
         "mean_absolute_rgb_difference": round(all_energy / total, 3),
-        "changed_pixel_fraction": round(changed / total, 4),
-        "difference_near_hotspots_fraction": round(near_energy / all_energy, 4) if all_energy else 0.0,
+        "changed_pixel_fraction": round(coverage, 4),
+        "difference_near_hotspots_fraction": round(locality, 4),
+        "review_concerns": concerns,
         "needs_human_quality_review": True,
     }
 
@@ -141,4 +150,9 @@ if __name__ == "__main__":
     result = audit(args.root.resolve(), args.output_dir.resolve())
     assert len(result["entries"]) == 16
     print("Generated 4 x 4 observation image comparison and 12 hotspot-difference metrics.")
+    for row in result["entries"]:
+        if row["rarity"] and row["metrics"]["review_concerns"]:
+            print("::notice title=Observation artwork requires human review::"
+                  + row["mode"] + " rarity " + str(row["rarity"])
+                  + " - " + ", ".join(row["metrics"]["review_concerns"]))
     print("No final image quality, mobile QA, or production artwork approval is implied.")
