@@ -32,10 +32,13 @@ function systemUsage(){
 // Extract only fixed diagnostic categories/stage names into the summary; full logs stay artifacts.
 export function classifyTrial(output,exitCode,signal,oomKillsDelta){
  const stage=[...output.matchAll(/WEBKIT_STRESS_STAGE\\s+([a-z-]+:(?:photo|dash|cctv|vision):[0-3])/g)].at(-1)?.[1]??null;
- const crashed=/WEBKIT_PAGE_CRASH|Target page, context or browser has been closed|WEBKIT_BROWSER_DISCONNECTED/.test(output);
+ const crashed=/WEBKIT_PAGE_CRASH|Target page, context or browser has been closed/.test(output);
  const timedOut=/timed out|TimeoutError|ETIMEDOUT/i.test(output);
- const reason=oomKillsDelta!==null&&oomKillsDelta>0?'cgroup-oom':
-  crashed?'webkit-page-closed':timedOut?'timeout':signal?'process-signal':exitCode===0?'passed':'other-failure';
+ // Normal Playwright browser.close() also emits WEBKIT_BROWSER_DISCONNECTED.
+ // An exit-zero trial must remain passed regardless of incidental shutdown logs.
+ const reason=exitCode===0&&!signal?'passed':
+  oomKillsDelta!==null&&oomKillsDelta>0?'cgroup-oom':
+  crashed?'webkit-page-closed':timedOut?'timeout':signal?'process-signal':'other-failure';
  return {lastStage:stage,failureKind:reason};
 }
 export const rarities=Object.freeze([0,1,2,3,3,3,3]);
