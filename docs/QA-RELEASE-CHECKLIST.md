@@ -70,6 +70,12 @@
 - 機械的な画像検査は「異変を発見できるか」の人間評価と別。390×844のSSR画面を実レンダリング比較し、ブラウザの実タップと保存互換を維持する。
 - `scripts/build-ssr-composites.py --check` で生成物が入力原本と一致するか再確認できる。ソース変更時は4画像を再生成し、ハッシュ・レビューを同時更新する。
 
+## 2026-10-16 低照度ボタンの間欠的なクリック誤差（#141）
+
+- main CI #38822592573 の車載 WebKit QA は、SSR描画前の実クリック試験で aria-pressed が期待値と一致せず失敗（tests/observation-lowlight-isolated.cjs:79）。以前のmain CI #38748041515 でも同じ暗部補正トグル試験で失敗した。これは WebKit renderer page crash とは異なる失敗である。
+- 旧fixtureはスクロール→座標取得→page.mouse.clickで間を空けており、更新中のDOMレイアウトで押下座標が古くなる可能性がある。座標の可視性/44px判定は残し、非forceのPlaywright locator.clickを同一ボタン中央へ実行して actionability と安定性を確認する。さらに DOM click が1回かつ isTrusted=trueで届いたことを毎クリック厳格に検証。
+- この変更は**WebKitの操作のすり抜けを解消したと証明するものではない**。ボタンが本当に操作不能ならタイムアウト・未配信イベント・aria-pressedの失敗としてテストを落とし、再試行で成功扱いにしない。アプリ本体、画像、pt、タップ範囲は変更しない。ユーザー指示により手動ブラウザQAは省略するが既存CIは維持。
+
 ## 2026-10-16 WebKitエンジン更新による再発切り分け（#141）
 
 - Linux Playwright WebKit 26.5 / Playwright 1.62.1 の同一runnerで、写真と車載SSRのページ終了が再現。新しいPlaywright 1.64.1のWebKitで**同じ画像、クリック、SSR反復試験を一切減らさず**再実行して比較する。これはWebKitネイティブ実装を変える試験であり、ゲーム側の根治を立証したことにはならない。
