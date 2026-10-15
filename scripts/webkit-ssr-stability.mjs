@@ -94,6 +94,10 @@ function runNodeTrial(trial,outputDir,index){
 async function main(){
  const mode=process.env.QA_OBSERVATION_MODE;
  const order=process.env.QA_TRIAL_ORDER||'baseline';
+ const isolatedIndex=process.env.QA_TRIAL_INDEX;
+ const isolated=isolatedIndex!==undefined;
+ if(isolated&&(!/^(?:[1-9]|10)$/.test(isolatedIndex)||order!=='baseline'))
+  throw Error('Isolated trial requires baseline index 1..10');
  const dir=resolve(root,'docs/qa-webkit-stability');
  mkdirSync(dir,{recursive:true});
  const summary={schema:1,observedAt:new Date().toISOString(),sha:process.env.GITHUB_SHA||'unknown',
@@ -102,10 +106,6 @@ async function main(){
  const persist=()=>writeFileSync(join(dir,'results.json'),JSON.stringify(summary,null,2)+'\n');
  persist();
  let index=0;
- const isolatedIndex=process.env.QA_TRIAL_INDEX;
- const isolated=isolatedIndex!==undefined;
- if(isolated&&(!/^(?:[1-9]|10)$/.test(isolatedIndex)||order!=='baseline'))
-  throw Error('Isolated trial requires baseline index 1..10');
  const execute=trial=>runNodeTrial(trial,dir,++index);
  const record=(row,rows)=>{
   summary.rows=rows;
@@ -113,7 +113,16 @@ async function main(){
   process.stdout.write('WebKit '+row.mode+' '+row.kind+' #'+row.attempt+
    (row.rarity===null?'':' rarity='+row.rarity)+' '+(row.ok?'PASS':'FAIL')+
    ' duration='+row.durationMs+'ms'+(row.ok?'':' failure='+row.failureKind+' stage='+(row.lastStage||'unknown'))+'\n');
- },order);
+ };
+ const result=isolated
+  ?await (async()=>{
+    const trial=plan(mode,order)[Number(isolatedIndex)-1];
+    const outcome=await execute({...trial,mode});
+    const row={...trial,mode,...outcome,ok:outcome.ok===true};
+    await record(row,[row]);
+    return {total:1,passed:row.ok?1:0,failed:row.ok?0:1};
+   })()
+  :await runTrials(mode,execute,record,order);
  Object.assign(summary,{status:result.failed?'failed':'passed',total:result.total,
   passed:result.passed,failed:result.failed,completedAt:new Date().toISOString()});
  persist();
