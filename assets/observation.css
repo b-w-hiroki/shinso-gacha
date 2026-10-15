@@ -206,8 +206,8 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
  filter:none;animation:none;opacity:.42
 }
 #obs-frame[data-scene-alt='true'][data-rarity='3'] #obs-image::after{content:none}
-/* SSR front: a single photographic CSS background plus two independent image
-   nodes. No WebKit three-layer background-image shorthand/compositor path. */
+/* SSR foreground is one precomposed image, generated from the original CC0
+   photo + transparent native WebP + authored SVG. Only one WebKit texture. */
 #obs-frame[data-scene-alt='true'][data-rarity='3'] #obs-site-overlay{
  background-size:100% 100%;background-position:center;
  background-repeat:no-repeat;background-origin:padding-box;
