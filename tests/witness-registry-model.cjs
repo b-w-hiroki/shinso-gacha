@@ -1,6 +1,7 @@
 const assert=require('node:assert/strict');
 const Registry=require('../assets/witness-registry-model');
 const Legend=require('../assets/legend-model');
+const ForecastFollowup=require('../assets/forecast-followup-model');
 const cases=Legend.CASES;
 assert.equal(Registry.inspect('u1',{u1:0},cases,true,null),null);
 assert.equal(Registry.inspect('u1',{u1:2},cases,true,null),null);
@@ -40,6 +41,22 @@ assert.equal(Registry.inspect('u1',{u1:3},cases,true,malicious).trail.length,3,
  'malformed observations rejected and trail capped');
 assert.deepEqual(realTrail.rechecks.map(r=>r.copy),['untrusted','untrusted'],
  'reading never mutates saved evidence');
+
+const day1=new Date(2026,9,11,9).getTime(),day2=new Date(2026,9,12,9).getTime();
+let earnedForecast=ForecastFollowup.issue(null,'u1','cctv',day1).state;
+const unrecovered=Registry.inspect('u1',{u1:3},cases,true,ForecastFollowup.inspect(earnedForecast,'u1'));
+assert.deepEqual(unrecovered.trail,[],'a forecast alone cannot produce witness follow-ups');
+earnedForecast=ForecastFollowup.collect(earnedForecast,{mode:'cctv',rarity:0,sequence:40},day2).state;
+assert.deepEqual(Registry.inspect('u1',{u1:3},cases,true,
+ ForecastFollowup.inspect(earnedForecast,'u1')).trail,[],
+ 'the first actual comparison is not a repeat observation');
+earnedForecast=ForecastFollowup.collect(earnedForecast,{mode:'cctv',rarity:2,sequence:41},day2+60000).state;
+const ownedRecheck=Registry.inspect('u1',{u1:3},cases,true,ForecastFollowup.inspect(earnedForecast,'u1'));
+assert.equal(ownedRecheck.trail.length,1,'a separate earned follow-up opens exactly one line');
+assert(ownedRecheck.trail[0].note.includes('異なる区分'));
+assert.equal(Registry.inspect('u2',{u2:3},cases,true,ForecastFollowup.inspect(earnedForecast,'u1')).trail.length,0,
+ 'a record from another case cannot be projected into an unowned report');
+
 assert.notEqual(Registry.inspect('u2',{u2:3},cases,true,null).record,first.record);
 assert.equal(Registry.list({},cases,{u1:true},{'u1':{status:'compared'}}).length,0);
 const levels=Object.fromEntries(Legend.ids.map(id=>[id,3]));
