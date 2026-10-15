@@ -112,6 +112,15 @@
 - 「画像を制作した」→画像バイト列がリポジトリへ入っていなければ公開物ではない。**GitHubのテキスト編集APIだけではWebPなどのバイナリ配置を完了できない場合がある**。その場合は未組込みと報告し、正規のバイナリpush経路を確保する。
 - 同じテイストを保つには背景・人物を一体生成するより、光源・遠近・粒状感・人物シルエットを共通のスタイルブリーフで管理する。
 
+## 2026-10-15 SSR観測素材の再現可能な事前合成
+
+- 原本のCC0写真4枚、写真由来透過WebPのSSR差分4枚、作者設計SVGのSSR手掛かり4枚は個別素材として**保持**し、ゲームのSSR表示時のみ派生WebP1枚へ合成する。
+- 生成コマンド：`python -m pip install Pillow==12.0.0 CairoSVG==2.8.2` → `python scripts/build-ssr-composites.py`。検証のみは `python scripts/build-ssr-composites.py --check`。
+- 出力：`assets/observation/ssr-composites/{cctv,photo,vision,dash}-3.webp`。1440×720の2:1画像空間は保持し、元の異変中心座標、タップ範囲、抽選/報酬/セーブは変更しない。
+- `docs/qa-incursions/ssr-composite-build.json` は4つの入力ソースと出力のSHA256/寸法/サイズを記録。Smokeの `tests/ssr-composite-asset-audit.cjs` が本体バイナリと照合し、未作成・原本更新の生成漏れをCI失敗にする。
+- 初回生成は専用の一時的な権限付きGitHub Actionsでバイナリをfeatureブランチへpushした。生成後は権限付き一時ワークフローを削除し、出力の来歴とスクリプトのみ通常のリポジトリに残す。
+- **品質の境界**：写真と差分が重なるという機械判定と、人間が違和感に気づくか/怖いかは別。レンダラの初回失敗率・実iPhone Safari・プレイテストは #141/#75/#89 に残す。
+
 ## 8. 素材のDone条件
 
 1. ファイルと生成意図が台帳で追える。
