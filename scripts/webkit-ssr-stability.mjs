@@ -29,6 +29,15 @@ function systemUsage(){
  }catch{}
  return {availableKb,cgroupBytes,cgroupLimitBytes,cgroupOomKills,webkitProcesses,webkitRssKb};
 }
+// Extract only fixed diagnostic categories/stage names into the summary; full logs stay artifacts.
+export function classifyTrial(output,exitCode,signal,oomKillsDelta){
+ const stage=[...output.matchAll(/WEBKIT_STRESS_STAGE\\s+([a-z-]+:(?:photo|dash|cctv|vision):[0-3])/g)].at(-1)?.[1]??null;
+ const crashed=/WEBKIT_PAGE_CRASH|Target page, context or browser has been closed|WEBKIT_BROWSER_DISCONNECTED/.test(output);
+ const timedOut=/timed out|TimeoutError|ETIMEDOUT/i.test(output);
+ const reason=oomKillsDelta!==null&&oomKillsDelta>0?'cgroup-oom':
+  crashed?'webkit-page-closed':timedOut?'timeout':signal?'process-signal':exitCode===0?'passed':'other-failure';
+ return {lastStage:stage,failureKind:reason};
+}
 export const rarities=Object.freeze([0,1,2,3,3,3,3]);
 export function plan(mode){
  if(!['photo','dash'].includes(mode))throw new Error('WebKit stability requires photo or dash mode');
@@ -47,7 +56,8 @@ export async function runTrials(mode,execute,onResult=()=>{}){
    signal:result?.signal??null,error:result?.error??null,
    durationMs:Number.isFinite(result?.durationMs)?result.durationMs:null,
    usageBefore:result?.usageBefore??null,usageAfter:result?.usageAfter??null,
-   oomKillsDelta:result?.oomKillsDelta??null};
+   oomKillsDelta:result?.oomKillsDelta??null,
+   lastStage:result?.lastStage??null,failureKind:result?.failureKind??null};
   rows.push(item);
   await onResult(item,[...rows]);
  }
@@ -67,6 +77,7 @@ function runNodeTrial(trial,outputDir,index){
  const usageAfter=systemUsage();
  const oomKillsDelta=usageBefore.cgroupOomKills===null||usageAfter.cgroupOomKills===null
   ?null:usageAfter.cgroupOomKills-usageBefore.cgroupOomKills;
+ const classification=classifyTrial((child.stdout||'')+'\n'+(child.stderr||''),child.status,child.signal,oomKillsDelta);
  writeFileSync(join(outputDir,label+'.log'),
   'mode='+trial.mode+' kind='+trial.kind+' attempt='+trial.attempt+' rarity='+trial.rarity+
   '\nexit='+child.status+' signal='+child.signal+' error='+(child.error?.message||'')+
@@ -74,7 +85,7 @@ function runNodeTrial(trial,outputDir,index){
   '\nnew_cgroup_oom_kills='+String(oomKillsDelta)+
   '\n--- stdout ---\n'+(child.stdout||'')+'\n--- stderr ---\n'+(child.stderr||''));
  return {ok:child.status===0&&!child.error,exitCode:child.status,signal:child.signal,
-  error:child.error?.message??null,durationMs:Date.now()-start,usageBefore,usageAfter,oomKillsDelta};
+  error:child.error?.message??null,durationMs:Date.now()-start,usageBefore,usageAfter,oomKillsDelta,...classification};
 }
 async function main(){
  const mode=process.env.QA_OBSERVATION_MODE;
@@ -91,7 +102,7 @@ async function main(){
   persist();
   process.stdout.write('WebKit '+row.mode+' '+row.kind+' #'+row.attempt+
    (row.rarity===null?'':' rarity='+row.rarity)+' '+(row.ok?'PASS':'FAIL')+
-   ' duration='+row.durationMs+'ms\n');
+   ' duration='+row.durationMs+'ms'+(row.ok?'':' failure='+row.failureKind+' stage='+(row.lastStage||'unknown'))+'\n');
  });
  Object.assign(summary,{status:result.failed?'failed':'passed',total:result.total,
   passed:result.passed,failed:result.failed,completedAt:new Date().toISOString()});
