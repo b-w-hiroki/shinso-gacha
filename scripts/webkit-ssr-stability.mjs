@@ -9,7 +9,7 @@ const root=resolve(fileURLToPath(new URL('..',import.meta.url)));
 // Only aggregate machine resource figures are saved, never process command
 // lines, environment secrets or device/account identifiers.
 function systemUsage(){
- let availableKb=null,cgroupBytes=null,cgroupLimitBytes=null,cgroupOomKills=null,webkitProcesses=0,webkitRssKb=0;
+ let availableKb=null,cgroupBytes=null,cgroupLimitBytes=null,cgroupOomKills=null,webkitProcesses=0,webkitRssKb=0,zombieProcesses=0,memoryPressureAvg10=null;
  try{const m=readFileSync('/proc/meminfo','utf8').match(/^MemAvailable:\s*(\d+) kB/m);
   if(m)availableKb=Number(m[1]);}catch{}
  try{const n=Number(readFileSync('/sys/fs/cgroup/memory.current','utf8').trim());
@@ -18,16 +18,19 @@ function systemUsage(){
   if(n!=='max'&&Number.isFinite(Number(n)))cgroupLimitBytes=Number(n);}catch{}
  try{const m=readFileSync('/sys/fs/cgroup/memory.events','utf8').match(/^oom_kill\s+(\d+)$/m);
   if(m)cgroupOomKills=Number(m[1]);}catch{}
+ try{const m=readFileSync('/proc/pressure/memory','utf8').match(/^some\s+avg10=(\d+(?:\.\d+)?)/m);
+  if(m)memoryPressureAvg10=Number(m[1]);}catch{}
  try{
-  const ps=spawnSync('ps',['-eo','rss=,comm='],{encoding:'utf8',timeout:2500});
+  const ps=spawnSync('ps',['-eo','rss=,stat=,comm='],{encoding:'utf8',timeout:2500});
   if(ps.status===0)for(const line of ps.stdout.split('\n')){
-   const row=line.trim().match(/^(\d+)\s+(.+)$/);
-   if(row&&/WebKit|MiniBrowser|pw_run/i.test(row[2])){
+   const row=line.trim().match(/^(\d+)\s+(\S+)\s+(.+)$/);
+   if(row&&/WebKit|MiniBrowser|pw_run|WebProcess|NetworkProcess|GPUProcess/i.test(row[3])){
     webkitProcesses++;webkitRssKb+=Number(row[1]);
+    if(row[2].startsWith('Z'))zombieProcesses++;
    }
   }
  }catch{}
- return {availableKb,cgroupBytes,cgroupLimitBytes,cgroupOomKills,webkitProcesses,webkitRssKb};
+ return {availableKb,cgroupBytes,cgroupLimitBytes,cgroupOomKills,webkitProcesses,webkitRssKb,zombieProcesses,memoryPressureAvg10};
 }
 // Extract only fixed diagnostic categories/stage names into the summary; full logs stay artifacts.
 export function classifyTrial(output,exitCode,signal,oomKillsDelta){
