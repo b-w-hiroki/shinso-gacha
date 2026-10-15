@@ -21,6 +21,8 @@ class ObservationVisualAuditTest(unittest.TestCase):
         self.assertEqual(r["changed_pixel_fraction"], 0)
         self.assertEqual(r["mean_absolute_rgb_difference"], 0)
         self.assertTrue(r["needs_human_quality_review"])
+        self.assertIn("sparse-difference-under-2-percent", r["review_concerns"])
+        self.assertEqual(r["difference_near_hotspots_fraction"], 0.0)
 
     def test_visible_change_near_hotspot_is_detected(self):
         changed = self.base.copy()
@@ -34,6 +36,7 @@ class ObservationVisualAuditTest(unittest.TestCase):
         ImageDraw.Draw(changed).rectangle((0, 0, 30, 20), fill=(220, 230, 240, 255))
         r = audit.visual_metrics(self.base, changed, self.targets)
         self.assertLess(r["difference_near_hotspots_fraction"], .1)
+        self.assertIn("change-extends-beyond-hotspots", r["review_concerns"])
 
     def test_invalid_geometry_never_passes(self):
         with self.assertRaises(ValueError):
