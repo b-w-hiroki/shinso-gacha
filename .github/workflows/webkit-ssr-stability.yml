@@ -29,16 +29,18 @@ concurrency:
 
 jobs:
   webkit-ssr-replay:
-    name: WebKit SSR repeat (${{ matrix.mode }})
+    name: WebKit SSR repeat (${{ matrix.mode }}, ${{ matrix.order }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
         mode: [photo, dash]
+        order: [baseline, ssr-first]
     env:
       QA_WEBKIT: '1'
       QA_OBSERVATION_MODE: ${{ matrix.mode }}
+      QA_TRIAL_ORDER: ${{ matrix.order }}
       QA_SOURCE_ONLY: '1'
       QA_LOWLIGHT_ISOLATED: '1'
     steps:
@@ -53,6 +55,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: webkit-stability-${{ matrix.mode }}
+          name: webkit-stability-${{ matrix.mode }}-${{ matrix.order }}
           path: docs/qa-webkit-stability/
           retention-days: 30
