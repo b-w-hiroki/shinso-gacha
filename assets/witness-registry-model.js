@@ -21,9 +21,23 @@
  function inspect(id,levels,cases,compared,followup){
   if(!Object.hasOwn(notes,id)||!Object.hasOwn(cases||{},id)||
    !(Number(levels?.[id])>=3)||compared!==true)return null;
-  const c=cases[id],v=followup?.status==='compared'?followup:null;
-  return {id,record:notes[id],testimony:c.witness,statement:c.fragments[2][1],
-   extra:v?(v.rarity>0?'後日、同じ方式の異変記録を回収した。立会人の印は訂正されていない。':'後日の映像は平常だった。立会人の印だけが残っている。'):null};
+  const c=cases[id],v=followup?.status==='compared'&&followup.mode===c.mode&&
+   [0,1,2,3].includes(followup.rarity)?followup:null;
+  // Re-observations are derived only from the already compared report of this
+  // acquired case and the same medium. Reading does not create saved records.
+  const trail=v&&Array.isArray(v.rechecks)?v.rechecks.filter(row=>row&&
+   [0,1,2,3].includes(row.rarity)&&typeof row.observed==='string'&&
+   /^\\d{4}\\/\\d{1,2}\\/\\d{1,2}$/.test(row.observed)).slice(0,3).map(row=>({
+    observed:row.observed,rarity:row.rarity,
+    note:row.rarity===v.rarity
+     ?'別の日の受領記録も同じ区分だった。立会人の署名欄は訂正されていない。'
+     :row.rarity===0
+      ?'再観測の映像は平常だった。最初の異変を記した受領印は消されていない。'
+      :'再観測では異なる区分の異変が残った。最初の報告書は訂正されていない。'
+   })): [];
+  return {id,mode:c.mode,record:notes[id],testimony:c.witness,statement:c.fragments[2][1],
+   extra:v?(v.rarity>0?'後日、同じ方式の異変記録を回収した。立会人の印は訂正されていない。':'後日の映像は平常だった。立会人の印だけが残っている。'):null,
+   trail};
  }
  function list(levels,cases,compared,followups){
   return Object.keys(notes).map(id=>inspect(id,levels,cases,compared?.[id]===true,followups?.[id])).filter(Boolean);
