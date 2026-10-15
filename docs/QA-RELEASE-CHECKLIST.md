@@ -70,6 +70,12 @@
 - 機械的な画像検査は「異変を発見できるか」の人間評価と別。390×844のSSR画面を実レンダリング比較し、ブラウザの実タップと保存互換を維持する。
 - `scripts/build-ssr-composites.py --check` で生成物が入力原本と一致するか再確認できる。ソース変更時は4画像を再生成し、ハッシュ・レビューを同時更新する。
 
+## 2026-10-16 WebKitエンジン更新による再発切り分け（#141）
+
+- Linux Playwright WebKit 26.5 / Playwright 1.62.1 の同一runnerで、写真と車載SSRのページ終了が再現。新しいPlaywright 1.64.1のWebKitで**同じ画像、クリック、SSR反復試験を一切減らさず**再実行して比較する。これはWebKitネイティブ実装を変える試験であり、ゲーム側の根治を立証したことにはならない。
+- 通常CIの写真／車載SSRの再試行・テストスキップは禁止。`webkit-ssr-stability.yml` は従来の同一runner 4ジョブ（写真/車載×2順序）＋独立runner20ジョブを維持し、初回の各実行結果を評価する。変更PRが通常CI設定を修正した場合も専用反復CIを必ず起動する。
+- 原本写真・差分・SSR合成WebP、タップ座標、発生確率、pt、保存IDは不変。実機iPhoneと本番Firebaseの検収は #75 の未完項目。手動ブラウザQAはユーザー指定で省略するが、既存自動CIは継続する。
+
 ## 2026-10-15 WebKit SSR再発率の継続観測（#141）
 
 - [`.github/workflows/webkit-ssr-stability.yml`](../.github/workflows/webkit-ssr-stability.yml) は毎日・手動起動・対象テスト変更PRで、以前にクラッシュした写真／車載のSSRをWebKitの独立プロセスで反復する。

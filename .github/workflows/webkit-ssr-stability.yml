@@ -8,6 +8,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/webkit-ssr-stability.yml'
+      - '.github/workflows/smoke.yml'
       - 'tests/observation-lowlight-isolated.cjs'
       - 'tests/observation-location-variants.cjs'
       - 'scripts/webkit-ssr-stability.mjs'
@@ -48,7 +49,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install --no-save --package-lock=false playwright@1.62.1
+      - run: npm install --no-save --package-lock=false playwright@1.64.1
       - run: npx playwright install --with-deps webkit
       - name: Capture every independent pointer/photo attempt and fail on any regression
         run: node scripts/webkit-ssr-stability.mjs
@@ -80,7 +81,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install --no-save --package-lock=false playwright@1.62.1
+      - run: npm install --no-save --package-lock=false playwright@1.64.1
       - run: npx playwright install --with-deps webkit
       - name: Run exactly one real WebKit trial on this fresh runner
         run: node scripts/webkit-ssr-stability.mjs
