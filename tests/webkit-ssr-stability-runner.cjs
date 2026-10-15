@@ -23,6 +23,14 @@ const assert=require('node:assert/strict');
   assert.equal(failing.failed,10);
   assert.equal(failing.rows[0].exitCode,137);
  }
+ const first=plan('photo','ssr-first');
+ assert.equal(first.length,10);
+ assert.deepEqual(first.slice(0,4).map(x=>x.rarity),[3,3,3,3]);
+ assert.deepEqual(first.slice(4,7).map(x=>x.kind),['lowlight','lowlight','lowlight']);
+ assert.deepEqual(first.slice(7).map(x=>x.rarity),[0,1,2]);
+ assert.throws(()=>plan('photo','invalid'),/Unsupported/);
+ const ordered=await runTrials('photo',async()=>({ok:true,exitCode:0}),()=>{},'ssr-first');
+ assert.deepEqual(ordered.rows.slice(0,4).map(x=>x.rarity),[3,3,3,3]);
  const usage={availableKb:2000000,cgroupBytes:120000000,webkitProcesses:1,webkitRssKb:12345,cgroupLimitBytes:500000000,cgroupOomKills:2};
  const measured=await runTrials('photo',async()=>({ok:true,exitCode:0,usageBefore:usage,usageAfter:usage,oomKillsDelta:0}));
  assert.deepEqual(measured.rows[0].usageBefore,usage,'trial preserves resource baseline');
