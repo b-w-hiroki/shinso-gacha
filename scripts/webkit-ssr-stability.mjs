@@ -9,11 +9,15 @@ const root=resolve(fileURLToPath(new URL('..',import.meta.url)));
 // Only aggregate machine resource figures are saved, never process command
 // lines, environment secrets or device/account identifiers.
 function systemUsage(){
- let availableKb=null,cgroupBytes=null,webkitProcesses=0,webkitRssKb=0;
+ let availableKb=null,cgroupBytes=null,cgroupLimitBytes=null,cgroupOomKills=null,webkitProcesses=0,webkitRssKb=0;
  try{const m=readFileSync('/proc/meminfo','utf8').match(/^MemAvailable:\s*(\d+) kB/m);
   if(m)availableKb=Number(m[1]);}catch{}
  try{const n=Number(readFileSync('/sys/fs/cgroup/memory.current','utf8').trim());
   if(Number.isFinite(n))cgroupBytes=n;}catch{}
+ try{const n=readFileSync('/sys/fs/cgroup/memory.max','utf8').trim();
+  if(n!=='max'&&Number.isFinite(Number(n)))cgroupLimitBytes=Number(n);}catch{}
+ try{const m=readFileSync('/sys/fs/cgroup/memory.events','utf8').match(/^oom_kill\s+(\d+)$/m);
+  if(m)cgroupOomKills=Number(m[1]);}catch{}
  try{
   const ps=spawnSync('ps',['-eo','rss=,comm='],{encoding:'utf8',timeout:2500});
   if(ps.status===0)for(const line of ps.stdout.split('\n')){
@@ -23,7 +27,7 @@ function systemUsage(){
    }
   }
  }catch{}
- return {availableKb,cgroupBytes,webkitProcesses,webkitRssKb};
+ return {availableKb,cgroupBytes,cgroupLimitBytes,cgroupOomKills,webkitProcesses,webkitRssKb};
 }
 export const rarities=Object.freeze([0,1,2,3,3,3,3]);
 export function plan(mode){
@@ -42,7 +46,8 @@ export async function runTrials(mode,execute,onResult=()=>{}){
   const item={...trial,mode,ok:result?.ok===true,exitCode:Number.isInteger(result?.exitCode)?result.exitCode:null,
    signal:result?.signal??null,error:result?.error??null,
    durationMs:Number.isFinite(result?.durationMs)?result.durationMs:null,
-   usageBefore:result?.usageBefore??null,usageAfter:result?.usageAfter??null};
+   usageBefore:result?.usageBefore??null,usageAfter:result?.usageAfter??null,
+   oomKillsDelta:result?.oomKillsDelta??null};
   rows.push(item);
   await onResult(item,[...rows]);
  }
@@ -60,13 +65,16 @@ function runNodeTrial(trial,outputDir,index){
   encoding:'utf8',timeout:120000,maxBuffer:8*1024*1024
  });
  const usageAfter=systemUsage();
+ const oomKillsDelta=usageBefore.cgroupOomKills===null||usageAfter.cgroupOomKills===null
+  ?null:usageAfter.cgroupOomKills-usageBefore.cgroupOomKills;
  writeFileSync(join(outputDir,label+'.log'),
   'mode='+trial.mode+' kind='+trial.kind+' attempt='+trial.attempt+' rarity='+trial.rarity+
   '\nexit='+child.status+' signal='+child.signal+' error='+(child.error?.message||'')+
   '\nresource_before='+JSON.stringify(usageBefore)+'\nresource_after='+JSON.stringify(usageAfter)+
+  '\nnew_cgroup_oom_kills='+String(oomKillsDelta)+
   '\n--- stdout ---\n'+(child.stdout||'')+'\n--- stderr ---\n'+(child.stderr||''));
  return {ok:child.status===0&&!child.error,exitCode:child.status,signal:child.signal,
-  error:child.error?.message??null,durationMs:Date.now()-start,usageBefore,usageAfter};
+  error:child.error?.message??null,durationMs:Date.now()-start,usageBefore,usageAfter,oomKillsDelta};
 }
 async function main(){
  const mode=process.env.QA_OBSERVATION_MODE;
