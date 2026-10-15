@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "purpose": "SSR 3-to-1 precomposition; no new rewards",
+  "source_layers": [
+    "photo",
+    "photo-deltas",
+    "alt-overlays"
+  ],
+  "size": [
+    1440,
+    720
+  ],
+  "entries": [
+    {
+      "mode": "cctv",
+      "source": "cctv-underground-native.webp",
+      "photo_sha256": "e482c2a33c79dc594301ff2d3cd1fc8357e94385cb3dcdd6b2b1e2b570740a2f",
+      "delta_sha256": "cec7c3418b6b755d9f5f0f9a5c367c12c37ab19013bdc0553b744200446ad4cb",
+      "clue_sha256": "707183d9e1aedb3b62ec8eb113c1cedc1546ebc53e3bbe8e9c52d49b7e6a3322",
+      "output": "cctv-3.webp",
+      "output_sha256": "2c47f213ad22be70ceffa089de64e11104d0a52dabd0e3c39b5814cf1939dc3d",
+      "bytes": 102232,
+      "width": 1440,
+      "height": 720
+    },
+    {
+      "mode": "photo",
+      "source": "photo-classroom-native.webp",
+      "photo_sha256": "1561021a4bc11b90b1485437a370fd09d87af552859d0a74995c390700a6e902",
+      "delta_sha256": "ccbf44973ef92a695b6756089ae3221b87061d92bf19940898feccd948865725",
+      "clue_sha256": "857070ce9838759fa037db6981334abd8203da86876d182cec2c8e78269034bc",
+      "output": "photo-3.webp",
+      "output_sha256": "2cd161c0461ed013fdf5c29f83259703effb57f261a8683d6679d67af15a544f",
+      "bytes": 34082,
+      "width": 1440,
+      "height": 720
+    },
+    {
+      "mode": "vision",
+      "source": "vision-crossing-native.webp",
+      "photo_sha256": "e85a28f67fb8f9ba4ed3ae8d11f778fe510eccd77e64e836d528253ee92f6bbd",
+      "delta_sha256": "cc0f7ebbd057d68c1e95172c7b500a1fd362011113ef67ec546dae096cfcccc0",
+      "clue_sha256": "48dded2515867dec75304eaa7c7865fbf442a09e067ce0672df0833720b87f89",
+      "output": "vision-3.webp",
+      "output_sha256": "7781b7cf170485b16f6635534529870a984299ca727ce9d060748888fb81634a",
+      "bytes": 123264,
+      "width": 1440,
+      "height": 720
+    },
+    {
+      "mode": "dash",
+      "source": "dash-coast-road-native.webp",
+      "photo_sha256": "a855f208c8d3de69b0bdb8bb1fe34cadd4b4dfbbdd2f82f47ac7bcb117a1b91d",
+      "delta_sha256": "8df10b782b17f7cd73478736b6cc27b9095a9b46cf6edff6aca6666de36bf8d2",
+      "clue_sha256": "f89c110e924077040aad1e921db08dfc3fe78cc678dad026acc5a9bd7812d5a4",
+      "output": "dash-3.webp",
+      "output_sha256": "25d9dbd6c848c6c8c382a97d65ef0aa91e84bc59b03d9c0b425e997b0f8cc676",
+      "bytes": 76884,
+      "width": 1440,
+      "height": 720
+    }
+  ]
+}
