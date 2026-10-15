@@ -64,6 +64,13 @@
 
 参照：\`assets/incursions.js\`、\`assets/personnel-discrepancies-model.js\`、\`assets/legend-model.js\`、\`assets/investigation-links.js\`、\`assets/encyclopedia.js\`。
 
+### 2026-10-15 SSR観測3素材のビルド時合成（#141）
+
+- SSRに限り、高解像度原本写真・作者制作の透過WebP異変・SVG手掛かりを**ビルド時に単一1440×720 WebPへ合成**し、ブラウザ実行中に3枚の重なったテクスチャを描画しない。
+- 原本素材は個別に維持する。生成スクリプト `scripts/build-ssr-composites.py`、`docs/qa-incursions/ssr-composite-build.json` と4つの画像SHAにより素材の出自・再生成手順を追跡する。
+- SSR以外の平常/R/SR画像、座標、拡大、暗部補正、quiet、保存/抽選/ptの仕様に変更なし。画像の前後比較とWebKit実タップ・通常/SSR/反復試験をCIで判定する。
+- 本番実機Safariおよび長期のWebKitクラッシュ再発率はこの変更のみで完了扱いにしない。
+
 ### 2026-10-15 WebKit高解像度写真の合成負荷軽減
 
 - 追加4地点の通常/R/SR/SSRでは、写真・透過WebP・SVGを重ねる前景に`saturate/contrast` CSSフィルターを掛けない。写真の実画素と異変位置は維持。
