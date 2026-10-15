@@ -18,6 +18,7 @@
   u11:'無人と記載された部屋の施錠記録には、立会者二名と書かれている。',
   u12:'翌朝の乗務員名簿に、夢の中の駅へ立ち会った者が載っている。'
  };
+ const validRecordedDate=value=>/^\d{4}\/\d{1,2}\/\d{1,2}$/.test(value);
  function inspect(id,levels,cases,compared,followup){
   if(!Object.hasOwn(notes,id)||!Object.hasOwn(cases||{},id)||
    !(Number(levels?.[id])>=3)||compared!==true)return null;
@@ -26,8 +27,7 @@
   // Re-observations are derived only from the already compared report of this
   // acquired case and the same medium. Reading does not create saved records.
   const trail=v&&Array.isArray(v.rechecks)?v.rechecks.filter(row=>row&&
-   [0,1,2,3].includes(row.rarity)&&typeof row.observed==='string'&&
-   /^\d{4}\/\d{1,2}\/\d{1,2}$/.test(row.observed)).slice(0,3).map(row=>({
+   [0,1,2,3].includes(row.rarity)&&typeof row.observed==='string'&&validRecordedDate(row.observed)).slice(0,3).map(row=>({
     observed:row.observed,rarity:row.rarity,
     note:row.rarity===v.rarity
      ?'別の日の受領記録も同じ区分だった。立会人の署名欄は訂正されていない。'
@@ -104,7 +104,7 @@
   if(!Array.isArray(records))return null;
   const row=records.find(x=>x&&Object.hasOwn(notes,x.id)&&
    Array.isArray(x.trail)&&x.trail.some(v=>v&&
-    [0,1,2,3].includes(v.rarity)&&typeof v.observed==='string'));
+    [0,1,2,3].includes(v.rarity)&&typeof v.observed==='string'&&validRecordedDate(v.observed)));
   return row?.id||null;
  }
  return {inspect,list,revisions,editions,personnelEchoes,firstEarnedRecheck};
