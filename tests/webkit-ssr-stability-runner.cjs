@@ -36,6 +36,12 @@ const assert=require('node:assert/strict');
  assert.equal(classifyTrial('WEBKIT_PAGE_CRASH',1,null,1).failureKind,'cgroup-oom');
  assert.equal(classifyTrial('TimeoutError: timed out',1,null,0).failureKind,'timeout');
  assert.equal(classifyTrial('',0,null,null).failureKind,'passed');
+ assert.equal(classifyTrial('WEBKIT_BROWSER_DISCONNECTED last_stage=after-save:photo:3',0,null,0).failureKind,'passed',
+  'orderly browser shutdown must not be reported as a crash');
+ assert.equal(classifyTrial('WEBKIT_PAGE_CRASH',0,null,0).failureKind,'passed',
+  'successful trial classification follows the actual process result');
+ assert.equal(classifyTrial('WEBKIT_BROWSER_DISCONNECTED',1,null,0).failureKind,'other-failure',
+  'disconnect alone is not proof of a renderer crash');
  assert.throws(()=>plan('vision'),/photo or dash/);
  console.log('WebKit SSR run recorder: ten independent trials, no masked failures, full accounting passed');
 })().catch(error=>{console.error(error);process.exitCode=1;});
