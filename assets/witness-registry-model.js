@@ -18,12 +18,26 @@
   u11:'無人と記載された部屋の施錠記録には、立会者二名と書かれている。',
   u12:'翌朝の乗務員名簿に、夢の中の駅へ立ち会った者が載っている。'
  };
+ const validRecordedDate=value=>/^\d{4}\/\d{1,2}\/\d{1,2}$/.test(value);
  function inspect(id,levels,cases,compared,followup){
   if(!Object.hasOwn(notes,id)||!Object.hasOwn(cases||{},id)||
    !(Number(levels?.[id])>=3)||compared!==true)return null;
-  const c=cases[id],v=followup?.status==='compared'?followup:null;
-  return {id,record:notes[id],testimony:c.witness,statement:c.fragments[2][1],
-   extra:v?(v.rarity>0?'後日、同じ方式の異変記録を回収した。立会人の印は訂正されていない。':'後日の映像は平常だった。立会人の印だけが残っている。'):null};
+  const c=cases[id],v=followup?.status==='compared'&&followup.mode===c.mode&&
+   [0,1,2,3].includes(followup.rarity)?followup:null;
+  // Re-observations are derived only from the already compared report of this
+  // acquired case and the same medium. Reading does not create saved records.
+  const trail=v&&Array.isArray(v.rechecks)?v.rechecks.filter(row=>row&&
+   [0,1,2,3].includes(row.rarity)&&typeof row.observed==='string'&&validRecordedDate(row.observed)).slice(0,3).map(row=>({
+    observed:row.observed,rarity:row.rarity,
+    note:row.rarity===v.rarity
+     ?'別の日の受領記録も同じ区分だった。立会人の署名欄は訂正されていない。'
+     :row.rarity===0
+      ?'再観測の映像は平常だった。最初の異変を記した受領印は消されていない。'
+      :'再観測では異なる区分の異変が残った。最初の報告書は訂正されていない。'
+   })): [];
+  return {id,mode:c.mode,record:notes[id],testimony:c.witness,statement:c.fragments[2][1],
+   extra:v?(v.rarity>0?'後日、同じ方式の異変記録を回収した。立会人の印は訂正されていない。':'後日の映像は平常だった。立会人の印だけが残っている。'):null,
+   trail};
  }
  function list(levels,cases,compared,followups){
   return Object.keys(notes).map(id=>inspect(id,levels,cases,compared?.[id]===true,followups?.[id])).filter(Boolean);
@@ -84,5 +98,14 @@
   return confirmed.filter(x=>{if(!x||!Object.hasOwn(personnelEchoNotes,x.id)||x.confirmed!==true||seen.has(x.id))return false;seen.add(x.id);return true;})
    .map(x=>({id:x.id,title:x.title,note:personnelEchoNotes[x.id]}));
  }
- return {inspect,list,revisions,editions,personnelEchoes};
+ // Mail selection reads the same filtered, owned projection as the dossier.
+ // No direct access to raw save entries or future unseen cases.
+ function firstEarnedRecheck(records){
+  if(!Array.isArray(records))return null;
+  const row=records.find(x=>x&&Object.hasOwn(notes,x.id)&&
+   Array.isArray(x.trail)&&x.trail.some(v=>v&&
+    [0,1,2,3].includes(v.rarity)&&typeof v.observed==='string'&&validRecordedDate(v.observed)));
+  return row?.id||null;
+ }
+ return {inspect,list,revisions,editions,personnelEchoes,firstEarnedRecheck};
 });

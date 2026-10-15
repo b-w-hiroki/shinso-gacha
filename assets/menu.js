@@ -26,6 +26,16 @@ for(const id of LegendModel.ids)GAME_MAIL.push({
  body:'翌日付けの調査報告と後日回収した観測記録の照合が終わりました。報告書の結論は、訂正されていません。',
  reward:0,when:()=>!isLite()&&earnedForecastMail(id)
 });
+// A second message requires a genuine re-observation of a compared, acquired
+// forecast. It never awards points or reveals any other unrecovered case.
+function earnedWitnessRecheckId(){
+ return WitnessRegistry.firstEarnedRecheck(witnessRegistryRecords());
+}
+GAME_MAIL.push({id:'witness-recheck-followup',from:'第六文書課・人事登録室',
+ title:'訂正されない再観測記録',witnessRecheck:true,
+ body:'同じ事件の後続記録に、初回の受領印とは異なる情報が残りました。登録のない立会人の人事台帳で、回収した原本だけを照合してください。',
+ reward:0,when:()=>!isLite()&&!!earnedWitnessRecheckId()
+});
 // One in-world personnel message, available only after a real acquired contradiction.
 GAME_MAIL.push({id:'unregistered-personnel',from:'第六文書課・人事登録室',title:'在籍照会の結果',
  body:'調査記録の立会欄に署名があります。人事台帳では、対応する職員を確認できません。原本をそのまま保管してください。',
@@ -99,8 +109,9 @@ function openGameMail(id){
  // available. Project the destination from confirmed, rank-gated evidence.
  const personnel=m.personnelCaseId?PersonnelDiscrepancies.detail(S.personnelEvidence,rankIdx(),m.personnelCaseId):null;
  const forecastLink=m.caseId&&earnedForecastMail(m.caseId);
+ const recheckLink=m.witnessRecheck?earnedWitnessRecheckId():null;
  const personnelLink=personnel?.confirmed?'<button class="btn-line" data-personnel-open="'+escapeHTML(personnel.id)+'">確定済みの人事照合原本を読む</button>':'';
- openMenuPage('受信メール',menuBack('inbox')+`<article class="game-message"><small>${m.from} · ${d}</small><h2>${m.title}</h2><p>${m.body}</p>${forecastLink?`<button class="btn-line" data-legend="case" data-id="${m.caseId}">調査報告書を確認する</button>`:``}${m.witnessRegistry?`<button class="btn-line" data-witness-registry>立会人の人物記録を確認する</button>`:``}${personnelLink}${m.reward?`<button class="btn-paper" data-mail-claim="${id}" ${c.mail[id].claimed?'disabled':''}>${c.mail[id].claimed?'受取済み':m.reward+'pt を受け取る'}</button>`:''}</article>`);
+ openMenuPage('受信メール',menuBack('inbox')+`<article class="game-message"><small>${m.from} · ${d}</small><h2>${m.title}</h2><p>${m.body}</p>${forecastLink?`<button class="btn-line" data-legend="case" data-id="${m.caseId}">調査報告書を確認する</button>`:``}${m.witnessRegistry?`<button class="btn-line" data-witness-registry>立会人の人物記録を確認する</button>`:``}${recheckLink?`<button class="btn-line" data-witness-case="${escapeHTML(recheckLink)}">再観測の立会記録を照合する</button>`:``}${personnelLink}${m.reward?`<button class="btn-paper" data-mail-claim="${id}" ${c.mail[id].claimed?'disabled':''}>${c.mail[id].claimed?'受取済み':m.reward+'pt を受け取る'}</button>`:''}</article>`);
 }
 function openMenuSettings(){
  openMenuPage('設定',menuBack()+`<div class="game-message"><p id="menu-sync"></p><label class="watch-quiet-setting"><input type="checkbox" data-watch-quiet ${observationState().quiet?'checked':''}> 揺れ・画面演出を抑える</label>${!isLite()?`${observationState().pending?.rarity>0?'<button class="btn-line" data-menu="target">場所を選んで異変に対処</button>':''}${watchSettingsUnlocked()?'<button class="btn-line" data-menu="observation">観測設定</button>':''}`:''}<button class="btn-line" data-intro="archive">最初の3通を読み返す</button>${localStorage.getItem(KEY+'_conflict_backup')?'<button class="btn-line" data-cloud-choice="backup">退避した記録をダウンロード</button>':''}<button class="btn-paper" data-menu="account">ログイン・アカウント管理</button></div>`);

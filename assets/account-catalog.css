@@ -98,3 +98,12 @@
 .site-legend-echoes section{border-top:1px solid #5a594d;padding:9px 2px 15px}
 .legend-location-echo button,.site-legend-echoes button{min-height:48px;text-align:left;white-space:normal}
 @media(prefers-reduced-motion:reduce){.legend-location-echo *,.site-legend-echoes *{animation:none!important;transition:none!important}}
+
+
+/* A genuine later observation extends the existing witness paper file. */
+.witness-recheck-trail{margin:18px 0;padding:7px 0;border-block:1px solid #726451}
+.witness-recheck-trail>summary{cursor:pointer;min-height:48px;padding:12px 5px;font:600 14px/1.65 var(--f-body);color:#e7d6b9}
+.witness-recheck-trail section{margin:8px 0 14px;padding:8px 12px 12px;border-left:2px solid #867458;background:#25271f;overflow-wrap:anywhere}
+.witness-recheck-trail section small{font:12px/1.6 var(--f-mono);color:#c5b69b}
+.witness-recheck-trail section p,.witness-recheck-trail>p{font:14px/1.85 var(--f-body);color:#d4c8b6}
+.witness-recheck-trail button{min-height:48px}
