@@ -44,6 +44,15 @@ export function classifyTrial(output,exitCode,signal,oomKillsDelta){
   crashed?'webkit-page-closed':timedOut?'timeout':signal?'process-signal':'other-failure';
  return {lastStage:stage,failureKind:reason};
 }
+// Performance warning only: prior failing SSR trials often took 18–30s,
+// while clean passes finished around 1–3s. Never alter pass/fail on timing alone.
+export const SLOW_PHOTO_MS=10000;
+export function summarizeTiming(rows){
+ const durations=rows.filter(row=>row.kind==='photo'&&Number.isFinite(row.durationMs))
+  .map(row=>row.durationMs);
+ return {slowPhotoTrials:durations.filter(ms=>ms>=SLOW_PHOTO_MS).length,
+  maxPhotoDurationMs:durations.length?Math.max(...durations):null};
+}
 export const rarities=Object.freeze([0,1,2,3,3,3,3]);
 export function plan(mode,order='baseline'){
  if(!['photo','dash'].includes(mode))throw new Error('WebKit stability requires photo or dash mode');
@@ -127,8 +136,14 @@ async function main(){
    })()
   :await runTrials(mode,execute,record,order);
  Object.assign(summary,{status:result.failed?'failed':'passed',total:result.total,
-  passed:result.passed,failed:result.failed,completedAt:new Date().toISOString()});
+  passed:result.passed,failed:result.failed,completedAt:new Date().toISOString(),
+  timing:summarizeTiming(summary.rows)});
  persist();
+ if(summary.timing.slowPhotoTrials>0){
+  process.stdout.write('::warning title=Slow WebKit photo QA::'+summary.timing.slowPhotoTrials+
+   ' slow photographic trials (>='+SLOW_PHOTO_MS+'ms), max='+summary.timing.maxPhotoDurationMs+
+   'ms; diagnostic only, no pass/fail override\n');
+ }
  process.stdout.write('WebKit '+mode+': '+result.passed+'/'+result.total+' first-attempt trials succeeded\n');
  if(result.failed)process.exitCode=1;
 }
