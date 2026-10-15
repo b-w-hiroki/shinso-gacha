@@ -98,11 +98,16 @@ async function main(){
  mkdirSync(dir,{recursive:true});
  const summary={schema:1,observedAt:new Date().toISOString(),sha:process.env.GITHUB_SHA||'unknown',
   runId:process.env.GITHUB_RUN_ID||'local',attempt:process.env.GITHUB_RUN_ATTEMPT||'1',
-  mode,order,platform:'playwright-webkit',status:'incomplete',rows:[]};
+  mode,order,isolatedIndex:isolatedIndex??null,platform:'playwright-webkit',status:'incomplete',rows:[]};
  const persist=()=>writeFileSync(join(dir,'results.json'),JSON.stringify(summary,null,2)+'\n');
  persist();
  let index=0;
- const result=await runTrials(mode,trial=>runNodeTrial(trial,dir,++index),(row,rows)=>{
+ const isolatedIndex=process.env.QA_TRIAL_INDEX;
+ const isolated=isolatedIndex!==undefined;
+ if(isolated&&(!/^(?:[1-9]|10)$/.test(isolatedIndex)||order!=='baseline'))
+  throw Error('Isolated trial requires baseline index 1..10');
+ const execute=trial=>runNodeTrial(trial,dir,++index);
+ const record=(row,rows)=>{
   summary.rows=rows;
   persist();
   process.stdout.write('WebKit '+row.mode+' '+row.kind+' #'+row.attempt+
