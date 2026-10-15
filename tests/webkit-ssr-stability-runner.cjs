@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict');
 (async()=>{
- const {plan,rarities,runTrials}=await import('../scripts/webkit-ssr-stability.mjs');
+ const {plan,rarities,runTrials,classifyTrial}=await import('../scripts/webkit-ssr-stability.mjs');
  assert.deepEqual(rarities,[0,1,2,3,3,3,3]);
  for(const mode of ['photo','dash']){
   const expected=plan(mode);
@@ -31,6 +31,11 @@ const assert=require('node:assert/strict');
  const oom=await runTrials('photo',async()=>({ok:false,exitCode:null,signal:'SIGKILL',oomKillsDelta:1}));
  assert.equal(oom.failed,10);
  assert.equal(oom.rows[0].oomKillsDelta,1,'OOM evidence must survive on failed trials');
+ assert.deepEqual(classifyTrial('WEBKIT_STRESS_STAGE after-native-photo-fetch:photo:3\\nWEBKIT_PAGE_CRASH',1,null,0),
+  {lastStage:'after-native-photo-fetch:photo:3',failureKind:'webkit-page-closed'});
+ assert.equal(classifyTrial('WEBKIT_PAGE_CRASH',1,null,1).failureKind,'cgroup-oom');
+ assert.equal(classifyTrial('TimeoutError: timed out',1,null,0).failureKind,'timeout');
+ assert.equal(classifyTrial('',0,null,null).failureKind,'passed');
  assert.throws(()=>plan('vision'),/photo or dash/);
  console.log('WebKit SSR run recorder: ten independent trials, no masked failures, full accounting passed');
 })().catch(error=>{console.error(error);process.exitCode=1;});
