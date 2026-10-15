@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict');
 (async()=>{
- const {plan,rarities,runTrials}=await import('../scripts/webkit-ssr-stability.mjs');
+ const {plan,rarities,runTrials,classifyTrial}=await import('../scripts/webkit-ssr-stability.mjs');
  assert.deepEqual(rarities,[0,1,2,3,3,3,3]);
  for(const mode of ['photo','dash']){
   const expected=plan(mode);
@@ -23,6 +23,25 @@ const assert=require('node:assert/strict');
   assert.equal(failing.failed,10);
   assert.equal(failing.rows[0].exitCode,137);
  }
+ const usage={availableKb:2000000,cgroupBytes:120000000,webkitProcesses:1,webkitRssKb:12345,cgroupLimitBytes:500000000,cgroupOomKills:2};
+ const measured=await runTrials('photo',async()=>({ok:true,exitCode:0,usageBefore:usage,usageAfter:usage,oomKillsDelta:0}));
+ assert.deepEqual(measured.rows[0].usageBefore,usage,'trial preserves resource baseline');
+ assert.deepEqual(measured.rows[9].usageAfter,usage,'trial preserves after-run resource count');
+ assert.equal(measured.rows[0].oomKillsDelta,0,'zero OOM events must be retained');
+ const oom=await runTrials('photo',async()=>({ok:false,exitCode:null,signal:'SIGKILL',oomKillsDelta:1}));
+ assert.equal(oom.failed,10);
+ assert.equal(oom.rows[0].oomKillsDelta,1,'OOM evidence must survive on failed trials');
+ assert.deepEqual(classifyTrial('WEBKIT_STRESS_STAGE after-native-photo-fetch:photo:3\\nWEBKIT_PAGE_CRASH',1,null,0),
+  {lastStage:'after-native-photo-fetch:photo:3',failureKind:'webkit-page-closed'});
+ assert.equal(classifyTrial('WEBKIT_PAGE_CRASH',1,null,1).failureKind,'cgroup-oom');
+ assert.equal(classifyTrial('TimeoutError: timed out',1,null,0).failureKind,'timeout');
+ assert.equal(classifyTrial('',0,null,null).failureKind,'passed');
+ assert.equal(classifyTrial('WEBKIT_BROWSER_DISCONNECTED last_stage=after-save:photo:3',0,null,0).failureKind,'passed',
+  'orderly browser shutdown must not be reported as a crash');
+ assert.equal(classifyTrial('WEBKIT_PAGE_CRASH',0,null,0).failureKind,'passed',
+  'successful trial classification follows the actual process result');
+ assert.equal(classifyTrial('WEBKIT_BROWSER_DISCONNECTED',1,null,0).failureKind,'other-failure',
+  'disconnect alone is not proof of a renderer crash');
  assert.throws(()=>plan('vision'),/photo or dash/);
  console.log('WebKit SSR run recorder: ten independent trials, no masked failures, full accounting passed');
 })().catch(error=>{console.error(error);process.exitCode=1;});

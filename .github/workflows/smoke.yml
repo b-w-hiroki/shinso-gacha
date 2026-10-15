@@ -41,6 +41,7 @@ jobs:
       - run: node tests/observation-overlay-art.cjs
       - run: node tests/observation-site-targets.cjs
       - run: node tests/observation-photo-asset-audit.cjs
+      - run: node tests/ssr-composite-asset-audit.cjs
       - run: node tests/observation-single-master-delta.cjs
       - run: node tests/observation-photo-deltas.cjs
       - run: node tests/photo-verso-model.cjs

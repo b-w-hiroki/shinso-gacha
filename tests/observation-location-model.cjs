@@ -24,6 +24,9 @@ assert.equal(L.byId('alt:foo'),null);
 assert.deepEqual(L.normalize({'unknown':{visits:999},'alt:photo':{visits:2,lastSequence:3,firstAt:1000}}),{'alt:photo':{visits:2,lastSequence:3,firstAt:1000,rarities:{0:2}}},'old visits migrate as only normal recordings');
 assert.equal(L.overlay('photo',2),'assets/observation/alt-overlays/photo-2.svg');
 assert.equal(L.overlay('photo',0),null);
+for(const mode of ['cctv','photo','vision','dash'])
+ assert.equal(L.ssrComposite(mode),'assets/observation/ssr-composites/'+mode+'-3.webp');
+assert.equal(L.ssrComposite('__proto__'),null,'unknown sites never obtain a generated composite');
 
 const Legends=require('../assets/legend-model.js');
 const levels=Object.fromEntries(Legends.ids.map(id=>[id,3]));
