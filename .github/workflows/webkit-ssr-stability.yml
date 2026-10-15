@@ -15,6 +15,8 @@ on:
       - 'assets/observation.js'
       - 'assets/observation.css'
       - 'assets/observation-location-model.js'
+      - 'assets/observation/ssr-composites/**'
+      - 'scripts/build-ssr-composites.py'
       - 'assets/observation/photo-deltas/**'
       - 'assets/observation/alt-overlays/**'
 
