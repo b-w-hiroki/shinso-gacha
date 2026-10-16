@@ -11,11 +11,9 @@ import argparse
 import hashlib
 import io
 import json
-import math
 from pathlib import Path
-import urllib.request
 
-from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageOps
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
 
 ROOT = Path(__file__).resolve().parent.parent
 SIZE = (1440, 720)
