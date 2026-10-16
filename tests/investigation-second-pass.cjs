@@ -1,0 +1,27 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const vm=require('node:vm');
+const path=require('node:path');
+const source=fs.readFileSync(path.join(__dirname,'../assets/investigation.js'),'utf8');
+const context={document:{addEventListener(){}},console};
+vm.createContext(context);
+vm.runInContext(source,context);
+const cases=['cctv','photo','vision','dash'];
+const seen=new Set();
+for(const mode of cases){
+ for(let rarity=0;rarity<=3;rarity++){
+  const key=mode+':'+rarity,read={[key]:true},discussed={[key]:true};
+  const line=context.investigationRecheckLine(key,read,discussed);
+  assert.equal(typeof line,'string',key);
+  assert(line.length>=20,key+' should convey a real contradiction');
+  assert(!seen.has(line),key+' must have a unique follow-up');
+  seen.add(line);
+  assert.equal(context.investigationRecheckLine(key,{},discussed),null,'unread evidence must be hidden');
+  assert.equal(context.investigationRecheckLine(key,read,{}),null,'undiscussed evidence must be hidden');
+ }
+}
+for(const key of ['dash:4','cctv:-1','__proto__:1','photo:abc',null,undefined]){
+ assert.equal(context.investigationRecheckLine(key,{},{}),null);
+}
+assert.equal(seen.size,16);
+console.log('16 unique acquired-only second-pass contradictions; no new save state.');
