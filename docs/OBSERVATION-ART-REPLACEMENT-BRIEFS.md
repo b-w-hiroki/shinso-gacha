@@ -60,6 +60,14 @@
 - **画像の品質保留**：車載候補の実写原本は田園道路・昼間で、夜の**海沿い**という設定に一致していない。教室も昼の窓光が読み取れる。真の夜景・海岸線・ヘッドライトと建物の夜間照明を備えた新原本の最終制作が必要で、このPRの候補は本番アセットに昇格させない。
 - 車載の既存ステレオ原本 `assets/observation/dash.webp` は来歴・再利用ライセンスを追加確認するまで、公開候補への採用禁止。
 
+## 2026-10-16 生成画像の本番インポート準備（Task #174）
+
+- ゲーム表示原本へ反映すべき新規生成画像セットは、以前この会話で生成した `shinso-observation-generated-assets-20261016.zip`（元PNG2・1440×720 WebP原本2・独立透過差分6・生成IDとSHA台帳を含む）。**現状のGitHub ActionsにはこのZIPは置かれていない。**
+- `python scripts/import-generated-observation.py --archive PATH_TO_ZIP`：ZIP内8画像/2元PNGのSHA・素材来歴・RGBA透過・2:1サイズ・実ゲームのホットスポットを**書込無し**で確認。GitHubへのバイナリ登録、main変更、公開は実行しない。
+- `python scripts/import-generated-observation.py --archive PATH_TO_ZIP --apply`：安全な正規 Git feature branch のクリーンなチェックアウトでのみ、8画像を統合して写真2件の `docs/observation-native-sources.json` / `docs/qa-incursions/native-photo-source-report.json` を **AI-generated-original** として更新し、SSR合成4画像とSHA台帳を再生成、画像QA/SSR監査を実行する。mainやdirty treeでは拒否。
+- テストは合成ZIPでSHA改ざん、悪意あるパス、生成ID偽装、透過欠落、元画像欠落、座標ずれを拒否する。既存CCTV/踏切のCC0ソースを残し、生成画像をCC0と偽らない。
+- **非自動化の境界**：このGitHubコネクタには、この会話のローカルZIPをGitHubのアセットへ直接アップロードできる経路がない。必要な正規のバイナリPush/添付経路を確保するまでは、ゲーム画像は未変更・Task #174は未完了。ユーザーは他の説明を毎回繰り返す必要はなく、Issue #174と同ZIPから再開できる。
+
 ## 現在の状態
 
 | 項目 | 状態 |
