@@ -86,6 +86,21 @@ test('pilot honors explicit Decision dependencies, never executes approved-by-la
  const settled=await mod.buildSnapshot(repo,fake({issues:[dependent,independent]}));
  assert.equal(settled.queue.selected.number,201,'no longer-open Decision releases explicit dependency');
 });
+test('monitoring bug remains open but never steals a new development slot',async()=>{
+ const stable={number:141,state:'open',title:'P0: WebKit long-term stability',
+  labels:['priority:p0','type:bug','status:monitoring'],
+  body:'- [ ] collect another seven days of clean observations'};
+ const work={number:174,state:'open',title:'P1: [Asset] integrate images',
+  labels:['priority:p1','type:asset'],body:'- [ ] integrate images'};
+ const snapshot=await mod.buildSnapshot(repo,fake({issues:[stable,work]}));
+ assert.deepEqual(snapshot.queue.monitoring.map(x=>x.number),[141]);
+ assert.deepEqual(snapshot.queue.suggested.map(x=>x.number),[174]);
+ assert.equal(snapshot.queue.selected,null,'monitoring status does not opt-in any external agent');
+ const alert=await mod.buildSnapshot(repo,fake({issues:[
+  {...stable,labels:['priority:p0','type:bug']},work]}));
+ assert.deepEqual(alert.queue.suggested.map(x=>x.number),[141,174],
+  'removing monitoring re-exposes the incident as top priority');
+});
 test('rejects SHA race, invalid repo and truncated pages',async()=>{
  await assert.rejects(mod.buildSnapshot(repo,fake({drift:true})),/main advanced/);
  await assert.rejects(mod.buildSnapshot(repo,fake({issues:Array(100).fill({})})),/truncated/);
