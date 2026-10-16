@@ -14,13 +14,13 @@
     },
     {
       "mode": "photo",
-      "name": "A Sideview of an Empty Classroom.jpg",
-      "author": "Paul The Writer",
-      "source": "https://commons.wikimedia.org/wiki/File:A_Sideview_of_an_Empty_Classroom.jpg",
+      "name": "Generated photo observation (night classroom) / 2026-10-17",
+      "author": "birdman studio (AI-assisted)",
+      "source": "generated://openai/imagegen/93dfd609-f7a3-44a8-aa0f-999eda1a2131",
       "file": "photo-classroom-native.webp",
-      "brightness": 0.62,
-      "teal": 0.2,
-      "license": "CC0-1.0"
+      "license": "AI-generated-original",
+      "original_sha256": "37fb52193e037434c3bf1882b0b43d60660732e7f48ecd77edc4c9a9f578330f",
+      "generation_id": "93dfd609-f7a3-44a8-aa0f-999eda1a2131"
     },
     {
       "mode": "vision",
@@ -34,13 +34,13 @@
     },
     {
       "mode": "dash",
-      "name": "Night road (Unsplash).jpg",
-      "author": "Vladlane Vadek",
-      "source": "https://commons.wikimedia.org/wiki/File:Night_road_(Unsplash).jpg",
+      "name": "Generated dash observation (coastal night road) / 2026-10-17",
+      "author": "birdman studio (AI-assisted)",
+      "source": "generated://openai/imagegen/108b5884-d88c-4747-99e3-880feaf632a2",
       "file": "dash-coast-road-native.webp",
-      "brightness": 0.9,
-      "teal": 0.13,
-      "license": "CC0-1.0"
+      "license": "AI-generated-original",
+      "original_sha256": "c1dfb22ab8addf0e298f43442243af9f2bd3403a659ea8e62da8f1ace20f68cb",
+      "generation_id": "108b5884-d88c-4747-99e3-880feaf632a2"
     }
   ]
 }

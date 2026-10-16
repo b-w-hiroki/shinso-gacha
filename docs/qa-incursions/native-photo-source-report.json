@@ -18,20 +18,22 @@
   },
   {
     "mode": "photo",
-    "source": "https://commons.wikimedia.org/wiki/File:A_Sideview_of_an_Empty_Classroom.jpg",
-    "license": "CC0-1.0",
-    "author": "Paul The Writer",
-    "native_original": [
-      3840,
-      2891
-    ],
+    "source": "generated://openai/imagegen/93dfd609-f7a3-44a8-aa0f-999eda1a2131",
+    "license": "AI-generated-original",
+    "author": "birdman studio (AI-assisted)",
+    "native_original": null,
     "output": "photo-classroom-native.webp",
     "size": [
       1440,
       720
     ],
-    "bytes": 26376,
-    "sha256": "1561021a4bc11b90b1485437a370fd09d87af552859d0a74995c390700a6e902"
+    "bytes": 151816,
+    "sha256": "b3356040bd281e222be0baf4d110f8e7defc1064446fb08798b54ac1a400be7e",
+    "original_sha256": "37fb52193e037434c3bf1882b0b43d60660732e7f48ecd77edc4c9a9f578330f",
+    "generation_id": "93dfd609-f7a3-44a8-aa0f-999eda1a2131",
+    "delta_generation_ids": {
+      "photo-2": "1bbdfaba-269a-4e19-8966-120c0b4ffbae"
+    }
   },
   {
     "mode": "vision",
@@ -52,19 +54,18 @@
   },
   {
     "mode": "dash",
-    "source": "https://commons.wikimedia.org/wiki/File:Night_road_(Unsplash).jpg",
-    "license": "CC0-1.0",
-    "author": "Vladlane Vadek",
-    "native_original": [
-      3840,
-      2560
-    ],
+    "source": "generated://openai/imagegen/108b5884-d88c-4747-99e3-880feaf632a2",
+    "license": "AI-generated-original",
+    "author": "birdman studio (AI-assisted)",
+    "native_original": null,
     "output": "dash-coast-road-native.webp",
     "size": [
       1440,
       720
     ],
-    "bytes": 64632,
-    "sha256": "a855f208c8d3de69b0bdb8bb1fe34cadd4b4dfbbdd2f82f47ac7bcb117a1b91d"
+    "bytes": 119638,
+    "sha256": "362640f2075bd97ca0640ff2daed822c865b258cbfe2b13a14c79764e6c8e36d",
+    "original_sha256": "c1dfb22ab8addf0e298f43442243af9f2bd3403a659ea8e62da8f1ace20f68cb",
+    "generation_id": "108b5884-d88c-4747-99e3-880feaf632a2"
   }
 ]
