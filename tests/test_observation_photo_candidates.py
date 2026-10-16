@@ -56,6 +56,18 @@ class PhotoCandidateTest(unittest.TestCase):
                 with self.assertRaises(FileNotFoundError):
                     C.download_classroom()
 
+    def test_mutated_classroom_seed_is_rejected_not_downloaded(self):
+        with tempfile.TemporaryDirectory() as root:
+            seed = Path(root) / "assets/observation/candidate-sources/photo-room-cc0-graded-seed.webp"
+            seed.parent.mkdir(parents=True)
+            Image.new("RGB", C.SIZE, (32, 48, 64)).save(seed, format="WEBP")
+            with (
+                mock.patch.object(C, "ROOT", Path(root)),
+                mock.patch("urllib.request.urlopen", side_effect=AssertionError("unexpected fetch")),
+            ):
+                with self.assertRaisesRegex(ValueError, "source has changed"):
+                    C.download_classroom()
+
     def test_legacy_road_crop_requires_plausible_stereo_source(self):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "legacy.webp"
