@@ -1,0 +1,58 @@
+name: "Task｜実装・素材・調整"
+description: "チャットで決まった実行作業をDone条件付きで保存"
+title: "P1: [Task] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        共通契約：studio-playbook/docs/GITHUB-OPERATING-MODEL.md（pilot）。
+        タイトル冒頭の P0/P1/P2 は実際の優先度に修正してください。
+        未公開のプロット、アカウント情報、SecretsはPublic Issueへ書かないでください。
+  - type: textarea
+    id: outcome
+    attributes:
+      label: 目的・ユーザー価値
+      description: 何が改善され、何ができるようになるか
+      placeholder: "観測映像で異変を自然に発見できる"
+    validations:
+      required: true
+  - type: textarea
+    id: deliverables
+    attributes:
+      label: 成果物・対象
+      description: 実装/素材/仕様/テスト/PR
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: 制約・変更してはいけないこと
+      placeholder: "既存セーブ、抽選、pt、ID、タップ座標は維持"
+  - type: textarea
+    id: done
+    attributes:
+      label: Done条件
+      description: 変更や成果の各段階は別。完全Doneまでのチェック項目を記入
+      value: |
+        - [ ] 仕様・依存・既実装との差分を確定
+        - [ ] 実装／必要なバイナリをGitHubに反映
+        - [ ] 既存テスト・追加テスト・CIが成功
+        - [ ] 対応PRをmainに統合してSHAを記録
+        - [ ] Pages/公開と未検証事項を記録
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: 依存Issue・Decision・外部ブロッカー
+      placeholder: "Refs #89、Decision #NNの結果に依存／権限無し"
+  - type: dropdown
+    id: owner
+    attributes:
+      label: 判断主体
+      options:
+        - AI自走可能（認可済みの作業範囲内）
+        - User判断が必要
+        - 外部権限・実機が必要
+    validations:
+      required: true
