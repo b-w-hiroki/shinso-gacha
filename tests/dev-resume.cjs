@@ -72,9 +72,9 @@ test('pilot honors explicit Decision dependencies, never executes approved-by-la
  const decide={number:200,state:'open',title:'[Decision] public roadmap view',
   labels:['priority:p0','autopilot:ready'],body:'Choose public/private'};
  const dependent={number:201,state:'open',title:'P0: [Task] create public view',
-  labels:['priority:p0','autopilot:ready'],body:'- [ ] view exists\\nBlocked by Decision #200'};
+  labels:['priority:p0','autopilot:ready'],body:'- [ ] view exists\nBlocked by Decision #200'};
  const independent={number:202,state:'open',title:'P1: [Task] audit sources',
-  labels:['priority:p1','autopilot:ready'],body:'- [ ] audit CI success\\nRefs #200'};
+  labels:['priority:p1','autopilot:ready'],body:'- [ ] audit CI success\nRefs #200'};
  const s=await mod.buildSnapshot(repo,fake({issues:[decide,dependent,independent]}));
  assert.equal(s.queue.selected.number,202,'blocked P0 cannot outrank ready P1');
  assert.deepEqual(s.queue.decisions_pending.map(x=>x.number),[200]);
