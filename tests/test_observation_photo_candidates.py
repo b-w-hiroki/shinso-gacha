@@ -4,6 +4,7 @@ import io
 from pathlib import Path
 import tempfile
 import unittest
+from unittest import mock
 from PIL import Image
 
 MODULE = Path(__file__).resolve().parents[1] / "scripts" / "build-observation-photo-candidates.py"
@@ -35,6 +36,23 @@ class PhotoCandidateTest(unittest.TestCase):
             C.anomalies("dash", 0)
         with self.assertRaises(ValueError):
             C.anomalies("photo", 4)
+
+    def test_classroom_seed_is_hash_pinned_and_works_without_network(self):
+        with mock.patch("urllib.request.urlopen", side_effect=RuntimeError("No network allowed")):
+            room, source = C.download_classroom()
+        self.assertEqual(room.size, C.SIZE)
+        self.assertEqual(source["license"], "CC0-1.0")
+        self.assertTrue(source["no_network_fetch"])
+        self.assertEqual(len(source["seed_sha256"]), 64)
+        self.assertEqual(source["seed_sha256"], C.sha(
+            (C.ROOT / source["seed_path"]).read_bytes()))
+
+    def test_invalid_classroom_source_must_not_fall_back_to_network(self):
+        with tempfile.TemporaryDirectory() as root:
+            with mock.patch.object(C, "ROOT", Path(root)), \\
+                 mock.patch("urllib.request.urlopen", side_effect=AssertionError("unexpected fetch")):
+                with self.assertRaises(FileNotFoundError):
+                    C.download_classroom()
 
     def test_legacy_road_crop_requires_plausible_stereo_source(self):
         with tempfile.TemporaryDirectory() as temp:
