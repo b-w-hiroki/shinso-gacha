@@ -2,6 +2,16 @@
 
 目的：細かな途中確認を増やさず、**最新mainを壊さず、ゲーム体験と公開品質を継続改善する**。この手順は真相ガチャを基準とするが、他の小規模ゲームにも使える。
 
+## GitHub Issue・判断・Projectsの運用（Pilot）
+
+現在は [GITHUB-WORKFLOW-PILOT.md](GITHUB-WORKFLOW-PILOT.md) を適用する。共通仕様はPrivateの `studio-playbook/docs/GITHUB-OPERATING-MODEL.md` が正本であり、この作品では既存の `@task-brief` / CI / PR / main / Pagesフローを維持したまま **DecisionとTaskをIssueへ記録**する。
+
+1. チャットで企画・判断・作業が確定したら、同じ問題のIssueを検索し、無ければ実装Task/Decision/Bugに分けてIssueを作る。
+2. 人が決めるDecisionは採用/却下と理由が記録されるまで他Taskをブロックしない範囲で分離。未公開内容やSecretを公開Issueへ書かない。
+3. Epicはリンクとチェックリストの索引。個別タスクは独立Issue、結果はPR・CI URLへ結び付ける。完了以外ではPR説明に `Refs #...` を使い、`Fixes` で誤自動Closeしない。
+4. Issueの優先度はP0/P1/P2、実行許可は `autopilot:ready` 等の既存条件を維持。Projectsが読めないときはIssueを実行上の正本とする。
+5. パイロットは共通Playbookで合格条件を判定し、承認後の正式採用はポリシー状態を変更する。既存Issue/判断は削除しない。
+
 ## 1. 作業ブリーフ（@task-brief）
 
 どの仕事も開始時にこれを1枚へ変換する。
