@@ -33,7 +33,13 @@
 - 不安定性：[Issue #141](https://github.com/b-w-hiroki/shinso-gacha/issues/141)
 - 管理権限・実機が必要：[Issue #75](https://github.com/b-w-hiroki/shinso-gacha/issues/75)（human-required、手動ブラウザQAは現在の依頼範囲外）
 - 写真差分制作：[観測素材ブリーフ](OBSERVATION-ART-REPLACEMENT-BRIEFS.md)
-- Playbookのpilot評価と正式昇格はPrivate Playbook側のIssue/ポリシーに保存する。
+- [Decision #173：Project所有先・公開範囲](https://github.com/b-w-hiroki/shinso-gacha/issues/173)（Needs Decision、作品の通常開発は継続）
+- [Task #174：海沿い車載・教室の本番画像統合](https://github.com/b-w-hiroki/shinso-gacha/issues/174)（P1、Ready、画像本体/透過/SSRの正規Push待ち）
+- [Task #175：人物専用素材の品質統一](https://github.com/b-w-hiroki/shinso-gacha/issues/175)（P1、Backlog）
+- [Task #176：未来報告と課員証言の分岐](https://github.com/b-w-hiroki/shinso-gacha/issues/176)（P1、Backlog）
+- [Task #177：50案ロードマップの現状仕分け](https://github.com/b-w-hiroki/shinso-gacha/issues/177)（P2、Ready）
+- [Task #178：Projects v2リンク・ビュー設定](https://github.com/b-w-hiroki/shinso-gacha/issues/178)（P1、Decision #173待ちでBlocked）
+- Pilot評価と正式昇格：[studio-playbook #49](https://github.com/b-w-hiroki/studio-playbook/issues/49)。共通ルール [Playbook PR #48](https://github.com/b-w-hiroki/studio-playbook/pull/48)。
 
 ## Pilot評価と昇格
 
