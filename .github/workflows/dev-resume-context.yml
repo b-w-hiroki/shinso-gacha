@@ -10,6 +10,10 @@ on:
       - docs/AI-RESUME.md
       - scripts/dev-resume.mjs
       - tests/dev-resume.cjs
+      - tests/github-workflow-pilot.cjs
+      - docs/GITHUB-WORKFLOW-PILOT.md
+      - .github/ISSUE_TEMPLATE/**
+      - .github/pull_request_template.md
       - .github/workflows/dev-resume-context.yml
 permissions:
   contents: read
