@@ -13,14 +13,32 @@ const INVESTIGATION_RECHECK={
  vision:['切断の返答は二つ。片方の送信元は、こちらの端末番号になっている。','電源を切った画面に残った輪郭は、次の接続でも同じ位置だった。','送信していない位置情報を、向こうの記録が先に持っている。','空白になった衣服の内側に、通信の欠損は記録されていない。'],
  dash:['走行履歴の最初の時刻は、保管庫への返却よりも古い。','ミラーの時刻と車内時計は違う。どちらも点検記録では正常だ。','道路は進んでいる。距離計だけが、同じ区間をもう一度数えている。','停車信号への返事は届いた。返事の送信時刻は、信号より前だった。']
 };
+// Third stage: the player takes the recheck back to the same colleague.
+// Saved as investigation.confronted; read-only for points, recovery and RNG.
+const INVESTIGATION_CONFRONT={
+ cctv:['門の鍵は記録係が預かっています。昨日の受領欄に、私の印はありません。……あなたの印があります。','点検票の時刻を直しておきます。いえ、直す前の時刻を、あなたが先に書いていました。','氏名欄がないのは、書く必要がないからです。退園した人は、まだ課に戻っていないので。','四つと書いたのは私ではありません。でもその報告書の筆跡は、あなたのものでもありませんでした。'],
+ photo:['撮影者は席を立っていない。だから写真に写らない。……今もその席にいる、とは言っていない。','音を聞いたのは俺だけじゃない。あんたも隣で聞いていた。覚えていないなら、そのほうがいい。','余分に数えたのは俺だろう。あの夜から、帰り道で一人分多く数えてしまう。','窓は閉めると言っただろう。閉めたあとで、内側から叩く音がした。修正版は、その後の写真だ。'],
+ vision:['端末番号は合っています。あなたの席の端末は、着任より前から接続されていました。','同じ位置なのは、向こうが動いていないからです。動いているのは、こちらのモニタのほうです。','位置の送信は止めました。止めたのは今日です。向こうの記録は、三日前から届いています。','欠損がないなら、中身も届いています。受信した容量は、ちょうど人ひとり分でした。'],
+ dash:['返却の受領者欄を確認しました。白瀬さんの名前です。その日、白瀬さんは休みでした。','どちらの時計も正しいなら、車は二台あります。保管庫には、一台分の鍵しかありません。','同じ区間を二度走った車は、二度戻ってきます。昨夜、駐車場に同じ車が並んでいました。','返事の本文も読みました。「停車した」ではなく「乗車した」です。誰が、とは書いてありません。']
+};
+// Fear escalates per colleague with the number of confrontations already heard.
+const INVESTIGATION_CONFRONT_CUES=['少し間があってから、声がする。','声は向かいの席ではなく、背後の書架から聞こえた気がする。','返事は、あなたが言い終える前に始まっていた。'];
 function investigationRecheckLine(key,read,discussed){
  if(!read?.[key]||!discussed?.[key])return null;
  if(typeof key!=='string'||! /^(cctv|photo|vision|dash):[0-3]$/.test(key))return null;
  const [mode,r]=key.split(':');return INVESTIGATION_RECHECK[mode][Number(r)];
 }
+function investigationConfrontLine(key,read,discussed,confronted){
+ if(!investigationRecheckLine(key,read,discussed)||confronted?.[key]!==true)return null;
+ const [mode,r]=key.split(':');return INVESTIGATION_CONFRONT[mode][Number(r)];
+}
+function investigationConfrontCue(member,confronted){
+ const n=Object.keys(confronted||{}).filter(k=>confronted[k]===true&&/^(cctv|photo|vision|dash):[0-3]$/.test(k)&&INVESTIGATION_CASES[k.split(':')[0]].member===member).length;
+ return INVESTIGATION_CONFRONT_CUES[Math.min(n,INVESTIGATION_CONFRONT_CUES.length-1)];
+}
 function investigationState(){
  const o=observationState();let s=o.investigation;if(!s||typeof s!=='object'||Array.isArray(s))s=o.investigation={};
- for(const k of ['read','discussed'])if(!s[k]||typeof s[k]!=='object'||Array.isArray(s[k]))s[k]={};
+ for(const k of ['read','discussed','confronted'])if(!s[k]||typeof s[k]!=='object'||Array.isArray(s[k]))s[k]={};
  return s;
 }
 function investigationRecord(key){
@@ -41,8 +59,8 @@ function investigationLatestRecheck(o,s){
  // Read-only discovery: never expose uncollected evidence or award points.
  return [...(Array.isArray(o.history)?o.history:[])].reverse()
   .map(r=>r.mode+':'+r.rarity)
-  .find(key=>o.collection?.[key]&&s.read?.[key]&&s.discussed?.[key]&&investigationRecheckLine(key,s.read,s.discussed))
-  ||Object.keys(o.collection||{}).find(key=>o.collection[key]&&s.read?.[key]&&s.discussed?.[key]&&investigationRecheckLine(key,s.read,s.discussed))
+  .find(key=>o.collection?.[key]&&s.confronted?.[key]!==true&&investigationRecheckLine(key,s.read,s.discussed))
+  ||Object.keys(o.collection||{}).find(key=>o.collection[key]&&s.confronted?.[key]!==true&&investigationRecheckLine(key,s.read,s.discussed))
   ||null;
 }
 function investigationHome(){
@@ -58,8 +76,9 @@ function investigationHome(){
 function investigationMemo(mode,rarity){
  const key=mode+':'+rarity,r=investigationRecord(key);if(!r)return '';
  const s=investigationState();s.read[key]=true;s.lastRead=key;markDirty();save();
- const member=WATCH_COLLEAGUES[r.data.member],recheck=investigationRecheckLine(key,s.read,s.discussed);
- return `<div class="investigation-memo"><p>${r.data.notes[rarity]}</p>${recheck?'<p class="investigation-discrepancy">再照合：'+recheck+'</p>':''}<button class="watch-choice" data-trail="witness" data-key="${key}">${member.name}にこの記録を尋ねる</button><button class="btn-line" data-trail="album">観測資料の一覧へ</button>${typeof legendObservationLinks==='function'?legendObservationLinks(mode):''}</div>`;
+ const member=WATCH_COLLEAGUES[r.data.member],recheck=investigationRecheckLine(key,s.read,s.discussed),confront=investigationConfrontLine(key,s.read,s.discussed,s.confronted);
+ const third=confront?'<p class="investigation-confrontation">照会記録（'+member.name+'）：'+confront+'</p>':recheck?'<button class="watch-choice" data-trail="confront" data-key="'+key+'">再照合の結果を'+member.name+'に伝える</button>':'';
+ return `<div class="investigation-memo"><p>${r.data.notes[rarity]}</p>${recheck?'<p class="investigation-discrepancy">再照合：'+recheck+'</p>':''}${third}<button class="${recheck?'btn-line':'watch-choice'}" data-trail="witness" data-key="${key}">${member.name}にこの記録を尋ねる</button><button class="btn-line" data-trail="album">観測資料の一覧へ</button>${typeof legendObservationLinks==='function'?legendObservationLinks(mode):''}</div>`;
 }
 function investigationWitness(key){
  const r=investigationRecord(key),s=investigationState();if(!r||!s.read[key])return;
@@ -70,6 +89,19 @@ function investigationTestimony(id){
  const s=investigationState(),r=investigationRecord(s.lastRead);if(!r||!s.read[r.key]||r.data.member!==id)return null;
  if(!s.discussed[r.key]){WatchModel.talk(observationState(),Date.now(),id);s.discussed[r.key]=true;markDirty();save();renderWatchMind();}
  return r.data.testimony[r.rarity];
+}
+function investigationConfront(key){
+ const r=investigationRecord(key),s=investigationState();if(!r||!investigationRecheckLine(key,s.read,s.discussed))return;
+ WatchModel.closeMonitor(observationState(),Date.now(),true);s.lastRead=key;
+ observationConversation(r.data.member,'confront');
+}
+// Returns {line,cue}; saving the confrontation never awards points or recovery.
+function investigationConfrontation(id){
+ const s=investigationState(),r=investigationRecord(s.lastRead);
+ if(!r||r.data.member!==id||!investigationRecheckLine(r.key,s.read,s.discussed))return null;
+ const done=s.confronted[r.key]===true,cue=done?null:investigationConfrontCue(id,s.confronted);
+ if(!done){s.confronted[r.key]=true;markDirty();save();}
+ return {line:INVESTIGATION_CONFRONT[r.mode][r.rarity],cue};
 }
 function investigationTopic(id){
  const s=investigationState(),r=investigationRecord(s.lastRead);return r&&s.read[r.key]&&r.data.member===id?'<button class="watch-choice" data-trail="witness" data-key="'+r.key+'">「'+OBSERVATIONS[r.mode].records[r.rarity]+'」について聞く</button>':'';
@@ -87,6 +119,7 @@ document.addEventListener('click',e=>{
  if(action==='guide')return openInvestigationGuide();
  if(action==='target')return observationTargetPicker();
  if(action==='witness')return investigationWitness(b.dataset.key);
+ if(action==='confront')return investigationConfront(b.dataset.key);
  if(action==='record'||action==='latest'||action==='recheck'){
   const key=action==='latest'?investigationLatest(true)||investigationLatest()
    :action==='recheck'?investigationLatestRecheck(observationState(),investigationState())

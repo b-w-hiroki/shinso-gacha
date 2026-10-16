@@ -42,4 +42,26 @@ assert.equal(context.investigationLatestRecheck({collection:{'photo:1':true},his
 assert(source.includes('data-trail="recheck"'),'home should offer the recheck action');
 assert(source.includes("action==='recheck'"),'recheck action should open an earned record');
 
-console.log('16 unique acquired-only second-pass contradictions; no new save state.');
+// Third stage: confronting a colleague with the recheck.
+const confrontSeen=new Set();
+for(const mode of cases)for(let rarity=0;rarity<=3;rarity++){
+ const key=mode+':'+rarity,read={[key]:true},discussed={[key]:true};
+ assert.equal(context.investigationConfrontLine(key,read,discussed,{}),null,key+' unconfronted reply stays hidden');
+ assert.equal(context.investigationConfrontLine(key,{},discussed,{[key]:true}),null,key+' needs a read record even with a stale flag');
+ assert.equal(context.investigationConfrontLine(key,read,{},{[key]:true}),null,key+' needs prior testimony');
+ const line=context.investigationConfrontLine(key,read,discussed,{[key]:true});
+ assert(typeof line==='string'&&line.length>=25,key);
+ assert(!seen.has(line)&&!confrontSeen.has(line),key+' confrontation must be unique');
+ confrontSeen.add(line);
+}
+assert.equal(confrontSeen.size,16);
+assert.equal(context.investigationConfrontLine('cctv:1',{'cctv:1':true},{'cctv:1':true},{'cctv:1':'true'}),null,'string flags are not confrontations');
+assert.equal(context.investigationConfrontLine('__proto__:1',{},{},{'__proto__:1':true}),null);
+const cues=new Set([0,1,2,3].map(n=>context.investigationConfrontCue('equipment',Object.fromEntries(['vision:0','vision:1','dash:0','dash:1'].slice(0,n).map(k=>[k,true])))));
+assert.equal(cues.size,3,'unease escalates over three steps per colleague');
+assert.equal(context.investigationConfrontCue('records',{'vision:0':true,'dash:1':true}),context.investigationConfrontCue('records',{}),'other colleagues do not escalate');
+assert.equal(context.investigationLatestRecheck(state,{...progress,confronted:{'dash:2':true}}),'photo:1','home skips finished confrontations');
+assert.equal(context.investigationLatestRecheck(state,{...progress,confronted:{'dash:2':true,'photo:1':true}}),null,'nothing left to recheck');
+assert(source.includes('data-trail="confront"'),'record should offer the confrontation');
+
+console.log('16 unique acquired-only second-pass contradictions and 16 earned-only confrontations.');
