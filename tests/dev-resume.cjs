@@ -45,6 +45,29 @@ test('open PR locks issue and missing opt-in does not execute',async()=>{
  assert.equal(y.queue.status,'triage_required');
  assert.equal(y.queue.suggested[0].number,141);
 });
+test('pilot resume separates Decisions, Epics and ready tasks without leaking private body',async()=>{
+ const decision={number:182,state:'open',title:'[Decision] 採用する原本の方針',
+  labels:[],body:'private option text; - [ ] still waiting'};
+ const epic={number:89,state:'open',title:'真相ガチャ｜残タスク総覧・ロードマップ',
+  labels:[],body:'- [ ] all tasks'};
+ const task={number:183,state:'open',title:'P1: [Asset] 本番用の差分を統合',
+  labels:[],body:'- [ ] images verified'};
+ const s=await mod.buildSnapshot(repo,fake({issues:[decision,epic,task]}));
+ assert.equal(s.queue.status,'triage_required');
+ assert.equal(s.queue.selected,null);
+ assert.deepEqual(s.queue.decisions_pending.map(x=>x.number),[182]);
+ assert.deepEqual(s.queue.epic_context.map(x=>x.number),[89]);
+ assert.deepEqual(s.queue.suggested.map(x=>x.number),[183]);
+ assert.equal(s.project_v2.items_included,false);
+ assert.equal(s.project_v2.access,'not_checked_by_this_snapshot');
+ assert.ok(!JSON.stringify(s).includes('private option text'));
+ const labeled={...decision,number:184,title:'選択',
+  labels:[{name:'type:decision'},{name:'priority:p0'},{name:'autopilot:ready'}]};
+ const s2=await mod.buildSnapshot(repo,fake({issues:[labeled,task]}));
+ assert.equal(s2.queue.selected,null,
+  'a Decision cannot receive execution rights solely from label opt-in');
+ assert.deepEqual(s2.queue.suggested.map(x=>x.number),[183]);
+});
 test('rejects SHA race, invalid repo and truncated pages',async()=>{
  await assert.rejects(mod.buildSnapshot(repo,fake({drift:true})),/main advanced/);
  await assert.rejects(mod.buildSnapshot(repo,fake({issues:Array(100).fill({})})),/truncated/);
