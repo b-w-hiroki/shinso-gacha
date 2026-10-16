@@ -141,7 +141,9 @@ def integration_records(repo: Path, info: dict, payloads: dict[str, bytes]):
         s.update(name=f"Generated {mode} observation / 2026-10-16",
                  author="birdman studio (AI-assisted)", source=uri,
                  license="AI-generated-original", original_sha256=gen["original_sha256"],
-                 generation_id=gen["image_generation_id"], brightness=None, teal=None)
+                 generation_id=gen["image_generation_id"])
+        s.pop("brightness", None)
+        s.pop("teal", None)
         r.update(source=uri, license="AI-generated-original",
                  author="birdman studio (AI-assisted)",
                  original_sha256=gen["original_sha256"],
@@ -154,7 +156,15 @@ def integration_records(repo: Path, info: dict, payloads: dict[str, bytes]):
 
 
 def apply_to_feature_branch(repo: Path, info: dict, payloads: dict[str, bytes]) -> None:
-    # Run ONLY on a feature branch checkout. Never alter main or the user's saves.
+    # Require a named feature branch and a clean checkout before any write.
+    branch = subprocess.run(["git", "branch", "--show-current"], cwd=repo,
+                            check=True, capture_output=True, text=True).stdout.strip()
+    if not branch or branch in ("main", "master"):
+        raise ValueError("--apply must run on an explicitly checked-out feature branch")
+    dirty = subprocess.run(["git", "status", "--porcelain"], cwd=repo,
+                           check=True, capture_output=True, text=True).stdout.strip()
+    if dirty:
+        raise ValueError("--apply refuses a dirty working tree")
     modified = {repo / path: data for path, data in payloads.items()}
     for path, text in integration_records(repo, info, payloads).items():
         modified[path] = text.encode("utf8")
