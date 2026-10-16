@@ -49,8 +49,10 @@ class PhotoCandidateTest(unittest.TestCase):
 
     def test_invalid_classroom_source_must_not_fall_back_to_network(self):
         with tempfile.TemporaryDirectory() as root:
-            with mock.patch.object(C, "ROOT", Path(root)), \\
-                 mock.patch("urllib.request.urlopen", side_effect=AssertionError("unexpected fetch")):
+            with (
+                mock.patch.object(C, "ROOT", Path(root)),
+                mock.patch("urllib.request.urlopen", side_effect=AssertionError("unexpected fetch")),
+            ):
                 with self.assertRaises(FileNotFoundError):
                     C.download_classroom()
 
