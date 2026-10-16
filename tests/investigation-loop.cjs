@@ -25,10 +25,17 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  const talks=await p.evaluate(()=>S.observation.mind.talks.records);
  await p.locator('[data-trail="record"]').click();assert(await p.locator('.investigation-discrepancy').isVisible());
  await p.locator('[data-trail="witness"]').click();assert.equal(await p.locator('.watch-conversation blockquote').innerText(),line);assert.equal(await p.evaluate(()=>S.observation.mind.talks.records),talks);
+ // Third stage: confront the colleague; points, recovery and wording stay stable on repeat.
+ const coins=await p.evaluate(()=>S.currency);
+ await p.locator('[data-trail="record"]').click();await p.locator('[data-trail="confront"]').click();
+ const confront=await p.locator('.watch-conversation blockquote').innerText();assert(confront.includes('点検票')&&confront!==line);
+ assert((await p.locator('.watch-selected-topic').innerText()).includes('再照合の結果'));
+ assert(await p.evaluate(()=>S.observation.investigation.confronted['cctv:1']));assert.equal(await p.evaluate(()=>S.observation.mind.talks.records),talks);assert.equal(await p.evaluate(()=>S.currency),coins);
+ await p.locator('[data-trail="record"]').click();assert.equal(await p.locator('[data-trail="confront"]').count(),0);assert((await p.locator('.investigation-confrontation').innerText()).includes(confront));
  await p.screenshot({path:'docs/qa-incursions/trail-witness-390.jpg',quality:85});
  await p.keyboard.press('Escape');await p.reload();
  if(process.env.QA_FONT){await p.addStyleTag({content:"@font-face{font-family:QAJP;src:url('/font.otf')} :root{--f-body:QAJP;--f-display:QAJP;--f-mono:QAJP;--f-hand:QAJP}"});await p.evaluate(()=>document.fonts.load('16px QAJP'));}
- assert(await p.evaluate(()=>S.observation.investigation.discussed['cctv:1']));assert(await p.evaluate(()=>S.observation.mind.closed));assert.equal(await p.evaluate(()=>S.currency),before+89);
+ assert(await p.evaluate(()=>S.observation.investigation.discussed['cctv:1']));assert(await p.evaluate(()=>S.observation.investigation.confronted['cctv:1']));assert(await p.evaluate(()=>S.observation.mind.closed));assert.equal(await p.evaluate(()=>S.currency),before+89);
  assert.equal(await p.evaluate(()=>investigationRecord('photo:3')),null);assert.equal(await p.evaluate(()=>investigationRecord('__proto__')),null);
  await p.evaluate(()=>{showWatchRecord('photo',3);});assert(await p.locator('#sheet-bg').isHidden(),'unseen record stays hidden');
  await p.locator('#obs-rest').click();assert(!(await p.evaluate(()=>S.observation.mind.closed)));
