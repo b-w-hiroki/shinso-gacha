@@ -1,0 +1,3 @@
+blank_issues_enabled: true
+# The canonical pilot workflow is private studio-playbook/docs/GITHUB-OPERATING-MODEL.md
+# Blank issues remain possible for raw ideas; triage before assigning to an agent.

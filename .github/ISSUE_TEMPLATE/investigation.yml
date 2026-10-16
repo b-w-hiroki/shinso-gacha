@@ -1,0 +1,42 @@
+name: "Investigation｜不具合・失敗調査"
+description: "再現条件、初回CI失敗、原因仮説と検収を追跡"
+title: "P1: [Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        まず最新mainと既知のIssueを照合。P0/P1/P2を実際の影響度に直し、同じ失敗を重複登録しません。
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待される状態
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 実際の失敗・再現手順
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 証拠（main SHA、CI URL、実行環境）
+      description: 初回失敗と再試行を区別。秘密情報は貼らない
+    validations:
+      required: true
+  - type: textarea
+    id: hypotheses
+    attributes:
+      label: 原因候補と調査
+  - type: textarea
+    id: done
+    attributes:
+      label: Done条件
+      value: |
+        - [ ] 再現条件と独立の初回失敗を記録
+        - [ ] 根因または対象環境の明確な対策を実装
+        - [ ] 元のテストを削除・skipせずCI成功
+        - [ ] mainへのマージ・公開・再発監視を分けて記録
+    validations:
+      required: true

@@ -45,6 +45,47 @@ test('open PR locks issue and missing opt-in does not execute',async()=>{
  assert.equal(y.queue.status,'triage_required');
  assert.equal(y.queue.suggested[0].number,141);
 });
+test('pilot resume separates Decisions, Epics and ready tasks without leaking private body',async()=>{
+ const decision={number:182,state:'open',title:'[Decision] 採用する原本の方針',
+  labels:[],body:'private option text; - [ ] still waiting'};
+ const epic={number:89,state:'open',title:'真相ガチャ｜残タスク総覧・ロードマップ',
+  labels:[],body:'- [ ] all tasks'};
+ const task={number:183,state:'open',title:'P1: [Asset] 本番用の差分を統合',
+  labels:[],body:'- [ ] images verified'};
+ const s=await mod.buildSnapshot(repo,fake({issues:[decision,epic,task]}));
+ assert.equal(s.queue.status,'triage_required');
+ assert.equal(s.queue.selected,null);
+ assert.deepEqual(s.queue.decisions_pending.map(x=>x.number),[182]);
+ assert.deepEqual(s.queue.epic_context.map(x=>x.number),[89]);
+ assert.deepEqual(s.queue.suggested.map(x=>x.number),[183]);
+ assert.equal(s.project_v2.items_included,false);
+ assert.equal(s.project_v2.access,'not_checked_by_this_snapshot');
+ assert.ok(!JSON.stringify(s).includes('private option text'));
+ const labeled={...decision,number:184,title:'選択',
+  labels:[{name:'type:decision'},{name:'priority:p0'},{name:'autopilot:ready'}]};
+ const s2=await mod.buildSnapshot(repo,fake({issues:[labeled,task]}));
+ assert.equal(s2.queue.selected,null,
+  'a Decision cannot receive execution rights solely from label opt-in');
+ assert.deepEqual(s2.queue.suggested.map(x=>x.number),[183]);
+});
+test('pilot honors explicit Decision dependencies, never executes approved-by-label Decision',async()=>{
+ const decide={number:200,state:'open',title:'[Decision] public roadmap view',
+  labels:['priority:p0','autopilot:ready'],body:'Choose public/private'};
+ const dependent={number:201,state:'open',title:'P0: [Task] create public view',
+  labels:['priority:p0','autopilot:ready'],body:'- [ ] view exists\nBlocked by Decision #200'};
+ const independent={number:202,state:'open',title:'P1: [Task] audit sources',
+  labels:['priority:p1','autopilot:ready'],body:'- [ ] audit CI success\nRefs #200'};
+ const s=await mod.buildSnapshot(repo,fake({issues:[decide,dependent,independent]}));
+ assert.equal(s.queue.selected.number,202,'blocked P0 cannot outrank ready P1');
+ assert.deepEqual(s.queue.decisions_pending.map(x=>x.number),[200]);
+ assert.deepEqual(s.queue.blocked_by_decision.map(x=>({n:x.number,ids:x.pending_decisions})),
+   [{n:201,ids:[200]}]);
+ assert(!s.queue.suggested.some(x=>x.number===201));
+ assert.equal(s.queue.execution_started,false);
+ assert.ok(!JSON.stringify(s).includes('Choose public/private'));
+ const settled=await mod.buildSnapshot(repo,fake({issues:[dependent,independent]}));
+ assert.equal(settled.queue.selected.number,201,'no longer-open Decision releases explicit dependency');
+});
 test('rejects SHA race, invalid repo and truncated pages',async()=>{
  await assert.rejects(mod.buildSnapshot(repo,fake({drift:true})),/main advanced/);
  await assert.rejects(mod.buildSnapshot(repo,fake({issues:Array(100).fill({})})),/truncated/);
