@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const ROOT=path.resolve(__dirname,'..');
-const NAMES=['miwa','sakaki','shirose'];
+const NAMES=['miwa','sakaki','shirose','unregistered'];
 function webpDimensions(file){
  const data=fs.readFileSync(file);
  assert.equal(data.toString('ascii',0,4),'RIFF',file+' missing RIFF');
@@ -37,4 +37,7 @@ assert(registry.includes('Object.hasOwn(cases||{},id)'), 'unowned cases must not
 assert(registry.includes('compared!==true'), 'uncompared evidence must stay hidden');
 const personnel=fs.readFileSync(path.join(ROOT,'assets/personnel-discrepancies-model.js'),'utf8');
 for(const id of ['records','equipment','senior'])assert(personnel.includes("'"+id+"'"));
+const catalog=fs.readFileSync(path.join(ROOT,'assets/encyclopedia.js'),'utf8');
+assert(catalog.includes("watchContacts()[id]!==true"),'unmet colleagues must not open a profile');
+assert(catalog.includes('src="assets/colleagues/unregistered.webp" alt=""'),'witness silhouette is decorative and shared');
 console.log('Colleague portraits and acquired-only witness gates: '+JSON.stringify(result));

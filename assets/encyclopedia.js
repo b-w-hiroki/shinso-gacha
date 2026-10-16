@@ -26,6 +26,17 @@ function openEncyclopedia(tab=encyclopediaTab){
  const entries=catalogEntries(tab),known=entries.filter(e=>e.known).length,shown=encyclopediaFilter==='missing'?[]:entries.filter(e=>e.known);
  openMenuPage('図鑑',menuBack()+`<section class="catalog"><p class="catalog-intro">あなたが持ち帰ったものだけが、ここに残る。</p><div class="catalog-tabs" role="group" aria-label="図鑑の分類">${Object.entries(tabs).map(([id,label])=>`<button data-catalog-tab="${id}" aria-pressed="${id===tab}">${label}</button>`).join('')}</div><div class="catalog-summary"><p>${tabs[tab]} <b>${known}</b>件 発見</p><label><input type="checkbox" data-catalog-filter ${encyclopediaFilter==='known'?'checked':''}> 発見済みのみ</label><label><input type="checkbox" data-catalog-missing ${encyclopediaFilter==='missing'?'checked':''}> 未発見のみ</label></div>${encyclopediaFilter==='missing'?`<p class="catalog-intro">未発見の記録は一覧に表示されません。${tab==='anomalies'?'観測と封筒調査':tab==='people'?'課内での会話':'各地点の観測'}から探してください。</p>`:''}<div class="catalog-list">${shown.map(e=>`<button class="catalog-entry ${e.known?'':'catalog-unknown'}" data-catalog-entry="${e.id}" ${e.known?'':'disabled'}><small>No.${String(e.number).padStart(3,'0')}</small><span><b>${escapeHTML(e.title)}</b><small>${escapeHTML(e.sub)}</small></span><span aria-hidden="true">${e.known?'›':'―'}</span></button>`).join('')||'<p class="menu-empty">ここには発見済みの記録だけが残ります。観測や課内での会話を進めてください。</p>'}</div></section>`);
 }
+// Re-readable history of what this colleague actually said. Nothing unheard is rendered.
+function catalogTestimonyLog(id,m,o){
+ const s=o.investigation||{},records=investigationTestimonyLog(id,o,s);
+ const topics=Object.entries(WATCH_TOPICS).flatMap(([topic,label])=>{const n=Math.max(0,Math.floor(Number(o.mind?.dialogue?.[id+':'+topic])||0));return m[topic].slice(0,Math.min(n,m[topic].length)).map(line=>({label,line}));});
+ if(s.superior?.[id]===true&&Object.hasOwn(SUPERIOR_LINES,id))topics.push({label:'課長からの連絡について',line:SUPERIOR_LINES[id]});
+ const total=records.length+records.filter(r=>r.confront).length+topics.length;
+ if(!total)return '';
+ const recordHTML=records.map(r=>'<section class="testimony-entry"><small>記録「'+escapeHTML(OBSERVATIONS[r.mode].records[r.rarity])+'」について</small><blockquote>'+escapeHTML(r.testimony)+'</blockquote>'+(r.confront?'<p class="testimony-annotation">照会後の訂正：本人は、この発言を記録していないと言っている。</p><small>再照合を伝えたとき</small><blockquote>'+escapeHTML(r.confront)+'</blockquote>':'')+'</section>').join('');
+ const topicHTML=topics.map(t=>'<section class="testimony-entry"><small>'+escapeHTML(t.label)+'</small><blockquote>'+escapeHTML(t.line)+'</blockquote></section>').join('');
+ return '<details class="testimony-log"><summary>聞いた言葉の記録 '+total+'件</summary>'+recordHTML+topicHTML+'</details>';
+}
 function openPersonnelDossier(id){
  const item=PersonnelDiscrepancies.detail(S.personnelEvidence,rankIdx(),id);
  if(!item)return;
@@ -60,7 +71,7 @@ function openWitnessDossier(id){
  sheet('人物図鑑・人事記録',`<article class="catalog-detail witness-dossier">
   <small>第六文書課 ／ 人事台帳 照会不一致</small>
   <header class="witness-card">
-   <div class="witness-photo" role="img" aria-label="肖像写真の登録がない台帳"><span>肖像欄</span><i aria-hidden="true"></i><small>該当なし</small></div>
+   <div class="witness-photo" role="img" aria-label="肖像写真の登録がない台帳" data-presence="${Math.min(records.length,3)}"><img src="assets/colleagues/unregistered.webp" alt="" width="512" height="683" decoding="async"><span>肖像欄</span><small>該当なし</small></div>
    <div class="witness-identity"><h2>登録のない立会人</h2><p>所属：照会できません</p><p>氏名：記載がありません</p><p>在籍記録：なし</p></div>
   </header>
   <p class="witness-lead">人員台帳に記録はない。けれど、この人物の立会印を押した事件がある。</p>
@@ -135,10 +146,12 @@ function openCatalogEntry(id){
  if(encyclopediaTab==='people'){
   if(id.startsWith('personnel:'))return openPersonnelDossier(id.slice('personnel:'.length));
   if(id==='ghost:registry'){const first=witnessRegistryRecords()[0];if(first)return openWitnessDossier(first.id);return;}
+  // An unmet colleague's portrait, name and evidence links stay out of the DOM.
+  if(!Object.hasOwn(WATCH_COLLEAGUES,id)||watchContacts()[id]!==true)return;
   const m=WATCH_COLLEAGUES[id],o=observationState();
   const records=Object.entries(INVESTIGATION_CASES).flatMap(([mode,c])=>c.member===id?[0,1,2,3].filter(r=>o.collection[mode+':'+r]>0).map(r=>({mode,r})):[]);
   const incidents=Object.keys(S.incursion?.discovered||{}).map(Number).filter(k=>S.incursion.discovered[k]===true&&INCURSIONS[k]&&incursionWitnessMember(k).id===id);
-  sheet('人物図鑑',`<article class="catalog-detail"><header class="watch-speaker">${watchPortrait(m)}<div><small>${m.role}</small><h2>${m.name}</h2></div></header><p>${m.description}</p><h3>初めて交わした言葉</h3><blockquote>${m.greeting}</blockquote><h3>この人物と照合できる記録</h3>${records.map(({mode,r})=>`<button class="btn-line" data-catalog-record="${mode}:${r}">${OBSERVATIONS[mode].records[r]}</button>`).join('')}${incidents.map(k=>`<button class="btn-line" data-catalog-incident="${k}">${INCURSIONS[k].short}</button>`).join('')}${!records.length&&!incidents.length?'<p>照合できる記録は、まだありません。</p>':''}<button class="btn-paper" data-catalog-talk="${id}">${m.name}に話す</button></article>`);return;
+  sheet('人物図鑑',`<article class="catalog-detail"><header class="watch-speaker">${watchPortrait(m)}<div><small>${m.role}</small><h2>${m.name}</h2></div></header><p>${m.description}</p><h3>初めて交わした言葉</h3><blockquote>${m.greeting}</blockquote>${catalogTestimonyLog(id,m,o)}<h3>この人物と照合できる記録</h3>${records.map(({mode,r})=>`<button class="btn-line" data-catalog-record="${mode}:${r}">${OBSERVATIONS[mode].records[r]}</button>`).join('')}${incidents.map(k=>`<button class="btn-line" data-catalog-incident="${k}">${INCURSIONS[k].short}</button>`).join('')}${!records.length&&!incidents.length?'<p>照合できる記録は、まだありません。</p>':''}<button class="btn-paper" data-catalog-talk="${id}">${m.name}に話す</button></article>`);return;
  }
  const place=WatchLocations.byId(id);
  if(place){const entry=WatchLocations.discovered(observationState().locationRecords).find(s=>s.id===id);if(!entry)return;const time=entry.firstAt?new Date(entry.firstAt).toLocaleDateString('ja-JP'):'日時不明';sheet('場所図鑑',`<article class="catalog-detail"><small>${escapeHTML(place.source)} ／ ${escapeHTML(WatchModel.MODES[place.mode].label)}</small><h2>${escapeHTML(place.title)}</h2><img src="assets/observation/${place.file}" alt="${escapeHTML(place.title)}の初回観測資料" loading="lazy" style="width:100%;aspect-ratio:2/1;object-fit:cover;border:1px solid #696154;border-radius:3px"><p>記録された訪問 ${entry.visits}回 ／ 最初の観測 ${time}</p><p>別媒体と記録を共有せず、この場所の原本はそのまま保存されます。</p>${alternateLocationRecordsHTML(place,entry)}${locationLegendEchoesHTML(place.id)}${locationLinksHTML(place.id)}${locationTriadHTML(place.id)}<button class="btn-line" data-watch="return">観測へ戻る</button></article>`);return;}
