@@ -78,11 +78,33 @@ def dash_from_legacy(file: Path) -> Image.Image:
 
 
 def download_classroom() -> tuple[Image.Image, dict]:
-    headers = {"User-Agent": "birdman-studio-observation-asset-candidate/1.0 (research, CC0)", "Accept": "image/jpeg"}
-    with urllib.request.urlopen(urllib.request.Request(COMMONS_URL, headers=headers), timeout=40) as resp:
-        source = resp.read()
-    if len(source) < 100000:
-        raise ValueError("Source photograph unusually small")
+    headers = {"User-Agent": "Mozilla/5.0 (compatible; birdman-studio-CC0-asset-audit/1.0)",
+               "Accept": "image/jpeg,image/*"}
+    # Wikimedia origin sometimes rate-limits GitHub hosted runners (HTTP 429).
+    # These are TWO distinct public delivery routes, not silent fixture fallback.
+    # When neither returns the genuine photo, stop the build and publish nothing.
+    routes = [
+        COMMONS_URL,
+        "https://wsrv.nl/?url=upload.wikimedia.org/wikipedia/commons/d/d1/Quiet_Before_the_Lesson.jpg&w=2048&output=jpg"
+    ]
+    failures = []
+    source = None
+    delivered_by = None
+    for url in routes:
+        try:
+            with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=40) as resp:
+                data = resp.read()
+            if len(data) < 100000:
+                raise ValueError("Source photograph unusually small")
+            with Image.open(io.BytesIO(data)) as check:
+                if check.width < 2000 or check.height < 1300:
+                    raise ValueError("Source photograph dimensions too small")
+            source, delivered_by = data, url
+            break
+        except (OSError, ValueError) as exc:
+            failures.append(str(type(exc).__name__) + ": " + str(exc)[:160])
+    if source is None:
+        raise RuntimeError("CC0 source unavailable via known routes: " + "; ".join(failures))
     with Image.open(io.BytesIO(source)) as original:
         w, h = original.size
         if w < 2000 or h < 1300:
@@ -94,7 +116,7 @@ def download_classroom() -> tuple[Image.Image, dict]:
         room = original.crop((0, top, w, top + crop_h)).resize(SIZE, Image.Resampling.LANCZOS)
     return graded_night(room, "photo"), {
         "type": "external-photo", "author": "Yvanille", "license": "CC0-1.0",
-        "source": COMMONS_PAGE, "download": COMMONS_URL,
+        "source": COMMONS_PAGE, "download": delivered_by,
         "original_dimensions": [w, h], "original_sha256": sha(source)
     }
 
