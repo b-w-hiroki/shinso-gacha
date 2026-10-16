@@ -5,6 +5,19 @@ const INVESTIGATION_CASES={
  vision:{member:'equipment',notes:['接続元は商店街。映像を提供する人の氏名欄は空欄。','傘の輪郭に、機材の欠損では説明できない形がある。','接続先の人々の顔が、同じ方向へ向いている。操作者の位置は送信していない。','衣服は歩行中の形を保っている。着用者に相当する部分だけが見えない。'],testimony:['接続先は一台です。でも切断の返事は、毎回二つ来ます。','あの形、レンズの傷ではありません。電源を切ったモニタにも残るんです。','こちらの位置は送っていません。向こうが向きを合わせたとしか、記録できない。','通信量は減っていません。見えない部分の情報も、まだ届いています。']},
  dash:{member:'equipment',notes:['雨上がりの県道。対向車も歩行者も記録されていない。','道路とカーブミラーで、光源の時間帯が一致しない。','位置情報は進んでいるが、路面の特徴が以前の記録と一致する。','横断者に接近した記録がない。同じ距離のまま、複数のフレームに写る。'],testimony:['この車、保管庫にあるはずです。走行履歴だけ先に届きます。','ミラーの時刻が正しいのかもしれません。車内の時計は、確認しなくていい。','位置情報は戻っていません。同じ場所が、先回りしていることになります。','停車信号は送れます。でも、止まったという返事だけは来ないんです。']}
 };
+// A second, acquired-only reading changes the meaning of the first testimony.
+// Derived from existing evidence; no extra rewards, RNG, or save migration.
+const INVESTIGATION_RECHECK={
+ cctv:['入園者はゼロ。退園者だけが記録されている。なら、誰が門を開けたのか。','点検票の時刻は映像と一致する。停止していたのは、風速計ではなく時計かもしれない。','退園者の欄に人数はある。氏名欄は、最初から設けられていなかった。','整列した跡は四つ。次の点検では、砂場の数だけが報告されている。'],
+ photo:['撮影者の席がない。撮影者が席を離れた記録もない。','食器の音がした時刻には、もう撮影は終わっている。','四人目の席ではなく、誰かが一人分を余分に数えた可能性が残る。','反射を消した修正版にも、窓の内側の輪郭だけが残っている。'],
+ vision:['切断の返答は二つ。片方の送信元は、こちらの端末番号になっている。','電源を切った画面に残った輪郭は、次の接続でも同じ位置だった。','送信していない位置情報を、向こうの記録が先に持っている。','空白になった衣服の内側に、通信の欠損は記録されていない。'],
+ dash:['走行履歴の最初の時刻は、保管庫への返却よりも古い。','ミラーの時刻と車内時計は違う。どちらも点検記録では正常だ。','道路は進んでいる。距離計だけが、同じ区間をもう一度数えている。','停車信号への返事は届いた。返事の送信時刻は、信号より前だった。']
+};
+function investigationRecheckLine(key,read,discussed){
+ if(!read?.[key]||!discussed?.[key])return null;
+ if(typeof key!=='string'||! /^(cctv|photo|vision|dash):[0-3]$/.test(key))return null;
+ const [mode,r]=key.split(':');return INVESTIGATION_RECHECK[mode][Number(r)];
+}
 function investigationState(){
  const o=observationState();let s=o.investigation;if(!s||typeof s!=='object'||Array.isArray(s))s=o.investigation={};
  for(const k of ['read','discussed'])if(!s[k]||typeof s[k]!=='object'||Array.isArray(s[k]))s[k]={};
@@ -36,8 +49,8 @@ function investigationHome(){
 function investigationMemo(mode,rarity){
  const key=mode+':'+rarity,r=investigationRecord(key);if(!r)return '';
  const s=investigationState();s.read[key]=true;s.lastRead=key;markDirty();save();
- const member=WATCH_COLLEAGUES[r.data.member];
- return `<div class="investigation-memo"><p>${r.data.notes[rarity]}</p>${s.discussed[key]?'<p class="investigation-discrepancy">追記：証言と映像の説明が一致しない。原本は訂正されていない。</p>':''}<button class="watch-choice" data-trail="witness" data-key="${key}">${member.name}にこの記録を尋ねる</button><button class="btn-line" data-trail="album">観測資料の一覧へ</button>${typeof legendObservationLinks==='function'?legendObservationLinks(mode):''}</div>`;
+ const member=WATCH_COLLEAGUES[r.data.member],recheck=investigationRecheckLine(key,s.read,s.discussed);
+ return `<div class="investigation-memo"><p>${r.data.notes[rarity]}</p>${recheck?'<p class="investigation-discrepancy">再照合：'+recheck+'</p>':''}<button class="watch-choice" data-trail="witness" data-key="${key}">${member.name}にこの記録を尋ねる</button><button class="btn-line" data-trail="album">観測資料の一覧へ</button>${typeof legendObservationLinks==='function'?legendObservationLinks(mode):''}</div>`;
 }
 function investigationWitness(key){
  const r=investigationRecord(key),s=investigationState();if(!r||!s.read[key])return;
