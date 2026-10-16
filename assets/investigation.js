@@ -36,6 +36,19 @@ function investigationConfrontCue(member,confronted){
  const n=Object.keys(confronted||{}).filter(k=>confronted[k]===true&&/^(cctv|photo|vision|dash):[0-3]$/.test(k)&&INVESTIGATION_CASES[k.split(':')[0]].member===member).length;
  return INVESTIGATION_CONFRONT_CUES[Math.min(n,INVESTIGATION_CONFRONT_CUES.length-1)];
 }
+// Saved testimony history for one colleague: only acquired, read and discussed records.
+function investigationTestimonyLog(member,o,s){
+ const out=[];
+ for(const [mode,c] of Object.entries(INVESTIGATION_CASES)){
+  if(c.member!==member)continue;
+  for(let r=0;r<4;r++){
+   const key=mode+':'+r;
+   if(!o?.collection?.[key]||!s?.read?.[key]||!s?.discussed?.[key])continue;
+   out.push({key,mode,rarity:r,testimony:c.testimony[r],confront:investigationConfrontLine(key,s.read,s.discussed,s.confronted)});
+  }
+ }
+ return out;
+}
 function investigationState(){
  const o=observationState();let s=o.investigation;if(!s||typeof s!=='object'||Array.isArray(s))s=o.investigation={};
  for(const k of ['read','discussed','confronted'])if(!s[k]||typeof s[k]!=='object'||Array.isArray(s[k]))s[k]={};

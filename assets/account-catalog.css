@@ -112,3 +112,10 @@
 .witness-recheck-trail section small{font:12px/1.6 var(--f-mono);color:#c5b69b}
 .witness-recheck-trail section p,.witness-recheck-trail>p{font:14px/1.85 var(--f-body);color:#d4c8b6}
 .witness-recheck-trail button{min-height:48px}
+
+/* Colleague testimony history: plain archive notes, no stamps over text. */
+.testimony-log{margin:18px 0;border-block:1px solid #5d5b4b;padding:4px 0}
+.testimony-log>summary{cursor:pointer;min-height:48px;padding:12px 4px;font-size:14px;line-height:1.55;color:#e0d4bd}
+.testimony-entry{margin:10px 0 14px}.testimony-entry>small{display:block;font-size:12px;color:#a9a58f;line-height:1.6}
+.testimony-entry blockquote{margin:6px 0}
+.testimony-annotation{margin:6px 0;font-size:13px;line-height:1.7;color:#c9a98c}

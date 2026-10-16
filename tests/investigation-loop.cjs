@@ -36,6 +36,10 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  await p.keyboard.press('Escape');await p.reload();
  if(process.env.QA_FONT){await p.addStyleTag({content:"@font-face{font-family:QAJP;src:url('/font.otf')} :root{--f-body:QAJP;--f-display:QAJP;--f-mono:QAJP;--f-hand:QAJP}"});await p.evaluate(()=>document.fonts.load('16px QAJP'));}
  assert(await p.evaluate(()=>S.observation.investigation.discussed['cctv:1']));assert(await p.evaluate(()=>S.observation.investigation.confronted['cctv:1']));assert(await p.evaluate(()=>S.observation.mind.closed));assert.equal(await p.evaluate(()=>S.currency),before+89);
+ // People catalog keeps a re-readable testimony history with the post-confrontation correction.
+ await p.evaluate(()=>{openEncyclopedia('people');openCatalogEntry('records');});await p.locator('.testimony-log summary').click();
+ {const log=await p.locator('.testimony-log').innerText();assert(log.includes(line)&&log.includes(confront)&&log.includes('照会後の訂正'));assert(!log.includes('撮影者'),'no other colleague or unheard record');}
+ await p.evaluate(()=>{hideSheet();go('home');setHomeTab('desk');renderObservation();});
  assert.equal(await p.evaluate(()=>investigationRecord('photo:3')),null);assert.equal(await p.evaluate(()=>investigationRecord('__proto__')),null);
  await p.evaluate(()=>{showWatchRecord('photo',3);});assert(await p.locator('#sheet-bg').isHidden(),'unseen record stays hidden');
  await p.locator('#obs-rest').click();assert(!(await p.evaluate(()=>S.observation.mind.closed)));
