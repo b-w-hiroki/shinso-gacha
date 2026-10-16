@@ -20,6 +20,7 @@ jobs:
       - run: node tests/documentation-contract.cjs
       - run: node --test tests/dev-resume.cjs
       - run: node tests/github-workflow-pilot.cjs
+      - run: node tests/colleague-asset-contract.cjs
       - run: node tests/clearance-risk.cjs
       - run: node tests/personnel-discrepancies-model.cjs
       - run: node tests/incursion-rarity.cjs
