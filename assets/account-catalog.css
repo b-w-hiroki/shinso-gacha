@@ -17,7 +17,12 @@
 .witness-card{display:grid;grid-template-columns:minmax(96px,31%) minmax(0,1fr);gap:14px;align-items:start;margin:14px 0 20px}
 .witness-photo{position:relative;display:flex;min-height:175px;flex-direction:column;align-items:center;justify-content:space-between;padding:13px 7px;border:1px solid #77715f;background:linear-gradient(150deg,#32342b,#101411 74%);color:#b7ab92;text-align:center;letter-spacing:.1em}
 .witness-photo>span{font-size:11px}.witness-photo>small{font-size:11px;color:#d8cbb2}
-.witness-photo i{display:block;width:61%;height:68px;border:1px solid #5b5b50;border-top-color:#817968;opacity:.7;transform:skewY(-4deg)}
+/* The ledger has no portrait, yet a figure averaged from the three colleagues shows through.
+   It grows clearer with each compared case (data-presence 1-3); no name or face is revealed. */
+.witness-photo{overflow:hidden;isolation:isolate}
+.witness-photo img{position:absolute;inset:0;z-index:-1;width:100%;height:100%;object-fit:cover;object-position:50% 30%;opacity:.5;filter:grayscale(.35) contrast(1.1) brightness(1.15)}
+.witness-photo[data-presence="2"] img{opacity:.68}.witness-photo[data-presence="3"] img{opacity:.86}
+.witness-photo>span,.witness-photo>small{position:relative;padding:1px 5px;background:rgba(16,20,17,.62)}
 .witness-identity{min-width:0}.witness-identity h2{font-size:19px;line-height:1.45;margin:0 0 12px}.witness-identity p{font-size:13px;line-height:1.8;margin:5px 0;color:#cbc5b6}
 .witness-lead{border-left:2px solid #86775b;padding:5px 0 5px 13px;font-size:14px;line-height:1.9}
 .witness-record,.witness-forecast{border-top:1px solid #555448;padding-top:12px;margin:18px 0;line-height:1.8}

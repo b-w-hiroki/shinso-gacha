@@ -60,7 +60,7 @@ function openWitnessDossier(id){
  sheet('人物図鑑・人事記録',`<article class="catalog-detail witness-dossier">
   <small>第六文書課 ／ 人事台帳 照会不一致</small>
   <header class="witness-card">
-   <div class="witness-photo" role="img" aria-label="肖像写真の登録がない台帳"><span>肖像欄</span><i aria-hidden="true"></i><small>該当なし</small></div>
+   <div class="witness-photo" role="img" aria-label="肖像写真の登録がない台帳" data-presence="${Math.min(records.length,3)}"><img src="assets/colleagues/unregistered.webp" alt="" width="512" height="683" decoding="async"><span>肖像欄</span><small>該当なし</small></div>
    <div class="witness-identity"><h2>登録のない立会人</h2><p>所属：照会できません</p><p>氏名：記載がありません</p><p>在籍記録：なし</p></div>
   </header>
   <p class="witness-lead">人員台帳に記録はない。けれど、この人物の立会印を押した事件がある。</p>
@@ -135,6 +135,8 @@ function openCatalogEntry(id){
  if(encyclopediaTab==='people'){
   if(id.startsWith('personnel:'))return openPersonnelDossier(id.slice('personnel:'.length));
   if(id==='ghost:registry'){const first=witnessRegistryRecords()[0];if(first)return openWitnessDossier(first.id);return;}
+  // An unmet colleague's portrait, name and evidence links stay out of the DOM.
+  if(!Object.hasOwn(WATCH_COLLEAGUES,id)||watchContacts()[id]!==true)return;
   const m=WATCH_COLLEAGUES[id],o=observationState();
   const records=Object.entries(INVESTIGATION_CASES).flatMap(([mode,c])=>c.member===id?[0,1,2,3].filter(r=>o.collection[mode+':'+r]>0).map(r=>({mode,r})):[]);
   const incidents=Object.keys(S.incursion?.discovered||{}).map(Number).filter(k=>S.incursion.discovered[k]===true&&INCURSIONS[k]&&incursionWitnessMember(k).id===id);

@@ -22,7 +22,12 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
   assert.equal(await p.locator('.witness-editions').count(),0,'conflicting editions require acquired other cases and clearance');
   assert.equal(await p.locator('.witness-personnel').count(),0,'independent personnel testimony has not been confirmed');
   assert(await p.locator('.witness-photo').isVisible(),'deliberately missing portrait renders without a broken image');
-  assert.equal(await p.locator('.witness-dossier img').count(),0);
+  // Only the shared unregistered silhouette, decorative and fully loaded; no case or real-person image.
+  assert.equal(await p.locator('.witness-dossier img').count(),1);
+  assert.equal(await p.locator('.witness-photo img').getAttribute('alt'),'');
+  assert.equal(await p.locator('.witness-photo img').getAttribute('src'),'assets/colleagues/unregistered.webp');
+  assert(await p.locator('.witness-photo img').evaluate(e=>e.complete&&e.naturalWidth===512),'silhouette loads');
+  assert.equal(await p.locator('.witness-photo').getAttribute('data-presence'),'1','one compared case keeps the figure faint');
   assert((await p.locator('.witness-dossier').innerText()).includes('巡回票'));
   assert(!(await p.locator('.witness-dossier').innerText()).includes('列車に乗っていない'));
   assert.equal(await p.locator('[data-witness-case]').count(),0,'other case remains hidden');
@@ -68,7 +73,8 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
   await p.setViewportSize({width:390,height:844});
   await p.locator('.witness-revisions').scrollIntoViewIfNeeded();
   if(!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/witness-revisions-390.jpg',quality:85});
-  assert.equal(await p.locator('.witness-dossier img').count(),0,'no fabricated missing-person portrait leaks');
+  assert.deepEqual(await p.locator('.witness-dossier img').evaluateAll(xs=>xs.map(x=>x.getAttribute('src'))),['assets/colleagues/unregistered.webp'],'no fabricated missing-person portrait leaks beyond the shared faceless silhouette');
+  assert.equal(await p.locator('.witness-photo').getAttribute('data-presence'),'2','the figure grows clearer with compared cases');
   // Actual confirmation click, then two-way navigation; no hidden record leaks.
   await p.evaluate(()=>{
    for(const staffId of PersonnelDiscrepancies.STAFF)
