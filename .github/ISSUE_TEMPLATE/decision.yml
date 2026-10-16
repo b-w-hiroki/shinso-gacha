@@ -1,0 +1,61 @@
+name: "Decision｜ユーザー判断・設計選択"
+description: "選択肢、推奨、決定と理由をチャット外に確定"
+title: "[Decision] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        現状が未決定ならNeeds Decision扱い。AIは人の承認を代行しません。
+        公開Issueに未公開ストーリー/秘密情報を掲載しないでください。
+  - type: textarea
+    id: question
+    attributes:
+      label: 決めたいこと・その理由
+      description: どの依存タスクを解除するための判断か
+    validations:
+      required: true
+  - type: textarea
+    id: choices
+    attributes:
+      label: 選択肢・メリット・リスク
+      placeholder: |
+        A: ...（利点/欠点）
+        B: ...（利点/欠点）
+    validations:
+      required: true
+  - type: textarea
+    id: recommendation
+    attributes:
+      label: AI推奨・根拠
+      description: 情報が足りない場合は未評価と明記
+  - type: dropdown
+    id: decision_owner
+    attributes:
+      label: 決定者
+      options:
+        - User
+        - AI（既存仕様と権限内）
+        - 外部
+    validations:
+      required: true
+  - type: dropdown
+    id: status
+    attributes:
+      label: Decision状態
+      options:
+        - pending
+        - accepted
+        - rejected
+        - deferred
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: 採用案・理由・決定日時
+      description: 決定後に編集して記録。pending中は空欄でよい
+  - type: textarea
+    id: related
+    attributes:
+      label: 影響先のTask・ADR・PR
+      placeholder: "Refs #..."
