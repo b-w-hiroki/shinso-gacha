@@ -46,10 +46,10 @@ def graded_night(original: Image.Image, mode: str) -> Image.Image:
     image = original.convert("RGB")
     image = ImageEnhance.Color(image).enhance(.42 if mode == "dash" else .29)
     image = ImageEnhance.Contrast(image).enhance(1.07)
-    image = ImageEnhance.Brightness(image).enhance(.30 if mode == "dash" else .34)
+    image = ImageEnhance.Brightness(image).enhance(.48 if mode == "dash" else .54)
     # Bluish-green twilight film tone, no fake light sources baked into baseline.
     tint = Image.new("RGB", SIZE, (14, 35, 49))
-    image = Image.blend(image, tint, .21 if mode == "dash" else .24)
+    image = Image.blend(image, tint, .15 if mode == "dash" else .18)
     # Vignetting is an independent, non-destructive atmosphere pass.
     vignette = Image.new("L", SIZE, 0)
     data = vignette.load()
@@ -57,7 +57,7 @@ def graded_night(original: Image.Image, mode: str) -> Image.Image:
         ny = (y - SIZE[1] * .48) / (SIZE[1] * .70)
         for x in range(SIZE[0]):
             nx = (x - SIZE[0] * .5) / (SIZE[0] * .85)
-            data[x, y] = max(0, min(130, round(99 * (nx * nx + ny * ny))))
+            data[x, y] = max(0, min(90, round(64 * (nx * nx + ny * ny))))
     image.paste(Image.new("RGB", SIZE, (5, 12, 16)), (0, 0), vignette)
     return image
 
@@ -120,8 +120,8 @@ def anomalies(mode: str, rarity: int) -> Image.Image:
     x, y = at(*TARGETS[mode][rarity - 1])
     if mode == "dash":
         if rarity == 1:
-            paint_shape(layer, (192, 202, 197), ellipse_mask(x, y, 18, 66, 100, 20))
-            paint_shape(layer, (4, 14, 16), ellipse_mask(x, y + 20, 11, 50, 86, 9))
+            paint_shape(layer, (192, 202, 197), ellipse_mask(x, y, 22, 72, 135, 18))
+            paint_shape(layer, (4, 14, 16), ellipse_mask(x, y + 20, 12, 56, 106, 9))
         elif rarity == 2:
             for dx in (-27, 27):
                 paint_shape(layer, (187, 213, 211), ellipse_mask(x + dx, y, 11, 8, 145, 7))
@@ -131,7 +131,7 @@ def anomalies(mode: str, rarity: int) -> Image.Image:
             paint_shape(layer, (112, 142, 147), ellipse_mask(x + 5, y + 44, 12, 68, 32, 15))
     else:
         if rarity == 1:
-            paint_shape(layer, (5, 12, 18), ellipse_mask(x, y + 18, 52, 92, 133, 17))
+            paint_shape(layer, (5, 12, 18), ellipse_mask(x, y + 18, 58, 101, 161, 17))
             paint_shape(layer, (13, 18, 23), ellipse_mask(x, y - 45, 19, 27, 72, 9))
         elif rarity == 2:
             paint_shape(layer, (7, 14, 19), ellipse_mask(x, y, 49, 25, 148, 8))
