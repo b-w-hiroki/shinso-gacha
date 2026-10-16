@@ -39,8 +39,21 @@ for(const mode of modes){
  assert(data.length<=2*1024*1024,'unexpectedly large observation site: '+scene.file);
  const src=sourceManifest.sources.find(s=>s.mode===mode),provenance=report.find(r=>r.mode===mode);
  assert(src&&provenance&&src.file===scene.file&&provenance.output===scene.file);
- assert(src.license==='CC0-1.0'&&/^https:\/\/commons.wikimedia.org\/wiki\/File:/.test(src.source),'license proof required');
- assert(provenance.license==='CC0-1.0'&&provenance.source===src.source&&provenance.bytes===data.length);
+ const isGenerated=src.license==='AI-generated-original';
+ if(isGenerated){
+  assert(['dash','photo'].includes(mode),'generated replacements are limited to reviewed scopes');
+  assert(/^generated:\/\/openai\/imagegen\/[0-9a-f-]{36}$/.test(src.source),'image generation provenance required');
+  assert(/^[0-9a-f]{64}$/.test(src.original_sha256),'original photo SHA is required');
+  assert(/^[0-9a-f-]{36}$/.test(src.generation_id),'image generation ID missing');
+  assert.equal(provenance.generation_id,src.generation_id);
+  assert.equal(provenance.original_sha256,src.original_sha256);
+ }else{
+  assert(src.license==='CC0-1.0'&&
+   /^https:\/\/commons.wikimedia.org\/wiki\/File:/.test(src.source),'CC0 proof required');
+ }
+ assert.equal(provenance.license,src.license,'source/provenance license mismatch');
+ assert.equal(provenance.source,src.source,'source/provenance reference mismatch');
+ assert.equal(provenance.bytes,data.length);
  assert(provenance.sha256===crypto.createHash('sha256').update(data).digest('hex'),'source output does not match reviewed art manifest');
  result.push({id:scene.id,file:scene.file,width,height,bytes:data.length,source:src.source});
 }
