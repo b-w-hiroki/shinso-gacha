@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const SHA = /^[0-9a-f]{40}$/;
 const REPO = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
+const MONITORING_LABELS = new Set(['status:monitoring', 'autopilot:monitoring']);
 const STOP = new Set(['autopilot:blocked', 'human-required', 'production-only',
   'security-review', 'do-not-automate']);
 const CLOSES = /\b(?:close[sd]?|fix(?:es|ed)?|resolve[sd]?)\s+#(\d+)\b/gi;
@@ -57,6 +58,7 @@ export function chooseWork(issues, pulls, repo) {
     .sort((a,b) => rank(a) - rank(b) || a.number - b.number);
   const decisions = sorted.filter(isDecision);
   const epics = sorted.filter(isEpic);
+  const monitoring = sorted.filter(x => labels(x).some(l => MONITORING_LABELS.has(l)));
   const human = sorted.filter(x => labels(x).some(l => STOP.has(l)) ||
     /(本番Firebase|iPhone実機|物理端末)/i.test(x.title || ''));
   // Open Decision and epic Issues are context, never an AI implementation task.
@@ -66,7 +68,8 @@ export function chooseWork(issues, pulls, repo) {
     requiredDecisions(x).some(n => pendingNumbers.has(n)));
   const candidate = sorted.filter(x => !human.includes(x) &&
     !decisions.includes(x) && !epics.includes(x) &&
-    !decisionBlocked.includes(x) && !claimed.has(x.number));
+    !decisionBlocked.includes(x) && !monitoring.includes(x) &&
+    !claimed.has(x.number));
   const opted = candidate.find(x => labels(x).includes('autopilot:ready') &&
     labels(x).some(l => /^priority:p[012]$/.test(l)) && DONE.test(x.body || ''));
   return {
@@ -74,6 +77,7 @@ export function chooseWork(issues, pulls, repo) {
     selected: opted ? publicIssue(opted, repo) : null,
     suggested: candidate.slice(0, 5).map(x => publicIssue(x, repo)),
     human_required: human.slice(0, 10).map(x => publicIssue(x, repo)),
+    monitoring: monitoring.slice(0, 15).map(x => publicIssue(x, repo)),
     decisions_pending: decisions.slice(0, 15).map(x => publicIssue(x, repo)),
     blocked_by_decision: decisionBlocked.slice(0, 15).map(x => ({
       ...publicIssue(x, repo),
