@@ -68,6 +68,18 @@ const log=context.investigationTestimonyLog('records',
 assert.equal(log.map(x=>x.key).join(),'cctv:1,cctv:2','history lists only this colleague’s heard testimony');
 assert.equal(log[0].confront,null);assert.equal(typeof log[1].confront,'string');
 assert.equal(context.investigationTestimonyLog('records',{collection:{'cctv:1':false}},{read:{'cctv:1':true},discussed:{'cctv:1':true}}).length,0,'uncollected testimony never leaks');
+// Superior who does not exist.
+const three={confronted:{'cctv:0':true,'photo:1':true,'dash:2':true}};
+assert.equal(context.investigationSuperiorEarned({confronted:{'cctv:0':true,'photo:1':true}}),false,'needs three confrontations');
+assert.equal(context.investigationSuperiorEarned({confronted:{'cctv:0':true,'photo:1':true,'x:9':true,'dash:2':'true'}}),false,'invalid keys and string flags do not count');
+assert.equal(context.investigationSuperiorEarned(three),true);
+assert.equal(context.investigationSuperiorTopic('records',three,false),'','unread memo keeps the topic hidden');
+assert(context.investigationSuperiorTopic('records',three,true).includes('data-topic="superior"'));
+assert.equal(context.investigationSuperiorTopic('records',{...three,superior:{records:true}},true),'','asked once');
+assert.equal(context.investigationSuperiorTopic('__proto__',three,true),'');
+assert.equal(context.investigationSuperiorDenied({...three,superior:{records:true,equipment:true}}),false);
+assert.equal(context.investigationSuperiorDenied({...three,superior:{records:true,equipment:true,senior:true}}),true);
+assert.equal(context.investigationSuperiorDenied({superior:{records:true,equipment:true,senior:true}}),false,'stale denial without earned evidence');
 assert(source.includes('data-trail="confront"'),'record should offer the confrontation');
 
 console.log('16 unique acquired-only second-pass contradictions and 16 earned-only confrontations.');

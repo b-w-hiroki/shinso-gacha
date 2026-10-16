@@ -62,6 +62,12 @@ for(const id of LegendModel.ids)GAME_MAIL.push({
  body:'資料に残された余白を調べてください。受領印の筆跡は、あなたの記録に似ています。',
  reward:0,when:()=>!isLite()&&!!UncannyArchive.events(id,LegendModel.count(S.levels,id),LegendLayers.status(LegendLayers.normalize(S.legendLayers,S.levels,LegendModel.CASES),id,S.levels,LegendModel.CASES,observationState().collection,S.incursion?.discovered,incursionProfile,LegendModel.state(S.legends,S.levels).testified),Object.hasOwn(LegendModel.state(S.legends,S.levels).conclusions,id))?.letter
 });
+// The sender becomes unregistered once all three colleagues deny the post exists.
+GAME_MAIL.push({id:SUPERIOR_MAIL,title:'再照合の件',reward:0,
+ get from(){return investigationSuperiorDenied(observationState().investigation)?'差出人：該当する職員なし':'第六文書課 課長';},
+ get body(){return '再照合の結果は受け取りました。課員にはもう伝えなくて結構です。あなたの報告は、私が直接読みます。'+(investigationSuperiorDenied(observationState().investigation)?'<br><br>送信記録：この連絡は、あなたの端末から送信されています。':'');},
+ when:()=>!isLite()&&investigationSuperiorEarned(observationState().investigation)
+});
 function menuState(){
  if(!S.communications||typeof S.communications!=='object')S.communications={};
  const c=S.communications;if(!Array.isArray(c.readNotices))c.readNotices=[];

@@ -49,6 +49,31 @@ function investigationTestimonyLog(member,o,s){
  }
  return out;
 }
+// A superior who does not exist: earned by three confrontations, denied by all three colleagues.
+// Read-only for points/RNG; saved as investigation.superior[member]===true.
+const SUPERIOR_MAIL='superior-memo';
+const SUPERIOR_LINES={
+ records:'この課に課長職はありません。決裁欄はいつも空いています。……あなたの欄の、ひとつ上だけ。',
+ equipment:'課長席の内線は、設置したことがありません。でもその番号から、毎晩一回だけ着信があります。',
+ senior:'課長、か。昔そう呼ばれていた人がいた気がする。思い出そうとすると、その人の席に俺が座っている。'
+};
+function investigationSuperiorEarned(s){
+ return Object.keys(s?.confronted||{}).filter(k=>s.confronted[k]===true&&/^(cctv|photo|vision|dash):[0-3]$/.test(k)).length>=3;
+}
+function investigationSuperiorDenied(s){
+ return investigationSuperiorEarned(s)&&Object.keys(SUPERIOR_LINES).every(id=>s?.superior?.[id]===true);
+}
+function investigationSuperiorTopic(id,s,mailRead){
+ return Object.hasOwn(SUPERIOR_LINES,id)&&mailRead===true&&investigationSuperiorEarned(s)&&s?.superior?.[id]!==true
+  ?'<button class="watch-choice" data-watch-talk="'+id+'" data-topic="superior">課長からの連絡について聞く</button>':'';
+}
+function investigationSuperior(id){
+ const s=investigationState(),mail=S.communications?.mail?.[SUPERIOR_MAIL];
+ if(!Object.hasOwn(SUPERIOR_LINES,id)||mail?.read!==true||!investigationSuperiorEarned(s))return null;
+ if(!s.superior||typeof s.superior!=='object'||Array.isArray(s.superior))s.superior={};
+ if(s.superior[id]!==true){s.superior[id]=true;markDirty();save();}
+ return SUPERIOR_LINES[id];
+}
 function investigationState(){
  const o=observationState();let s=o.investigation;if(!s||typeof s!=='object'||Array.isArray(s))s=o.investigation={};
  for(const k of ['read','discussed','confronted'])if(!s[k]||typeof s[k]!=='object'||Array.isArray(s[k]))s[k]={};
@@ -117,7 +142,7 @@ function investigationConfrontation(id){
  return {line:INVESTIGATION_CONFRONT[r.mode][r.rarity],cue};
 }
 function investigationTopic(id){
- const s=investigationState(),r=investigationRecord(s.lastRead);return r&&s.read[r.key]&&r.data.member===id?'<button class="watch-choice" data-trail="witness" data-key="'+r.key+'">「'+OBSERVATIONS[r.mode].records[r.rarity]+'」について聞く</button>':'';
+ const s=investigationState(),r=investigationRecord(s.lastRead),boss=investigationSuperiorTopic(id,s,S.communications?.mail?.[SUPERIOR_MAIL]?.read);return boss+(r&&s.read[r.key]&&r.data.member===id?'<button class="watch-choice" data-trail="witness" data-key="'+r.key+'">「'+OBSERVATIONS[r.mode].records[r.rarity]+'」について聞く</button>':'');
 }
 function investigationReturn(id){
  const s=investigationState(),r=investigationRecord(s.lastRead);return r&&s.read[r.key]&&r.data.member===id?'<button class="btn-line investigation-return" data-trail="record" data-key="'+r.key+'">記録へ戻って照合する</button>':'';

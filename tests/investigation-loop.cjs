@@ -40,6 +40,21 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  await p.evaluate(()=>{openEncyclopedia('people');openCatalogEntry('records');});await p.locator('.testimony-log summary').click();
  {const log=await p.locator('.testimony-log').innerText();assert(log.includes(line)&&log.includes(confront)&&log.includes('照会後の訂正'));assert(!log.includes('撮影者'),'no other colleague or unheard record');}
  await p.evaluate(()=>{hideSheet();go('home');setHomeTab('desk');renderObservation();});
+ // Three confrontations deliver a memo from a superior whom all three colleagues deny.
+ await p.evaluate(()=>{const o=observationState();for(const k of ['cctv:0','cctv:2','photo:0']){o.collection[k]=1;o.investigation.read[k]=true;o.investigation.discussed[k]=true;o.investigation.confronted[k]=true;}});
+ const wallet=await p.evaluate(()=>S.currency);
+ assert.equal(await p.evaluate(()=>{renderMenuBadge();return S.communications.mail['superior-memo']&&GAME_MAIL.find(m=>m.id==='superior-memo').from;}),'第六文書課 課長');
+ await p.evaluate(()=>observationConversation('records'));assert.equal(await p.locator('[data-topic="superior"]').count(),0,'unread memo hides the topic');
+ await p.evaluate(()=>{S.communications.mail['superior-memo'].read=true;});
+ for(const id of ['records','equipment','senior']){
+  await p.evaluate(id=>observationConversation(id),id);if(!(await p.locator('[data-topic="superior"]').count()))await p.locator('[data-watch-next]').click();await p.locator('[data-topic="superior"]').click();
+  assert((await p.locator('.watch-selected-topic').innerText()).includes('課長'));assert((await p.locator('.watch-conversation blockquote').innerText()).length>30);
+  await p.locator('[data-watch-next]').click();assert.equal(await p.locator('[data-topic="superior"]').count(),0,'asked once');
+ }
+ assert.equal(await p.evaluate(()=>GAME_MAIL.find(m=>m.id==='superior-memo').from),'差出人：該当する職員なし');
+ assert(await p.evaluate(()=>GAME_MAIL.find(m=>m.id==='superior-memo').body.includes('あなたの端末')));
+ assert.equal(await p.evaluate(()=>S.currency),wallet,'no points for the memo or denials');
+ await p.evaluate(()=>{watchLeaveConversation();});
  assert.equal(await p.evaluate(()=>investigationRecord('photo:3')),null);assert.equal(await p.evaluate(()=>investigationRecord('__proto__')),null);
  await p.evaluate(()=>{showWatchRecord('photo',3);});assert(await p.locator('#sheet-bg').isHidden(),'unseen record stays hidden');
  await p.locator('#obs-rest').click();assert(!(await p.evaluate(()=>S.observation.mind.closed)));

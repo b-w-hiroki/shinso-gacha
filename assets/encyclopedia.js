@@ -30,6 +30,7 @@ function openEncyclopedia(tab=encyclopediaTab){
 function catalogTestimonyLog(id,m,o){
  const s=o.investigation||{},records=investigationTestimonyLog(id,o,s);
  const topics=Object.entries(WATCH_TOPICS).flatMap(([topic,label])=>{const n=Math.max(0,Math.floor(Number(o.mind?.dialogue?.[id+':'+topic])||0));return m[topic].slice(0,Math.min(n,m[topic].length)).map(line=>({label,line}));});
+ if(s.superior?.[id]===true&&Object.hasOwn(SUPERIOR_LINES,id))topics.push({label:'課長からの連絡について',line:SUPERIOR_LINES[id]});
  const total=records.length+records.filter(r=>r.confront).length+topics.length;
  if(!total)return '';
  const recordHTML=records.map(r=>'<section class="testimony-entry"><small>記録「'+escapeHTML(OBSERVATIONS[r.mode].records[r.rarity])+'」について</small><blockquote>'+escapeHTML(r.testimony)+'</blockquote>'+(r.confront?'<p class="testimony-annotation">照会後の訂正：本人は、この発言を記録していないと言っている。</p><small>再照合を伝えたとき</small><blockquote>'+escapeHTML(r.confront)+'</blockquote>':'')+'</section>').join('');
