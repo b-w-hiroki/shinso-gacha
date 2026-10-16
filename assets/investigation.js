@@ -37,12 +37,21 @@ function investigationGoal(){
  const missing=Object.keys(o.collection).filter(k=>!o.collection[k]).length;
  return missing?`未観測はあと${missing}種。重複記録は各地点48件で未発見の記録と照合できます。`:'全16種を保管済み。各地点の達成報酬と、同僚の証言を確かめられます。';
 }
+function investigationLatestRecheck(o,s){
+ // Read-only discovery: never expose uncollected evidence or award points.
+ return [...(Array.isArray(o.history)?o.history:[])].reverse()
+  .map(r=>r.mode+':'+r.rarity)
+  .find(key=>o.collection?.[key]&&s.read?.[key]&&s.discussed?.[key]&&investigationRecheckLine(key,s.read,s.discussed))
+  ||Object.keys(o.collection||{}).find(key=>o.collection[key]&&s.read?.[key]&&s.discussed?.[key]&&investigationRecheckLine(key,s.read,s.discussed))
+  ||null;
+}
 function investigationHome(){
  const o=observationState(),s=investigationState(),el=document.getElementById('obs-atmosphere');
  if(watchMessage||o.pending?.rarity||WatchModel.contamination(o)>0)return;
  if(!o.mind.closed&&watchLeadCopy(o))return;
  const key=investigationLatest(true);
  if(key)el.innerHTML='<button class="investigation-link" data-trail="latest">届いた観測資料を読む ›</button>';
+ else if(investigationLatestRecheck(o,s))el.innerHTML='<button class="investigation-link" data-trail="recheck">証言と資料を再照合する ›</button>';
  else if(o.mind.closed)el.textContent='回線は切れています。下の「観測を再開」で戻れます。';
  else if(!o.collected)el.innerHTML='<button class="investigation-link" data-trail="guide">観測のほかに、何ができる？ ›</button>';
 }
@@ -78,8 +87,11 @@ document.addEventListener('click',e=>{
  if(action==='guide')return openInvestigationGuide();
  if(action==='target')return observationTargetPicker();
  if(action==='witness')return investigationWitness(b.dataset.key);
- if(action==='record'||action==='latest'){
-  const key=action==='latest'?investigationLatest(true)||investigationLatest():b.dataset.key,r=investigationRecord(key);if(r)showWatchRecord(r.mode,r.rarity);return;
+ if(action==='record'||action==='latest'||action==='recheck'){
+  const key=action==='latest'?investigationLatest(true)||investigationLatest()
+   :action==='recheck'?investigationLatestRecheck(observationState(),investigationState())
+   :b.dataset.key;
+  const r=investigationRecord(key);if(r)showWatchRecord(r.mode,r.rarity);return;
  }
  hideSheet();
  if(action==='album'){go('archive');setSectionTab('archive:observations');renderObservationAlbum();}
