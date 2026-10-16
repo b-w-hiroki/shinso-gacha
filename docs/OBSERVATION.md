@@ -103,7 +103,7 @@
 ## 2026-10-12 追加4地点のネイティブ写真
 
 - 本番ソースは `assets/observation/*-native.webp`、1440×720ピクセル、2:1。旧`*-upgraded.webp`はロールバック用の歴史的画像として残すが、現在の観測では使用しない。
-- 写真の作者・元資料・ライセンスは `docs/observation-native-sources.json`、画像SHA-256・生成時の原画サイズは `docs/qa-incursions/native-photo-source-report.json`。全素材はCC0の原写真を使ったものであり、生成AIで描かれた新画像ではない。
+- 写真の作者・元資料・ライセンスは `docs/observation-native-sources.json`、画像SHA-256・生成時の原画サイズは `docs/qa-incursions/native-photo-source-report.json`。CCTV・視界ジャックはCC0の原写真。車載（dash）・夜の教室（photo）は2026-10-17にOpenAIの組み込み画像生成で作った新原本（`AI-generated-original`、CC0ではない。生成IDと元画像SHAは台帳に記録）。
 - 平常と異変は同一のベース写真と12種の既存オーバーレイで構成。変化の位置と実際のタップ位置は `WatchLocations.targets` で維持する。レアリティは既存の4媒体を継承し、独立地点の発見履歴は `locationRecords` に保持する。
 - 参照写真の土地や実在の作者を、架空の物語の事件の現場であるかのように紹介しない。画像に看板等の現物文字がある場合も、操作用の文字はHTML上に置く。
 - ネイティブ解像度・再読込・差分・390×844スクショを確認。端末実機による発見しやすさ・背景との違和感評価は継続。
