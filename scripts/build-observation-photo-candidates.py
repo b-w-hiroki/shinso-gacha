@@ -78,48 +78,36 @@ def dash_from_legacy(file: Path) -> Image.Image:
 
 
 def download_classroom() -> tuple[Image.Image, dict]:
-    headers = {"User-Agent": "Mozilla/5.0 (compatible; birdman-studio-CC0-asset-audit/1.0)",
-               "Accept": "image/jpeg,image/*"}
-    # Wikimedia origin sometimes rate-limits GitHub hosted runners (HTTP 429).
-    # These are TWO distinct public delivery routes, not silent fixture fallback.
-    # When neither returns the genuine photo, stop the build and publish nothing.
-    routes = [
-        COMMONS_URL,
-        "https://wsrv.nl/?url=upload.wikimedia.org/wikipedia/commons/d/d1/Quiet_Before_the_Lesson.jpg&w=2048&output=jpg"
-    ]
-    failures = []
-    source = None
-    delivered_by = None
-    for url in routes:
-        try:
-            with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=40) as resp:
-                data = resp.read()
-            if len(data) < 100000:
-                raise ValueError("Source photograph unusually small")
-            with Image.open(io.BytesIO(data)) as check:
-                if check.width < 2000 or check.height < 1300:
-                    raise ValueError("Source photograph dimensions too small")
-            source, delivered_by = data, url
-            break
-        except (OSError, ValueError) as exc:
-            failures.append(str(type(exc).__name__) + ": " + str(exc)[:160])
-    if source is None:
-        raise RuntimeError("CC0 source unavailable via known routes: " + "; ".join(failures))
-    with Image.open(io.BytesIO(source)) as original:
-        w, h = original.size
-        if w < 2000 or h < 1300:
-            raise ValueError("Original classroom photo is not high resolution")
-        # Wide natural school-room photograph; no hallucinated objects added.
-        crop_h = round(w * SIZE[1] / SIZE[0])
-        top = round((h - crop_h) * .39)
-        top = max(0, min(h - crop_h, top))
-        room = original.crop((0, top, w, top + crop_h)).resize(SIZE, Image.Resampling.LANCZOS)
-    return graded_night(room, "photo"), {
-        "type": "external-photo", "author": "Yvanille", "license": "CC0-1.0",
-        "source": COMMONS_PAGE, "download": delivered_by,
-        "original_dimensions": [w, h], "original_sha256": sha(source)
-    }
+    """Render from a hash-pinned CC0-derived seed stored in this feature branch.
 
+    Original was downloaded once in successful run 38827900984 and its source
+    page/license was verified. An ephemeral third-party CDN is not an input.
+    The seed itself stays a separate, nonproduction original-derived WebP.
+    """
+    seed_path = ROOT / "assets/observation/candidate-sources/photo-room-cc0-graded-seed.webp"
+    if not seed_path.is_file():
+        raise FileNotFoundError("Pinned classroom candidate source missing; do not silently fall back")
+    seed = seed_path.read_bytes()
+    pinned = "492d17646afe750ffec4995c70a9148b98d9b13e9aa56c85aa5804f1aed8d087"
+    if sha(seed) != pinned:
+        raise ValueError("Pinned CC0-derived source has changed")
+    with Image.open(io.BytesIO(seed)) as raw:
+        if raw.size != SIZE:
+            raise ValueError("Pinned source must remain 1440x720")
+        # Retouch exposure of the first original-derived master; do not re-crop,
+        # download or repaint a different viewpoint for later rarity levels.
+        room = ImageEnhance.Brightness(raw.convert("RGB")).enhance(1.72)
+        room = ImageEnhance.Contrast(room).enhance(1.05)
+    return room, {
+        "type": "pinned-original-derived-photo",
+        "author": "Yvanille",
+        "license": "CC0-1.0",
+        "source": COMMONS_PAGE,
+        "seed_path": str(seed_path.relative_to(ROOT)),
+        "seed_sha256": pinned,
+        "seed_artifact_run": "38827900984",
+        "no_network_fetch": True
+    }
 
 def ellipse_mask(cx, cy, rx, ry, alpha, blur=12) -> Image.Image:
     mask = Image.new("L", SIZE)
