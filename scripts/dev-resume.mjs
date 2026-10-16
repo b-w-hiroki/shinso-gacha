@@ -12,6 +12,12 @@ const CLOSES = /\b(?:close[sd]?|fix(?:es|ed)?|resolve[sd]?)\s+#(\d+)\b/gi;
 const DONE = /^\s*[-*]\s*\[\s\]\s+\S/im;
 const DECISION_TITLE = /^\s*(?:\[Decision\]|\[判断\]|Decision\s*[:：])/i;
 const EPIC_TITLE = /(?:残タスク総覧|ロードマップ|総合エピック)/;
+// Only an explicit line creates a blocking dependency. Generic "Refs #" does not.
+const DECISION_DEPENDENCY = /^\\s*(?:Blocked by|Depends on)\\s+Decision\\s+#(\\d+)\\b/gim;
+function requiredDecisions(item) {
+  return [...String(item.body || '').matchAll(DECISION_DEPENDENCY)]
+    .map(match => Number(match[1])).filter(Number.isSafeInteger);
+}
 function isDecision(item) {
   return labels(item).includes('type:decision') || DECISION_TITLE.test(item.title || '');
 }
@@ -55,8 +61,12 @@ export function chooseWork(issues, pulls, repo) {
     /(本番Firebase|iPhone実機|物理端末)/i.test(x.title || ''));
   // Open Decision and epic Issues are context, never an AI implementation task.
   // An open Decision stays pending until the human's choice is recorded/closed.
+  const pendingNumbers = new Set(decisions.map(x => x.number));
+  const decisionBlocked = sorted.filter(x => !isDecision(x) && !isEpic(x) &&
+    requiredDecisions(x).some(n => pendingNumbers.has(n)));
   const candidate = sorted.filter(x => !human.includes(x) &&
-    !decisions.includes(x) && !epics.includes(x) && !claimed.has(x.number));
+    !decisions.includes(x) && !epics.includes(x) &&
+    !decisionBlocked.includes(x) && !claimed.has(x.number));
   const opted = candidate.find(x => labels(x).includes('autopilot:ready') &&
     labels(x).some(l => /^priority:p[012]$/.test(l)) && DONE.test(x.body || ''));
   return {
@@ -65,6 +75,10 @@ export function chooseWork(issues, pulls, repo) {
     suggested: candidate.slice(0, 5).map(x => publicIssue(x, repo)),
     human_required: human.slice(0, 10).map(x => publicIssue(x, repo)),
     decisions_pending: decisions.slice(0, 15).map(x => publicIssue(x, repo)),
+    blocked_by_decision: decisionBlocked.slice(0, 15).map(x => ({
+      ...publicIssue(x, repo),
+      pending_decisions: requiredDecisions(x).filter(n => pendingNumbers.has(n))
+    })),
     epic_context: epics.slice(0, 10).map(x => publicIssue(x, repo)),
     blocked_by_open_pr: [...claimed].filter(n => sorted.some(x => x.number === n)),
     execution_started: false, automatic_merge: false
