@@ -50,9 +50,13 @@
   return CASES.filter(c=>rank>=c.minRank).at(-1)||null;
  }
  function record(raw,rankIndex,staffId){
-  const state=normalize(raw),c=current(rankIndex);
-  if(!c||!STAFF.includes(staffId))return {state,fresh:false,caseId:null,line:''};
-  if(state.statements[c.id]?.[staffId])return {state,fresh:false,caseId:c.id,line:''};
+  const state=normalize(raw),latest=current(rankIndex);
+  if(!latest||!STAFF.includes(staffId))return {state,fresh:false,caseId:null,line:''};
+  // Rank advances must not permanently lock earlier personnel cases.
+  // Prefer the newest available case, then unfinished older cases for this staff member.
+  const c=CASES.filter(x=>x.minRank<=Math.max(0,Math.floor(Number(rankIndex)||0)))
+   .reverse().find(x=>!state.statements[x.id]?.[staffId]);
+  if(!c)return {state,fresh:false,caseId:latest.id,line:''};
   state.statements[c.id]={...(state.statements[c.id]||{}),[staffId]:true};
   return {state,fresh:true,caseId:c.id,line:c.lines[staffId]};
  }
