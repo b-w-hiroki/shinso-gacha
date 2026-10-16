@@ -13,7 +13,7 @@ const DONE = /^\s*[-*]\s*\[\s\]\s+\S/im;
 const DECISION_TITLE = /^\s*(?:\[Decision\]|\[判断\]|Decision\s*[:：])/i;
 const EPIC_TITLE = /(?:残タスク総覧|ロードマップ|総合エピック)/;
 // Only an explicit line creates a blocking dependency. Generic "Refs #" does not.
-const DECISION_DEPENDENCY = /^\\s*(?:Blocked by|Depends on)\\s+Decision\\s+#(\\d+)\\b/gim;
+const DECISION_DEPENDENCY = /^\s*(?:Blocked by|Depends on)\s+Decision\s+#(\d+)\b/gim;
 function requiredDecisions(item) {
   return [...String(item.body || '').matchAll(DECISION_DEPENDENCY)]
     .map(match => Number(match[1])).filter(Number.isSafeInteger);
