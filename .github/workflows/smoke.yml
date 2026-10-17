@@ -43,6 +43,7 @@ jobs:
       - run: node tests/player-seepage-model.cjs
       - run: node tests/action-forecast-model.cjs
       - run: node tests/observation-model.cjs
+      - run: node tests/wallet-income-model.cjs
       - run: node tests/observation-longterm.cjs
       - run: node tests/observation-location-model.cjs
       - run: node tests/observation-overlay-art.cjs
@@ -180,6 +181,12 @@ jobs:
       - run: node tests/information-ui.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/wallet-detail.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/evidence-variants.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/layout.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
@@ -253,6 +260,10 @@ jobs:
           QA_WEBKIT: 1
           QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/action-forecast.cjs
+        env:
+          QA_WEBKIT: 1
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/wallet-detail.cjs
         env:
           QA_WEBKIT: 1
           QA_FONT: ${{ runner.temp }}/noto.otf
