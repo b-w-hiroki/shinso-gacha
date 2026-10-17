@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-vT7YEP4SBdJksGuwcLtT6XgZ/npc7o7lozJsCpRDY5A=' https://www.gstatic.com/firebasejs/ https://cdn.jsdelivr.net/npm/budoux@0.9.3/ https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://shinso-gacha.firebaseapp.com; frame-src https://shinso-gacha.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-LOdElHLnuu1KDFXAuKLDROU5vbZhCZSgYRJN/yM4rzk=' https://www.gstatic.com/firebasejs/ https://cdn.jsdelivr.net/npm/budoux@0.9.3/ https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://shinso-gacha.firebaseapp.com; frame-src https://shinso-gacha.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>真相ガチャ</title>
@@ -1315,6 +1315,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 <script src="assets/player-seepage.js"></script>
 <script src="assets/action-forecast-model.js"></script>
 <script src="assets/action-forecast.js"></script>
+<script src="assets/wallet-income-model.js"></script>
 <script src="assets/menu.js"></script>
 <script src="assets/account.js"></script>
 <script src="assets/encyclopedia.js"></script>
@@ -3226,11 +3227,32 @@ $("lite-apply").addEventListener("click", startInterview);
 
 /* ---------- idle ---------- */
 const idleMult = () => (1 + .05 * rankIdx()) * (1 + .1 * upLv("radio"));
-function idleStep() { return (hour() === 2 ? 2500 : 5000) / idleMult(); }
+function idleStep() { return WalletIncome.stepMs(hour(), rankIdx(), upLv("radio")); }
+function walletIncome() { return WalletIncome.breakdown({ rankIdx:rankIdx(), radioLv:upLv("radio"), phoneLv:upLv("phone"), hour:hour(), now:Date.now(), lastTick:S.lastTick }); }
+function walletBreakdownHTML(b) {
+  const f = n => Math.round(n).toLocaleString("ja-JP");
+  return `<dl class="wallet-breakdown">
+    <div><dt>+1ptの間隔</dt><dd id="wallet-step">${WalletIncome.seconds(b.stepMs)}秒</dd></div>
+    <div><dt>次の獲得まで</dt><dd id="wallet-next">${WalletIncome.seconds(b.nextMs)}秒</dd></div>
+    <div><dt>1分あたり</dt><dd id="wallet-minute">約${f(b.perMinute)}pt</dd></div>
+    <div><dt>ランク補正（RANK ${b.rankNumber}）</dt><dd>×${b.rankMult.toFixed(2)}</dd></div>
+    <div><dt>設備補正（盗聴ラジオ Lv.${b.radioLv}）</dt><dd>×${b.gearMult.toFixed(2)}</dd></div>
+    <div><dt>丑三つ時（午前2時台）</dt><dd id="wallet-ushi">${b.ushi ? "いま ×" + b.ushiMult.toFixed(1) : "×" + (WalletIncome.BASE_MS / WalletIncome.USHI_MS).toFixed(1) + "（時間外）"}</dd></div>
+  </dl>`;
+}
 function openWalletDetail() {
   if(isLite())return;
-  const perHour=Math.round(3600000/idleStep());
-  sheet("疑念pt", `<div class="wallet-summary"><span>所持ポイント</span><strong id="wallet-current">${Math.floor(S.currency).toLocaleString('ja-JP')}pt</strong><p>封筒の開封に使います。</p><div><span>プレイ中の自動獲得</span><b id="wallet-hour">約${perHour.toLocaleString('ja-JP')}pt / 時間</b></div><p class="wallet-note">留守中も少しずつ貯まります（上限${2+upLv('phone')}時間）。</p></div>`);
+  const b = walletIncome();
+  sheet("疑念pt", `<div class="wallet-summary"><span>所持ポイント</span><strong id="wallet-current">${Math.floor(S.currency).toLocaleString('ja-JP')}pt</strong><p>封筒の開封に使います。</p><div><span>プレイ中の自動獲得</span><b id="wallet-hour">約${Math.round(b.perHour).toLocaleString('ja-JP')}pt / 時間</b></div>${walletBreakdownHTML(b)}<p class="wallet-note">留守中も少しずつ貯まります（上限${b.awayHours}時間）。</p></div>`);
+}
+function refreshWalletDetail() {
+  if (!$("wallet-next")) return;
+  const b = walletIncome();
+  $("wallet-next").textContent = WalletIncome.seconds(b.nextMs) + "秒";
+  if ($("wallet-step")) $("wallet-step").textContent = WalletIncome.seconds(b.stepMs) + "秒";
+  if ($("wallet-minute")) $("wallet-minute").textContent = "約" + Math.round(b.perMinute).toLocaleString("ja-JP") + "pt";
+  if ($("wallet-hour")) $("wallet-hour").textContent = "約" + Math.round(b.perHour).toLocaleString("ja-JP") + "pt / 時間";
+  if ($("wallet-ushi")) $("wallet-ushi").textContent = b.ushi ? "いま ×" + b.ushiMult.toFixed(1) : "×" + (WalletIncome.BASE_MS / WalletIncome.USHI_MS).toFixed(1) + "（時間外）";
 }
 function openAgentRecord() {
   if(isLite())return;
@@ -3245,6 +3267,7 @@ function tick() {
   const step = idleStep(), el = Date.now() - S.lastTick;
   if (el >= step) { const g = Math.floor(el / step); S.currency += g; S.lastTick += g * step; save(); render(); }
   $("ring").style.setProperty("--p", Math.min(100, (Date.now() - S.lastTick) / step * 100));
+  refreshWalletDetail();
 }
 ensureMissions();
 (function streak() {
