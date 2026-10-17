@@ -8,6 +8,8 @@ for(const mode of ['cctv','photo','vision','dash']){
   const svg=fs.readFileSync(file,'utf8'),match=svg.match(/data-hotspots="([^"]+)"/);
   assert(svg.includes('viewBox="0 0 1000 1000"'),file+': fixed normalized viewport');
   assert(svg.includes('preserveAspectRatio="none"'),file+': full image-space placement');
+  if(mode==='photo'&&rarity<3)assert(svg.includes('data-visibility-revision="2"'),
+   file+': photo R/SR must retain the reviewed discoverability revision');
   assert(match,file+': declared illustrated hotspots');
   assert(!/<script\b|<text\b|<foreignObject\b/i.test(svg),'untrusted scripts or text labels should not be baked into art');
   const points=match[1].split(';').map(v=>v.split(',').map(Number));
