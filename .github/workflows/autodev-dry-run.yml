@@ -47,7 +47,7 @@ jobs:
         run: |
           {
             echo '## Autodev controller — dry-run only'
-            echo 'No coding worker, branch, test run, PR, merge, deployment, paid API, or secret was started.'
+            echo 'No coding worker, implementation-worker test run, branch, PR, merge, deployment, paid API, or secret was started.'
             echo 'The pasted previous state is unauthenticated input, not a lease or authority.'
             echo 'The 0 USD boundary excludes GitHub Actions runner and artifact charges.'
             echo '~~~json'

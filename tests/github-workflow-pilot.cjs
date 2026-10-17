@@ -27,7 +27,7 @@ assert(workflow.includes('node --test tests/dev-resume.cjs'));
 const dryRun=load('.github/workflows/autodev-dry-run.yml');
 for(const term of ['workflow_dispatch:','permissions:','contents: read','timeout-minutes: 5',
   'cancel-in-progress: false','tests/autodev-dry-run.cjs','autodev-state-${{ github.run_id }}',
-  'unauthenticated input','excludes GitHub Actions runner']){
+  'unauthenticated input','excludes GitHub Actions runner','implementation-worker test run']){
   assert(dryRun.includes(term),'dry-run workflow lacks '+term);
 }
 assert(!dryRun.includes('pull-requests: write'),'dry-run must not create PRs');
