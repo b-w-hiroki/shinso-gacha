@@ -9,6 +9,7 @@
 - Open PR：[一覧](https://github.com/b-w-hiroki/shinso-gacha/pulls)。最新CI：[Actions](https://github.com/b-w-hiroki/shinso-gacha/actions/workflows/smoke.yml)。[Pages](https://github.com/b-w-hiroki/shinso-gacha/actions)／[公開サイト](https://shinso-gacha.birdman-studio.com/)。
 - WebKit SSR日次安定性：[Actions](https://github.com/b-w-hiroki/shinso-gacha/actions/workflows/webkit-ssr-stability.yml)。写真・車載の最初の失敗を残す独立反復QA。成功回数と失敗内訳は #141、実機は #75 で追跡。
 - read-only最新状況：[dev-resume-context Actions](https://github.com/b-w-hiroki/shinso-gacha/actions/workflows/dev-resume-context.yml)。成功した最新runの `dev-resume-context` artifactは**参考スナップショット**。実装前には必ずGitHubからmain/Issue/PR/CIを再確認する。
+- 小規模自動開発の第一段階：[手動 dry-run 制御](AUTODEV-DRY-RUN.md)。計画状態を保存するだけで、実装ワーカー、Draft PR、費用計測は未実装。
 
 ## GitHub Issue/Decision運用パイロット（2026-10-16）
 

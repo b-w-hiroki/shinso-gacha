@@ -24,4 +24,19 @@ assert(resume.includes('GITHUB-WORKFLOW-PILOT.md'),'resume entrypoint should exp
 assert(resume.includes('[Decision]'),'resume should surface decisions');
 const workflow=load('.github/workflows/dev-resume-context.yml');
 assert(workflow.includes('node --test tests/dev-resume.cjs'));
+const dryRun=load('.github/workflows/autodev-dry-run.yml');
+for(const term of ['workflow_dispatch:','permissions:','contents: read','timeout-minutes: 5',
+  'cancel-in-progress: false','tests/autodev-dry-run.cjs','autodev-state-${{ github.run_id }}',
+  'unauthenticated input','excludes GitHub Actions runner','implementation-worker test run']){
+  assert(dryRun.includes(term),'dry-run workflow lacks '+term);
+}
+assert(!dryRun.includes('pull-requests: write'),'dry-run must not create PRs');
+assert(!dryRun.includes('issues: write'),'dry-run must not mutate Issues');
+const dryRunDoc=load('docs/AUTODEV-DRY-RUN.md');
+for(const term of ['実行器も費用計測器もない','未実装（実装済みと扱わない）',
+  'autopilot:ready','stop/resume','未認証の入力','main SHA更新',
+  'GitHub Actionsのrunner利用','workflow自体はdefault branchに未導入のため未実行',
+  'Autodev-Target: #N','一般の `Refs #N`','#193はこのPRの実装Issue']) {
+  assert(dryRunDoc.includes(term),'dry-run doc lacks '+term);
+}
 console.log('GitHub pilot task/decision/bug forms, PR template and resume pointers verified.');
