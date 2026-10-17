@@ -24,7 +24,7 @@
 
 最終的にはbirdman studio横断Projectに **全体 / 判断待ち / AI作業 / 実装検証 / 作品別** の5ビューを持つ。Status候補：Backlog、Needs Decision、Ready、In Progress、Review、Blocked、Done。Product、Priority、Type、Decision Owner、Iterationを使う。
 
-**現状：Projects v2実ボードの接続・編集は未確認。** このGitHub連携がProjectの作成/更新を実行できるとは主張しない。Project URLと権限が決まるまではIssueの状態を一次正本として作業。GitHub ProjectのURLが確定したらこのページに1か所だけ追記し、既存Issueを結び付ける。
+**接続先：[birdman studio｜開発ロードマップ](https://github.com/users/b-w-hiroki/projects/1)。** 個人所有のPublic Projectとして運用し、公開可能なIssueだけを登録する。秘密、認証情報、未公開プロットは登録しない。Projectは横断表示、各Issue・PR・main・Actionsは実装状態の一次正本として扱う。
 
 ## 本作の現状の正本
 
@@ -33,12 +33,12 @@
 - 不安定性：[Issue #141](https://github.com/b-w-hiroki/shinso-gacha/issues/141)
 - 管理権限・実機が必要：[Issue #75](https://github.com/b-w-hiroki/shinso-gacha/issues/75)（human-required、手動ブラウザQAは現在の依頼範囲外）
 - 写真差分制作：[観測素材ブリーフ](OBSERVATION-ART-REPLACEMENT-BRIEFS.md)
-- [Decision #173：Project所有先・公開範囲](https://github.com/b-w-hiroki/shinso-gacha/issues/173)（Needs Decision、作品の通常開発は継続）
+- [Decision #173：Project所有先・公開範囲](https://github.com/b-w-hiroki/shinso-gacha/issues/173)（個人所有Publicで決定）
 - [Task #174：海沿い車載・教室の本番画像統合](https://github.com/b-w-hiroki/shinso-gacha/issues/174)（P1、Ready、画像本体/透過/SSRの正規Push待ち）
 - [Task #175：人物専用素材の品質統一](https://github.com/b-w-hiroki/shinso-gacha/issues/175)（P1、Backlog）
 - [Task #176：未来報告と課員証言の分岐](https://github.com/b-w-hiroki/shinso-gacha/issues/176)（P1、Backlog）
 - [Task #177：50案ロードマップの現状仕分け](https://github.com/b-w-hiroki/shinso-gacha/issues/177)（P2、Ready）
-- [Task #178：Projects v2リンク・ビュー設定](https://github.com/b-w-hiroki/shinso-gacha/issues/178)（P1、Decision #173待ちでBlocked）
+- [Task #178：Projects v2リンク・ビュー設定](https://github.com/b-w-hiroki/shinso-gacha/issues/178)（Project #1へ接続済み）
 - Pilot評価と正式昇格：[studio-playbook #49](https://github.com/b-w-hiroki/studio-playbook/issues/49)。共通ルール [Playbook PR #48](https://github.com/b-w-hiroki/studio-playbook/pull/48)。
 
 ## Pilot評価と昇格
