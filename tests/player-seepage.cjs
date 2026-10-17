@@ -37,7 +37,7 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  await tap(p.locator('[data-watch-upgrade="sensitivity"]'));assert.equal(await p.evaluate(()=>S.observation.upgrades.sensitivity),2);
  for(const [width,height] of [[320,568],[390,844],[844,390]]){
   await p.setViewportSize({width,height});
-  for(let id=0;id<12;id++){
+  for(let id=0;id<13;id++){
    await p.evaluate(id=>{go('home');setHomeTab('desk');const t=Date.now(),o=observationState();o.mind.closed=false;S.playerSeepage={event:{id,key:'qa:'+id,start:t,end:t+90000,glimpsed:false},nextAt:t+120000};renderObservation();},id);
     if((id>=6&&id<=8)||id===11){
      const member={6:'records',7:'equipment',8:'senior',11:'records'}[id];
@@ -49,13 +49,34 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
     }
    if(id<3||id===9){assert((await p.locator('.seep-margin-copy').innerText()).length>0);assert.equal(await p.locator('body').getAttribute('data-player-seepage'),'caption');}
    if((id>=3&&id<6)||id===10){assert(await p.locator('#player-seepage-edge').evaluate(e=>e.classList.contains('seep-glimpse')));await p.waitForTimeout(250);}
+   if(id===12){assert.equal(await p.locator('body').getAttribute('data-player-seepage'),'mimic');assert.equal(await p.locator('.seep-mimic').evaluate(e=>getComputedStyle(e).pointerEvents),'none');}
    assert.equal(await p.locator('#player-seepage-edge').evaluate(e=>getComputedStyle(e).pointerEvents),'none');
    assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no horizontal overflow');
    if(width===390&&[0,3,6,9,10,11].includes(id)){await p.locator('#player-seepage-edge img,.watch-speaker img').evaluateAll(imgs=>Promise.all(imgs.filter(i=>i.src).map(i=>i.decode())));if(id===3||id===10)await p.locator('.seep-reflection').evaluate(e=>e.getAnimations().forEach(a=>{a.pause();a.currentTime=400;}));await p.screenshot({path:`docs/qa-incursions/seepage-${id}-390.jpg`});}
   }
  }
+ // Action mimicry follows one real observation input without dispatching a second input.
+ await p.setViewportSize({width:390,height:844});
+ await p.evaluate(()=>{go('home');setHomeTab('desk');const t=Date.now(),o=observationState();o.mind.closed=false;o.quiet=false;S.incursion.quiet=false;S.playerSeepage={event:{id:12,key:'mimic-once',start:t,end:t+90000,glimpsed:false,mimicked:false},nextAt:t+120000};renderObservation();});
+ const mimicFrame=await p.locator('#obs-frame').boundingBox();assert(mimicFrame);
+ await p.mouse.click(mimicFrame.x+mimicFrame.width*.72,mimicFrame.y+mimicFrame.height*.36);
+ const afterInput=await p.evaluate(()=>({currency:S.currency,suppression:S.observation.pending?.suppression||0,event:{...S.playerSeepage.event}}));
+ assert.equal(afterInput.event.mimicked,true,'the saved event consumes its one mimic on real input');
+ await p.waitForTimeout(600);
+ assert(await p.locator('.seep-mimic').evaluate(e=>e.classList.contains('seep-mimic-active')));
+ assert.equal(await p.locator('.seep-mimic').evaluate(e=>getComputedStyle(e).pointerEvents),'none');
+ assert.deepEqual(await p.evaluate(()=>({currency:S.currency,suppression:S.observation.pending?.suppression||0})),{currency:afterInput.currency,suppression:afterInput.suppression},'decorative echo cannot award or suppress');
+ await p.evaluate(()=>save());await p.reload();await p.evaluate(()=>{go('home');renderObservation();});await p.waitForTimeout(600);
+ assert.equal(await p.locator('.seep-mimic').evaluate(e=>e.classList.contains('seep-mimic-active')),false,'reload cannot replay action mimicry');
+ await p.emulateMedia({reducedMotion:'reduce'});await p.evaluate(()=>{const t=Date.now();S.playerSeepage={event:{id:12,key:'mimic-reduced',start:t,end:t+90000,mimicked:false}};renderObservation();});
+ const reducedFrame=await p.locator('#obs-frame').boundingBox();assert(reducedFrame);await p.mouse.click(reducedFrame.x+8,reducedFrame.y+8);await p.waitForTimeout(600);
+ assert.equal(await p.evaluate(()=>S.playerSeepage.event.mimicked),false,'reduced motion does not consume or render the moving echo');
+ assert.equal(await p.locator('.seep-mimic').evaluate(e=>e.classList.contains('seep-mimic-active')),false);
+ await p.emulateMedia({reducedMotion:'no-preference'});
  // Rest is an actual choice, and does not change acquired evidence or currency.
  await p.setViewportSize({width:390,height:844});
+ await p.evaluate(()=>{go('home');setHomeTab('desk');const t=Date.now();S.playerSeepage={event:{id:11,key:'rest-choice',start:t,end:t+90000,glimpsed:false},nextAt:t+120000};renderObservation();});
+ await tap(p.locator('#obs-colleagues'));await tap(p.locator('[data-watch-member="records"]'));
  const before=await p.evaluate(()=>JSON.stringify({currency:S.currency,collection:S.observation.collection}));await tap(p.locator('[data-topic="rest"]'));
  assert.equal(await p.evaluate(()=>S.playerSeepage.event),null);assert.equal(await p.locator('.seep-colleague-line').count(),0);assert.equal(await p.evaluate(()=>JSON.stringify({currency:S.currency,collection:S.observation.collection})),before);
  await p.evaluate(()=>{go('home');const t=Date.now();S.playerSeepage={event:{id:3,key:'persisted',start:t,end:t+90000,glimpsed:false}};observationState().mind.closed=false;renderObservation();save();});
@@ -65,5 +86,5 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  await p.evaluate(()=>{observationState().quiet=true;renderObservation();});assert(await p.locator('#player-seepage-edge').isHidden());assert.equal(await p.locator('body').getAttribute('data-player-seepage'),'');
  await p.evaluate(()=>{observationState().quiet=false;S.incursion.quiet=true;renderIncursion();});assert(await p.locator('#player-seepage-edge').isHidden());
  await p.evaluate(()=>{S.incursion.quiet=false;renderObservation();});await tap(p.locator('#obs-rest'));assert.equal(await p.evaluate(()=>S.playerSeepage.event),null);
- assert.deepEqual(errors,[]);console.log('Actual trigger, sensitivity purchases, 12 spillovers × 3 sizes, reward isolation, rest, reload, quiet and reduced motion passed');
+ assert.deepEqual(errors,[]);console.log('Actual trigger, sensitivity purchases, 13 spillovers × 3 sizes, one-shot action mimicry, reward isolation, rest, reload, quiet and reduced motion passed');
 }finally{await b.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});
