@@ -10,6 +10,8 @@ const MONITORING_LABELS = new Set(['status:monitoring', 'autopilot:monitoring'])
 const STOP = new Set(['autopilot:blocked', 'human-required', 'production-only',
   'security-review', 'do-not-automate']);
 const CLOSES = /\b(?:close[sd]?|fix(?:es|ed)?|resolve[sd]?)\s+#(\d+)\b/gi;
+// Generic Refs links are context only. This exact line is an explicit dry-run ownership claim.
+const AUTODEV_TARGET = /^\s*Autodev-Target:\s*#(\d+)\s*$/gim;
 const DONE = /^\s*[-*]\s*\[\s\]\s+\S/im;
 const DECISION_TITLE = /^\s*(?:\[Decision\]|\[判断\]|Decision\s*[:：])/i;
 const EPIC_TITLE = /(?:残タスク総覧|ロードマップ|総合エピック)/;
@@ -53,6 +55,7 @@ export function chooseWork(issues, pulls, repo) {
   const claimed = new Set();
   for (const pr of pulls) {
     for (const m of (pr.body || '').matchAll(CLOSES)) claimed.add(Number(m[1]));
+    for (const m of (pr.body || '').matchAll(AUTODEV_TARGET)) claimed.add(Number(m[1]));
   }
   const sorted = [...issues].filter(x => !x.pull_request && x.state === 'open')
     .sort((a,b) => rank(a) - rank(b) || a.number - b.number);

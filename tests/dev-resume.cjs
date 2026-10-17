@@ -45,6 +45,21 @@ test('open PR locks issue and missing opt-in does not execute',async()=>{
  assert.equal(y.queue.status,'triage_required');
  assert.equal(y.queue.suggested[0].number,141);
 });
+test('generic Refs is context, while closing and explicit Autodev target lock work',async()=>{
+ const issue={number:30,state:'open',title:'P2: harmless fixture',
+  labels:['autopilot:ready','priority:p2'],body:'- [ ] dry-run evidence'};
+ const refs=await mod.buildSnapshot(repo,fake({issues:[issue],pulls:[
+  {number:20,title:'partial context',body:'Refs #30',head:{sha}}]}));
+ assert.equal(refs.queue.selected.number,30,'generic Refs must not claim partial work');
+ const closing=await mod.buildSnapshot(repo,fake({issues:[issue],pulls:[
+  {number:21,title:'complete work',body:'Fixes #30',head:{sha}}]}));
+ assert.equal(closing.queue.selected,null);
+ assert.deepEqual(closing.queue.blocked_by_open_pr,[30]);
+ const explicit=await mod.buildSnapshot(repo,fake({issues:[issue],pulls:[
+  {number:22,title:'autodev work',body:'Refs #999\nAutodev-Target: #30',head:{sha}}]}));
+ assert.equal(explicit.queue.selected,null);
+ assert.deepEqual(explicit.queue.blocked_by_open_pr,[30]);
+});
 test('pilot resume separates Decisions, Epics and ready tasks without leaking private body',async()=>{
  const decision={number:182,state:'open',title:'[Decision] 採用する原本の方針',
   labels:[],body:'private option text; - [ ] still waiting'};

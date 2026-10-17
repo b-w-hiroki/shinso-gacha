@@ -35,7 +35,8 @@ assert(!dryRun.includes('issues: write'),'dry-run must not mutate Issues');
 const dryRunDoc=load('docs/AUTODEV-DRY-RUN.md');
 for(const term of ['実行器も費用計測器もない','未実装（実装済みと扱わない）',
   'autopilot:ready','stop/resume','未認証の入力','main SHA更新',
-  'GitHub Actionsのrunner利用','workflow自体はdefault branchに未導入のため未実行']) {
+  'GitHub Actionsのrunner利用','workflow自体はdefault branchに未導入のため未実行',
+  'Autodev-Target: #N','一般の `Refs #N`','#193はこのPRの実装Issue']) {
   assert(dryRunDoc.includes(term),'dry-run doc lacks '+term);
 }
 console.log('GitHub pilot task/decision/bug forms, PR template and resume pointers verified.');

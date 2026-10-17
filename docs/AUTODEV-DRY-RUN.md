@@ -6,7 +6,7 @@
 
 ## 実効する境界
 
-- 対象は `b-w-hiroki/shinso-gacha` と取得時のmain SHAに固定する。別repo、Decision、Epic、monitoring、人手・本番専用、open PRが取得済みのIssueは既存resume判定で除外する。
+- 対象は `b-w-hiroki/shinso-gacha` と取得時のmain SHAに固定する。別repo、Decision、Epic、monitoring、人手・本番専用Issueは既存resume判定で除外する。open PRによる除外は、完了を表す `Fixes/Closes/Resolves #N` または行全体が `Autodev-Target: #N` の明示所有マーカーに限定する。一般の `Refs #N` は部分作業や文脈参照なのでロックにしない。
 - 同時runはrepository単位のconcurrencyで直列化する。選定結果は `repository#issue-N@mainSHA` のrun keyとJSON artifactへ14日保存する。同一run keyの再計画は無害で、実装を二重起動しない。
 - stop/resumeはartifactのJSONを次の手動dispatchへ渡す。別repo、main SHA更新、run key・Issue URL・必須usage・上限・実行無効フラグの不整合、別Issue、承認解除はfail closed。mainが進んだ場合は古い状態を継続せず、最新mainで `plan` からやり直す。stop後もresume後も実装は開始しない。
 - `previous_state_json` は人が貼り付ける**未認証の入力**であり、署名済み永続状態やleaseではない。構造・値の整合は厳格に検査するが、改変されていないこと自体は証明しない。この経路を実装ワーカーの権限根拠には使わない。
@@ -30,5 +30,5 @@
 - 証拠をPR本文へ保存しDraft PRを作るGitHub write経路
 - 人のレビュー後にready-for-reviewへ変更する操作。自動merge・main直書き・公開は将来も別承認
 
-次段階へ進む前に、無害なfixture Issueへ明示的に `autopilot:ready` を付け、plan/stop/resumeの3 runとartifactを人が確認する。実行器と費用計測を選定してから、別PRで最小のDraft PR作成経路を設計する。
+次段階へ進む前に、コード変更を要求しない専用のfixture Issueを別途作るか選び、そのIssueが無害な制御試験だけであることを人が確認してから `autopilot:ready` を付ける。#193はこのPRの実装Issueであり、残作業を再確認せずfixtureとして使わない。fixtureを所有するopen PRがある場合は本文に `Autodev-Target: #N` を1行で記録する。plan/stop/resumeの3 runとartifactを人が確認後、実行器と費用計測を選定してから、別PRで最小のDraft PR作成経路を設計する。
 
