@@ -23,6 +23,7 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  assert.equal(await p.locator('.legend-case-list [data-id="u1"]').count(),0,'unearned case must not appear in the DOM');
  assert.equal(await p.locator('.legend-case-list button:disabled').count(),0,'no slots reveal the collection total');
  await p.evaluate(()=>openLegendCase('u2'));assert((await p.locator('#sheet').innerText()).includes('あと2段'));
+ assert.equal(await p.locator('.world-revisions').count(),0,'partial dossiers cannot expose revision history');
  assert(!(await p.locator('#sheet').innerText()).includes('駅名標の裏'),'unowned evidence is concealed');
  // Retroactive unlock of three distinct fragments, not three copies counted separately.
  await p.evaluate(()=>{S.levels.u2=3;S.levels.u8=3;openLegendBoard();});
@@ -68,11 +69,18 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  await p.evaluate(()=>save());await p.reload();assert.equal(await p.evaluate(()=>S.legends.active),'u2');assert.equal(await p.evaluate(()=>S.legends.conclusions.u2),1);assert.equal(await p.evaluate(()=>LegendModel.count(S.levels,'u2')),3);
  // V1.1: acquired-only original difference, testimony and three related incidents.
  await p.evaluate(()=>{S.levels.u2=3;S.legends.testified.u2=true;S.observation.collection['dash:0']=1;S.legendLayers={};openLegendCase('u2');});
+ const revisionWallet=await p.evaluate(()=>S.currency);
+ assert.equal(await p.locator('.world-revisions li').count(),1,'acquired dossier starts with its received version only');
+ assert(!(await p.locator('.world-revisions').innerText()).includes('遺失物の受取駅'),'later revisions stay out of the DOM');
  assert.equal(await p.locator('[data-layer="noticed"]').count(),1);
  assert.equal(await p.locator('[data-layer="compared"]').count(),0,'contradiction stays gated by noticing');
  await p.locator('[data-layer="noticed"]').click();
+ assert.equal(await p.locator('.world-revisions li').count(),2,'recorded source difference reveals only the first correction');
  assert.equal(await p.locator('[data-layer="compared"]').count(),1);
  await p.locator('[data-layer="compared"]').click();
+ assert.equal(await p.locator('.world-revisions li').count(),3,'testimony, conclusion and recorded contradiction reveal the final correction');
+ assert((await p.locator('.world-revisions').innerText()).includes('遺失物の受取駅'));
+ assert.equal(await p.evaluate(()=>S.currency),revisionWallet,'reading and revealing revision history never mints currency');
  assert.equal(await p.locator('[data-layer="linked"]').count(),0,'chain requires 3 unique cases');
  await p.evaluate(()=>{const ks=INCURSIONS.map((_,i)=>i).filter(k=>LegendModel.related('u2',k,incursionProfile)).slice(0,3);for(const k of ks)S.incursion.discovered[k]=true;openLegendCase('u2');});
  assert.equal(await p.locator('[data-layer="linked"]').count(),1);
@@ -83,5 +91,6 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  assert.equal(await p.evaluate(()=>S.currency),v11wallet,'layered reading never mints currency');
  await p.evaluate(()=>{S.levels.u1=0;openLegendCase('u1');});
  assert.equal(await p.locator('[data-layer][data-id="u1"]').count(),0,'unowned layers invisible');
+ assert.equal(await p.locator('.world-revisions').count(),0,'unowned revision history is absent from the DOM');
  assert.deepEqual(errors,[]);console.log('Paid envelope → 3-fragment migration → acquired proof → colleague → hypothesis → next envelope, themed seepage, persistence and 3 viewport sizes passed');
 }finally{await b.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});
