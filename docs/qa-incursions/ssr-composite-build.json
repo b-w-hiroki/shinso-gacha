@@ -26,12 +26,12 @@
     {
       "mode": "photo",
       "source": "photo-classroom-native.webp",
-      "photo_sha256": "1561021a4bc11b90b1485437a370fd09d87af552859d0a74995c390700a6e902",
-      "delta_sha256": "ccbf44973ef92a695b6756089ae3221b87061d92bf19940898feccd948865725",
+      "photo_sha256": "b3356040bd281e222be0baf4d110f8e7defc1064446fb08798b54ac1a400be7e",
+      "delta_sha256": "defb91de71c8b08678067505986e3a8b7c3bfdf06f82bde66f9bc855a0e592d3",
       "clue_sha256": "857070ce9838759fa037db6981334abd8203da86876d182cec2c8e78269034bc",
       "output": "photo-3.webp",
-      "output_sha256": "2cd161c0461ed013fdf5c29f83259703effb57f261a8683d6679d67af15a544f",
-      "bytes": 34082,
+      "output_sha256": "468824ffc98ee182152b1f804d8596e72d15170078ab37dfdcad91410cf54e20",
+      "bytes": 124760,
       "width": 1440,
       "height": 720
     },
@@ -50,12 +50,12 @@
     {
       "mode": "dash",
       "source": "dash-coast-road-native.webp",
-      "photo_sha256": "a855f208c8d3de69b0bdb8bb1fe34cadd4b4dfbbdd2f82f47ac7bcb117a1b91d",
-      "delta_sha256": "8df10b782b17f7cd73478736b6cc27b9095a9b46cf6edff6aca6666de36bf8d2",
+      "photo_sha256": "362640f2075bd97ca0640ff2daed822c865b258cbfe2b13a14c79764e6c8e36d",
+      "delta_sha256": "29cafc558e93f6f940e9dd40db59892da0a8b8ca21e5b305e0411e80e3269e11",
       "clue_sha256": "f89c110e924077040aad1e921db08dfc3fe78cc678dad026acc5a9bd7812d5a4",
       "output": "dash-3.webp",
-      "output_sha256": "25d9dbd6c848c6c8c382a97d65ef0aa91e84bc59b03d9c0b425e997b0f8cc676",
-      "bytes": 76884,
+      "output_sha256": "51cb6a660369ba714da6b30e80b8dc3f8c8b3e3c8250373c4b49625d701c90a5",
+      "bytes": 88208,
       "width": 1440,
       "height": 720
     }
