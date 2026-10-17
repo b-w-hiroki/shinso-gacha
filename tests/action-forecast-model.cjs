@@ -1,0 +1,13 @@
+const assert=require('node:assert/strict'),M=require('../assets/action-forecast-model');
+const now=1800000000000,event={id:4,key:'watch:42:7:photo',start:now-1000,end:now+90000};
+const input=JSON.parse(JSON.stringify(event)),context={now,visible:true,monitorOpen:true};
+const first=M.project(event,context);assert(first);assert.deepEqual(event,input,'projection must not mutate the saved event');
+assert.deepEqual(M.project(event,context),first,'the same saved event must keep the same prediction');
+const reached=new Set();for(let i=0;i<500;i++)reached.add(M.project({...event,key:'watch:'+i},context).action);
+assert.deepEqual([...reached].sort(),M.ACTIONS.map(action=>action.id).sort(),'all three candidate operations must be reachable');
+for(const blocked of [{visible:false},{quiet:true},{monitorOpen:false},{modal:true},{now:event.start-1},{now:event.end}])assert.equal(M.project(event,{...context,...blocked}),null);
+for(const bad of [null,{}, {...event,id:-1},{...event,key:''},{...event,end:event.start}])assert.equal(M.project(bad,context),null);
+assert.equal(M.settle(first,first.action).matched,true);
+const other=M.ACTIONS.find(action=>action.id!==first.action).id,result=M.settle(first,other);assert.equal(result.matched,false);assert.equal(result.actual,other);
+assert.equal(M.settle(first,'unknown'),null);assert.equal(M.settle(null,first.action),null);
+console.log('Deterministic prediction, three actions, strict visibility gates, comparison and input immutability passed');
