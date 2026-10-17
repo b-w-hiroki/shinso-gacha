@@ -19,6 +19,7 @@ jobs:
       - run: node tests/smoke.mjs
       - run: node tests/documentation-contract.cjs
       - run: node --test tests/dev-resume.cjs
+      - run: node --test tests/autodev-dry-run.cjs
       - run: node tests/github-workflow-pilot.cjs
       - run: node tests/colleague-asset-contract.cjs
       - run: node tests/clearance-risk.cjs
@@ -32,6 +33,7 @@ jobs:
       - run: node tests/investigation-second-pass.cjs
       - run: node tests/research-reports-model.cjs
       - run: node tests/reality-clues.cjs
+      - run: node tests/world-revision-model.cjs
       - run: node tests/absence-traces.cjs
       - run: node tests/forecast-archive.cjs
       - run: node tests/witness-registry-model.cjs

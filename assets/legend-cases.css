@@ -16,6 +16,8 @@
 .legend-layers button{min-height:44px;max-width:100%;white-space:normal}
 @media (prefers-reduced-motion:reduce){.legend-layers *{animation:none!important;transition:none!important}}
 
+.world-revisions>p{color:#c8bda8;font-size:13px}.world-revisions ol{list-style:none;margin:12px 0 0;padding:0;border-left:1px solid #887354}.world-revisions li{position:relative;margin:0 0 14px;padding:0 0 0 16px}.world-revisions li::before{content:'';position:absolute;left:-4px;top:9px;width:7px;height:7px;border-radius:50%;background:#887354}.world-revisions small{display:block;color:#bda986}.world-revisions li:last-child{color:#eadfc9}.world-revisions li:last-child::before{background:#b98b70;box-shadow:0 0 0 3px #6b493c44}.world-revisions p{margin:4px 0;overflow-wrap:anywhere}
+
 
 .research-editor{margin:18px 0 0;border-top:1px solid #786f5b;padding:14px 0 0;color:#e3d8c5;line-height:1.75}
 .research-editor h4{font-size:17px;margin:0 0 8px}.research-editor>p{font-size:13px;color:#ccc2af}

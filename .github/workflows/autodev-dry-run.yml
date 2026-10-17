@@ -1,0 +1,62 @@
+name: Autodev controller dry-run
+
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: Plan, stop, or resume a saved dry-run state
+        required: true
+        default: plan
+        type: choice
+        options: [plan, stop, resume]
+      previous_state_json:
+        description: Unauthenticated input for stop/resume; paste prior state, which is revalidated
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+  actions: read
+
+concurrency:
+  group: autodev-dry-run-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  plan-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify independent controller acceptance criteria
+        run: node --test tests/dev-resume.cjs tests/autodev-dry-run.cjs
+      - name: Read live state and save a non-executing plan
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          AUTODEV_COMMAND: ${{ inputs.command }}
+          AUTODEV_PREVIOUS_STATE_JSON: ${{ inputs.previous_state_json }}
+        run: node scripts/autodev-dry-run.mjs --output "$RUNNER_TEMP/autodev-state.json"
+      - name: Record explicit execution boundary
+        shell: bash
+        run: |
+          {
+            echo '## Autodev controller — dry-run only'
+            echo 'No coding worker, implementation-worker test run, branch, PR, merge, deployment, paid API, or secret was started.'
+            echo 'The pasted previous state is unauthenticated input, not a lease or authority.'
+            echo 'The 0 USD boundary excludes GitHub Actions runner and artifact charges.'
+            echo '~~~json'
+            cat "$RUNNER_TEMP/autodev-state.json"
+            echo '~~~'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: autodev-state-${{ github.run_id }}
+          path: ${{ runner.temp }}/autodev-state.json
+          retention-days: 14
+

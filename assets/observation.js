@@ -244,6 +244,7 @@ function observationCollect(event){
   markDirty();renderObservation();
  }
  observationTouchFeedback(event,contact);
+ if(typeof playerSeepageMimic==='function')playerSeepageMimic(event);
 }
 function watchSettingsUnlocked(){return Object.values(observationState().upgrades).some(level=>level>0);}
 function observationSettings(){

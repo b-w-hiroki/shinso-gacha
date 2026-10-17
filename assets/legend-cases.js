@@ -8,7 +8,15 @@ function legendLayerStatus(id){return LegendLayers.status(legendLayersState(),id
 function realityCluesHTML(id){
  const clue=RealityClues.clue(id,LegendModel.count(S.levels,id),legendLayerStatus(id)?.noticed);
  if(!clue)return '';
- return '<section class="legend-investigation reality-clues"><h3>写真の成立しない部分</h3><p>'+escapeHTML(clue.tag)+'</p><details><summary>原本の記述と現在の観測を比較</summary><p>原本：'+escapeHTML(clue.original)+'</p><p>現在：'+escapeHTML(clue.observed)+'</p></details></section>';
+ return '<section class="legend-investigation reality-clues"><h3>写真の成立しない部分</h3><p>'+escapeHTML(clue.tag)+'</p><details><summary>原本の記述と現在の観測を比較</summary><p>原本：'+escapeHTML(clue.original)+'</p><p>現在：'+escapeHTML(clue.observed)+'</p></details></section>'+worldRevisionHTML(id);
+}
+function worldRevisionHTML(id){
+ const layer=legendLayerStatus(id),state=legendState();
+ const history=WorldRevisions.history(id,LegendModel.count(S.levels,id),{
+  noticed:layer?.noticed===true,compared:layer?.compared===true,concluded:Object.hasOwn(state.conclusions,id)
+ });
+ if(!history)return '';
+ return '<section class="legend-investigation world-revisions"><h3>'+escapeHTML(history.title)+'</h3><p>旧版を消さず、現在の記述と並べて保管しています。</p><ol>'+history.rows.map(row=>'<li><small>'+escapeHTML(row.stage)+' ／ '+escapeHTML(row.kind)+'</small><p>'+escapeHTML(row.text)+'</p></li>').join('')+'</ol></section>';
 }
 function legendLocationEvidenceHTML(id){
  const row=WatchLocations.caseEcho(id,S.levels,LegendModel.CASES,
