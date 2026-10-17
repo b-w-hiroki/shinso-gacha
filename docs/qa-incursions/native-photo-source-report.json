@@ -33,6 +33,32 @@
     "generation_id": "93dfd609-f7a3-44a8-aa0f-999eda1a2131",
     "delta_generation_ids": {
       "photo-2": "1bbdfaba-269a-4e19-8966-120c0b4ffbae"
+    },
+    "delta_postprocess": {
+      "date": "2026-10-17",
+      "reason": "R/SR anomalies were hard to notice at phone size; contact points, shapes and IDs unchanged",
+      "photo-1": {
+        "alpha_gain": 2.2,
+        "before_sha256": "10cfe6a723aff350b553f939f899ad2801e67755c2afb0121bfbb01010df4e6d",
+        "after_sha256": "328ec4520eb977d77a3b6dbf1dbee0a0f43a643e92db0c611d0cbf2f457c6dc4",
+        "after_bytes": 14344
+      },
+      "photo-2": {
+        "alpha_gain": 1.5,
+        "edge_halo": {
+          "rgb": [
+            130,
+            150,
+            178
+          ],
+          "strength": 0.35,
+          "radius_px": 6
+        },
+        "before_sha256": "b680ce5c8961f17ab20255371024eda594e910aee42e521887bd4f937308b612",
+        "after_sha256": "e49fc78fd882fd6843a268d41a4f81447105177445ac8be6926814edb08cadb7",
+        "after_bytes": 7968
+      },
+      "note": "Originals remain in git history at 322469d. photo-3 (SSR) unchanged."
     }
   },
   {
