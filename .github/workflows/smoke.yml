@@ -34,6 +34,7 @@ jobs:
       - run: node tests/research-reports-model.cjs
       - run: node tests/reality-clues.cjs
       - run: node tests/world-revision-model.cjs
+      - run: node tests/lab-contradiction-model.cjs
       - run: node tests/absence-traces.cjs
       - run: node tests/forecast-archive.cjs
       - run: node tests/witness-registry-model.cjs
@@ -132,6 +133,9 @@ jobs:
       - run: node tests/rumor-patrol.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/lab-contradiction.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/legend-cases.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
@@ -201,6 +205,10 @@ jobs:
           QA_WEBKIT: 1
           QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/rumor-patrol.cjs
+        env:
+          QA_WEBKIT: 1
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/lab-contradiction.cjs
         env:
           QA_WEBKIT: 1
           QA_FONT: ${{ runner.temp }}/noto.otf
