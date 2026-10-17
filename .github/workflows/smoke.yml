@@ -40,6 +40,7 @@ jobs:
       - run: node tests/forecast-followup-model.cjs
       - run: node tests/forecast-chain-model.cjs
       - run: node tests/player-seepage-model.cjs
+      - run: node tests/action-forecast-model.cjs
       - run: node tests/observation-model.cjs
       - run: node tests/observation-longterm.cjs
       - run: node tests/observation-location-model.cjs
@@ -144,6 +145,9 @@ jobs:
       - run: node tests/player-seepage.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/action-forecast.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/quieter-loop.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
@@ -238,6 +242,10 @@ jobs:
       - run: xvfb-run -a node tests/player-seepage.cjs
         env:
           QA_HEADED: 1
+          QA_WEBKIT: 1
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/action-forecast.cjs
+        env:
           QA_WEBKIT: 1
           QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/quieter-loop.cjs

@@ -1,0 +1,9 @@
+/* Static document-flow notice; it cannot cover or intercept observation controls. */
+.action-forecast{margin:7px 0 9px;padding:9px 11px;border:1px solid #816f5b66;border-left:2px solid #98775f;background:linear-gradient(90deg,#2d2520cc,#242320aa);color:#d6c5ad;display:grid;gap:2px;pointer-events:none;overflow-wrap:anywhere}
+.action-forecast[hidden]{display:none}
+.action-forecast small{font:10px/1.35 var(--f-mono);letter-spacing:.12em;color:#9f917e}
+.action-forecast b{font:13px/1.45 var(--f-body);font-weight:600;color:#dccab4}
+.action-forecast span{font:11px/1.5 var(--f-body);color:#a99c8c}
+.action-forecast[data-phase='settled']{border-left-color:#746e65;background:#272523bb}
+body.watch-mind-quiet .action-forecast,body.incursion-quiet .action-forecast{display:none}
+@media(max-width:340px){.action-forecast{padding:8px 9px}.action-forecast b{font-size:12px}}
