@@ -12,7 +12,7 @@
 **並行管理（実装待ちと混同しない）**
 - #141 WebKit：直近のCIは通過、長期再発監視中。再発したらP0として再調査。
 - #75 本番Firebase/実機：外部権限・実機が必要。手動ブラウザQAは現行依頼では省略。
-- #173 GitHub Projectsの所有先：ユーザー判断待ち。#178のみブロックし、ゲーム開発は止めない。
+- GitHub Projects：個人所有Publicの[横断ロードマップ](https://github.com/users/b-w-hiroki/projects/1)へ接続済み（#173・#178）。
 - #89：Epicとしてこのキューと子Issueを参照。旧本文は `docs/archive/issue-89-roadmap-20261016.md`。
 
 ## 50案の現状：数を水増ししない
