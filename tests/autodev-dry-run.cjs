@@ -23,6 +23,8 @@ test('no approved issue is a non-executing triage result', () => {
   assert.equal(state.execution.started, false);
   assert.equal(state.limits.max_cost_usd, 0);
   assert.equal(state.usage.cost_source, 'unavailable-no-executor');
+  assert.equal(state.usage.cost_scope, 'coding-worker-and-external-api-only');
+  assert.equal(state.usage.github_actions_cost_included, false);
 });
 
 test('one approved fixture gets a stable reservation without executing', () => {
@@ -55,6 +57,16 @@ test('manual stop persists and resume requires the same still-eligible issue', (
     { command: 'resume', previous: stopped }), /no longer/);
 });
 
+test('main advancement invalidates saved stop and resume state', () => {
+  const planned = mod.createDryRunState(snapshot(issue));
+  const advanced = { ...snapshot(issue), main_sha: 'b'.repeat(40) };
+  assert.throws(() => mod.createDryRunState(advanced,
+    { command: 'stop', previous: planned }), /main advanced/);
+  const stopped = mod.createDryRunState(snapshot(issue), { command: 'stop', previous: planned });
+  assert.throws(() => mod.createDryRunState(advanced,
+    { command: 'resume', previous: stopped }), /main advanced/);
+});
+
 test('resume fails closed at attempt, duration, and zero-cost limits', () => {
   const planned = mod.createDryRunState(snapshot(issue));
   const stopped = mod.createDryRunState(snapshot(issue), { command: 'stop', previous: planned });
@@ -74,6 +86,18 @@ test('tampered or cross-repository state is rejected', () => {
   assert.throws(() => mod.createDryRunState(snapshot(issue),
     { command: 'stop', previous: { issue } }), /unsupported/);
   assert.throws(() => mod.createDryRunState(snapshot(issue),
-    { command: 'stop', previous: { ...planned, usage: { attempts: -1 } } }), /non-negative/);
+    { command: 'stop', previous: { ...planned, run_key: 'forged' } }), /run_key mismatch/);
+  const { usage, ...missingUsage } = planned;
+  assert.throws(() => mod.createDryRunState(snapshot(issue),
+    { command: 'stop', previous: missingUsage }), /attempts/);
+  assert.throws(() => mod.createDryRunState(snapshot(issue),
+    { command: 'stop', previous: { ...planned,
+      usage: { ...planned.usage, attempts: 0.5 } } }), /integer/);
+  assert.throws(() => mod.createDryRunState(snapshot(issue),
+    { command: 'stop', previous: { ...planned,
+      execution: { ...planned.execution, started: true } } }), /all be false/);
+  assert.throws(() => mod.createDryRunState(snapshot(issue),
+    { command: 'stop', previous: { ...planned,
+      limits: { ...planned.limits, max_attempts: 2 } } }), /limits mismatch/);
 });
 

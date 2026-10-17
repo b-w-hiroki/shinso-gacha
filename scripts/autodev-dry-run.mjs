@@ -14,13 +14,18 @@ const LIMITS = Object.freeze({
   max_cost_usd: 0,
   max_issues: 1
 });
+const EXECUTION_FLAGS = Object.freeze([
+  'enabled', 'started', 'isolated_environment_created', 'tests_started',
+  'pull_request_created', 'automatic_merge'
+]);
+const COST_SCOPE = 'coding-worker-and-external-api-only';
 
 function finiteNonnegative(value, name) {
   if (!Number.isFinite(value) || value < 0) throw new Error(name + ' must be non-negative');
   return value;
 }
 
-function validatePrevious(previous, repository) {
+function validatePrevious(previous, repository, currentMainSha) {
   if (!previous || typeof previous !== 'object' || Array.isArray(previous)) {
     throw new Error('previous state is required');
   }
@@ -33,8 +38,42 @@ function validatePrevious(previous, repository) {
   if (!STATE_STATUSES.has(previous.status) || !SHA.test(previous.main_sha || '')) {
     throw new Error('invalid previous state');
   }
+  if (previous.main_sha !== currentMainSha) {
+    throw new Error('main advanced; discard previous state and run plan again');
+  }
   if (!Number.isSafeInteger(previous.issue?.number) || previous.issue.number < 1) {
     throw new Error('previous state issue missing');
+  }
+  if (typeof previous.issue.title !== 'string' || !previous.issue.title ||
+      previous.issue.url !== 'https://github.com/' + repository + '/issues/' + previous.issue.number) {
+    throw new Error('invalid previous issue');
+  }
+  const expectedRunKey = repository + '#issue-' + previous.issue.number + '@' + previous.main_sha;
+  if (previous.run_key !== expectedRunKey) throw new Error('previous run_key mismatch');
+  if (typeof previous.observed_at !== 'string' ||
+      Number.isNaN(Date.parse(previous.observed_at)) || typeof previous.reason !== 'string') {
+    throw new Error('invalid previous metadata');
+  }
+  const expectedCommand = { planned: 'plan', stopped: 'stop', resume_ready: 'resume' };
+  if (previous.command !== expectedCommand[previous.status]) {
+    throw new Error('previous command/status mismatch');
+  }
+  if (!previous.limits || Object.keys(LIMITS).some(key => previous.limits[key] !== LIMITS[key])) {
+    throw new Error('previous limits mismatch');
+  }
+  if (!previous.usage || !Number.isSafeInteger(previous.usage.attempts) ||
+      previous.usage.attempts < 0) {
+    throw new Error('previous attempts must be a non-negative integer');
+  }
+  finiteNonnegative(previous.usage.elapsed_minutes, 'elapsed_minutes');
+  finiteNonnegative(previous.usage.cost_usd, 'cost_usd');
+  if (previous.usage.cost_source !== 'unavailable-no-executor' ||
+      previous.usage.cost_scope !== COST_SCOPE ||
+      previous.usage.github_actions_cost_included !== false) {
+    throw new Error('invalid previous cost boundary');
+  }
+  if (!previous.execution || EXECUTION_FLAGS.some(key => previous.execution[key] !== false)) {
+    throw new Error('previous execution flags must all be false');
   }
   return previous;
 }
@@ -52,7 +91,9 @@ function baseState(snapshot, now, command) {
       attempts: 0,
       elapsed_minutes: 0,
       cost_usd: 0,
-      cost_source: 'unavailable-no-executor'
+      cost_source: 'unavailable-no-executor',
+      cost_scope: COST_SCOPE,
+      github_actions_cost_included: false
     },
     issue: null,
     run_key: null,
@@ -89,13 +130,10 @@ export function createDryRunState(snapshot, options = {}) {
     return state;
   }
 
-  const previous = validatePrevious(options.previous, snapshot.repository);
+  const previous = validatePrevious(options.previous, snapshot.repository, snapshot.main_sha);
   state.issue = { ...previous.issue };
   state.run_key = previous.run_key;
-  state.usage.attempts = finiteNonnegative(previous.usage?.attempts ?? 0, 'attempts');
-  state.usage.elapsed_minutes = finiteNonnegative(
-    previous.usage?.elapsed_minutes ?? 0, 'elapsed_minutes');
-  state.usage.cost_usd = finiteNonnegative(previous.usage?.cost_usd ?? 0, 'cost_usd');
+  state.usage = { ...previous.usage };
 
   if (command === 'stop') {
     state.status = 'stopped';
