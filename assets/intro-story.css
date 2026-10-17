@@ -1,5 +1,9 @@
 #intro-case { color:#f1e4c8; display:grid; gap:12px; padding:8px 0 14px; }
 #intro-case[hidden] { display:none; }
+.intro-title-mast { display:grid; justify-items:center; gap:5px; color:#b7a78e; font:11px/1.4 var(--f-mono); letter-spacing:.2em; text-align:center; }
+.intro-title-wordmark { color:#e8ddc9; font:800 clamp(39px,11vw,58px)/1.06 var(--f-display); letter-spacing:.12em; text-shadow:0 3px 18px #000b; }
+.intro-title-wordmark span { padding-inline:.08em; background:#08090b; color:transparent; box-shadow:0 0 0 1px #32302b; }
+.intro-title-mast i { width:1px; height:18px; background:linear-gradient(#9e8061,transparent); }
 .intro-top { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:12px; color:#ccbaa0; }
 .intro-top button { min-height:44px; padding:8px; text-decoration:underline; font-size:12px; color:#d6c7ae; }
 #intro-case h1 { margin:0; font:800 clamp(23px,6.5vw,30px)/1.4 var(--f-display); }
@@ -68,10 +72,12 @@ body.intro-active .lite-footer .lite-pull[data-mode="intro"] { min-height:58px; 
 body.lite.intro-quiet #intro-case *,body.lite.intro-quiet #intro-case *::before,body.lite.intro-quiet #intro-case *::after,body.lite.intro-quiet .lite-event *,body.lite.intro-quiet .lite-event *::after{animation:none!important;transition:none!important;}
 
 /* Sparse introduction: the envelope is an object, not an information panel. */
-body.intro-active #intro-case[data-step="0"] { padding-top:28px; gap:16px; }
+body.intro-active #intro-case[data-step="0"] { padding-top:26px; gap:10px; }
+body.intro-active #intro-case[data-step="0"] .intro-title-mast { gap:5px; }
+body.intro-active #intro-case[data-step="0"] > h1 { color:#c8b99f; font-size:clamp(15px,4.4vw,19px); font-weight:500; letter-spacing:.08em; }
 body.intro-active #intro-case[data-step="0"] figure { border:0; background:transparent; box-shadow:none; }
 body.intro-active #intro-case[data-step="0"] figure::after { box-shadow:none; border:0; }
-body.intro-active #intro-case[data-step="0"] .intro-envelope { filter:drop-shadow(0 20px 24px #000c) saturate(.73); }
+body.intro-active #intro-case[data-step="0"] .intro-envelope { max-height:min(38dvh,340px); object-fit:contain; filter:drop-shadow(0 20px 24px #000c) saturate(.73); }
 body.intro-active #intro-case[data-step="2"] .intro-time { color:#e0d7c7; }
 body.intro-active .lite-footer .lite-pull[data-mode="intro"] { color:#eee0cd; background:#51241f; border-color:#855449; font-weight:600; }
 body.intro-active .lite-footer .lite-pull[data-mode="intro"]:focus-visible { outline:2px solid #ebd6b0; outline-offset:3px; }
@@ -93,4 +99,4 @@ body.intro-active #intro-case[data-step="0"] .intro-envelope {
 
 /* Make every new document heading clear of the fixed-height introductory menu. */
 body.intro-active #intro-case,body.intro-active #intro-case[data-step="0"]{padding-top:50px}
-@media(max-height:700px){body.intro-active #intro-case,body.intro-active #intro-case[data-step="0"]{padding-top:48px}body.intro-active #intro-case .intro-image{max-height:36dvh}}
+@media(max-height:700px){body.intro-active #intro-case,body.intro-active #intro-case[data-step="0"]{padding-top:42px}body.intro-active #intro-case .intro-image{max-height:30dvh}body.intro-active #intro-case[data-step="0"] .intro-title-wordmark{font-size:38px}body.intro-active #intro-case[data-step="0"] .intro-title-mast i{height:10px}}
