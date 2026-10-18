@@ -42,7 +42,7 @@ function renderIntro() {
   const i=S.lite.intro, step=i.step;
   const titles=['差出人が、ない。','記録上は、ひとり。','記録上は、ひとり。','印は、先に付いていた。','数え直さないこと。'];
   const captions=['','右のベンチには、誰もいない。','同じ写真。同じ時刻。人数だけが増えている。','誰にも見せていない写真と、位置が一致する。','3通とも、02:14。記録者の欄は空白。'];
-  let visual=step===0?'<img class="intro-image intro-envelope" src="assets/ui/civilian-envelope.webp" alt="差出人のない閉じた茶封筒" width="1536" height="1024">'
+  let visual=step===0?'<img class="intro-image intro-envelope" src="assets/ui/civilian-envelope-clean.webp" alt="差出人のない閉じた茶封筒" width="1536" height="1024">'
     :step<3?introImage(step===1?'station-before':'station-after',step===1?'夜の駅。左の柱の横に1人。右のベンチ横には誰もいない。':'同じ駅。左の人物に加え、右のベンチ横にもう1人が立っている。')
     :step===3?introImage('station-plan','駅の構内図。ベンチの横に赤い丸が描かれている。')
     :`<div class="intro-note"><span>02:14 ／ 差出人のメモ</span><p>写真の人物を、数え直さないこと。</p><button class="intro-redaction" data-intro="reveal" aria-expanded="${!!i.revealed}">${i.revealed?'あなたの閲覧は、記録されています。':'黒塗りを剥がす'}</button>${'<p class="intro-sender">差出人　██████</p>'}</div>`;
