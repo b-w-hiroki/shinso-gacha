@@ -271,15 +271,26 @@ function labContradictionHTML(o){
 function renderObservationLab(){
  const root=document.getElementById('observation-lab');if(!root)return;if(isLite()){root.innerHTML='';return;}
  const o=observationState();
+ const upgradesOpen=root.querySelector('.watch-upgrades')?.open;
  const routesOpen=root.querySelector('.watch-route-details')?.open;
+ const contradictionOpen=root.querySelector('.lab-contradiction')?.open;
+ const active=root.contains(document.activeElement)?document.activeElement:null;
+ const focusAttribute=active&&['data-watch-upgrade','data-watch'].find(a=>active.hasAttribute(a));
+ const focusSelector=focusAttribute?`[${focusAttribute}="${CSS.escape(active.getAttribute(focusAttribute))}"]`:active?.matches('summary')?['watch-upgrades','watch-route-details','lab-contradiction'].filter(c=>active.parentElement.classList.contains(c)).map(c=>`.${c}>summary`)[0]:null;
  const routes=Object.entries(WatchModel.MODES).map(([id,m])=>`<article class="watch-mode ${id===o.mode?'equipped':''}"><div><b>${m.label}</b><small>${OBSERVATIONS[id].title} · pt ×${m.mult}</small></div><span>${id===o.mode?'● 観測中':o.focusMode===id?'噂の照合先':'巡回対象'}</span></article>`).join('');
- const upgrades=Object.entries(WatchModel.UPGRADES).filter(([id])=>!['patrol','suppression'].includes(id)||WatchModel.automationUnlocked(o,id)).map(([id,u])=>{const lv=o.upgrades[id],max=lv===u.max,values=watchUpgradeValues(id);return `<article><div><b>${u.name} · Lv.${lv}/${u.max}</b><small>${values[lv]}${max?'':` → ${values[lv+1]}`}</small></div><button data-watch-upgrade="${id}" ${max||S.currency<u.costs[lv]?'disabled':''}>${max?'最大':`${u.costs[lv]}pt`}</button></article>`;}).join('');
+ const upgrades=Object.entries(WatchModel.UPGRADES).filter(([id])=>!['patrol','suppression'].includes(id)||WatchModel.automationUnlocked(o,id)).map(([id,u])=>{
+  const lv=o.upgrades[id],max=lv===u.max,values=watchUpgradeValues(id),cost=max?0:u.costs[lv],shortfall=max?0:Math.max(0,Math.ceil(cost-S.currency));
+  const label=max?`${u.name}は最大レベル Lv.${lv}`:`${u.name}をLv.${lv+1}へ強化。必要 ${cost}pt${shortfall?`、あと${shortfall}pt必要`:''}`;
+  return `<article><div><b>${u.name} · Lv.${lv}/${u.max}</b><small>${values[lv]}${max?'':` → ${values[lv+1]}`}</small></div><div class="watch-upgrade-action"><button data-watch-upgrade="${id}" aria-label="${escapeHTML(label)}" ${max||S.currency<cost?'disabled':''}>${max?'最大':`${cost}pt`}</button>${shortfall?`<small class="watch-upgrade-hint">あと${shortfall}pt</small>`:''}</div></article>`;
+ }).join('');
  root.innerHTML=`<section class="watch-lab">
   <div class="watch-lab-heading"><h2>観測装備</h2><div class="watch-lab-links"><button class="btn-line" data-watch="settings" ${watchSettingsUnlocked()?'':'hidden'}>観測設定</button><button class="btn-line" data-watch="return">観測へ戻る</button></div></div>
   <p class="watch-lab-context"><span>${OBSERVATIONS[o.mode].title} ／ 異変 ${(100-WatchModel.ODDS[o.upgrades.sensitivity][0]).toFixed(1).replace(/\.0$/,'')}%</span>${o.focusLegend?`<span>追跡中：${escapeHTML(legendTitle(o.focusLegend))}</span>`:''}</p>
-  <details class="watch-upgrades"><summary>観測を強化 <span>${WatchModel.RETENTION[o.upgrades.retention]}h</span></summary>${upgrades}<p class="watch-note">異常感度は0.5ポイントずつ、最大12%。離れていても記録が残る時間は最大24時間、巡回効率は最大Lv.6。自動化は最大Lv.9・1秒に1回。自動巡回は記録20件、自動鎮静は手動鎮静10件と自動巡回Lv.1で解放。鎮静Lv.1/5/9でR/SR/SSRまで対応。受取待ちの抽選結果は育成で変わりません。</p></details>
+  <details class="watch-upgrades" ${upgradesOpen?'open':''}><summary>観測を強化 <span>${WatchModel.RETENTION[o.upgrades.retention]}h</span></summary>${upgrades}<p class="watch-note">異常感度は0.5ポイントずつ、最大12%。離れていても記録が残る時間は最大24時間、巡回効率は最大Lv.6。自動化は最大Lv.9・1秒に1回。自動巡回は記録20件、自動鎮静は手動鎮静10件と自動巡回Lv.1で解放。鎮静Lv.1/5/9でR/SR/SSRまで対応。受取待ちの抽選結果は育成で変わりません。</p></details>
   <details class="watch-route-details" ${routesOpen?'open':''}><summary>巡回先・観測記録 <span>${o.collected}件</span></summary><p class="watch-note">4地点を巡回。同じ場所を続けず、追跡中の噂と未観測の場所を優先します。${o.focusLegend?'':'現在、追跡中の噂はありません。'}</p><div class="watch-equipment">${routes}</div></details>
   ${o.routeCredit?`<p class="watch-note">以前の観測先解放分 ${o.routeCredit}ptを返還済み。育成と記録は引き継いでいます。</p>`:''}${labContradictionHTML(o)}</section>`;
+ const contradiction=root.querySelector('.lab-contradiction');if(contradiction&&contradictionOpen)contradiction.open=true;
+ if(focusSelector){const target=root.querySelector(focusSelector);(target&&!target.disabled&&target.getClientRects().length?target:root.querySelector('.watch-upgrades>summary'))?.focus({preventScroll:true});}
 }
 document.getElementById('obs-frame').addEventListener('click',observationCollect);
 document.addEventListener('click',e=>{

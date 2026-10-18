@@ -38,3 +38,5 @@ body:not(.lite) main:has(.dossier-view:not([hidden])){padding-top:8px}
 .watch-lab .watch-note{font-size:13px;line-height:1.7;color:#d8ccb5}
 .watch-lab .watch-mode>span{color:#e3d7c1;font-size:13px;line-height:1.5;max-width:8em;text-align:right}
 .watch-lab .watch-mode small,.watch-lab .watch-upgrades small{color:#d8ccb5}
+.watch-upgrades article>.watch-upgrade-action{display:grid;justify-items:end;gap:4px;flex:0 0 auto;min-width:90px;max-width:45%}
+.watch-upgrade-action .watch-upgrade-hint{margin:0;text-align:right;font-size:13px;line-height:1.5;overflow-wrap:anywhere}
