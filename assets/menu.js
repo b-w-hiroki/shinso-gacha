@@ -104,7 +104,10 @@ function openGameMenu(){
 function menuBack(target='home'){return `<button class="menu-back" data-menu="${target}">‹ ${target==='home'?'メニュー':target==='news'?'お知らせ一覧':'受信ボックス'}</button>`;}
 function openGameNews(){const c=menuState();openMenuPage('運営からのお知らせ',menuBack()+`<div class="game-message-list">${GAME_NOTICES.map(n=>`<button data-notice="${n.id}"><small>${n.date}${c.readNotices.includes(n.id)?'':' · 未読'}</small><b>${n.title}</b></button>`).join('')}</div>`);}
 function openGameInbox(){
- const c=menuState(),mail=GAME_MAIL.filter(m=>c.mail[m.id]).reverse();
+ const c=menuState();
+ const receivedTime=m=>{const time=Number(c.mail[m.id].receivedAt);return Number.isFinite(time)&&time>0?time:0;};
+ // Keep the existing definition order for same-batch deliveries and old undated mail.
+ const mail=GAME_MAIL.filter(m=>c.mail[m.id]).reverse().sort((a,b)=>receivedTime(b)-receivedTime(a));
  openMenuPage('受信ボックス',menuBack()+`<p class="menu-muted">ゲーム内メール</p><div class="game-message-list">${mail.map(m=>`<button data-mail="${m.id}"><small>${m.from}${!c.mail[m.id].read?' · 未読':''}${m.reward&&!c.mail[m.id].claimed?' · 添付あり':''}</small><b>${m.title}</b></button>`).join('')||'<p class="menu-empty">届いたメールはありません。</p>'}</div>`);
 }
 function openGameMail(id){
