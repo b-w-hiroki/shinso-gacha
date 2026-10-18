@@ -117,14 +117,20 @@ function openGameMenu(){
 }
 function menuBack(target='home'){return `<button class="menu-back" data-menu="${target}">‹ ${target==='home'?'メニュー':target==='news'?'お知らせ一覧':'受信ボックス'}</button>`;}
 function openGameNews(){const c=menuState();openMenuPage('運営からのお知らせ',menuBack()+`<div class="game-message-list">${GAME_NOTICES.map(n=>`<button data-notice="${n.id}"><small>${n.date}${c.readNotices.includes(n.id)?'':' · 未読'}</small><b>${n.title}</b></button>`).join('')}</div>`);}
+function mailReceivedTime(entry){
+ const raw=entry?.receivedAt,time=typeof raw==='number'||typeof raw==='string'?Number(raw):0;
+ return time>0&&Number.isFinite(new Date(time).getTime())?time:0;
+}
 function openGameInbox(){
- const c=menuState(),mail=GAME_MAIL.filter(m=>c.mail[m.id]).reverse();
+ const c=menuState();
+ // Keep the existing definition order for same-batch deliveries and old undated mail.
+ const mail=GAME_MAIL.filter(m=>c.mail[m.id]).reverse().sort((a,b)=>mailReceivedTime(c.mail[b.id])-mailReceivedTime(c.mail[a.id]));
  openMenuPage('受信ボックス',menuBack()+`<p class="menu-muted">ゲーム内メール</p><div class="game-message-list">${mail.map(m=>`<button data-mail="${m.id}"><small>${m.from}${!c.mail[m.id].read?' · 未読':''}${m.reward&&!c.mail[m.id].claimed?' · 添付あり':''}</small><b>${m.title}</b></button>`).join('')||'<p class="menu-empty">届いたメールはありません。</p>'}</div>`);
 }
 function openGameMail(id){
  const m=GAME_MAIL.find(m=>m.id===id),c=menuState();if(!m||!c.mail[id])return;
  c.mail[id].read=true;markDirty();renderMenuBadge();
- const d=new Date(c.mail[id].receivedAt).toLocaleDateString('ja-JP');
+ const receivedAt=mailReceivedTime(c.mail[id]),d=receivedAt?new Date(receivedAt).toLocaleDateString('ja-JP'):'受信日時不明';
  // A saved letter alone is not proof that its classified dossier is still
  // available. Project the destination from confirmed, rank-gated evidence.
  const personnel=m.personnelCaseId?PersonnelDiscrepancies.detail(S.personnelEvidence,rankIdx(),m.personnelCaseId):null;
