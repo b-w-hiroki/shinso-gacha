@@ -2,7 +2,7 @@
 
 基準main: `4e4f6d5e6f3eb3d3d9693b3c76fdd4681705dafa`。対象は導入、観測、取得済み資料、課内・調査、メニュー、保存、共有と運用資料。未来の全改善案を列挙したものではなく、今回のコード・Issue・7件のOpen PRの点検で確認できた全項目を追跡する。関連: [全体点検 #218](https://github.com/b-w-hiroki/shinso-gacha/issues/218)。
 
-更新：7件の元PRと#219の統合修正は現在main反映済み。下表1〜20の実装はmainにあり、上部・文字色・操作状態の追加改善は#223にある。最新の公開／PR／人待ちの分類は [現状一覧](POLISH-STATUS-2026-10-19.md)。初回の点検履歴は保持する。
+更新：7件の元PRと#219の統合修正、#223の上部・文字色・操作状態の改善はmain反映済み。最新の公開／人待ちの分類は [現状一覧](POLISH-STATUS-2026-10-19.md)。初回の点検履歴は保持する。
 
 | # | 改善・確認項目 | 処理 | 根拠・確認先 |
 | --- | --- | --- | --- |
@@ -27,7 +27,7 @@
 | 19 | コピー拒否が共有画面の切替後に返った場合の例外 | 修正・両ブラウザ検証済み | 元の本文を捕捉し、消えた本文は選択しない |
 | 20 | 詳細が開封画面に重なった場合のEscape | 修正・両ブラウザ検証済み | 表示上位の詳細から閉じる |
 | 21 | 古い作業キューの画像未反映・未着手表記 | 更新済み | `CURRENT-WORK-QUEUE.md`。完了済み#175/#176/#177を再開しない |
-| 22 | 保存・所持pt・未取得秘匿・観測の接触ルール | 既存契約を維持・統合CI待ち | smoke、モデル、Chromium/WebKit、Firestore既存CI |
+| 22 | 保存・所持pt・未取得秘匿・観測の接触ルール | 既存契約を維持・PR CI成功 | smoke、モデル、Chromium/WebKit、Firestore既存CI |
 | 23 | photo R/SRの発見性 | 人のブラインド評価待ち | #174。#209は評価ツールであり合格判定ではない |
 | 24 | 本番Firebase同期・削除とiPhone操作 | 管理者・実機待ち | #75。テスト用アダプターの成功と区別する |
 | 25 | 人物最終素材、深い会話、長時間の体験品質 | 人の評価待ち | #82。確定済み4群の再実装はしない |
@@ -40,4 +40,4 @@
 - 通常CIに加え、HTML変更で自動起動する実タップ・WebKit SSR反復検証も確認する。
 - 手動ブラウザ・スクリーンショット検収は現行の依頼範囲外。実機・本番・主観評価を自動完了にしない。
 
-ローカル: 統合テストはChromium/WebKit成功。既存のsheet-focus、menu-pages、smoke、documentation-contract、forecast-followup-model、CSP検査も成功。最終の全CI結果は統合PRのChecksを正本とする。main・Pagesへの反映: 未実施。
+ローカル: 統合テストはChromium/WebKit成功。既存のsheet-focus、menu-pages、smoke、documentation-contract、forecast-followup-model、CSP検査も成功。#219/#223はmainへマージ済み。main `3f34c03` の[CI](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/39175827130) 8/8、[Pages](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/39175826758)、[実タップ](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/39175827126)は成功。人の評価と実機検収は未実施。
