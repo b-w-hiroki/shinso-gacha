@@ -1,6 +1,6 @@
 # 真相ガチャ｜GitHub運用パイロット
 
-**状態：pilot（試験導入）／開始 2026-10-16**
+**状態：pilot（試験導入）／開始 2026-10-16／Issue状態確認 2026-10-18**
 
 この作品では、共通正本 [studio-playbook GitHub Operating Model](https://github.com/b-w-hiroki/studio-playbook/blob/main/docs/GITHUB-OPERATING-MODEL.md) を試す。Private側へアクセスできないAIは「共通契約未読」と報告し、ここで確認できる必要最小限の安全契約に従う。**このページを共通標準の二重正本にしない。**
 
@@ -34,11 +34,11 @@
 - 管理権限・実機が必要：[Issue #75](https://github.com/b-w-hiroki/shinso-gacha/issues/75)（human-required、手動ブラウザQAは現在の依頼範囲外）
 - 写真差分制作：[観測素材ブリーフ](OBSERVATION-ART-REPLACEMENT-BRIEFS.md)
 - [Decision #173：Project所有先・公開範囲](https://github.com/b-w-hiroki/shinso-gacha/issues/173)（個人所有Publicで決定）
-- [Task #174：海沿い車載・教室の本番画像統合](https://github.com/b-w-hiroki/shinso-gacha/issues/174)（P1、Ready、画像本体/透過/SSRの正規Push待ち）
-- [Task #175：人物専用素材の品質統一](https://github.com/b-w-hiroki/shinso-gacha/issues/175)（P1、Backlog）
-- [Task #176：未来報告と課員証言の分岐](https://github.com/b-w-hiroki/shinso-gacha/issues/176)（P1、Backlog）
-- [Task #177：50案ロードマップの現状仕分け](https://github.com/b-w-hiroki/shinso-gacha/issues/177)（P2、Ready）
-- [Task #178：Projects v2リンク・ビュー設定](https://github.com/b-w-hiroki/shinso-gacha/issues/178)（Project #1へ接続済み）
+- [Task #174：海沿い車載・教室の本番画像統合](https://github.com/b-w-hiroki/shinso-gacha/issues/174)（素材統合はPR #200/#201でmain反映済み。Issueは人によるブラインド検収待ちでOPEN）
+- [Task #175：人物専用素材の品質統一](https://github.com/b-w-hiroki/shinso-gacha/issues/175)（CLOSED／完了）
+- [Task #176：未来報告と課員証言の分岐](https://github.com/b-w-hiroki/shinso-gacha/issues/176)（CLOSED／完了）
+- [Task #177：50案ロードマップの現状仕分け](https://github.com/b-w-hiroki/shinso-gacha/issues/177)（CLOSED／完了）
+- [Task #178：Projects v2リンク・ビュー設定](https://github.com/b-w-hiroki/shinso-gacha/issues/178)（CLOSED／完了。Project #1へ接続済み）
 - Pilot評価と正式昇格：[studio-playbook #49](https://github.com/b-w-hiroki/studio-playbook/issues/49)。共通ルール [Playbook PR #48](https://github.com/b-w-hiroki/studio-playbook/pull/48)。
 
 ## Pilot評価と昇格
