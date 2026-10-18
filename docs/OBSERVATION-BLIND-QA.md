@@ -25,3 +25,5 @@
 ## 出力スキーマ
 
 `shinso-observation-blind-qa-v1`。セッション内16行の `mode`（4媒体）、`rarity`（0〜3）、`response`（tap/none/skip）、`point`（0〜1の画像内座標）、`result`（hit/correct-normal/false-positive/missed/skip）、`elapsedMs`（提示から回答まで）に加え、件数・発見時間中央値と任意の3主観評価を記録します。氏名、メール、アカウント識別子、位置情報、所持ptは記録しません。
+
+主観評価は1〜5の両端に尺度の説明を表示し、評価グループのアクセシブルな説明にも同じ範囲を関連付けます。途中の数値は両端の間として選びます。

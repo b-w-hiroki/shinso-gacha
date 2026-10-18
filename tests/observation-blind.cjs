@@ -77,6 +77,7 @@ const server=http.createServer((request,response)=>{
    assert((await group.locator('xpath=..').innerText()).includes('5：'+high));
    assert.equal(await page.locator('[name="survey-'+key+'"][value="1"]').getAttribute('aria-label'),label+' 1：'+low);
    assert.equal(await page.locator('[name="survey-'+key+'"][value="5"]').getAttribute('aria-label'),label+' 5：'+high);
+   assert.equal(await page.locator('[data-survey="'+key+'"]').evaluate(el=>el.closest('fieldset').getAttribute('aria-describedby')),'survey-'+key+'-axis','rating range is announced with the question');
   }
   await page.locator('[name="survey-unease"][value="4"]').check();
   assert.equal(await page.evaluate(()=>QAStudy.result().survey.unease),4);

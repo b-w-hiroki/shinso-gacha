@@ -127,6 +127,7 @@
    axis.className='survey-axis';axis.id='survey-'+key+'-axis';
    low.textContent='1：'+scale.low;high.textContent='5：'+scale.high;
    axis.append(low,high);container.before(axis);
+   container.closest('fieldset').setAttribute('aria-describedby',axis.id);
    for(let n=1;n<=5;n++){
     const label=document.createElement('label'),input=document.createElement('input');
     input.type='radio';input.name='survey-'+key;input.value=String(n);
