@@ -52,9 +52,9 @@ body:not(.lite) .lab-scene .research-card::before{color:#e4ad9b}
 .archive-scene .progress .row:last-child{color:#d4c5aa}
 .archive-scene .progress #rate{font-size:17px;color:#ffe7ba}
 .archive-scene .progress .bar{height:4px;margin:2px 0;background:#5d5448}
-.archive-scene .chips{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;min-width:0}
-.archive-scene .chips button{min-width:0;min-height:44px;padding:7px 4px;font-size:13px;white-space:nowrap}
-.archive-scene .legend-link{grid-column:2;min-width:44px;min-height:44px;width:auto;margin:0;padding:8px 9px;justify-content:center;white-space:nowrap}
+.archive-scene .chips{display:flex;flex-wrap:nowrap;gap:4px;min-width:0}
+.archive-scene .chips button{flex:1 1 0;min-width:0;min-height:44px;height:auto;padding:7px 4px;font-size:13px;line-height:1.45;white-space:normal;overflow-wrap:anywhere}
+.archive-scene .legend-link{grid-column:2;min-width:44px;min-height:44px;width:auto;margin:0;padding:8px 9px;justify-content:center;line-height:1.45;white-space:normal;overflow-wrap:anywhere}
 .archive-scene .files{grid-column:1/-1;gap:16px 10px;padding-top:8px}
 .archive-scene .folder.secret{grid-column:1/-1;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 8px;min-height:104px;padding:16px 14px 10px}
 .archive-scene .folder.secret .m,.archive-scene .folder.secret .cond{grid-column:1/-1;margin:0;padding:0;border:0;line-height:1.4}
@@ -62,4 +62,7 @@ body:not(.lite) .lab-scene .research-card::before{color:#e4ad9b}
 .archive-scene .folder.secret .n{min-width:0;font-size:17px;line-height:1.35}
 .archive-scene .folder.secret .pips{margin:0;align-self:center}
 .archive-scene .folder.secret .cond{font-size:12px;color:#4b3327}
+.archive-scene .folder .m,.archive-scene .folder .cond{font-size:13px;line-height:1.5}
+.archive-scene .folder .m{color:#49331e}
+.archive-scene .folder .cond{color:#3f2b19}
 @media(max-width:359px){.archive-scene [data-spane="archive:files"]{grid-template-columns:minmax(0,1fr)}.archive-scene .legend-link{grid-column:1;justify-self:start}}
