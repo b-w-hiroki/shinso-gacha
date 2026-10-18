@@ -65,7 +65,7 @@
   if(loading)return;
   loading=true;
   get('begin').disabled=true;
-  get('begin').textContent='映像を準備しています';
+  get('begin').textContent='画像を準備しています';
   get('result').hidden=true;
   cases=shuffle(MODES.flatMap(mode=>[0,1,2,3].map(rarity=>({mode,rarity}))));
   answers=[];index=0;sessionCreated=new Date().toISOString();
@@ -115,11 +115,23 @@
   get('result-time').textContent=stats.medianHitMs===null?'―':(stats.medianHitMs/1000).toFixed(2)+'秒';
  }
  function setupSurvey(){
+  const scales={
+   unease:{label:'不気味さ',low:'まったく不気味でない',high:'非常に不気味'},
+   clarity:{label:'操作の分かりやすさ',low:'とても分かりにくい',high:'とても分かりやすい'},
+   return:{label:'再調査意欲',low:'また調べたくない',high:'また調べたい'}
+  };
   document.querySelectorAll('[data-survey]').forEach(container=>{
    const key=container.dataset.survey;
+   const scale=scales[key];
+   const axis=document.createElement('p'),low=document.createElement('span'),high=document.createElement('span');
+   axis.className='survey-axis';axis.id='survey-'+key+'-axis';
+   low.textContent='1：'+scale.low;high.textContent='5：'+scale.high;
+   axis.append(low,high);container.before(axis);
+   container.closest('fieldset').setAttribute('aria-describedby',axis.id);
    for(let n=1;n<=5;n++){
     const label=document.createElement('label'),input=document.createElement('input');
     input.type='radio';input.name='survey-'+key;input.value=String(n);
+    if(n===1||n===5)input.setAttribute('aria-label',scale.label+' '+n+'：'+(n===1?scale.low:scale.high));
     label.append(input,document.createTextNode(String(n)));
     container.append(label);
    }
