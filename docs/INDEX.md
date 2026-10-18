@@ -51,3 +51,5 @@
 - [未完タスク](https://github.com/b-w-hiroki/shinso-gacha/issues/89)
 
 削除や全面書換えで歴史を消さない。古い記述には「当時の判断」の印を付ける。
+
+画面上部・タブ操作: [2026-10-19の点検と改善22項目](SCREEN-NAVIGATION-AUDIT-2026-10-19.md)。

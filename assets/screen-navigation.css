@@ -1,0 +1,25 @@
+/* One compact screen toolbar, then content. Never pin tabs over a document. */
+body:not(.lite) main:has(.dossier-view:not([hidden])){padding-top:8px}
+.dossier-view:has(>.section-tabs){grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);column-gap:12px;row-gap:12px;align-items:start}
+.dossier-view:has(>.section-tabs)>.scene-heading{grid-column:1;grid-row:1;align-self:center;min-width:0;min-height:0;padding:0;overflow:visible}
+.dossier-view:has(>.section-tabs)>.scene-heading h1{font-size:20px;line-height:1.4;letter-spacing:.02em;margin:0;overflow-wrap:anywhere}
+.dossier-view:has(>.section-tabs)>.section-tabs{grid-column:2;grid-row:1;min-width:0;position:static;top:auto;padding:0;gap:4px;align-self:start}
+.dossier-view:has(>.section-tabs)>.section-pane{grid-column:1/-1;min-width:0}
+.dossier-view .section-tabs button{min-width:44px;min-height:44px;padding:8px 2px;line-height:1.5;white-space:normal;overflow-wrap:anywhere}
+.agent-home>.home-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:0;position:static}
+.agent-home>.home-tabs::before{display:none}
+.agent-home>.home-tabs button{min-width:44px;min-height:44px;padding:8px 4px;font-size:14px;line-height:1.5;white-space:normal}
+.gacha-scene .seg{padding:0;margin-block:0;gap:8px}
+.gacha-scene .seg button{min-width:44px;min-height:44px;padding:8px 4px;font-size:16px;line-height:1.5;white-space:normal}
+.menu-scene{gap:12px}
+.menu-page-heading{grid-template-columns:minmax(44px,max-content) minmax(0,1fr);align-items:center;gap:12px;padding-bottom:8px;min-width:0}
+.menu-page-heading .menu-back{min-width:44px;max-width:140px;padding:8px 4px;line-height:1.5;white-space:normal;text-align:left}
+.menu-page-heading h1{min-width:0;font-size:20px;line-height:1.5;overflow-wrap:anywhere}
+.report-scene .agent-record-link{margin:0;min-height:44px}
+.catalog{display:grid;gap:12px;min-width:0}
+.catalog>.catalog-tabs,.catalog>.catalog-intro,.catalog>.catalog-summary,.catalog-summary p{margin:0}
+.catalog-tabs button{min-height:44px;min-width:44px;white-space:normal;overflow-wrap:anywhere}
+.menu-scene .account-card:first-child{margin-top:0}
+/* Reading can grow; the toolbar must reflow, not clip enlarged text. */
+.section-tabs button:focus-visible,.home-tabs button:focus-visible,.seg button:focus-visible{outline-offset:1px}
+@media(max-height:500px){.dossier-view:has(>.section-tabs){row-gap:8px}.menu-scene{gap:8px}}
