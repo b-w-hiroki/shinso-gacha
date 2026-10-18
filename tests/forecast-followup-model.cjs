@@ -1,4 +1,7 @@
 const assert=require('node:assert/strict'),M=require('../assets/forecast-followup-model.js');
+const legacyDate={version:1,entries:{u1:{mode:'cctv',issuedAt:1e20}}};
+assert.equal(M.inspect(legacyDate,'u1').issued,'日時不明','out-of-range legacy dates have a readable label');
+assert.equal(legacyDate.entries.u1.issuedAt,1e20,'date formatting does not rewrite a saved report');
 const morning=new Date(2026,9,11,8,0).getTime(),evening=new Date(2026,9,11,23,50).getTime();
 const tomorrow=new Date(2026,9,12,0,10).getTime(),later=new Date(2026,9,12,9,0).getTime();
 let result=M.issue(null,'u2','dash',evening);
