@@ -1,5 +1,5 @@
 /* Catalogs are projections of acquired records: browsing never grants progress. */
-let encyclopediaTab='anomalies',encyclopediaFilter='all';
+let encyclopediaTab='anomalies',encyclopediaQuery='';
 const CATALOG_TABS={anomalies:'異変',people:'人物',places:'場所'};
 function catalogTabs(){const t={...CATALOG_TABS};if(LegendModel.ids.some(id=>LegendModel.count(S.levels,id)===3&&legendLayerStatus(id)?.compared))t.confidential='機密';return t;}
 function catalogObservationHistory(mode,rarity){
@@ -22,9 +22,33 @@ function catalogEntries(tab){
  return observed.concat(inc,alternate).map((e,i)=>({...e,number:i+1}));
 }
 function openEncyclopedia(tab=encyclopediaTab){
- const tabs=catalogTabs();if(!Object.hasOwn(tabs,tab))tab='anomalies';encyclopediaTab=tab;
- const entries=catalogEntries(tab),known=entries.filter(e=>e.known).length,shown=encyclopediaFilter==='missing'?[]:entries.filter(e=>e.known);
- openMenuPage('図鑑',menuBack()+`<section class="catalog"><p class="catalog-intro">あなたが持ち帰ったものだけが、ここに残る。</p><div class="catalog-tabs" role="group" aria-label="図鑑の分類">${Object.entries(tabs).map(([id,label])=>`<button data-catalog-tab="${id}" aria-pressed="${id===tab}">${label}</button>`).join('')}</div><div class="catalog-summary"><p>${tabs[tab]} <b>${known}</b>件 発見</p><label><input type="checkbox" data-catalog-filter ${encyclopediaFilter==='known'?'checked':''}> 発見済みのみ</label><label><input type="checkbox" data-catalog-missing ${encyclopediaFilter==='missing'?'checked':''}> 未発見のみ</label></div>${encyclopediaFilter==='missing'?`<p class="catalog-intro">未発見の記録は一覧に表示されません。${tab==='anomalies'?'観測と封筒調査':tab==='people'?'課内での会話':'各地点の観測'}から探してください。</p>`:''}<div class="catalog-list">${shown.map(e=>`<button class="catalog-entry ${e.known?'':'catalog-unknown'}" data-catalog-entry="${e.id}" ${e.known?'':'disabled'}><small>No.${String(e.number).padStart(3,'0')}</small><span><b>${escapeHTML(e.title)}</b><small>${escapeHTML(e.sub)}</small></span><span aria-hidden="true">${e.known?'›':'―'}</span></button>`).join('')||'<p class="menu-empty">ここには発見済みの記録だけが残ります。観測や課内での会話を進めてください。</p>'}</div></section>`);
+ const tabs=catalogTabs();if(!Object.hasOwn(tabs,tab))tab='anomalies';if(tab!==encyclopediaTab)encyclopediaQuery='';encyclopediaTab=tab;
+ const shown=catalogEntries(tab).filter(e=>e.known);
+ openMenuPage('図鑑',menuBack()+`<section class="catalog"><p class="catalog-intro">あなたが持ち帰ったものだけが、ここに残る。</p><div class="catalog-tabs" role="group" aria-label="図鑑の分類">${Object.entries(tabs).map(([id,label])=>`<button data-catalog-tab="${id}" aria-pressed="${id===tab}">${label}</button>`).join('')}</div><div class="catalog-summary"><p>${tabs[tab]} <b>${shown.length}</b>件 発見</p><p data-catalog-status role="status"></p></div><label class="catalog-search" for="catalog-search">取得済みの記録を検索</label><div class="catalog-search-fields"><input id="catalog-search" type="search" placeholder="名前・場所・出典" autocomplete="off" aria-controls="catalog-results"><button data-catalog-clear aria-label="検索をクリア" hidden>クリア</button></div><div id="catalog-results" class="catalog-list">${shown.map(e=>`<button class="catalog-entry" data-catalog-entry="${e.id}"><small>No.${String(e.number).padStart(3,'0')}</small><span><b>${escapeHTML(e.title)}</b><small>${escapeHTML(e.sub)}</small></span><span aria-hidden="true">›</span></button>`).join('')||'<p class="menu-empty" data-catalog-empty>ここには発見済みの記録だけが残ります。観測や課内での会話を進めてください。</p>'}<p class="menu-empty" data-catalog-no-results hidden>一致する取得済みの記録はありません。検索語を変えるか、クリアしてください。</p></div></section>`);
+ const search=document.getElementById('catalog-search');search.value=encyclopediaQuery;
+ search.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  if(e.isComposing){e.stopPropagation();return;}
+  if(search.value){e.preventDefault();e.stopPropagation();clearCatalogSearch();}
+ });
+ filterCatalog(encyclopediaQuery);
+}
+function filterCatalog(query){
+ encyclopediaQuery=query;
+ const catalog=document.querySelector('.catalog');if(!catalog)return;
+ const term=query.normalize('NFKC').trim().toLowerCase();let matches=0;
+ // Filter only the acquired entries already rendered; never search the full catalog.
+ catalog.querySelectorAll('[data-catalog-entry]').forEach(entry=>{
+  entry.hidden=!!term&&!entry.querySelector('span').textContent.normalize('NFKC').toLowerCase().includes(term);
+  if(!entry.hidden)matches++;
+ });
+ catalog.querySelector('[data-catalog-status]').textContent=term?`${matches}件が一致`:'';
+ catalog.querySelector('[data-catalog-no-results]').hidden=!term||matches>0;
+ const empty=catalog.querySelector('[data-catalog-empty]');if(empty)empty.hidden=!!term;
+ catalog.querySelector('[data-catalog-clear]').hidden=!query;
+}
+function clearCatalogSearch(){
+ const search=document.getElementById('catalog-search');search.value='';filterCatalog('');search.focus();
 }
 // Re-readable history of what this colleague actually said. Nothing unheard is rendered.
 function catalogTestimonyLog(id,m,o){
@@ -175,4 +199,6 @@ document.addEventListener('click',e=>{
  if(b.dataset.catalogIncident){hideSheet();return openIncursionRecords(Number(b.dataset.catalogIncident));}
  if(b.dataset.catalogTalk&&watchContacts()[b.dataset.catalogTalk]){hideSheet();observationColleagues();observationConversation(b.dataset.catalogTalk);}
 });
-document.addEventListener('change',e=>{if(e.target.matches('[data-catalog-filter],[data-catalog-missing]')){encyclopediaFilter=e.target.checked?(e.target.matches('[data-catalog-missing]')?'missing':'known'):'all';openEncyclopedia();}});
+document.addEventListener('input',e=>{if(e.target.id==='catalog-search'&&!e.isComposing)filterCatalog(e.target.value);});
+document.addEventListener('compositionend',e=>{if(e.target.id==='catalog-search')filterCatalog(e.target.value);});
+document.addEventListener('click',e=>{if(e.target.closest('[data-catalog-clear]'))clearCatalogSearch();});
