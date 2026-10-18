@@ -36,20 +36,20 @@ fieldset{border:1px solid #465b4d;margin:15px 0;padding:13px}legend{padding:0 6p
 <main>
 <header><small>第六文書課 ／ 開発検収用</small><h1>観測の発見性・ブラインド検収</h1></header>
 <section class="panel" id="intro">
-<h2>無作為に提示された映像を確認</h2>
-<p>16枚の映像について、違和感を見つけたら映像のその位置に触れてください。何も見つからなければ「異変は見つからない」を選択してください。結果の正誤は最後まで表示しません。</p>
+<h2>無作為に提示された画像を確認</h2>
+<p>16枚の画像について、違和感を見つけたら画像のその位置に触れてください。何も見つからなければ「異変は見つからない」を選択してください。結果の正誤は最後まで表示しません。</p>
 <p class="muted">制作素材の人間による発見時間、誤タップ、主観評価を測るためのページです。ゲームのアカウント、進行、抽選には接続しません。端末や氏名などは収集しません。回答はサーバーへ送信せず、明示的に保存を選んだ場合だけJSONを出力します。</p>
 <button id="begin" class="primary" type="button">検収を開始</button>
 </section>
 <section id="test" hidden>
-<div class="progress"><span id="trial-index"></span><span>映像を見て異変位置に触れる</span></div>
-<button id="frame" type="button" aria-label="映像内の違和感を見つけた位置をタップ"><span id="scene" aria-hidden="true"></span></button>
+<div class="progress"><span id="trial-index"></span><span>画像を見て異変位置に触れる</span></div>
+<button id="frame" type="button" aria-label="画像内の違和感を見つけた位置をタップ"><span id="scene" aria-hidden="true"></span></button>
 <p id="trial-note" aria-live="polite">見つからなければ下のボタンを選んでください。</p>
 <div class="actions"><button id="none" type="button">異変は見つからない</button><button id="skip" type="button">判断できない</button></div>
 </section>
 <section class="panel" id="result" hidden>
 <h2>検収の記録</h2>
-<p>映像の答え合わせは検収後の記録ファイルで確認できます。表示値は診断用であり、ゲームの恐怖・見つけやすさを自動的に評価するものではありません。</p>
+<p>画像の答え合わせは検収後の記録ファイルで確認できます。表示値は診断用であり、ゲームの恐怖・見つけやすさを自動的に評価するものではありません。</p>
 <dl><dt>回答済み</dt><dd id="result-count"></dd><dt>正しい異変位置へのタップ</dt><dd id="result-hits"></dd><dt>誤タップ</dt><dd id="result-false"></dd><dt>見逃し</dt><dd id="result-missed"></dd><dt>発見時間の中央値</dt><dd id="result-time"></dd></dl>
 <fieldset><legend>不気味さ（任意）</legend><div class="survey-row" data-survey="unease"></div></fieldset>
 <fieldset><legend>操作の分かりやすさ（任意）</legend><div class="survey-row" data-survey="clarity"></div></fieldset>

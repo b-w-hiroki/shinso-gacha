@@ -65,7 +65,7 @@
   if(loading)return;
   loading=true;
   get('begin').disabled=true;
-  get('begin').textContent='映像を準備しています';
+  get('begin').textContent='画像を準備しています';
   get('result').hidden=true;
   cases=shuffle(MODES.flatMap(mode=>[0,1,2,3].map(rarity=>({mode,rarity}))));
   answers=[];index=0;sessionCreated=new Date().toISOString();

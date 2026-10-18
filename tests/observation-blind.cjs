@@ -1,5 +1,5 @@
 /* Local, zero-account blind human-QA workflow, not an automated claim of
- * perceptual discoverability. All 16 video stimuli must actually load. */
+ * perceptual discoverability. All 16 still-image stimuli must actually load. */
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),assert=require('node:assert/strict');
 const {chromium,webkit}=require('playwright');
 const server=http.createServer((request,response)=>{
@@ -22,6 +22,8 @@ const server=http.createServer((request,response)=>{
   const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.route('https://**/*',route=>route.abort());
   await page.goto('http://127.0.0.1:'+server.address().port+'/qa/observation-blind.html');
   assert(await page.locator('#intro').isVisible());
+  assert.match(await page.locator('#intro').innerText(),/16枚の画像/);
+  assert.doesNotMatch(await page.locator('#intro').innerText(),/映像|動画/);
   assert.equal(await page.locator('#test').isVisible(),false);
   await page.locator('#begin').click();
   const seen=new Set();
