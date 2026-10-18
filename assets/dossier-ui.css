@@ -6,7 +6,7 @@
   --ui-edge:#75634b;
   --ui-metal:#171614;
   --ui-red:#9a3025;
-  --ui-grain:repeating-linear-gradient(103deg,transparent 0 3px,rgba(77,51,27,.025) 3px 4px);
+  --ui-grain:linear-gradient(transparent,transparent);
   --ui-stock:radial-gradient(ellipse at 0 0,rgba(134,87,37,.23),transparent 56%),radial-gradient(ellipse at 100% 100%,rgba(91,54,23,.19),transparent 65%),var(--ui-grain),linear-gradient(110deg,#e6d9bd,#d7c7a8);
 }
 body:not(.lite) { --muted:#bcb3a2; --line:#4c463c; }

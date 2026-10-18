@@ -25,7 +25,7 @@ body[data-incursion='close']:not(.incursion-quiet) .radar-grid::after,body[data-
 #incursion-dialog .inc-primary { width:100%; margin-top:10px; background:#eee0bf; color:#302115; }
 #incursion-dialog .inc-primary:disabled { background:#302b22; color:#c5b99f; }
 .inc-feedback { border-left:3px solid #c0915b; padding:8px; color:#f6e9ce; background:#282015; }
-.inc-radio { height:110px; background:linear-gradient(#13140cf0,#12140fdc),url('ui/audio-analyzer.webp') center/cover; border:1px solid #827654; display:flex; gap:12px; align-items:center; justify-content:center; flex-wrap:wrap; padding:14px; }
+.inc-radio { height:110px; background:linear-gradient(#13140cf0,#12140fdc),url('ui/audio-analyzer-clean.webp') center/cover; border:1px solid #827654; display:flex; gap:12px; align-items:center; justify-content:center; flex-wrap:wrap; padding:14px; }
 .inc-radio i { width:15px; height:15px; border-radius:50%; background:#8ea777; box-shadow:0 0 12px #8ea77766; }.inc-radio i:nth-child(2) { background:#e57556; box-shadow:0 0 15px #e5755666; }.inc-radio span { flex-basis:100%; text-align:center; font:700 14px var(--f-mono); }
 .inc-channels { display:grid; gap:8px; }.inc-channels button { display:flex; justify-content:space-between; align-items:center; gap:8px; }.inc-channels small { font-size:12px; }
 .inc-envelope { padding:18px 12px; background:#e9d9b9 url('intro/witness-note.webp') center/cover; color:#302114; }.inc-envelope>span,.inc-envelope>p { background:#f1e4c8; padding:5px; font-weight:700; }
@@ -73,7 +73,7 @@ body[data-incursion='close']:not(.incursion-quiet) .radar-grid::after,body[data-
 .inc-experience-body .inc-records button{border-bottom:2px solid #795d51;background:#271e1b}
 .inc-experience-device{background:#0b1512;border:3px double #718877}
 .inc-experience-device .inc-record-number{color:#b8ccaa;border:1px solid #5a705d;border-radius:50%;padding:3px;text-align:center}
-.inc-experience-paper{background:#bdae8d url('ui/evidence-paper.webp') center/cover;color:#30261b}
+.inc-experience-paper{background:#bdae8d url('ui/evidence-paper-clean.webp') center/cover;color:#30261b}
 .inc-experience-paper .inc-material{color:#30261b}
 #incursion-dialog .inc-experience-paper button{background:#dfd1b2;color:#30261b;border:1px solid #897154;box-shadow:2px 3px #5d4c3655}
 .inc-experience-paper .inc-record-number{color:#6b3b2c}
