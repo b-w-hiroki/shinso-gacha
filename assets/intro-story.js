@@ -27,7 +27,7 @@ function introImage(name, alt, cls = '') {
 }
 function introLabel() {
   const i=S.lite.intro;
-  return ['記録を開く','写真を見直す','2通目を開く','3通目を開く',i.revealed?'記録を閉じる':'黒塗りを剥がす'][i.step] || '調査を続ける';
+  return ['封を切る','写真を見直す','2通目を開く','3通目を開く',i.revealed?'記録を閉じる':'黒塗りを剥がす'][i.step] || '調査を続ける';
 }
 function renderIntro() {
   const root=$('intro-case'); if(!root)return;
