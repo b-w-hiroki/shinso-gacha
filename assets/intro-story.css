@@ -109,3 +109,4 @@ body.intro-active header.top #game-menu #menu-dot { display:none!important; }
 /* Make every new document heading clear of the fixed-height introductory menu. */
 body.intro-active #intro-case,body.intro-active #intro-case[data-step="0"]{padding-top:50px}
 @media(max-height:700px){body.intro-active #intro-case,body.intro-active #intro-case[data-step="0"]{padding-top:42px}body.intro-active #intro-case[data-step="0"]{min-height:calc(100dvh - 142px - env(safe-area-inset-bottom,0px))}body.intro-active #intro-case .intro-image{max-height:30dvh}body.intro-active #intro-case[data-step="0"] .intro-title-wordmark{font-size:38px}body.intro-active #intro-case[data-step="0"] .intro-title-mast i{height:10px}}
+@media(max-height:700px) and (orientation:landscape){body.intro-active #intro-case[data-step="0"]{padding-top:36px;gap:8px}}
