@@ -86,7 +86,7 @@ function renderMenuBadge(){
 let menuReturn=null,menuPageBack='return';
 function openMenuPage(title,html){
  const current=document.querySelector('.view:not([hidden])');
- if(current?.dataset.view!=='menu')menuReturn={view:current?.dataset.view||'home',scroll:scrollY,home:homeTab,tab:current?.querySelector('[data-stab][aria-pressed="true"]')?.dataset.stab};
+ if(current?.dataset.view!=='menu')menuReturn={view:current?.dataset.view||'home',scroll:scrollY,home:homeTab,tab:current?.querySelector('[data-stab][aria-pressed="true"]')?.dataset.stab,focus:document.activeElement};
  hideSheet();go('menu');
  const content=document.getElementById('menu-page-content'),heading=document.querySelector('.menu-page-heading');
  content.innerHTML=html;const back=content.querySelector('.menu-back');
@@ -96,6 +96,7 @@ function openMenuPage(title,html){
 }
 function returnFromMenu(){
  const r=menuReturn||{view:'home',scroll:0};go(r.view);if(r.view==='home')setHomeTab(r.home||'desk');if(r.tab)setSectionTab(r.tab);scrollTo(0,r.scroll);menuReturn=null;
+ if(r.focus?.isConnected&&!r.focus.disabled)r.focus.focus({preventScroll:true});
 }
 function openGameMenu(){
  const n=renderMenuBadge();
