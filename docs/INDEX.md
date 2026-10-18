@@ -50,6 +50,7 @@
 - [アカウント・図鑑](ACCOUNT-CATALOG.md) / [安全](SECURITY-REVIEW.md)
 - [本番セットアップ](SETUP.md) / [体験検証の限界](RELEASE-EXPERIENCE-QA.md)
 - [素材組込みの履歴](ASSET_INTEGRATION.md) / [写実UI素材](PHYSICAL_ASSETS.md)
+- [2026-10-19素材の外周ノイズ点検・改善17項目](ASSET-NOISE-AUDIT-2026-10-19.md)
 - [未完タスク](https://github.com/b-w-hiroki/shinso-gacha/issues/89)
 
 削除や全面書換えで歴史を消さない。古い記述には「当時の判断」の印を付ける。

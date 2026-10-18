@@ -138,7 +138,9 @@ for (const asset of physical) {
   assert.equal(bytes.length, asset.bytes, `${asset.path}: unexpected bytes`);
   assert.equal(bytes.subarray(0,4).toString(), 'RIFF');
   assert.equal(bytes.subarray(8,12).toString(), 'WEBP');
-  assert(physicalCSS.includes(asset.path.replace('assets/', '')), `${asset.path}: missing consumer`);
+  const clean=JSON.parse(fs.readFileSync('assets/ui/clean-manifest.json','utf8'));
+  const consumer=clean.assets.find(a=>a.originalPath===asset.path)?.path||asset.path;
+  if(!clean.retiredConsumers.includes(asset.path))assert(physicalCSS.includes(consumer.replace('assets/', '')), `${consumer}: missing consumer`);
 }
 console.log('All twelve additional physical UI assets are present and referenced');
 new Function(fs.readFileSync('assets/intro-story.js','utf8'));

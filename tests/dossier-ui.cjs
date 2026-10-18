@@ -67,7 +67,7 @@ const server=http.createServer((req,res)=>{
   await p.locator('#lite-pull').click();assert.equal(await p.evaluate(()=>S.lite.pulls),1);await p.keyboard.press('Escape');
   assert.equal(await p.locator('[data-ltab="files"]').isVisible(),false,'first letter has no archive navigation');await p.evaluate(()=>{S.lite.intro.done=true;for(const id of LITE_IDS.slice(0,3))S.lite.lv[id]=Math.max(S.lite.lv[id]||0,1);renderLite();});assert(await p.locator('[data-ltab="files"]').isVisible(),'archive unlocks after three records');await p.locator('[data-ltab="files"]').click();assert(!(await p.locator('#lite-pull').isVisible()));await p.locator('[data-ltab="open"]').click();
   await p.evaluate(()=>{S.lite.lv=Object.fromEntries(LITE_IDS.map((id,i)=>[id,i<10?3:0]));renderLite();});
-  assert(await p.locator('body.phase-crisis').count());assert((await p.locator('body').evaluate(e=>getComputedStyle(e,'::after').backgroundImage)).includes('danger-overlay.webp'));assert.equal(await p.locator('body').evaluate(e=>getComputedStyle(e,'::after').pointerEvents),'none');await shot('danger-390');
+  assert(await p.locator('body.phase-crisis').count());assert((await p.locator('body').evaluate(e=>getComputedStyle(e,'::after').backgroundImage)).includes('radial-gradient'));assert.equal(await p.locator('body').evaluate(e=>getComputedStyle(e,'::after').pointerEvents),'none');await shot('danger-390');
   await p.evaluate(()=>{S.agentNo='0618';S.agentType='境界観測型';S.assign='都市伝説';showAgentWelcome();});assert(await p.locator('.appointment-paper').isVisible());await shot('appointment-390');await p.locator('.sheet .x').click();
   // This fixture tests rank notifications, not the delayed daily-login toast.
   // Suppress that unrelated notification just as the initial agent fixture does.

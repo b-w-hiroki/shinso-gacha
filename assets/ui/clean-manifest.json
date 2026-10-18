@@ -1,0 +1,14 @@
+{
+  "status": "integrated-not-released",
+  "generator": "built-in image_gen, reference edit, transparent_background=true",
+  "prompt": "Use case: background-extraction. Edit target: the attached existing Japanese mystery game asset {name}. Remove ONLY the unwanted blocky stair-stepped brown/black background matte, horizontal rectangular banding and exterior halo. Return a clean genuinely transparent exterior with smooth antialiased natural object edges. Preserve the exact existing object, composition, proportions, perspective, material texture, lighting, colors, marks and detail. Do not denoise the paper/metal texture, do not invent or remove object features, do not add any writing. Keep the entire object visible and preserve original canvas aspect ratio and placement. For paper keep its real torn fibers and any holes; for the recorder keep handle opening truly transparent. No cast shadow, colored backdrop or glow. This is a production cutout correction, not a redesign.",
+  "encoding": "ffmpeg -i source.png -c:v libwebp -quality 90 -compression_level 6 output.webp; no resize, alpha verified pixel-exact against generated PNG",
+  "retiredConsumers": ["assets/ui/danger-overlay.webp"],
+  "assets": [
+    {"name":"civilian-envelope","path":"assets/ui/civilian-envelope-clean.webp","originalPath":"assets/ui/civilian-envelope.webp","bytes":307954,"sha256":"931946db30f7b7c913431202fe7e43fbc8fb17958b35178fbbc37efed06e2576","sourcePngSha256":"f3a27bf9bdfc70556357470c8b411d438a498c06f8a8f88db2804daf7a6d1eb6","size":[1536,1024]},
+    {"name":"evidence-paper","path":"assets/ui/evidence-paper-clean.webp","originalPath":"assets/ui/evidence-paper.webp","bytes":177718,"sha256":"e6050c3678762c8c414d073acfd0ce3e0ebaa851c113b3d1c9878dcc33a87ecb","sourcePngSha256":"36593204bf1b7e07987d64746c969ff2040daf9df9d2ff5b9ab6c30b550c3e69","size":[1024,1536]},
+    {"name":"appointment-paper","path":"assets/ui/appointment-paper-clean.webp","originalPath":"assets/ui/appointment-paper.webp","bytes":215262,"sha256":"97f27526808b62ca985056b9e64165cb7e3a4c155cd73de8bd0c1497b88f447b","sourcePngSha256":"71be6c646c355944abc08e643a0795b934e21b2898ca24512aa14da8d29b0f40","size":[1024,1536]},
+    {"name":"report-paper","path":"assets/ui/report-paper-clean.webp","originalPath":"assets/ui/report-paper.webp","bytes":115498,"sha256":"1e623b47d1c5cf3351239cec56e96d90f5ae2c6abe5f02b532f9c0cda0c2be6d","sourcePngSha256":"c9f0fcd0455f1307328bb3a7147c70131be7630ef71f1adecfa22a293780e151","size":[1024,1536]},
+    {"name":"audio-analyzer","path":"assets/ui/audio-analyzer-clean.webp","originalPath":"assets/ui/audio-analyzer.webp","bytes":422200,"sha256":"c4ed754acab88ead3540bcc05b17291aeb6465c536c69f7be40f258095219067","sourcePngSha256":"b36f392bc89f1143c3d77c296c4943e36402ec81cb84d6ffb45e0a01bdbee240","size":[1536,1024]}
+  ]
+}
