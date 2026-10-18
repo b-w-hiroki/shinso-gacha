@@ -22,6 +22,9 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  assert.deepEqual(await inboxOrder(),['rare-first','records-5','welcome-1'],'simultaneous delivery retains the prior order');
  await p.evaluate(()=>{delete S.communications.mail['welcome-1'].receivedAt;S.communications.mail['records-5'].receivedAt='invalid';S.communications.mail['rare-first'].receivedAt='3000';openGameInbox();});
  assert.deepEqual(await inboxOrder(),['rare-first','records-5','welcome-1'],'old mail without a valid date stays readable after dated mail');
+ await p.locator('[data-mail="welcome-1"]').click();assert((await p.locator('.game-message > small').innerText()).includes('受信日時不明'),'missing dates have a readable label in the detail');
+ await p.locator('.menu-page-heading [data-menu="inbox"]').click();await p.locator('[data-mail="rare-first"]').click();assert(!(await p.locator('.game-message > small').innerText()).includes('Invalid Date'),'numeric-string timestamps remain readable');assert(!(await p.locator('.game-message > small').innerText()).includes('受信日時不明'));
+ await p.evaluate(()=>{S.communications.mail['welcome-1'].receivedAt=1e20;openGameInbox();});assert.deepEqual(await inboxOrder(),['rare-first','records-5','welcome-1'],'out-of-range dates are treated as unknown');
  await p.evaluate(saved=>{S.communications=saved;returnFromMenu();},originalCommunications);
  const initializeMock=()=>p.evaluate(()=>{
   const clone=x=>JSON.parse(JSON.stringify(x));window.accountCalls=[];window.accountFailure='';window.accountDocs={};
