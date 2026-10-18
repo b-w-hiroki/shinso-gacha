@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-LOdElHLnuu1KDFXAuKLDROU5vbZhCZSgYRJN/yM4rzk=' https://www.gstatic.com/firebasejs/ https://cdn.jsdelivr.net/npm/budoux@0.9.3/ https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://shinso-gacha.firebaseapp.com; frame-src https://shinso-gacha.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-CPPhCJnQZ8GSwk3u7irKJUuB226wGreRD2lUPd4Xaig=' https://www.gstatic.com/firebasejs/ https://cdn.jsdelivr.net/npm/budoux@0.9.3/ https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://shinso-gacha.firebaseapp.com; frame-src https://shinso-gacha.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>真相ガチャ</title>
@@ -1908,8 +1908,20 @@ $("stage").addEventListener("click", e => {
 });
 
 /* ---------- sheets ---------- */
-function sheet(title, html) { $("sheet").innerHTML = `<span class="grab"></span><div class="sheet-h"><span class="eyebrow">${title}</span><button class="x" data-act="close" aria-label="閉じる">×</button></div>` + html; $("sheet-bg").hidden = false; $("sheet").scrollTop = 0; }
-function hideSheet() { $("sheet-bg").hidden = true; }
+let sheetReturnFocus = null;
+function sheet(title, html) {
+  if ($("sheet-bg").hidden) sheetReturnFocus = document.activeElement;
+  $("sheet").innerHTML = `<span class="grab"></span><div class="sheet-h"><span class="eyebrow" id="sheet-title">${title}</span><button class="x" data-act="close" aria-label="閉じる">×</button></div>` + html;
+  $("sheet").setAttribute("aria-labelledby", "sheet-title");
+  $("sheet-bg").hidden = false; $("sheet").scrollTop = 0;
+  $("sheet").querySelector('[data-act="close"]').focus({preventScroll:true});
+}
+function hideSheet() {
+  if ($("sheet-bg").hidden) return;
+  $("sheet-bg").hidden = true;
+  const opener = sheetReturnFocus; sheetReturnFocus = null;
+  if (opener?.isConnected && opener.getClientRects().length && !opener.matches(":disabled")) opener.focus({preventScroll:true});
+}
 const redact = name => `<span class="rd" role="img" aria-label="黒塗り（${[...name].length}文字）">${[...name].map(() => "<i></i>").join("")}</span>`;
 const kind = b => b === "urban" ? "urban" : "con";
 const NOTES = { urban: { 1:"裏取りできず", 3:"← これ、自分では？", 4:"※ 誰にも言うな" }, con: { 1:"出典：不明", 3:"← 心当たりあり", 4:"※ 口外禁止" } };
@@ -2515,6 +2527,15 @@ document.addEventListener("click", e => {
   }
 });
 document.addEventListener("keydown", e => {
+  // Native top-layer dialogs own their keyboard navigation when open.
+  if (e.key === "Tab" && !e.defaultPrevented && !$("sheet-bg").hidden && !document.querySelector("dialog[open]")) {
+    const controls = [...$("sheet").querySelectorAll('button,a[href],input,select,textarea,summary,[tabindex]')]
+      .filter(el => el.tabIndex >= 0 && !el.matches(":disabled") && el.getClientRects().length);
+    const first = controls[0], last = controls[controls.length - 1], active = document.activeElement;
+    if (first && (!controls.includes(active) || (e.shiftKey ? active === first : active === last))) {
+      e.preventDefault(); (e.shiftKey ? last : first).focus();
+    }
+  }
   if (e.key === "Escape") { if (!$("stage").hidden) closeStage(); else hideSheet(); }
   if ((e.key === " " || e.key === "Enter") && !$("stage").hidden && phase !== "shown" && !e.target.closest("button")) { e.preventDefault(); advance(); }
 });

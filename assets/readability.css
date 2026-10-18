@@ -1,8 +1,10 @@
 /* Text surfaces use explicit foreground/background pairs; patina stays at the edges. */
-:root { --fg:#f5ecd9; --muted:#ded0b6; --ink:#241b12; --paper-ink-2:#4b3825; }
+:root { --fg:#f5ecd9; --muted:#ded0b6; --ink:#241b12; --paper-ink-2:#4b3825; --grain:linear-gradient(transparent,transparent); --inkmask:linear-gradient(#000,#000); }
 body { font-weight:500; }
 /* Remove screen-wide scanlines that previously crossed every glyph. */
 body::after { content:none; }
+/* Photographs and type remain clean; texture is already present in their assets. */
+.evidence-view::after { content:none; }
 /* Keep the danger vignette below all text and controls. */
 body.lite:is(.phase-danger,.phase-crisis)::after,body:has(.agent-home:not([hidden]) [data-hpane='desk']:not([hidden]) .desk-event.alert)::after { content:''; z-index:0; opacity:.28; }
 main { position:relative; z-index:1; }

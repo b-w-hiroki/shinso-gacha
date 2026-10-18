@@ -84,18 +84,32 @@ function renderMenuBadge(){
  return {news,mail};
 }
 let menuReturn=null,menuPageBack='return';
+let menuFocusOrigins={};
 function openMenuPage(title,html){
  const current=document.querySelector('.view:not([hidden])');
- if(current?.dataset.view!=='menu')menuReturn={view:current?.dataset.view||'home',scroll:scrollY,home:homeTab,tab:current?.querySelector('[data-stab][aria-pressed="true"]')?.dataset.stab};
+ const opener=document.activeElement;
+ if(current?.dataset.view!=='menu')menuFocusOrigins={};
+ const origin=current?.dataset.view==='menu'&&!opener?.classList.contains('menu-back')?
+  ['data-menu','data-notice','data-mail'].find(attr=>opener?.hasAttribute(attr)):null;
+ const originSelector=origin?`[${origin}="${CSS.escape(opener.getAttribute(origin))}"]`:null;
+ if(current?.dataset.view!=='menu')menuReturn={view:current?.dataset.view||'home',scroll:scrollY,home:homeTab,tab:current?.querySelector('[data-stab][aria-pressed="true"]')?.dataset.stab,focus:document.activeElement};
  hideSheet();go('menu');
  const content=document.getElementById('menu-page-content'),heading=document.querySelector('.menu-page-heading');
  content.innerHTML=html;const back=content.querySelector('.menu-back');
  heading.replaceChildren();const backButton=back||Object.assign(document.createElement('button'),{className:'menu-back',textContent:'‹ ゲームへ戻る'});
  if(!back)backButton.dataset.menu='return';menuPageBack=backButton.dataset.menu;heading.append(backButton);
+ if(originSelector&&menuPageBack!=='return')menuFocusOrigins[menuPageBack]=originSelector;
  const h=document.createElement('h1');h.textContent=title;h.tabIndex=-1;heading.append(h);h.focus({preventScroll:true});
+}
+function returnToMenuPage(action,open){
+ const selector=menuFocusOrigins[action];
+ open();
+ const target=selector&&document.getElementById('menu-page-content').querySelector(selector);
+ if(target&&!target.disabled)target.focus();
 }
 function returnFromMenu(){
  const r=menuReturn||{view:'home',scroll:0};go(r.view);if(r.view==='home')setHomeTab(r.home||'desk');if(r.tab)setSectionTab(r.tab);scrollTo(0,r.scroll);menuReturn=null;
+ if(r.focus?.isConnected&&!r.focus.disabled)r.focus.focus({preventScroll:true});
 }
 function openGameMenu(){
  const n=renderMenuBadge();
@@ -103,14 +117,20 @@ function openGameMenu(){
 }
 function menuBack(target='home'){return `<button class="menu-back" data-menu="${target}">‹ ${target==='home'?'メニュー':target==='news'?'お知らせ一覧':'受信ボックス'}</button>`;}
 function openGameNews(){const c=menuState();openMenuPage('運営からのお知らせ',menuBack()+`<div class="game-message-list">${GAME_NOTICES.map(n=>`<button data-notice="${n.id}"><small>${n.date}${c.readNotices.includes(n.id)?'':' · 未読'}</small><b>${n.title}</b></button>`).join('')}</div>`);}
+function mailReceivedTime(entry){
+ const raw=entry?.receivedAt,time=typeof raw==='number'||typeof raw==='string'?Number(raw):0;
+ return time>0&&Number.isFinite(new Date(time).getTime())?time:0;
+}
 function openGameInbox(){
- const c=menuState(),mail=GAME_MAIL.filter(m=>c.mail[m.id]).reverse();
+ const c=menuState();
+ // Keep the existing definition order for same-batch deliveries and old undated mail.
+ const mail=GAME_MAIL.filter(m=>c.mail[m.id]).reverse().sort((a,b)=>mailReceivedTime(c.mail[b.id])-mailReceivedTime(c.mail[a.id]));
  openMenuPage('受信ボックス',menuBack()+`<p class="menu-muted">ゲーム内メール</p><div class="game-message-list">${mail.map(m=>`<button data-mail="${m.id}"><small>${m.from}${!c.mail[m.id].read?' · 未読':''}${m.reward&&!c.mail[m.id].claimed?' · 添付あり':''}</small><b>${m.title}</b></button>`).join('')||'<p class="menu-empty">届いたメールはありません。</p>'}</div>`);
 }
 function openGameMail(id){
  const m=GAME_MAIL.find(m=>m.id===id),c=menuState();if(!m||!c.mail[id])return;
  c.mail[id].read=true;markDirty();renderMenuBadge();
- const d=new Date(c.mail[id].receivedAt).toLocaleDateString('ja-JP');
+ const receivedAt=mailReceivedTime(c.mail[id]),d=receivedAt?new Date(receivedAt).toLocaleDateString('ja-JP'):'受信日時不明';
  // A saved letter alone is not proof that its classified dossier is still
  // available. Project the destination from confirmed, rank-gated evidence.
  const personnel=m.personnelCaseId?PersonnelDiscrepancies.detail(S.personnelEvidence,rankIdx(),m.personnelCaseId):null;
@@ -126,7 +146,7 @@ function openMenuSettings(){
 document.getElementById('game-menu').addEventListener('click',openGameMenu);
 document.addEventListener('click',e=>{
  const b=e.target.closest('[data-menu],[data-notice],[data-mail],[data-mail-claim]');if(!b||b.disabled)return;
- if(b.dataset.menu){const actions={return:returnFromMenu,home:openGameMenu,news:openGameNews,inbox:openGameInbox,settings:openMenuSettings,observation:observationSettings,target:observationTargetPicker,account:openAccount,catalog:()=>openEncyclopedia(),investigations:()=>{returnFromMenu();openLegendBoard();}};return actions[b.dataset.menu]?.();}
+ if(b.dataset.menu){const actions={return:returnFromMenu,home:openGameMenu,news:openGameNews,inbox:openGameInbox,settings:openMenuSettings,observation:observationSettings,target:observationTargetPicker,account:openAccount,catalog:()=>openEncyclopedia(),investigations:()=>{returnFromMenu();openLegendBoard();}};const open=actions[b.dataset.menu];if(!open)return;return b.classList.contains('menu-back')?returnToMenuPage(b.dataset.menu,open):open();}
  if(b.dataset.notice){const n=GAME_NOTICES.find(n=>n.id===b.dataset.notice);if(!n)return;const c=menuState();if(!c.readNotices.includes(n.id))c.readNotices.push(n.id);markDirty();renderMenuBadge();return openMenuPage('運営からのお知らせ',menuBack('news')+`<article class="game-message"><small>${n.date} · 運営</small><h2>${n.title}</h2><p>${n.body}</p></article>`);}
  if(b.dataset.mail)return openGameMail(b.dataset.mail);
  const id=b.dataset.mailClaim,m=GAME_MAIL.find(m=>m.id===id),entry=menuState().mail[id];
@@ -136,5 +156,5 @@ document.addEventListener('click',e=>{
 
 document.addEventListener('keydown',e=>{
  if(e.key!=='Escape'||document.querySelector('[data-view="menu"]').hidden||!document.getElementById('sheet-bg').hidden)return;
- const actions={return:returnFromMenu,home:openGameMenu,news:openGameNews,inbox:openGameInbox};actions[menuPageBack]?.();
+ const actions={return:returnFromMenu,home:openGameMenu,news:openGameNews,inbox:openGameInbox};const open=actions[menuPageBack];if(open)returnToMenuPage(menuPageBack,open);
 });
