@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-CPPhCJnQZ8GSwk3u7irKJUuB226wGreRD2lUPd4Xaig=' https://www.gstatic.com/firebasejs/ https://cdn.jsdelivr.net/npm/budoux@0.9.3/ https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://shinso-gacha.firebaseapp.com; frame-src https://shinso-gacha.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-7DQc/4Tjmw4LlCN6UXh9FLNs8xnkSO9PxjkL+RrX4yo=' https://www.gstatic.com/firebasejs/ https://cdn.jsdelivr.net/npm/budoux@0.9.3/ https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://shinso-gacha.firebaseapp.com; frame-src https://shinso-gacha.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>真相ガチャ</title>
@@ -1601,6 +1601,11 @@ let S = load();
 if (!S.role && (S.pulls > 0 || S.onboarded)) S.role = "agent";
 const isLite = () => !S.role;
 const escapeHTML = RuntimeSafety.html;
+function recordDateLabel(value,withTime=false) {
+  if ((typeof value!=="number"&&typeof value!=="string")||value==="") return "日時不明";
+  const date=new Date(Number(value));
+  return Number.isFinite(date.getTime())?(withTime?date.toLocaleString("ja-JP"):date.toLocaleDateString("ja-JP")):"日時不明";
+}
 function restoredState(raw){ return RuntimeSafety.state(raw,fresh(),ITEMS.map(i=>i.id)); }
 function load() { try { const r = localStorage.getItem(KEY); if (r) return restoredState(JSON.parse(r)); } catch (e) {} return fresh(); }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
@@ -1982,6 +1987,19 @@ function shareBlock(text) {
   return `<pre class="st" id="share-text">${text}</pre>
     <div class="actions"><button class="btn-paper" data-act="copy">テキストをコピー</button>
     <a class="btn-line" href="${x}" target="_blank" rel="noopener" data-act="x">Xで投稿画面を開く</a></div>`;
+}
+function copyShareText() {
+  const source=$("share-text");if(!source)return;
+  const text=source.textContent;
+  const ok=()=>{toast("コピーしました");shared();};
+  const fallback=()=>{
+    if(!source.isConnected||$("sheet-bg").hidden){toast("コピーできませんでした。共有画面を開き直してください");return;}
+    const selection=getSelection();
+    if(!selection){toast("コピーできませんでした。本文を長押ししてコピーしてください");return;}
+    const range=document.createRange();range.selectNodeContents(source);selection.removeAllRanges();selection.addRange(range);
+    toast("選択しました。コピーしてください");shared();
+  };
+  try{navigator.clipboard.writeText(text).then(ok,fallback);}catch(error){fallback();}
 }
 function wrapText(g, text, x, y, maxW, lh, maxLines) {
   let line = "", lines = [];
@@ -2491,12 +2509,7 @@ document.addEventListener("click", e => {
   if (a === "dossier") openDossier(id);
   if (a === "card") openCard(id);
   if (a === "x") shared();
-  if (a === "copy") {
-    const txt = $("share-text").textContent;
-    const ok = () => { toast("コピーしました"); shared(); };
-    const fallback = () => { const r = document.createRange(); r.selectNodeContents($("share-text")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast("選択しました。コピーしてください"); shared(); };
-    try { navigator.clipboard.writeText(txt).then(ok, fallback); } catch (err) { fallback(); }
-  }
+  if (a === "copy") copyShareText();
   if (a === "odds") {
     const pool = ITEMS.filter(i => i.box === box && unlocked(i)), ws = pool.map(itemWeight), sum = ws.reduce((x, y) => x + y, 0);
     sheet("提供割合 ・ " + BOX[box], `<p class="hint" style="text-align:left">あなたの現在のランク（${rank().name}）と進み具合で計算した、1回あたりの出現率です。</p>
@@ -2536,7 +2549,7 @@ document.addEventListener("keydown", e => {
       e.preventDefault(); (e.shiftKey ? last : first).focus();
     }
   }
-  if (e.key === "Escape") { if (!$("stage").hidden) closeStage(); else hideSheet(); }
+  if (e.key === "Escape") { if (!$("sheet-bg").hidden) hideSheet(); else if (!$("stage").hidden) closeStage(); }
   if ((e.key === " " || e.key === "Enter") && !$("stage").hidden && phase !== "shown" && !e.target.closest("button")) { e.preventDefault(); advance(); }
 });
 $("free").addEventListener("click", postScene);

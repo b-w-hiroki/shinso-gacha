@@ -122,6 +122,7 @@ jobs:
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/sheet-focus.cjs
+      - run: node tests/polish-integration.cjs
       - run: node tests/investigation-loop.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
@@ -235,6 +236,9 @@ jobs:
           QA_WEBKIT: 1
           QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/sheet-focus.cjs
+        env:
+          QA_WEBKIT: 1
+      - run: node tests/polish-integration.cjs
         env:
           QA_WEBKIT: 1
       - run: node tests/rumor-patrol.cjs

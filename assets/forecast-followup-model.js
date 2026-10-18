@@ -7,6 +7,7 @@
  const validMode=id=>MODES.includes(id);
  const finite=n=>Number.isFinite(n)&&n>=0;
  const validSequence=n=>Number.isSafeInteger(n)&&n>=0;
+ const dateLabel=time=>{const date=new Date(time);return Number.isFinite(date.getTime())?date.toLocaleDateString('ja-JP'):'日時不明';};
  const MAX_RECHECKS=3; // Bounded: do not turn a fictional report into a progress counter.
  const dayStart=time=>{const d=new Date(time);d.setHours(0,0,0,0);return d.getTime();};
  function normalize(input){
@@ -69,11 +70,11 @@
  function inspect(raw,id){
   const state=normalize(raw),x=state.entries[id];
   if(!validId(id)||!x)return null;
-  const issued=new Date(x.issuedAt).toLocaleDateString('ja-JP');
+  const issued=dateLabel(x.issuedAt);
   if(x.observedAt===undefined)return {id,status:'pending',issued,mode:x.mode,copy:'翌日以降の観測記録を待っています。確かめるまでは、予告が現実になるとは限りません。'};
-  const observed=new Date(x.observedAt).toLocaleDateString('ja-JP');
+  const observed=dateLabel(x.observedAt);
   const rechecks=(x.rechecks||[]).map(row=>({
-   observed:new Date(row.observedAt).toLocaleDateString('ja-JP'),
+   observed:dateLabel(row.observedAt),
    rarity:row.rarity,
    copy:row.rarity===x.rarity?'同じ方式・同じ区分で記録された。しかし前の受領番号は訂正されていない。'
     :row.rarity>0?'前の記録とは異なり、映像に異変が残った。照合欄の結論は更新されていない。'
