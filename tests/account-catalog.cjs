@@ -6,6 +6,26 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  await p.evaluate(()=>{S.role='agent';S.onboarded=true;S.lite={intro:{done:true}};S.lastTick=Date.now()+600000;S.incursion={version:1,level:0,resolved:0,history:[]};S.streak={last:dayKey(),n:1};S.observation=WatchModel.create(Date.now(),42);S.currency=5000;applyMode();go('home');setHomeTab('desk');render();});
 
 
+ // Receipt order is independent of the catalog's definition order.
+ const originalCommunications=await p.evaluate(()=>JSON.parse(JSON.stringify(S.communications||{})));
+ await p.evaluate(()=>{S.communications.mail={
+  'welcome-1':{receivedAt:2000,read:true,claimed:false},
+  'records-5':{receivedAt:3000,read:false,claimed:false},
+  'rare-first':{receivedAt:1000,read:true,claimed:true}
+ };openGameInbox();});
+ const inboxOrder=()=>p.locator('.game-message-list [data-mail]').evaluateAll(rows=>rows.map(row=>row.dataset.mail));
+ assert.deepEqual(await inboxOrder(),['records-5','welcome-1','rare-first'],'mail received later must precede an older message regardless of catalog order');
+ const inboxState=await p.evaluate(()=>JSON.stringify({mail:S.communications.mail,currency:S.currency}));
+ await p.locator('.menu-page-heading [data-menu="home"]').click();await p.locator('[data-menu="inbox"]').click();
+ assert.equal(await p.evaluate(()=>JSON.stringify({mail:S.communications.mail,currency:S.currency})),inboxState,'listing mail does not rewrite receipt/read/claim state or award points');
+ await p.evaluate(()=>{S.communications.mail['rare-first'].receivedAt=3000;openGameInbox();});
+ assert.deepEqual(await inboxOrder(),['rare-first','records-5','welcome-1'],'simultaneous delivery retains the prior order');
+ await p.evaluate(()=>{delete S.communications.mail['welcome-1'].receivedAt;S.communications.mail['records-5'].receivedAt='invalid';S.communications.mail['rare-first'].receivedAt='3000';openGameInbox();});
+ assert.deepEqual(await inboxOrder(),['rare-first','records-5','welcome-1'],'old mail without a valid date stays readable after dated mail');
+ await p.locator('[data-mail="welcome-1"]').click();assert((await p.locator('.game-message > small').innerText()).includes('受信日時不明'),'missing dates have a readable label in the detail');
+ await p.locator('.menu-page-heading [data-menu="inbox"]').click();await p.locator('[data-mail="rare-first"]').click();assert(!(await p.locator('.game-message > small').innerText()).includes('Invalid Date'),'numeric-string timestamps remain readable');assert(!(await p.locator('.game-message > small').innerText()).includes('受信日時不明'));
+ await p.evaluate(()=>{S.communications.mail['welcome-1'].receivedAt=1e20;openGameInbox();});assert.deepEqual(await inboxOrder(),['rare-first','records-5','welcome-1'],'out-of-range dates are treated as unknown');
+ await p.evaluate(saved=>{S.communications=saved;returnFromMenu();},originalCommunications);
  const initializeMock=()=>p.evaluate(()=>{
   const clone=x=>JSON.parse(JSON.stringify(x));window.accountCalls=[];window.accountFailure='';window.accountDocs={};
   cloud=null;accountDeleting=false;accountBusy=false;localStorage.removeItem(KEY+'_account_deletion');
