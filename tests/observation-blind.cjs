@@ -1,5 +1,5 @@
 /* Local, zero-account blind human-QA workflow, not an automated claim of
- * perceptual discoverability. All 16 video stimuli must actually load. */
+ * perceptual discoverability. All 16 still-image stimuli must actually load. */
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),assert=require('node:assert/strict');
 const {chromium,webkit}=require('playwright');
 const server=http.createServer((request,response)=>{
@@ -22,6 +22,8 @@ const server=http.createServer((request,response)=>{
   const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.route('https://**/*',route=>route.abort());
   await page.goto('http://127.0.0.1:'+server.address().port+'/qa/observation-blind.html');
   assert(await page.locator('#intro').isVisible());
+  assert.match(await page.locator('#intro').innerText(),/16枚の画像/);
+  assert.doesNotMatch(await page.locator('#intro').innerText(),/映像|動画/);
   assert.equal(await page.locator('#test').isVisible(),false);
   await page.locator('#begin').click();
   const seen=new Set();
@@ -65,6 +67,18 @@ const server=http.createServer((request,response)=>{
   assert(output.summary.medianHitMs>=0);
   assert.equal(output.trials.filter(x=>x.response==='tap'&&x.point).length,12);
   assert.equal(await page.evaluate(()=>Object.keys(localStorage).length),0,'the QA cannot persist answers or game progress');
+  for(const [key,label,low,high] of [
+   ['unease','不気味さ','まったく不気味でない','非常に不気味'],
+   ['clarity','操作の分かりやすさ','とても分かりにくい','とても分かりやすい'],
+   ['return','再調査意欲','また調べたくない','また調べたい']
+  ]){
+   const group=page.locator('[data-survey="'+key+'"]');
+   assert((await group.locator('xpath=..').innerText()).includes('1：'+low));
+   assert((await group.locator('xpath=..').innerText()).includes('5：'+high));
+   assert.equal(await page.locator('[name="survey-'+key+'"][value="1"]').getAttribute('aria-label'),label+' 1：'+low);
+   assert.equal(await page.locator('[name="survey-'+key+'"][value="5"]').getAttribute('aria-label'),label+' 5：'+high);
+   assert.equal(await page.locator('[data-survey="'+key+'"]').evaluate(el=>el.closest('fieldset').getAttribute('aria-describedby')),'survey-'+key+'-axis','rating range is announced with the question');
+  }
   await page.locator('[name="survey-unease"][value="4"]').check();
   assert.equal(await page.evaluate(()=>QAStudy.result().survey.unease),4);
   if(!process.env.QA_WEBKIT){
