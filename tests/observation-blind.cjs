@@ -67,6 +67,17 @@ const server=http.createServer((request,response)=>{
   assert(output.summary.medianHitMs>=0);
   assert.equal(output.trials.filter(x=>x.response==='tap'&&x.point).length,12);
   assert.equal(await page.evaluate(()=>Object.keys(localStorage).length),0,'the QA cannot persist answers or game progress');
+  for(const [key,label,low,high] of [
+   ['unease','不気味さ','まったく不気味でない','非常に不気味'],
+   ['clarity','操作の分かりやすさ','とても分かりにくい','とても分かりやすい'],
+   ['return','再調査意欲','また調べたくない','また調べたい']
+  ]){
+   const group=page.locator('[data-survey="'+key+'"]');
+   assert((await group.locator('xpath=..').innerText()).includes('1：'+low));
+   assert((await group.locator('xpath=..').innerText()).includes('5：'+high));
+   assert.equal(await page.locator('[name="survey-'+key+'"][value="1"]').getAttribute('aria-label'),label+' 1：'+low);
+   assert.equal(await page.locator('[name="survey-'+key+'"][value="5"]').getAttribute('aria-label'),label+' 5：'+high);
+  }
   await page.locator('[name="survey-unease"][value="4"]').check();
   assert.equal(await page.evaluate(()=>QAStudy.result().survey.unease),4);
   if(!process.env.QA_WEBKIT){
