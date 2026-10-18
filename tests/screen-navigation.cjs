@@ -30,6 +30,13 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
    }
   }
   if(!measure){
+   await p.setViewportSize({width:390,height:844});await p.evaluate(()=>{go('archive');scrollTo(0,0);});
+   const archive=await p.evaluate(()=>{const r=s=>document.querySelector(s).getBoundingClientRect(),secret=r('#files .folder.secret'),first=r('#files .folder:not(.secret)'),nav=r('.nav');return {secretHeight:secret.height,firstTop:first.top,navTop:nav.top,chip:[...document.querySelectorAll('.archive-scene .chips button')].map(b=>({width:b.getBoundingClientRect().width,height:b.getBoundingClientRect().height})),link:(()=>{const x=r('.archive-scene .legend-link');return {width:x.width,height:x.height}})()};});
+   assert(archive.secretHeight<=125&&archive.firstTop<archive.navTop-100,'archive first dossier should not be displaced by controls '+JSON.stringify(archive));
+   assert(archive.chip.every(b=>b.width>=44&&b.height>=44)&&archive.link.width>=44&&archive.link.height>=44,'archive controls need 44px targets '+JSON.stringify(archive));
+   await p.locator('.archive-scene [data-chip="urban"]').click();assert.equal(await p.locator('#files .folder.secret').count(),0,'secret stays in all-files filter only');
+   await p.locator('.archive-scene [data-chip="all"]').click();assert.equal(await p.locator('#files .folder.secret').count(),1);
+   await p.locator('.archive-scene .legend-link').click();assert(await p.locator('.legend-case-list').isVisible(),'evidence comparison route remains available');
    await p.setViewportSize({width:320,height:568});
    for(const action of ['openGameMenu','openGameNews','openGameInbox','openMenuSettings','openEncyclopedia','openAccount']){
     await p.evaluate(name=>window[name](),action);const back=p.locator('.menu-page-heading .menu-back');assert(await back.isVisible());assert(await back.evaluate(e=>{const r=e.getBoundingClientRect(),t=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.height>=44&&(e===t||e.contains(t));}));assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
