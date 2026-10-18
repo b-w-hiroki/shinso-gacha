@@ -1,4 +1,4 @@
-.watch-lab-context{line-height:1.7;color:var(--ink,#d3c7ac);margin:10px 0}
+.watch-lab-context{line-height:1.7;color:#e3d7c1;margin:10px 0}
 .watch-lab-links{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.watch-lab-links button{flex:1;min-width:120px}
 .account-card,.account-danger{border:1px solid #53534a;padding:20px;margin:16px 0;background:rgba(15,19,17,.7);line-height:1.8;overflow-wrap:anywhere}
 .account-card h2,.account-danger h2{font-size:20px;margin:12px 0}.account-card>small{font-size:11px;letter-spacing:.12em;color:#acae9e}

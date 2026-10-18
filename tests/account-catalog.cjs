@@ -128,6 +128,6 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  await p.evaluate(()=>{S.levels.u1=0;openEncyclopedia('confidential');});
  assert.equal(await p.locator('[data-catalog-tab="confidential"]').count(),0);
  await p.evaluate(()=>{go('home');setHomeTab('desk');S.observation.upgrades.retention=1;S.currency=200;render();});
- const pending=await p.evaluate(()=>JSON.stringify(S.observation.pending));await p.locator('#obs-equipment').click();assert(await p.locator('.watch-upgrades').evaluate(e=>e.open));await p.locator('[data-watch-upgrade="sensitivity"]').click();await p.locator('.watch-lab [data-watch="return"]').click();assert.equal(await p.evaluate(()=>JSON.stringify(S.observation.pending)),pending);
+ const pending=await p.evaluate(()=>JSON.stringify(S.observation.pending));await p.locator('#obs-equipment').click();assert(await p.locator('.watch-upgrades').evaluate(e=>e.open));await p.locator('[data-watch-upgrade="sensitivity"]').click();await p.locator('.nav [data-nav="home"]').click();assert.equal(await p.evaluate(()=>JSON.stringify(S.observation.pending)),pending);
  assert.deepEqual(errors,[]);console.log('Login/cancel/return, save-before-logout, reauth/atomic deletion failure/retry, acquired-only catalog search + Japanese composition, links, responsive UI and observation/lab return passed');
 }finally{await b.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});

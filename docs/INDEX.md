@@ -2,6 +2,8 @@
 
 **再開入口：** [AI-RESUME.md](AI-RESUME.md)。新チャットでも最新main、Open PR、Issue、CIを再取得。基準日時を「現在」として扱わない。
 
+最新の改善分類: [ブラッシュアップ現状一覧](POLISH-STATUS-2026-10-19.md)（公開済み・PR検証・人の評価待ちを区別）。
+
 > 基準：2026-10-11、main \`41cb70afaf8ef8729cb1e644d3c6cefffce64d2b\`（PR #96反映時点）。**資料の基準日時であり、将来のmainを自動追跡しない。**
 > このセットは実装・既存文書・CI構成・Issueを突き合わせて整理したもの。感情的な恐怖の評価、実機Safari、本番Firebaseの作動は実証していない。
 
@@ -54,3 +56,5 @@
 - [未完タスク](https://github.com/b-w-hiroki/shinso-gacha/issues/89)
 
 削除や全面書換えで歴史を消さない。古い記述には「当時の判断」の印を付ける。
+
+画面上部・タブ操作: [2026-10-19の点検と改善22項目](SCREEN-NAVIGATION-AUDIT-2026-10-19.md)。

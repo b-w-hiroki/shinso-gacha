@@ -33,7 +33,7 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  await p.locator('[data-watch-upgrade="patrol"]').click();
  await p.evaluate(()=>{go('home');setHomeTab('desk');const o=observationState();o.tapProgress=0;o.autoLastAt=Date.now()-6000;watchLastTick=0;renderObservation();});
  const money=await p.evaluate(()=>S.currency);await p.evaluate(()=>observationTick());assert.equal(await p.evaluate(()=>S.observation.tapProgress),1);assert.equal(await p.evaluate(()=>S.currency),money,'Automatic input is not a manual 1pt tap');
- await p.evaluate(()=>{const o=observationState();o.manualSuppressions=10;go('lab');renderObservationLab();});await p.locator('.watch-upgrades summary').click();await p.locator('[data-watch-upgrade="suppression"]').click();
+ await p.evaluate(()=>{const o=observationState();o.manualSuppressions=10;go('lab');renderObservationLab();});if(!(await p.locator('.watch-upgrades').evaluate(e=>e.open)))await p.locator('.watch-upgrades summary').click();await p.locator('[data-watch-upgrade="suppression"]').click();
  await p.evaluate(()=>{go('home');const o=observationState(),t=Date.now();o.mode='cctv';o.pending={mode:'cctv',rarity:1,readyAt:t,expiresAt:t+3600000,sequence:o.sequence,suppression:5};o.autoLastAt=t-6000;watchLastTick=0;renderObservation();});
  await p.locator('#obs-frame').evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));
  assert(await p.locator('#obs-frame').evaluate(e=>{const r=e.getBoundingClientRect();return r.bottom>0&&r.top<innerHeight-60;}),'automated suppression only runs on visible live observation');

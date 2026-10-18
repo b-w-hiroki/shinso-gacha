@@ -1009,6 +1009,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 <link rel="stylesheet" href="assets/action-forecast.css">
 <link rel="stylesheet" href="assets/legend-cases.css">
 <link rel="stylesheet" href="assets/account-catalog.css">
+<link rel="stylesheet" href="assets/screen-navigation.css">
 
 <div id="watch-veil" aria-hidden="true"></div>
 <header class="top">
@@ -1211,13 +1212,13 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
   <!-- REPORT -->
   <section class="view dossier-view report-scene" data-view="report" hidden>
     <header class="scene-heading"><span class="eyebrow">PERSONNEL FILE / 04</span><h1>調査報告</h1><p>あなたが辿った真相の記録。</p></header>
-    <button type="button" class="agent-record-link" id="agent-record">調査員証・ランクを見る</button>
     <div class="section-tabs three" role="group" aria-label="報告画面切替">
       <button data-stab="report:diag" aria-pressed="true">診断</button>
       <button data-stab="report:achieve" aria-pressed="false">実績</button>
       <button data-stab="report:settings" aria-pressed="false">設定</button>
     </div>
     <div class="section-pane" data-spane="report:diag">
+    <button type="button" class="agent-record-link" id="agent-record">調査員証・ランクを見る</button>
     <div class="agent-id" id="agent-id" hidden></div>
     <article class="diag paper aged con" style="--sx:88%;--sy:78%">
       <span class="stamp-sm" style="top:18px">診断</span>
@@ -1320,6 +1321,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
 <script src="assets/account.js"></script>
 <script src="assets/encyclopedia.js"></script>
 <script src="assets/scene-fit.js"></script>
+<script src="assets/screen-navigation.js"></script>
 <script>
 /* ---------- 日本語の改行（文節で折り返す） ---------- */
 document.documentElement.lang = "ja";

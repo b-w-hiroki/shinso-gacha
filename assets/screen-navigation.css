@@ -1,0 +1,46 @@
+/* One compact screen toolbar, then content. Never pin tabs over a document. */
+body:not(.lite) main:has(.dossier-view:not([hidden])){padding-top:8px}
+.dossier-view:has(>.section-tabs){grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);column-gap:12px;row-gap:12px;align-items:start}
+.dossier-view:has(>.section-tabs)>.scene-heading{grid-column:1;grid-row:1;align-self:center;min-width:0;min-height:0;padding:0;overflow:visible}
+.dossier-view:has(>.section-tabs)>.scene-heading h1{font-size:20px;line-height:1.4;letter-spacing:.02em;margin:0;overflow-wrap:anywhere}
+.dossier-view:has(>.section-tabs)>.section-tabs{grid-column:2;grid-row:1;min-width:0;position:static;top:auto;padding:0;gap:4px;align-self:start}
+.dossier-view:has(>.section-tabs)>.section-pane{grid-column:1/-1;min-width:0}
+.dossier-view .section-tabs button{min-width:44px;min-height:44px;padding:8px 2px;line-height:1.5;white-space:normal;overflow-wrap:anywhere}
+.agent-home>.home-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:0;position:static}
+.agent-home>.home-tabs::before{display:none}
+.agent-home>.home-tabs button{min-width:44px;min-height:44px;padding:8px 4px;font-size:14px;line-height:1.5;white-space:normal}
+.gacha-scene .seg{padding:0;margin-block:0;gap:8px}
+.gacha-scene .seg button{min-width:44px;min-height:44px;padding:8px 4px;font-size:16px;line-height:1.5;white-space:normal}
+.menu-scene{gap:12px}
+.menu-page-heading{grid-template-columns:minmax(44px,max-content) minmax(0,1fr);align-items:center;gap:12px;padding-bottom:8px;min-width:0}
+.menu-page-heading .menu-back{min-width:44px;max-width:140px;padding:8px 4px;line-height:1.5;white-space:normal;text-align:left}
+.menu-page-heading h1{min-width:0;font-size:20px;line-height:1.5;overflow-wrap:anywhere}
+.report-scene .agent-record-link{margin:0;min-height:44px}
+.catalog{display:grid;gap:12px;min-width:0}
+.catalog>.catalog-tabs,.catalog>.catalog-intro,.catalog>.catalog-summary,.catalog-summary p{margin:0}
+.catalog-tabs button{min-height:44px;min-width:44px;white-space:normal;overflow-wrap:anywhere}
+.menu-scene .account-card:first-child{margin-top:0}
+/* Reading can grow; the toolbar must reflow, not clip enlarged text. */
+.section-tabs button:focus-visible,.home-tabs button:focus-visible,.seg button:focus-visible{outline-offset:1px}
+@media(max-height:500px){.dossier-view:has(>.section-tabs){row-gap:8px}.menu-scene{gap:8px}}
+
+/* Dark screen text uses its own solid surface, never the paper --ink token. */
+.watch-lab{margin:0 0 16px;padding:12px;background:#171510;color:#f0e6d0;border:1px solid #65563e;min-width:0}
+.watch-lab-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.watch-lab-heading h2{font-size:18px;line-height:1.5;margin:0}
+.watch-lab-heading .watch-lab-links{display:flex;flex-wrap:wrap;gap:6px;margin:0;min-width:0}
+.watch-lab-heading .watch-lab-links button{flex:0 1 auto;min-width:44px;min-height:44px;padding:8px 6px;font-size:14px;white-space:normal}
+.watch-lab .watch-lab-context{display:flex;flex-wrap:wrap;gap:2px 16px;margin:8px 0;color:#e3d7c1;font-size:14px;line-height:1.6;overflow-wrap:anywhere}
+.watch-lab :is(.watch-upgrades,.watch-route-details)>summary{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:48px;padding:12px 0;cursor:pointer;color:#f0e6d0;border-top:1px solid #65563e;line-height:1.5}
+.watch-lab :is(.watch-upgrades,.watch-route-details)>summary::after{content:'';flex:0 0 8px;width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin:0 4px 4px 0}
+.watch-lab :is(.watch-upgrades,.watch-route-details)[open]>summary::after{transform:rotate(225deg);margin-block:4px 0}
+.watch-route-details>summary span,.watch-lab .watch-upgrades>summary span{flex-shrink:0;color:#d8ccb5;font-size:13px}
+.watch-lab .watch-note{font-size:13px;line-height:1.7;color:#d8ccb5}
+.watch-lab .watch-mode>span{color:#e3d7c1;font-size:13px;line-height:1.5;max-width:8em;text-align:right}
+.watch-lab .watch-mode small,.watch-lab .watch-upgrades small{color:#d8ccb5}
+.watch-upgrades article>.watch-upgrade-action{display:grid;justify-items:end;gap:4px;flex:0 0 auto;min-width:90px;max-width:45%}
+.watch-upgrade-action .watch-upgrade-hint{margin:0;text-align:right;font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+/* The completed cross-file sits on a dark research card, unlike paper upgrades. */
+.lab-scene .research-card .up-eff{color:#ebddc2}
+.lab-scene .research-card .note{color:#e8c7a4}
+body:not(.lite) .lab-scene .research-card::before{color:#e4ad9b}

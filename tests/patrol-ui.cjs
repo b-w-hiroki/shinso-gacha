@@ -17,7 +17,7 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  await p.locator('#obs-equipment').click();await p.locator('[data-watch="settings"]').click();
  assert.equal(await p.locator('[data-watch-auto]').count(),0);
  assert(!/\d+タップ/.test(await p.locator('.watch-settings').innerText()));
- await p.keyboard.press('Escape');await p.locator('.watch-lab [data-watch="return"]').click();
+ await p.keyboard.press('Escape');await p.locator('.nav [data-nav="home"]').click();
  await p.locator('#obs-frame').press('Enter');assert.equal(await p.evaluate(()=>S.currency),before.pt,'patrol button never suppresses');await p.locator('[data-watch-region="4"]').click();assert.equal(await p.evaluate(()=>S.currency),before.pt+81,'targeted manual suppression pays tap plus completion bonus');
  assert(await p.evaluate(()=>{save();const saved=JSON.parse(localStorage.getItem(KEY));return saved.observation.upgrades.patrol===3&&saved.observation.upgrades.suppression===3;}),'saved purchases preserved');
  assert(await p.locator('.logo .bar').evaluate(e=>{const c=getComputedStyle(e);return c.color==='rgba(0, 0, 0, 0)'&&c.backgroundColor!=='rgba(0, 0, 0, 0)';}),'title redaction restored');
