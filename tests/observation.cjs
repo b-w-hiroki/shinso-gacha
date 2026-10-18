@@ -69,7 +69,7 @@ assert.equal(await p.locator('[data-watch-unlock],[data-watch-equip]').count(),0
 await p.locator('.watch-upgrades summary').click();await p.locator('[data-watch-upgrade="retention"]').click();assert.equal(await p.evaluate(()=>S.currency),965);assert.equal(await p.evaluate(()=>S.observation.upgrades.retention),1);
 await p.evaluate(()=>{go('home');S.observation.dueAt=Date.now()-1000;renderObservation();save();});
 const saved=await p.evaluate(()=>JSON.stringify(S.observation.pending));await p.reload();await font();assert.equal(await p.evaluate(()=>JSON.stringify(S.observation.pending)),saved);assert.equal(await p.locator('#obs-ready').isVisible(),JSON.parse(saved).rarity>0);
-await p.locator('#obs-equipment').click();await p.locator('[data-watch="settings"]').click();assert(await p.locator('.watch-settings').isVisible());await p.locator('[data-watch-quiet]').check();await p.keyboard.press('Escape');await p.locator('.watch-lab [data-watch="return"]').click();assert.equal(await p.locator('#obs-frame').getAttribute('data-quiet'),'true');
+await p.locator('#obs-equipment').click();await p.locator('[data-watch="settings"]').click();assert(await p.locator('.watch-settings').isVisible());await p.locator('[data-watch-quiet]').check();await p.keyboard.press('Escape');await p.locator('.nav [data-nav="home"]').click();assert.equal(await p.locator('#obs-frame').getAttribute('data-quiet'),'true');
 // Every medium and rarity draws a decoded large image; only one capture surface exists.
 for(const [width,height] of [[320,568],[390,844],[430,932],[844,390]]){
  await p.setViewportSize({width,height});

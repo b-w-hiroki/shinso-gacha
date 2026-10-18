@@ -20,7 +20,8 @@ const rgb=s=>s.match(/[\d.]+/g).slice(0,3).map(Number),lum=s=>rgb(s).map(n=>{n/=
     return {text:e.textContent.trim().slice(0,45),fg:s.color,bg};
    }));
    for(const pair of pairs){assert(pair.bg,'solid readable surface '+pair.text);const a=lum(pair.fg),c=lum(pair.bg),ratio=(Math.max(a,c)+.05)/(Math.min(a,c)+.05);minimum=Math.min(minimum,ratio);checks++;assert(ratio>=4.5,JSON.stringify({...pair,ratio}));}
-   for(const selector of ['.watch-lab [data-watch="settings"]','.watch-lab [data-watch="return"]'])assert(await p.locator(selector).evaluate(e=>{e.scrollIntoView({block:'center',behavior:'instant'});const r=e.getBoundingClientRect(),t=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.width>=44&&r.height>=44&&(e===t||e.contains(t));}),selector+' readable and reachable');
+   assert.equal(await p.locator('.watch-lab [data-watch="return"]').count(),0,'lab uses the existing bottom navigation');
+   assert(await p.locator('.watch-lab [data-watch="settings"]').evaluate(e=>{e.scrollIntoView({block:'center',behavior:'instant'});const r=e.getBoundingClientRect(),t=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.width>=44&&r.height>=44&&(e===t||e.contains(t));}),'settings readable and reachable');
    await p.evaluate(()=>renderObservationLab());assert(await p.locator('.watch-route-details').evaluate(e=>e.open),'route disclosure remains open after repaint');assert(await p.locator('.watch-upgrades').evaluate(e=>e.open),'upgrade disclosure remains open after repaint');
   }
   assert.equal(await snapshot(),before,'viewing routes and checking colors must not change progress');
@@ -36,7 +37,7 @@ const rgb=s=>s.match(/[\d.]+/g).slice(0,3).map(Number),lum=s=>rgb(s).map(n=>{n/=
   const crossColors=await cross.evaluate(e=>({body:getComputedStyle(e.querySelector('.up-eff')).color,note:getComputedStyle(e.querySelector('.note')).color,stamp:getComputedStyle(e,'::before').color}));
   for(const [part,foreground] of Object.entries(crossColors))for(const background of ['rgb(41, 35, 27)','rgb(20, 17, 13)']){const a=lum(foreground),c=lum(background),ratio=(Math.max(a,c)+.05)/(Math.min(a,c)+.05);assert(ratio>=4.5,`${part} on dark research card: ${ratio.toFixed(2)}:1`);}
   await p.setViewportSize({width:390,height:680});await p.evaluate(()=>{go('home');renderObservation();});await p.locator('#obs-equipment').tap();assert(await p.locator('.watch-upgrades').evaluate(e=>e.open));assert(await p.locator('[data-watch-upgrade="retention"]').isVisible());
-  await p.locator('.watch-lab [data-watch="settings"]').tap();assert(await p.locator('.watch-settings').isVisible());await p.keyboard.press('Escape');await p.locator('.watch-lab [data-watch="return"]').tap();assert(await p.locator('#obs-frame').isVisible());
+  await p.locator('.watch-lab [data-watch="settings"]').tap();assert(await p.locator('.watch-settings').isVisible());await p.keyboard.press('Escape');await p.locator('.nav [data-nav="home"]').tap();assert(await p.locator('#obs-frame').isVisible());
   assert.deepEqual(errors,[]);console.log(`Lab readability: ${checks} text/surface pairs >=4.5:1 (minimum ${minimum.toFixed(2)}), compact upgrade entry, routes, real taps and unchanged progress passed`);
  }finally{await b.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
