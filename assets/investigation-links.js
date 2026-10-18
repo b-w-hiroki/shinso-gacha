@@ -4,7 +4,7 @@ function researchReportHTML(id,legacy){
  const report=ResearchReports.inspect(S.researchReports,S.levels,id);if(!report)return '';
  const recent=report.latest,selected=recent?.choice??(legacy?.hypothesis===null?2:legacy.hypothesis);
  const label=choice=>choice===0?'記録の改ざん':choice===1?'現地の侵食':'判断保留';
- const history=report.history.length?'<details><summary>以前の仮説 '+report.revisions+'件</summary><ol>'+report.history.map(r=>'<li><strong>'+label(r.choice)+'</strong> ／ '+escapeHTML(new Date(r.at).toLocaleDateString('ja-JP'))+'<p>'+escapeHTML(r.note||'注記なし')+'</p></li>').join('')+'</ol></details>':'<p>まだ仮説の追記はありません。</p>';
+ const history=report.history.length?'<details><summary>以前の仮説 '+report.revisions+'件</summary><ol>'+report.history.map(r=>'<li><strong>'+label(r.choice)+'</strong> ／ '+escapeHTML(recordDateLabel(r.at))+'<p>'+escapeHTML(r.note||'注記なし')+'</p></li>').join('')+'</ol></details>':'<p>まだ仮説の追記はありません。</p>';
  return '<div class="research-editor"><h4>私的調査メモ</h4><p>原本・確定済み候補は変更せず、別の仮説として追記します。</p><label>今の見立て <select data-report-choice>'+[0,1,2].map(i=>'<option value="'+i+'" '+(selected===i?'selected':'')+'>'+label(i)+'</option>').join('')+'</select></label><label>根拠と疑問 <textarea data-report-note maxlength="280" rows="3" placeholder="取得した証拠から考えたこと">'+escapeHTML(recent?.note||'')+'</textarea></label><button class="btn-paper" data-inquiry="save-report" data-id="'+id+'">この見立てを記録する</button>'+history+'</div>';
 }
 function investigationLinksHTML(id){

@@ -143,9 +143,11 @@ function openMenuSettings(){
  openMenuPage('設定',menuBack()+`<div class="game-message"><p id="menu-sync"></p><label class="watch-quiet-setting"><input type="checkbox" data-watch-quiet ${observationState().quiet?'checked':''}> 揺れ・画面演出を抑える</label>${!isLite()?`${observationState().pending?.rarity>0?'<button class="btn-line" data-menu="target">場所を選んで異変に対処</button>':''}${watchSettingsUnlocked()?'<button class="btn-line" data-menu="observation">観測設定</button>':''}`:''}<button class="btn-line" data-intro="archive">最初の3通を読み返す</button>${localStorage.getItem(KEY+'_conflict_backup')?'<button class="btn-line" data-cloud-choice="backup">退避した記録をダウンロード</button>':''}<button class="btn-paper" data-menu="account">ログイン・アカウント管理</button></div>`);
  document.getElementById('menu-sync').textContent=document.getElementById('sync').textContent;
 }
-document.getElementById('game-menu').addEventListener('click',openGameMenu);
+document.getElementById('game-menu').addEventListener('click',e=>{e.currentTarget.focus({preventScroll:true});openGameMenu();});
 document.addEventListener('click',e=>{
  const b=e.target.closest('[data-menu],[data-notice],[data-mail],[data-mail-claim]');if(!b||b.disabled)return;
+ // WebKit does not focus pointer-clicked buttons; capture the actual navigation origin.
+ b.focus({preventScroll:true});
  if(b.dataset.menu){const actions={return:returnFromMenu,home:openGameMenu,news:openGameNews,inbox:openGameInbox,settings:openMenuSettings,observation:observationSettings,target:observationTargetPicker,account:openAccount,catalog:()=>openEncyclopedia(),investigations:()=>{returnFromMenu();openLegendBoard();}};const open=actions[b.dataset.menu];if(!open)return;return b.classList.contains('menu-back')?returnToMenuPage(b.dataset.menu,open):open();}
  if(b.dataset.notice){const n=GAME_NOTICES.find(n=>n.id===b.dataset.notice);if(!n)return;const c=menuState();if(!c.readNotices.includes(n.id))c.readNotices.push(n.id);markDirty();renderMenuBadge();return openMenuPage('運営からのお知らせ',menuBack('news')+`<article class="game-message"><small>${n.date} · 運営</small><h2>${n.title}</h2><p>${n.body}</p></article>`);}
  if(b.dataset.mail)return openGameMail(b.dataset.mail);
