@@ -34,6 +34,7 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
    for(const action of ['openGameMenu','openGameNews','openGameInbox','openMenuSettings','openEncyclopedia','openAccount']){
     await p.evaluate(name=>window[name](),action);const back=p.locator('.menu-page-heading .menu-back');assert(await back.isVisible());assert(await back.evaluate(e=>{const r=e.getBoundingClientRect(),t=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.height>=44&&(e===t||e.contains(t));}));assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
    }
+   await p.evaluate(()=>openEncyclopedia());const catalog=p.locator('.catalog-tabs button');await catalog.first().focus();await p.keyboard.press('End');assert.equal(await catalog.last().getAttribute('aria-pressed'),'true');assert(await catalog.last().evaluate(e=>e===document.activeElement));await p.keyboard.press('Home');assert.equal(await catalog.first().getAttribute('aria-pressed'),'true');assert(await catalog.first().evaluate(e=>e===document.activeElement));
    for(const [width,height] of [[320,568],[390,844],[844,390]]){
     await p.setViewportSize({width,height});await p.evaluate(()=>observationColleagues());
     assert(await p.locator('.watch-colleagues h1').isVisible());assert.equal(await p.locator('.watch-person').count(),3);assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));

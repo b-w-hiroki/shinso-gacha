@@ -7,5 +7,8 @@ document.addEventListener('keydown',e=>{
  const buttons=[...group.querySelectorAll('button')].filter(b=>!b.disabled&&b.getClientRects().length);
  const i=buttons.indexOf(button);if(i<0||buttons.length<2)return;
  const next=e.key==='Home'?buttons[0]:e.key==='End'?buttons.at(-1):buttons[(i+(e.key==='ArrowLeft'?-1:1)+buttons.length)%buttons.length];
+ const attr=['data-stab','data-htab','data-seg','data-catalog-tab'].find(a=>next.hasAttribute(a)),value=next.getAttribute(attr);
  e.preventDefault();next.focus({preventScroll:true});next.click();
+ // Catalog classification rebuilds its DOM; retain focus on the replacement button.
+ if(!next.isConnected)document.querySelector(`[${attr}="${CSS.escape(value)}"]`)?.focus({preventScroll:true});
 });
