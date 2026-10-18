@@ -1,6 +1,6 @@
 /* Optional first-case narrative. Progress lives inside the existing saved lite state. */
 let introBusy = false;
-const introPreloadImages = [];
+const introPreloadImages = new Set();
 function introActive() {
   const i = S.lite && S.lite.intro;
   return isLite() && i && i.version === 1 && !i.done && liteTotal() <= 3;
@@ -11,16 +11,14 @@ function initIntro() {
     S.lite.intro = {version:1,step:0,done:false,revealed:false};
     markDirty();
   }
-  // Begin decoding the later scenes while the player studies the sealed envelope.
-  if (introActive() && !introPreloadImages.length) {
-    for (const name of ['station-before','station-after','station-plan']) {
-      const image = new Image();
-      image.decoding = 'async';
-      image.src = 'assets/intro/' + name + '.webp';
-      introPreloadImages.push(image);
-    }
-  }
   renderIntro();
+}
+function preloadIntroImage(name) {
+  if (introPreloadImages.has(name)) return;
+  introPreloadImages.add(name);
+  const image = new Image();
+  image.decoding = 'async';
+  image.src = 'assets/intro/' + name + '.webp';
 }
 function introImage(name, alt, cls = '') {
   return `<img class="intro-image ${cls}" src="assets/intro/${name}.webp" alt="${alt}" width="1536" height="1024">`;
@@ -49,6 +47,10 @@ function renderIntro() {
   root.dataset.step=String(step);
   const titleMasthead=step===0?'<div class="intro-title-mast"><span>UNVERIFIED ARCHIVE / 001</span><div class="intro-title-wordmark" role="img" aria-label="真相ガチャ">真相<span>ガチ</span>ャ</div><i aria-hidden="true"></i></div>':'';
   root.innerHTML=`${titleMasthead}<h1>${titles[step]}</h1><figure aria-live="polite" aria-atomic="true">${visual}${step===1||step===2?'<span class="intro-time">02:14 ／ 記録上 1人</span>':step===3?'<span class="intro-time">02:14 ／ 登録前</span>':''}</figure>${captions[step] ? `<p class="intro-caption" aria-live="polite">${captions[step]}</p>` : ""}${step===2?'<div class="intro-compare" role="group" aria-label="写真を比較"><button data-intro="before" aria-pressed="false">最初の写真</button><button data-intro="after" aria-pressed="true">もう一度見た写真</button></div>':''}`;
+  // Keep the title's first paint light. Prepare only the next scene while the
+  // player reads the current one; later scenes are never fetched up front.
+  if (step === 1) preloadIntroImage('station-after');
+  if (step === 2) preloadIntroImage('station-plan');
   $('lite-pull').textContent=introLabel(); $('lite-pull').dataset.mode='intro';
 }
 function advanceIntro() {
