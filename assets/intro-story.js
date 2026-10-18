@@ -48,7 +48,7 @@ function renderIntro() {
     :`<div class="intro-note"><span>02:14 ／ 差出人のメモ</span><p>写真の人物を、数え直さないこと。</p><button class="intro-redaction" data-intro="reveal" aria-expanded="${!!i.revealed}">${i.revealed?'あなたの閲覧は、記録されています。':'黒塗りを剥がす'}</button>${'<p class="intro-sender">差出人　██████</p>'}</div>`;
   root.dataset.step=String(step);
   const titleMasthead=step===0?'<div class="intro-title-mast"><span>UNVERIFIED ARCHIVE / 001</span><div class="intro-title-wordmark" role="img" aria-label="真相ガチャ">真相<span>ガチ</span>ャ</div><i aria-hidden="true"></i></div>':'';
-  root.innerHTML=`${titleMasthead}<h1>${titles[step]}</h1><figure>${visual}${step===1||step===2?'<span class="intro-time">02:14 ／ 記録上 1人</span>':step===3?'<span class="intro-time">02:14 ／ 登録前</span>':''}</figure>${captions[step] ? `<p class="intro-caption" aria-live="polite">${captions[step]}</p>` : ""}${step===2?'<div class="intro-compare" role="group" aria-label="写真を比較"><button data-intro="before" aria-pressed="false">最初の写真</button><button data-intro="after" aria-pressed="true">もう一度見た写真</button></div>':''}`;
+  root.innerHTML=`${titleMasthead}<h1>${titles[step]}</h1><figure aria-live="polite" aria-atomic="true">${visual}${step===1||step===2?'<span class="intro-time">02:14 ／ 記録上 1人</span>':step===3?'<span class="intro-time">02:14 ／ 登録前</span>':''}</figure>${captions[step] ? `<p class="intro-caption" aria-live="polite">${captions[step]}</p>` : ""}${step===2?'<div class="intro-compare" role="group" aria-label="写真を比較"><button data-intro="before" aria-pressed="false">最初の写真</button><button data-intro="after" aria-pressed="true">もう一度見た写真</button></div>':''}`;
   $('lite-pull').textContent=introLabel(); $('lite-pull').dataset.mode='intro';
 }
 function advanceIntro() {
