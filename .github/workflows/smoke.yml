@@ -183,6 +183,9 @@ jobs:
       - run: node tests/screen-navigation.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/lab-readability.cjs
+        env:
+          QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/information-ui.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
@@ -220,6 +223,10 @@ jobs:
       - name: Japanese font
         run: curl --fail --location --retry 2 --output "$RUNNER_TEMP/noto.otf" https://raw.githubusercontent.com/notofonts/noto-cjk/main/Sans/OTF/Japanese/NotoSansCJKjp-Regular.otf
       - run: node tests/screen-navigation.cjs
+        env:
+          QA_WEBKIT: 1
+          QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/lab-readability.cjs
         env:
           QA_WEBKIT: 1
           QA_FONT: ${{ runner.temp }}/noto.otf
