@@ -73,6 +73,12 @@ body.lite.intro-quiet #intro-case *,body.lite.intro-quiet #intro-case *::before,
 
 /* Sparse introduction: the envelope is an object, not an information panel. */
 body.intro-active #intro-case[data-step="0"] { padding-top:26px; gap:10px; }
+/* Give the title scene a deliberate stage above the fixed opening action.
+   Keep the envelope centered in the available reading area on tall and short phones. */
+body.intro-active #intro-case[data-step="0"] {
+  min-height:calc(100dvh - 162px - env(safe-area-inset-bottom,0px));
+  align-content:center;
+}
 body.intro-active #intro-case[data-step="0"] .intro-title-mast { gap:5px; }
 body.intro-active #intro-case[data-step="0"] > h1 { color:#c8b99f; font-size:clamp(15px,4.4vw,19px); font-weight:500; letter-spacing:.08em; }
 body.intro-active #intro-case[data-step="0"] figure { border:0; background:transparent; box-shadow:none; }
@@ -102,4 +108,4 @@ body.intro-active header.top #game-menu #menu-dot { display:none!important; }
 
 /* Make every new document heading clear of the fixed-height introductory menu. */
 body.intro-active #intro-case,body.intro-active #intro-case[data-step="0"]{padding-top:50px}
-@media(max-height:700px){body.intro-active #intro-case,body.intro-active #intro-case[data-step="0"]{padding-top:42px}body.intro-active #intro-case .intro-image{max-height:30dvh}body.intro-active #intro-case[data-step="0"] .intro-title-wordmark{font-size:38px}body.intro-active #intro-case[data-step="0"] .intro-title-mast i{height:10px}}
+@media(max-height:700px){body.intro-active #intro-case,body.intro-active #intro-case[data-step="0"]{padding-top:42px}body.intro-active #intro-case[data-step="0"]{min-height:calc(100dvh - 142px - env(safe-area-inset-bottom,0px))}body.intro-active #intro-case .intro-image{max-height:30dvh}body.intro-active #intro-case[data-step="0"] .intro-title-wordmark{font-size:38px}body.intro-active #intro-case[data-step="0"] .intro-title-mast i{height:10px}}
