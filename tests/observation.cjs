@@ -139,5 +139,24 @@ await p.locator('[data-catalog-entry="alt:photo"]').click();
 assert((await p.locator('#sheet').innerText()).includes('夜の教室'));
 assert(await p.locator('#sheet img[src*="'+WatchLocations.byId("alt:photo").file+'"]').count());
 assert.deepEqual(await p.evaluate(()=>Object.keys(S.observation.locationRecords)),['alt:photo']);
+await p.keyboard.press('Escape');
+assert(await p.locator('#sheet-bg').isHidden());
+// The edited street R sprite has three visible eyes. Only their image-space area responds.
+await p.setViewportSize({width:320,height:568});
+await p.evaluate(()=>{const o=S.observation=WatchModel.create(Date.now(),42),now=Date.now();o.mode='vision';o.pending={mode:'vision',rarity:1,readyAt:now,expiresAt:now+WatchModel.hold(o),sequence:0,suppression:0};watchMisses=0;go('home');setHomeTab('desk');renderObservation();});
+await p.locator('#obs-frame').evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));
+assert.equal(await p.locator('#obs-frame').getAttribute('data-scene-alt'),'false');
+assert((await p.locator('#obs-image').evaluate(e=>getComputedStyle(e).backgroundImage)).includes('vision-variants.webp'));
+assert(await p.locator('#obs-image').evaluate(async e=>{const im=new Image();im.src=getComputedStyle(e).backgroundImage.slice(5,-2);await im.decode();return im.naturalWidth===1536&&im.naturalHeight===1024;}));
+const streetPoint=async(x,y)=>p.locator('#obs-image').evaluate((e,[x,y])=>{const r=e.getBoundingClientRect();return{x:r.left+r.width*x,y:r.top+r.height*y};},[x,y]);
+for(const [x,y] of [[.40,.28],[.55,.65],[.40,.28]]){const q=await streetPoint(x,y);await p.mouse.click(q.x,q.y);assert.equal(await p.evaluate(()=>S.observation.pending.suppression),0,'umbrella edge or road is not the cue');}
+assert((await p.locator('#obs-feedback').innerText()).includes('「対処方法」から場所を選べます'));
+assert(await p.locator('#obs-help').isVisible());
+for(const [width,height] of [[320,568],[390,844]]){
+ await p.setViewportSize({width,height});
+ assert(await p.locator('#obs-feedback').evaluate(e=>e.scrollHeight<=e.clientHeight+1),'miss guidance must fit the reserved mobile row');
+}
+await p.locator('#obs-frame').evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));
+for(const [index,[x,y]] of [[.50,.287],[.55,.264],[.61,.287]].entries()){const q=await streetPoint(x,y);await p.mouse.click(q.x,q.y);assert.equal(await p.evaluate(()=>S.observation.pending.suppression),index+1,'each eye should respond to a real tap');}
 assert.deepEqual(errors,[]);console.log('Single scene clock collection, unlock/growth, persistence, 16 visuals and four responsive sizes passed');
 }finally{await b.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});

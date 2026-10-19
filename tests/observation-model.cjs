@@ -65,6 +65,14 @@ for(const mode of Object.keys(M.MODES))for(const rarity of [1,2,3]){
  for(let i=0;i<M.SUPPRESS[rarity]-1;i++){assert.equal(M.suppress(o,T,{x,y}),null);o=JSON.parse(JSON.stringify(o));}
  const result=M.suppress(o,T,{x,y});assert.equal(result.kind,'anomaly');assert.equal(result.record.reward,Math.round(M.ANOMALY_REWARDS[rarity]*M.MODES[mode].mult));assert.equal(o.collected,1);assert.equal(o.history[0].reward,result.record.reward);assert.equal(M.tap(o,T),null);
 }
+// The street R contact is the three eyes, not the ordinary act of carrying an umbrella.
+o=M.create(T,42);o.mode='vision';o.pending={mode:'vision',rarity:1,readyAt:T,expiresAt:T+3*H,sequence:0,suppression:0};
+for(const point of [{x:.50,y:.287},{x:.55,y:.264},{x:.61,y:.287}])assert(M.hit(o,point),'each umbrella eye must be touchable');
+for(const point of [{x:.40,y:.28},{x:.55,y:.39},{x:.55,y:.65}]){
+ assert.equal(M.hit(o,point),false,'canopy edge, pedestrian and road are not an anomaly');
+ assert.equal(M.suppress(o,T,point),null,'ordinary contact must not advance suppression');
+}
+assert.equal(o.pending.suppression,0);
 // Automation is purchased separately, foreground-only and never catches up in bursts.
 o=M.create(T,42);M.automate(o,T+5000);assert.equal(o.tapProgress,0);
 assert.equal(M.upgrade(o,'patrol',300,T+5000),null);o.collected=20;o.unlocked.push('photo');assert.equal(M.upgrade(o,'patrol',300,T+5000),300);
