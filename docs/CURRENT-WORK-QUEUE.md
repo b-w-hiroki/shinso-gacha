@@ -1,14 +1,15 @@
 # 真相ガチャ｜現在の作業キュー
 
-**結論：観測画像・素材ノイズ・上部UIと文字色・操作状態を含む改善はmain反映済み。残る検収は人の発見性・体験評価、本番実機QAと長期監視。**
+**結論：資料保管庫の上部整理と商店街の傘の異変を含む実装可能な改善はmain反映済み。残る検収は人の発見性・体験評価、本番実機QAと長期監視。**
 
-最新の分類は [ブラッシュアップ現状一覧](POLISH-STATUS-2026-10-19.md)。観測時のmainは `3f34c03`。#219/#223はマージ済みで、同じSHAの[main CI](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/39175827130)は8/8成功、[Pages](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/39175826758)と[実タップ](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/39175827126)も成功。初回の26項目は [過去の点検](POLISH-AUDIT-2026-10-19.md) に保持する。
+最新の分類は [ブラッシュアップ現状一覧](POLISH-STATUS-2026-10-19.md)。観測時のmainは `3e4ccfb`。#225/#226はマージ済み。同じSHAの[main CI](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/39183824432)は8/8、[Pages](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/39183824912)と[実タップ](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/39183824501)も成功。初回の26項目は [過去の点検](POLISH-AUDIT-2026-10-19.md) に保持する。
 
 | 順番 | Issue | 現状 | 次の一手 |
 | --- | --- | --- | --- |
 | 1 | #174 観測画像 | 画像8点は統合済み。photo R/SRの人による発見性評価が未完 | ブラインドQAで人が評価 |
-| 2 | #82 人物・体験 | 確定済みの機能は反映済み。人物最終素材・深い会話・長時間評価が残る | 人の評価を記録 |
-| 3 | #75 本番・実機 | 本番FirebaseとiPhoneの証跡が未完 | 管理者・実機で検収 |
+| 2 | #89 商店街Rの傘 | 眼・判定・空振り案内はmain反映済み。初見で異変に気づけるか未評価 | 答えを知らない人のプレイで確認 |
+| 3 | #82 人物・体験 | 確定済みの機能は反映済み。人物最終素材・深い会話・長時間評価が残る | 人の評価を記録 |
+| 4 | #75 本番・実機 | 本番FirebaseとiPhoneの証跡が未完 | 管理者・実機で検収 |
 
 #175（人物棚卸し）、#176（証言分岐）、#177（4群の仕分け・実装追跡）は完了済み。過去のキューを理由に二重着手しない。
 
