@@ -42,7 +42,7 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
    const archiveZoom=await p.addStyleTag({content:'.archive-scene .chips button,.archive-scene .legend-link,.archive-scene .folder .m,.archive-scene .folder .cond{font-size:20px!important}'});
    for(const width of [320,390]){await p.setViewportSize({width,height:844});await p.evaluate(()=>{go('archive');scrollTo(0,0);});assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'enlarged archive must not overflow at '+width);for(const b of await p.locator('.archive-scene .chips button,.archive-scene .legend-link').all()){const q=await b.evaluate(e=>({text:e.textContent,sw:e.scrollWidth,cw:e.clientWidth,sh:e.scrollHeight,ch:e.clientHeight}));assert(q.sw<=q.cw+1&&q.sh<=q.ch+1,'enlarged archive controls must reflow '+width+' '+JSON.stringify(q));}}
    await archiveZoom.evaluate(e=>e.remove());
-   await p.evaluate(()=>{const o=observationState(),now=Date.now();o.mode='vision';o.mind.closed=false;o.pending={mode:'vision',rarity:1,readyAt:now,expiresAt:now+WatchModel.hold(o),sequence:0,suppression:0};go('home');setHomeTab('desk');renderObservation();});
+   await p.evaluate(()=>{hideSheet();const o=observationState(),now=Date.now();o.mode='vision';o.mind.closed=false;o.pending={mode:'vision',rarity:1,readyAt:now,expiresAt:now+WatchModel.hold(o),sequence:0,suppression:0};go('home');setHomeTab('desk');renderObservation();});
    assert(await p.locator('#obs-ready').isVisible()&&await p.locator('#obs-help').isVisible(),'observation alert and help should be visible');
    const observationZoom=await p.addStyleTag({content:'#obs-ready,#obs-help{font-size:28px!important}'});
    for(const width of [320,390]){
@@ -51,6 +51,18 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
     assert(!status.clipped&&!status.overlap&&!status.outside&&status.overflow<=0,'observation status and help must remain readable with enlarged text '+JSON.stringify(status));
    }
    await observationZoom.evaluate(e=>e.remove());
+   await p.evaluate(()=>{const o=observationState(),now=Date.now();o.mode='cctv';o.sequence=1;o.pending={mode:'cctv',rarity:1,readyAt:now,expiresAt:now+WatchModel.hold(o),sequence:1,suppression:0};renderObservation();});
+   assert(await p.locator('#obs-zoom-toggle').isVisible()&&await p.locator('#obs-enhance-toggle').isVisible(),'photographic observation controls should be visible');
+   const toolbarZoom=await p.addStyleTag({content:'.obs-viewpoint span,.obs-zoom-tools button{font-size:28px!important}'});
+   for(const width of [320,390]){
+    await p.setViewportSize({width,height:568});await p.evaluate(()=>fitObservation());
+    const toolbar=await p.evaluate(()=>{const top=document.querySelector('.obs-topline'),frame=document.querySelector('#obs-frame'),labels=[document.querySelector('#obs-viewpoint-label'),document.querySelector('#obs-name')],buttons=[document.querySelector('#obs-zoom-toggle'),document.querySelector('#obs-enhance-toggle')],a=top.getBoundingClientRect(),f=frame.getBoundingClientRect();return {width:innerWidth,topBottom:a.bottom,imageTop:f.top,overflow:document.documentElement.scrollWidth-innerWidth,labels:labels.map(e=>({text:e.textContent,width:e.clientWidth,scroll:e.scrollWidth})),buttons:buttons.map(e=>{const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return {x:r.x,y:r.y,width:r.width,height:r.height,scroll:e.scrollWidth,client:e.clientWidth,hit:e===hit||e.contains(hit),hitTag:hit?.tagName,hitId:hit?.id,hitClass:hit?.className}})};});
+    assert(toolbar.topBottom<=toolbar.imageTop+1&&toolbar.overflow<=0&&toolbar.labels.every(e=>e.width>=e.scroll-1)&&toolbar.buttons.every(e=>e.width>=44&&e.height>=44&&e.scroll<=e.client+1&&e.hit),'enlarged observation heading and controls must stay readable above the image '+JSON.stringify(toolbar));
+    await p.evaluate(()=>scrollTo(0,document.documentElement.scrollHeight));
+    const restHit=await p.locator('#obs-rest').evaluate(e=>{const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return {hit:e===hit||e.contains(hit),top:r.top,bottom:r.bottom,viewport:innerHeight,hitTag:hit?.tagName,hitId:hit?.id,hitClass:hit?.className,scrollY,scrollHeight:document.documentElement.scrollHeight}});
+    assert(restHit.hit,'rest control must remain reachable when the enlarged heading requires scrolling '+JSON.stringify(restHit));
+   }
+   await toolbarZoom.evaluate(e=>e.remove());
    await p.setViewportSize({width:320,height:568});
    for(const action of ['openGameMenu','openGameNews','openGameInbox','openMenuSettings','openEncyclopedia','openAccount']){
     await p.evaluate(name=>window[name](),action);const back=p.locator('.menu-page-heading .menu-back');assert(await back.isVisible());assert(await back.evaluate(e=>{const r=e.getBoundingClientRect(),t=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.height>=44&&(e===t||e.contains(t));}));assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
