@@ -241,6 +241,10 @@ jobs:
         env:
           QA_WEBKIT: 1
           QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/menu-pages.cjs
+        env:
+          QA_WEBKIT: 1
+          QA_FONT: ${{ runner.temp }}/noto.otf
       - run: node tests/lab-readability.cjs
         env:
           QA_WEBKIT: 1
