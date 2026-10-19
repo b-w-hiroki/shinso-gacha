@@ -239,7 +239,7 @@ function observationCollect(event){
  const result=strike?WatchModel.suppress(o,Date.now(),point):WatchModel.tap(o,Date.now());
  if(result){watchMisses=0;observationReward(result);}else {
   if(strike){watchMisses=contact?0:watchMisses+1;
-   if(contact||watchMisses>=3){watchMessage=contact?'輪郭が揺らいだ。まだ、そこにいる。':'この場所からは反応がない。';watchMessageUntil=Date.now()+2200;}
+   if(contact||watchMisses>=3){watchMessage=contact?'輪郭が揺らいだ。まだ、そこにいる。':'この場所からは反応がない。押しにくい場合は「対処方法」で場所を選べます。';watchMessageUntil=Date.now()+(contact?2200:4200);}
   }
   markDirty();renderObservation();
  }
