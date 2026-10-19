@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-7TvP29wt22v376IP30SEoj7GY/sB+qFip3prYvihYyc=' https://www.gstatic.com/firebasejs/ https://cdn.jsdelivr.net/npm/budoux@0.9.3/ https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://shinso-gacha.firebaseapp.com; frame-src https://shinso-gacha.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-fo68Op0iOkdundmHqzKe9qQA4/zKK46ApWWTHYAW+ZM=' https://www.gstatic.com/firebasejs/ https://cdn.jsdelivr.net/npm/budoux@0.9.3/ https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://shinso-gacha.firebaseapp.com; frame-src https://shinso-gacha.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>真相ガチャ</title>
@@ -2344,9 +2344,10 @@ function renderMissions() {
   let claimable = false;
   $("missions").innerHTML = MISSIONS.map(m => {
     const s = S.missions[m.id], full = s.p >= m.target;
+    const progress = Number.isFinite(s.p) ? Math.max(0, Math.min(m.target, s.p)) : 0;
     if (full && !s.claimed) claimable = true;
-    const right = s.claimed ? `<span class="r">受領済</span>` : full ? `<button data-act="claim" data-id="${m.id}">受領 +${m.reward}</button>` : `<span class="r">${s.p}/${m.target} ・ +${m.reward}pt</span>`;
-    return `<div class="mi ${s.claimed ? "done" : ""}"><span class="t">${m.text}</span>${right}<span class="meter"><i style="width:${s.p / m.target * 100}%"></i></span></div>`;
+    const right = s.claimed ? `<span class="r">受領済</span>` : full ? `<button data-act="claim" data-id="${m.id}">受領 +${m.reward}</button>` : `<span class="r">${progress}/${m.target} ・ +${m.reward}pt</span>`;
+    return `<div class="mi ${s.claimed ? "done" : ""}"><span class="t">${m.text}</span>${right}<span class="meter" role="progressbar" aria-label="${m.text}の進捗" aria-valuemin="0" aria-valuemax="${m.target}" aria-valuenow="${progress}"><i style="width:${progress / m.target * 100}%" aria-hidden="true"></i></span></div>`;
   }).join("");
   $("claim-all").hidden = !claimable;
   $("dot-home").hidden = !claimable && !(S.freeDate !== dayKey() && lv(todayItem().id) < 5);
