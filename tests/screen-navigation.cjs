@@ -42,6 +42,12 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
    const archiveZoom=await p.addStyleTag({content:'.archive-scene .chips button,.archive-scene .legend-link,.archive-scene .folder .m,.archive-scene .folder .cond{font-size:20px!important}'});
    for(const width of [320,390]){await p.setViewportSize({width,height:844});await p.evaluate(()=>{go('archive');scrollTo(0,0);});assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'enlarged archive must not overflow at '+width);for(const b of await p.locator('.archive-scene .chips button,.archive-scene .legend-link').all()){const q=await b.evaluate(e=>({text:e.textContent,sw:e.scrollWidth,cw:e.clientWidth,sh:e.scrollHeight,ch:e.clientHeight}));assert(q.sw<=q.cw+1&&q.sh<=q.ch+1,'enlarged archive controls must reflow '+width+' '+JSON.stringify(q));}}
    await archiveZoom.evaluate(e=>e.remove());
+   for(const width of [320,390]){
+    await p.setViewportSize({width,height:844});await p.evaluate(()=>{hideSheet();go('report');scrollTo(0,0);});
+    const order=await p.evaluate(()=>{const rect=s=>document.querySelector(s).getBoundingClientRect(),diag=rect('.report-scene .diag'),daily=rect('.report-scene .grid-card'),link=rect('#agent-record'),nav=rect('.nav');return {diagTop:diag.top,dailyTop:daily.top,dailyBottom:daily.bottom,linkTop:link.top,linkHeight:link.height,linkFont:parseFloat(getComputedStyle(document.querySelector('#agent-record')).fontSize),navTop:nav.top,overflow:document.documentElement.scrollWidth-innerWidth};});
+    assert(order.diagTop<170&&order.diagTop<order.dailyTop&&order.dailyBottom<order.linkTop&&order.linkTop<order.navTop&&order.linkHeight>=44&&order.linkFont>=15&&order.overflow<=0,'report should show diagnosis and daily result before the secondary rank link '+JSON.stringify(order));
+    await p.locator('#agent-record').click();assert(await p.locator('.wallet-rank').isVisible(),'rank detail must remain reachable');await p.locator('.sheet .x').click();
+   }
    await p.evaluate(()=>{hideSheet();const o=observationState(),now=Date.now();o.mode='vision';o.mind.closed=false;o.pending={mode:'vision',rarity:1,readyAt:now,expiresAt:now+WatchModel.hold(o),sequence:0,suppression:0};go('home');setHomeTab('desk');renderObservation();});
    assert(await p.locator('#obs-ready').isVisible()&&await p.locator('#obs-help').isVisible(),'observation alert and help should be visible');
    const observationZoom=await p.addStyleTag({content:'#obs-ready,#obs-help{font-size:28px!important}'});
