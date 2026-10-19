@@ -6,6 +6,7 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
  try{
   const p=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'}),errors=[],rows=[];p.on('pageerror',e=>errors.push(e.message));await p.route('https://**/*',r=>r.abort());await p.goto('http://127.0.0.1:'+server.address().port);
   if(process.env.QA_FONT){await p.addStyleTag({content:"@font-face{font-family:QAJP;src:url('/font.otf')} :root{--f-body:QAJP;--f-display:QAJP;--f-mono:QAJP}"});await p.evaluate(()=>document.fonts.load('16px QAJP'));}
+  assert(await p.evaluate(()=>typeof S!=='undefined'),'game failed to initialize: '+JSON.stringify(errors)+' '+JSON.stringify(await p.evaluate(()=>({url:location.href,ready:document.readyState,title:document.title,html:document.documentElement.outerHTML.slice(0,300)}))));
   await p.evaluate(()=>{S.role='agent';S.onboarded=true;S.lite={intro:{done:true}};S.lastTick=Date.now()+600000;S.streak={last:dayKey(),n:1};S.currency=5000;S.levels.u1=2;S.observation=WatchModel.create(Date.now(),42);S.incursion={version:1,level:0,resolved:0,history:[]};applyMode();render();});
   const progress=()=>p.evaluate(()=>JSON.stringify({currency:S.currency,levels:S.levels,collection:S.observation.collection}));const before=await progress();
   for(const [width,height] of [[320,568],[390,680],[390,844],[430,932],[844,390],[1280,900]]){
@@ -30,6 +31,17 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
    }
   }
   if(!measure){
+   await p.setViewportSize({width:390,height:844});await p.evaluate(()=>{go('archive');scrollTo(0,0);});
+   const archive=await p.evaluate(()=>{const r=s=>document.querySelector(s).getBoundingClientRect(),secret=r('#files .folder.secret'),first=r('#files .folder:not(.secret)'),nav=r('.nav');return {secretHeight:secret.height,firstTop:first.top,navTop:nav.top,chip:[...document.querySelectorAll('.archive-scene .chips button')].map(b=>({width:b.getBoundingClientRect().width,height:b.getBoundingClientRect().height})),link:(()=>{const x=r('.archive-scene .legend-link');return {width:x.width,height:x.height}})()};});
+   assert(archive.secretHeight<=125&&archive.firstTop<archive.navTop-100,'archive first dossier should not be displaced by controls '+JSON.stringify(archive));
+   assert(archive.chip.every(b=>b.width>=44&&b.height>=44)&&archive.link.width>=44&&archive.link.height>=44,'archive controls need 44px targets '+JSON.stringify(archive));
+   assert.equal(await p.locator('.archive-scene [role="progressbar"]').getAttribute('aria-valuenow'),await p.locator('#rate').textContent().then(s=>s.replace('%','')),'archive progress value must match visible rate');
+   await p.locator('.archive-scene [data-chip="urban"]').click();assert.equal(await p.locator('#files .folder.secret').count(),0,'secret stays in all-files filter only');
+   await p.locator('.archive-scene [data-chip="all"]').click();assert.equal(await p.locator('#files .folder.secret').count(),1);
+   await p.locator('.archive-scene .legend-link').click();assert(await p.locator('.legend-case-list').isVisible(),'evidence comparison route remains available');
+   const archiveZoom=await p.addStyleTag({content:'.archive-scene .chips button,.archive-scene .legend-link,.archive-scene .folder .m,.archive-scene .folder .cond{font-size:20px!important}'});
+   for(const width of [320,390]){await p.setViewportSize({width,height:844});await p.evaluate(()=>{go('archive');scrollTo(0,0);});assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'enlarged archive must not overflow at '+width);for(const b of await p.locator('.archive-scene .chips button,.archive-scene .legend-link').all()){const q=await b.evaluate(e=>({text:e.textContent,sw:e.scrollWidth,cw:e.clientWidth,sh:e.scrollHeight,ch:e.clientHeight}));assert(q.sw<=q.cw+1&&q.sh<=q.ch+1,'enlarged archive controls must reflow '+width+' '+JSON.stringify(q));}}
+   await archiveZoom.evaluate(e=>e.remove());
    await p.setViewportSize({width:320,height:568});
    for(const action of ['openGameMenu','openGameNews','openGameInbox','openMenuSettings','openEncyclopedia','openAccount']){
     await p.evaluate(name=>window[name](),action);const back=p.locator('.menu-page-heading .menu-back');assert(await back.isVisible());assert(await back.evaluate(e=>{const r=e.getBoundingClientRect(),t=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.height>=44&&(e===t||e.contains(t));}));assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));

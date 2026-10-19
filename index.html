@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-7DQc/4Tjmw4LlCN6UXh9FLNs8xnkSO9PxjkL+RrX4yo=' https://www.gstatic.com/firebasejs/ https://cdn.jsdelivr.net/npm/budoux@0.9.3/ https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://shinso-gacha.firebaseapp.com; frame-src https://shinso-gacha.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-7TvP29wt22v376IP30SEoj7GY/sB+qFip3prYvihYyc=' https://www.gstatic.com/firebasejs/ https://cdn.jsdelivr.net/npm/budoux@0.9.3/ https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://shinso-gacha.firebaseapp.com; frame-src https://shinso-gacha.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>真相ガチャ</title>
@@ -1166,7 +1166,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
     <div class="section-pane" data-spane="archive:files">
     <div class="progress">
       <div class="row"><span>アーカイブ解読率</span><span class="mono" id="rate">0%</span></div>
-      <div class="bar"><i id="rate-bar" style="width:0%"></i></div>
+      <div class="bar" role="progressbar" aria-label="アーカイブ解読率" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="rate-bar" style="width:0%"></i></div>
       <div class="row"><span id="got-line">収集 0/10</span><span id="lv5-line">真相到達 0/10</span></div>
     </div>
     <div class="chips" role="group" aria-label="絞り込み">
@@ -1174,7 +1174,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
       <button data-chip="urban" aria-pressed="false">都市伝説</button>
       <button data-chip="conspiracy" aria-pressed="false">陰謀論</button>
     </div>
-    <button class="btn-line legend-link" data-legend="board">都市伝説の証拠を照合する ›</button>
+    <button class="btn-line legend-link" data-legend="board" aria-label="都市伝説の証拠を照合する">証拠を照合 ›</button>
     <div class="files" id="files"></div>
     </div>
     <div class="section-pane" data-spane="archive:testimony" hidden>
@@ -2356,6 +2356,7 @@ function renderArchive() {
   const got = ITEMS.filter(i => lv(i.id) > 0).length, five = ITEMS.filter(i => lv(i.id) === 5).length;
   const layers = ITEMS.reduce((a, i) => a + lv(i.id), 0), rate = Math.round(layers / (ITEMS.length * 5) * 100);
   $("rate").textContent = rate + "%"; $("rate-bar").style.width = rate + "%";
+  $("rate-bar").parentElement.setAttribute("aria-valuenow", String(rate));
   $("got-line").textContent = `収集 ${got}/${ITEMS.length}`; $("lv5-line").textContent = `真相到達 ${five}/${ITEMS.length}`;
   document.querySelectorAll("[data-chip]").forEach(b => b.setAttribute("aria-pressed", b.dataset.chip === chip));
   const sL = secretLv(), next = SECRET_AT[sL];
