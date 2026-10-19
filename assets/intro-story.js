@@ -36,6 +36,7 @@ function renderIntro() {
     const menuHome=(active || liteTotal()<10)?document.querySelector('.top-in'):document.querySelector('.lite-tabs');
     if(menuHome && $('game-menu').parentElement!==menuHome)menuHome.appendChild($('game-menu'));
   }
+  renderMenuBadge();
   if(!active)return;
   const i=S.lite.intro, step=i.step;
   const titles=['差出人が、ない。','記録上は、ひとり。','記録上は、ひとり。','印は、先に付いていた。','数え直さないこと。'];
