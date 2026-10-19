@@ -9,6 +9,11 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  assert.deepEqual(state.map(x=>x.now),['1','3','2','0']);assert.deepEqual(state.map(x=>x.max),['3','3','2','1']);assert(state.every(x=>x.name.endsWith('の進捗')&&x.min==='0'));
  assert(Math.abs(Number.parseFloat(state[0].width)-100/3)<0.01);assert.deepEqual(state.slice(1).map(x=>Number.parseFloat(x.width)),[100,100,0]);
  assert.match(await p.locator('#missions .mi').nth(3).innerText(),/0\/1/,'invalid old progress is not shown as a negative count');
+ await p.emulateMedia({reducedMotion:'no-preference'});
+ const claimStyle=await p.locator('#missions [data-act="claim"]').first().evaluate(e=>({animation:getComputedStyle(e).animationName,font:Number.parseFloat(getComputedStyle(e).fontSize),height:e.getBoundingClientRect().height}));
+ assert.equal(claimStyle.animation,'none','claim actions do not pulse even without reduced-motion');assert(claimStyle.font>=14&&claimStyle.height>=44);
+ await p.setViewportSize({width:320,height:568});assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'claim actions fit the narrow phone');
+ await p.setViewportSize({width:390,height:680});await p.emulateMedia({reducedMotion:'reduce'});
  if(!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/mission-progress-390.jpg',quality:85});
  assert(await p.locator('#claim-all').isVisible());const before=await p.evaluate(()=>S.currency);await p.locator('#claim-all').click();assert.equal(await p.evaluate(()=>S.currency),before+45);assert(await p.locator('#claim-all').isHidden());
  assert.deepEqual(await bars.evaluateAll(els=>els.map(e=>e.getAttribute('aria-valuenow'))),['1','3','2','0']);
