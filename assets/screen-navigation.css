@@ -66,3 +66,14 @@ body:not(.lite) .lab-scene .research-card::before{color:#e4ad9b}
 .archive-scene .folder .m{color:#49331e}
 .archive-scene .folder .cond{color:#3f2b19}
 @media(max-width:359px){.archive-scene [data-spane="archive:files"]{grid-template-columns:minmax(0,1fr)}.archive-scene .legend-link{grid-column:1;justify-self:start}}
+/* On agent phones, the archive serial is secondary to the title and balance. */
+@media(max-width:599px){
+ body:not(.lite) .top-in{padding-block:6px}
+ body:not(.lite) .top-in .logo small{display:none}
+ .lab-scene [data-spane="lab:upgrade"]>.labhead{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px 10px;padding:0}
+ .lab-scene [data-spane="lab:upgrade"]>.labhead #evi{font-size:26px}
+ .lab-scene [data-spane="lab:upgrade"]>.labhead .context-help{margin-left:auto;max-width:100%}
+ .lab-scene [data-spane="lab:upgrade"]>.labhead .context-help[open]{flex-basis:100%;margin-left:0}
+ .lab-scene #observation-lab .watch-lab{margin-bottom:0}
+ .lab-scene #incursion-defense .inc-defense{margin:0}
+}

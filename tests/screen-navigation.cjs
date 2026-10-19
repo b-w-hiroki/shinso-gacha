@@ -80,6 +80,15 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
     assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'enlarged text reflow '+view);
     for(const b of await p.locator(`[data-view="${view}"] .section-tabs button,[data-view="${view}"] .menu-back`).all())assert(await b.evaluate(e=>e.scrollWidth<=e.clientWidth+1&&e.scrollHeight<=e.clientHeight+1),'enlarged control text must remain visible');
    }
+   for(const width of [320,390]){
+    await p.setViewportSize({width,height:844});await p.evaluate(()=>{go('lab');scrollTo(0,0);});
+    const density=await p.evaluate(()=>{const box=s=>document.querySelector(s).getBoundingClientRect(),top=box('.top'),wallet=box('#wallet'),evidence=box('.lab-scene [data-spane="lab:upgrade"]>.labhead'),card=box('#ups .up'),nav=box('.nav');return {width:innerWidth,header:top.height,wallet:wallet.height,subtitle:getComputedStyle(document.querySelector('.logo small')).display,evidence:evidence.height,cardTop:card.top,navTop:nav.top,overflow:document.documentElement.scrollWidth-innerWidth};});
+    assert(density.header<=64&&density.wallet>=44&&density.subtitle==='none'&&density.evidence<=76&&density.cardTop<620&&density.cardTop<density.navTop-150&&density.overflow<=0,'agent phone header and lab content must remain compact with enlarged text '+JSON.stringify(density));
+    await p.locator('.lab-scene .labhead .context-help summary').click();
+    assert(await p.locator('.lab-scene .labhead .context-help p').isVisible(),'evidence explanation remains available');
+    assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'open evidence explanation must not overflow '+width);
+    await p.locator('.lab-scene .labhead .context-help summary').click();
+   }
    assert.equal(await progress(),before,'navigation must preserve currency, levels and collected records');
    await p.evaluate(()=>{S.role=null;S.onboarded=false;S.pulls=0;S.lite={lv:{u1:3,u2:3},pulls:6,intro:{version:1,done:true}};applyMode();});
    for(const tab of ['open','files','notes']){await p.locator(`[data-ltab="${tab}"]`).click();assert(await p.locator(`[data-lpane="${tab}"]`).isVisible());assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}
