@@ -3,7 +3,7 @@
 **新しいチャットでは「真相ガチャ、開発再開」で開始。** 過去の長い引き継ぎプロンプトは不要。このページは固定の入口であり、過去のSHAや進捗を現在の事実として固定しない。
 
 ## 正本
-- 作品仕様・変更境界：[`AGENTS.md`](../AGENTS.md)、[仕様書総覧](INDEX.md)、[CURRENT-SPEC](CURRENT-SPEC.md)、[DEVELOPMENT-WORKFLOW](DEVELOPMENT-WORKFLOW.md)。
+- 作品仕様・変更境界：[`AGENTS.md`](../AGENTS.md)、[仕様書総覧](INDEX.md)、[CURRENT-SPEC](CURRENT-SPEC.md)、[EXPERIENCE-DESIGN](EXPERIENCE-DESIGN.md)、[仕様書・設計書の更新手順](SPEC-DESIGN-WORKFLOW.md)、[DEVELOPMENT-WORKFLOW](DEVELOPMENT-WORKFLOW.md)。
 - 共通の手順：[birdman studio Chat Resume Contract](https://github.com/b-w-hiroki/studio-playbook/blob/main/docs/CHAT-RESUME.md)（Private、GitHub接続の認可要）。アクセスできなければ「未読」とする。
 - Issueキュー：[Open Issues](https://github.com/b-w-hiroki/shinso-gacha/issues?q=is%3Aissue+is%3Aopen)、[ロードマップ #89](https://github.com/b-w-hiroki/shinso-gacha/issues/89)、[本番・実機QA #75](https://github.com/b-w-hiroki/shinso-gacha/issues/75)。
 - Open PR：[一覧](https://github.com/b-w-hiroki/shinso-gacha/pulls)。最新CI：[Actions](https://github.com/b-w-hiroki/shinso-gacha/actions/workflows/smoke.yml)。[Pages](https://github.com/b-w-hiroki/shinso-gacha/actions)／[公開サイト](https://shinso-gacha.birdman-studio.com/)。

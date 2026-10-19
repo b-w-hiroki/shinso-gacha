@@ -4,7 +4,7 @@ const dir=path.resolve('docs');
 const required=[
  'INDEX.md','CURRENT-SPEC.md','SYSTEM-ARCHITECTURE.md','EXPERIENCE-DESIGN.md',
  'ASSET-PRODUCTION-WORKFLOW.md','DEVELOPMENT-WORKFLOW.md','QA-RELEASE-CHECKLIST.md',
- 'REUSABLE-PLAYBOOK.md','IMPLEMENTATION-AUDIT-2026-10-11.md'
+ 'REUSABLE-PLAYBOOK.md','IMPLEMENTATION-AUDIT-2026-10-11.md','SPEC-DESIGN-WORKFLOW.md'
 ];
 for(const name of required){
  const filename=path.join(dir,name);

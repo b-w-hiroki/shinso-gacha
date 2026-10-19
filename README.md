@@ -2,15 +2,15 @@
 
 **AI開発を再開する入口：** [docs/AI-RESUME.md](docs/AI-RESUME.md)（新しいチャットでは「真相ガチャ、開発再開」で可）。GitHubの最新状態が正本で、古いチャットの引き継ぎ文は不要です。read-only snapshotは無人実装を開始しません。
 
-> **現行ドキュメント（2026-10-11基準）：[docs/INDEX.md](docs/INDEX.md)** ／ [実装仕様](docs/CURRENT-SPEC.md) ／ [アーキテクチャ](docs/SYSTEM-ARCHITECTURE.md) ／ [制作ワークフロー](docs/DEVELOPMENT-WORKFLOW.md) ／ [再利用ノウハウ](docs/REUSABLE-PLAYBOOK.md)。以下は初期からの製品紹介と変遷を含むため、数値・画面・解放条件が最新mainと異なる箇所は現行仕様とコードを優先してください。
+> **現行ドキュメント：[総覧](docs/INDEX.md) ／ [仕様書](docs/CURRENT-SPEC.md) ／ [体験設計書](docs/EXPERIENCE-DESIGN.md) ／ [技術設計書](docs/SYSTEM-ARCHITECTURE.md) ／ [更新手順](docs/SPEC-DESIGN-WORKFLOW.md)。** 以下は初期からの製品紹介と変遷を含むため、数値・画面・解放条件が最新mainと異なる箇所は現行仕様とコードを優先してください。
 
 都市伝説と陰謀論を集めて、黒塗りを剥がしていく収集ガチャ。
 バトルも育成の口実もなく、ガチャを引くこと自体が目的のゲーム。トーンは皮肉・風刺。
 
-- 本体：`index.html`（HTML / CSS / JS をすべて含む単一ファイル）
+- 本体：`index.html` と `assets/` の JS・CSS・画像（ビルドなし）
 - 遊び方：`index.html` をブラウザで直接開く（サーバー不要）
 - 管理：このリポジトリに一本化（claude.ai の公開ページは廃止済み）
-- 仕様：[docs/SPEC.md](docs/SPEC.md) ／ 設計判断：[docs/DESIGN.md](docs/DESIGN.md) ／ 公開・運用手順：[docs/SETUP.md](docs/SETUP.md)
+- 初期の仕様・設計判断の履歴：[docs/SPEC.md](docs/SPEC.md) ／ [docs/DESIGN.md](docs/DESIGN.md)。公開・運用手順：[docs/SETUP.md](docs/SETUP.md)
 - Firestoreのルール：[firebase/firestore.rules](firebase/firestore.rules)
 
 ## コアループ
