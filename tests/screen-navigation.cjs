@@ -42,6 +42,15 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
    const archiveZoom=await p.addStyleTag({content:'.archive-scene .chips button,.archive-scene .legend-link,.archive-scene .folder .m,.archive-scene .folder .cond{font-size:20px!important}'});
    for(const width of [320,390]){await p.setViewportSize({width,height:844});await p.evaluate(()=>{go('archive');scrollTo(0,0);});assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'enlarged archive must not overflow at '+width);for(const b of await p.locator('.archive-scene .chips button,.archive-scene .legend-link').all()){const q=await b.evaluate(e=>({text:e.textContent,sw:e.scrollWidth,cw:e.clientWidth,sh:e.scrollHeight,ch:e.clientHeight}));assert(q.sw<=q.cw+1&&q.sh<=q.ch+1,'enlarged archive controls must reflow '+width+' '+JSON.stringify(q));}}
    await archiveZoom.evaluate(e=>e.remove());
+   await p.evaluate(()=>{const o=observationState(),now=Date.now();o.mode='vision';o.mind.closed=false;o.pending={mode:'vision',rarity:1,readyAt:now,expiresAt:now+WatchModel.hold(o),sequence:0,suppression:0};go('home');setHomeTab('desk');renderObservation();});
+   assert(await p.locator('#obs-ready').isVisible()&&await p.locator('#obs-help').isVisible(),'observation alert and help should be visible');
+   const observationZoom=await p.addStyleTag({content:'#obs-ready,#obs-help{font-size:28px!important}'});
+   for(const width of [320,390]){
+    await p.setViewportSize({width,height:568});
+    const status=await p.evaluate(()=>{const ready=document.querySelector('#obs-ready'),help=document.querySelector('#obs-help'),row=ready.closest('.obs-status'),a=ready.getBoundingClientRect(),b=help.getBoundingClientRect(),r=row.getBoundingClientRect();return {width:innerWidth,ready:[a.left,a.right,a.top,a.bottom],help:[b.left,b.right,b.top,b.bottom],row:[r.left,r.right,r.top,r.bottom],overflow:document.documentElement.scrollWidth-innerWidth,clipped:ready.scrollWidth>ready.clientWidth+1||ready.scrollHeight>ready.clientHeight+1||help.scrollWidth>help.clientWidth+1||help.scrollHeight>help.clientHeight+1,overlap:a.right>b.left&&a.top<b.bottom&&b.top<a.bottom,outside:a.top<r.top-1||a.bottom>r.bottom+1||b.top<r.top-1||b.bottom>r.bottom+1};});
+    assert(!status.clipped&&!status.overlap&&!status.outside&&status.overflow<=0,'observation status and help must remain readable with enlarged text '+JSON.stringify(status));
+   }
+   await observationZoom.evaluate(e=>e.remove());
    await p.setViewportSize({width:320,height:568});
    for(const action of ['openGameMenu','openGameNews','openGameInbox','openMenuSettings','openEncyclopedia','openAccount']){
     await p.evaluate(name=>window[name](),action);const back=p.locator('.menu-page-heading .menu-back');assert(await back.isVisible());assert(await back.evaluate(e=>{const r=e.getBoundingClientRect(),t=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.height>=44&&(e===t||e.contains(t));}));assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));

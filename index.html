@@ -1092,7 +1092,7 @@ main:has(.gacha-scene:not([hidden])){padding-bottom:calc(var(--nav-h) + env(safe
         <button id="obs-frame" class="obs-frame" data-mode="cctv" aria-label="観測映像を確認">
           <span id="obs-closed" hidden>回線を遮断しました<small>画面から目を離し、しばらく休んでください。</small></span><span id="obs-image" aria-hidden="true"></span><span id="obs-site-overlay" aria-hidden="true"></span><span class="obs-effect" aria-hidden="true"></span><span class="seep-mimic" aria-hidden="true"></span>
         </button>
-        <div class="obs-status"><span id="obs-ready" hidden>記録を受信</span><span id="obs-first-hint" hidden>映像に触れて観測する</span><span id="obs-timer"></span><button id="obs-help" data-watch="target" hidden>対処方法</button></div>
+        <div class="obs-status"><span id="obs-ready" hidden>記録を受信</span><span id="obs-first-hint" hidden>映像に触れて観測する</span><span id="obs-timer"></span><button id="obs-help" data-watch="target" aria-label="異変の場所を選ぶ" hidden>場所選択</button></div>
         <p id="obs-atmosphere" aria-live="off"></p>
         <p id="obs-feedback" role="status" aria-live="polite"></p>
         <div class="obs-secondary"><button id="obs-rest" type="button">モニタを閉じる</button><button id="obs-colleagues" type="button">課内で話す</button><button id="obs-equipment" data-watch="lab" type="button">機材・育成</button></div>
