@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://shinso-gacha.birdman-studio.com/sitemap.xml

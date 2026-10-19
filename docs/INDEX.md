@@ -24,6 +24,7 @@
 | レビュアー・リリース担当 | [QA・公開判定](QA-RELEASE-CHECKLIST.md) | テスト証跡、ブロッカー、実機・本番の区別 |
 | 人間の発見性検収 | [観測16画像ブラインドQA](OBSERVATION-BLIND-QA.md) | ランダム順・探すまでの時間・見逃し・誤タップを匿名で評価する手順 |
 | 本番管理者・実機QA | [本番Firebase・iPhone検収手順](FIREBASE-PRODUCTION-QA.md) | プロジェクト確認、2端末同期・削除、実機操作、証跡の記録 |
+| 検索公開範囲の検収 | [検索公開範囲と測定手順](SEARCH-DISCOVERY.md) | canonical、sitemap、robots、比較可能な公開後測定 |
 | 他プロジェクトへ転用 | [再利用プレイブック](REUSABLE-PLAYBOOK.md) | 型、転用条件、失敗例、プロンプト |
 | 現在の問題と優先順 | [全体監査](IMPLEMENTATION-AUDIT-2026-10-11.md) | 実装/部分実装/未検証の分類、技術・制作負債 |
 
