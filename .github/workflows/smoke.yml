@@ -18,6 +18,7 @@ jobs:
           node-version: 22
       - run: node tests/smoke.mjs
       - run: node tests/documentation-contract.cjs
+      - run: node tests/spec-design-sync.cjs
       - run: node --test tests/dev-resume.cjs
       - run: node --test tests/autodev-dry-run.cjs
       - run: node tests/github-workflow-pilot.cjs
@@ -61,6 +62,19 @@ jobs:
       - run: node tests/cloud-save.cjs
       - run: node tests/webkit-ssr-stability-runner.cjs
       - run: node tests/branch-cleanup.mjs
+
+  spec-design-sync:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node tests/spec-design-sync.cjs
+      - run: node scripts/check-spec-design-sync.cjs
 
   browser:
     runs-on: ubuntu-latest
