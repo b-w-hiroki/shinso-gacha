@@ -1,5 +1,6 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
+const { auditStaticSearch } = require("./static-search-contract.cjs");
 
 const html = fs.readFileSync("index.html", "utf8");
 assert.match(html, /<meta name="description" content="[^"]+">/);
@@ -17,5 +18,7 @@ assert.ok(robots.includes("Sitemap: https://shinso-gacha.birdman-studio.com/site
 const sitemap = fs.readFileSync("sitemap.xml", "utf8");
 assert.ok(sitemap.includes("<loc>https://shinso-gacha.birdman-studio.com/</loc>"));
 assert.ok(!sitemap.includes("?ref="), "shared observation URL leaked into sitemap");
+
+auditStaticSearch({ baseUrl: "https://shinso-gacha.birdman-studio.com/" });
 
 console.log("search discovery contract passed");

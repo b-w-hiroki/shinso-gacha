@@ -33,3 +33,13 @@ npx playwright screenshot --viewport-size="390,844" https://shinso-gacha.birdman
 - 2026-10-19 12:48 UTC、Bing 通常検索（未ログイン相当の HTTP 取得、`site:shinso-gacha.birdman-studio.com`）: 返却された上位10 organic 結果ブロックに対象ドメインの一致を確認できなかった。これはインデックス未登録の確定判定ではなく、地域・時刻・検索側の応答に依存する観測値。
 - 2026-10-19 12:38 UTC、Chromium 390×844 で JavaScript 有効時の一般人編を撮影。2026-10-19 12:55 UTC、同じ viewport の JavaScript 無効コンテキストで静的紹介が可視であることを撮影・DOM の両方で確認。
 - ChatGPT、Gemini、Copilot への質問や外部 AI API 送信は実施していない。
+
+## 自動契約検査とJSON記録
+
+- node tests/search-discovery.cjs は sitemap の canonical 一致、掲載HTMLから参照する同一オリジンの href/src 実在、OG画像の実ファイルと1200×630寸法を検査する。
+- 2026-10-19 14:24 UTC、1200×630の実画面を共有画像として確認し、封筒、調査開始CTA、意図された黒塗りタイトルが読め、端の見切れや別作品の混入がないことを確認した。
+- 公開前後は次の同一コマンドを実行し、標準出力のJSONを docs/qa/search-discovery/YYYY-MM-DD-http.json として保存する。
+
+    node scripts/measure-search-discovery.mjs https://shinso-gacha.birdman-studio.com/
+
+JSONはUTC時刻、要求URL、最終URL、status、content-type、バイト数、title、description、canonical、OG画像、sitemap URL数を同じキーで出力する。
