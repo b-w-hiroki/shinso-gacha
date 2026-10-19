@@ -150,7 +150,7 @@ assert((await p.locator('#obs-image').evaluate(e=>getComputedStyle(e).background
 assert(await p.locator('#obs-image').evaluate(async e=>{const im=new Image();im.src=getComputedStyle(e).backgroundImage.slice(5,-2);await im.decode();return im.naturalWidth===1536&&im.naturalHeight===1024;}));
 const streetPoint=async(x,y)=>p.locator('#obs-image').evaluate((e,[x,y])=>{const r=e.getBoundingClientRect();return{x:r.left+r.width*x,y:r.top+r.height*y};},[x,y]);
 for(const [x,y] of [[.40,.28],[.55,.65],[.40,.28]]){const q=await streetPoint(x,y);await p.mouse.click(q.x,q.y);assert.equal(await p.evaluate(()=>S.observation.pending.suppression),0,'umbrella edge or road is not the cue');}
-assert((await p.locator('#obs-feedback').innerText()).includes('「対処方法」から場所を選べます'));
+assert((await p.locator('#obs-feedback').innerText()).includes('「場所選択」から場所を選べます'));
 assert(await p.locator('#obs-help').isVisible());
 for(const [width,height] of [[320,568],[390,844]]){
  await p.setViewportSize({width,height});
