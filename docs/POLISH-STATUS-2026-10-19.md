@@ -1,6 +1,6 @@
 # ブラッシュアップ現状一覧（2026-10-19）
 
-観測したmainは `3f34c03acdefe5a18c6165b7a45c3a785b9d7730`。今回の棚卸しは、既存の改善、UIの読みやすさ・操作状態、外部評価の全項目を26行へ整理したもの。すべてが今回の新規実装という意味ではない。過去の26項目・素材17項目・上部22項目は重複するため合算しない。
+観測したmainは `3e4ccfb1cccc45b12f8310095c0a4e9f730cacda`。今回の棚卸しは、既存の改善、UIの読みやすさ・操作状態、外部評価の全項目を28行へ整理したもの。すべてが今回の新規実装という意味ではない。過去の26項目・素材17項目・上部22項目は重複するため合算しない。
 
 | # | 項目 | 現在地・今回の処理 |
 | --- | --- | --- |
@@ -30,6 +30,8 @@
 | 24 | Firebase本番・iPhone操作 | #75、管理者／実機待ち。エミュレーターの成功と別 |
 | 25 | 人物素材・会話・長時間の体験品質 | #82、人の最終評価待ち。確定済み4群を二重実装しない |
 | 26 | WebKit SSR長期安定性 | #141、監視継続。単発CI成功で完了にしない |
+| 27 | 資料保管庫の上部密度と補助文字 | #225でmain反映済み。解読率・分類・照合を整理し、文字拡大時の折り返しと進捗バーの読み上げ値を検証。実iPhoneの読みやすさは#75 |
+| 28 | 商店街Rの傘と空振り案内 | #226でmain反映済み。眼3点と持ち手の欠落を手掛かりにし、接触判定を眼へ合わせた。3回空振り後の案内は320×568でも収まる。人の初見評価は#89、実iPhoneは#75 |
 
 ## 検証と完了の範囲
 
@@ -37,8 +39,9 @@
 - 再調査を3件終えた状態で照合カードを表示し、説明・注記・印の文字色を暗色面の両端に対して検査。
 - `tests/polish-integration.cjs`: 検索→詳細→メニュー復帰、旧日時、非同期コピー、Escape、所持pt・記録の不変をChromium/WebKitで確認。
 - `tests/screen-navigation.cjs`: 6サイズ・全タブ・メニュー・文字拡大・課内／一般人の導線を確認。
+- `tests/observation.cjs`: 商店街Rの眼・傘の縁・路面への実タップと、空振り後の案内が320×568・390×844で切れないことを確認。
 - `quieter-loop`の展開前提を「必要なら開く」へ更新。展開状態維持という仕様に合わせただけで、実クリック・自動化の条件・報酬・保存の検査は削除しない。
 - 通常UI・モデル・Firestore・SSR・実タップCIはすべて維持。最終結果は#223のChecksを正本とする。
 - 手動ブラウザ／スクリーンショット検収は従来の範囲外。実機・人の評価・本番確認の未実施を、自動CIで埋め合わせたことにしない。
 
-関連: [上部と文字色の詳細](SCREEN-NAVIGATION-AUDIT-2026-10-19.md)、[素材点検](ASSET-NOISE-AUDIT-2026-10-19.md)、#218、#222。#219/#223はmainへマージ済み。main `3f34c03` の[CI](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/39175827130) 8/8、[Pages](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/39175826758)、[実タップ](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/39175827126)は成功。
+関連: [上部と文字色の詳細](SCREEN-NAVIGATION-AUDIT-2026-10-19.md)、[素材点検](ASSET-NOISE-AUDIT-2026-10-19.md)、#218、#222。#225/#226もmainへマージ済み。main `3e4ccfb` の[CI](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/39183824432) 8/8、[Pages](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/39183824912)、[実タップ](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/39183824501)は成功。
