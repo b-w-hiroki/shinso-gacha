@@ -20,9 +20,16 @@ node tests/search-discovery.cjs
 
 title、description、canonical、OG、JSON-LD、HTTP status、最終 URL、`content-type`、取得時刻を保存する。検索結果を観測するときは検索エンジン名、検索語、UTC 日時、ログイン状態を併記する。順位や AI 検索での引用は変動するため保証値にしない。
 
+ブラウザ表示は Chromium の 390×844 CSS px で JavaScript 有効時と無効時を撮影する。無効時は静的紹介と「JavaScript が必要」の案内、有効時は一般人編の初期画面を確認する。
+
+```sh
+npx playwright screenshot --viewport-size="390,844" https://shinso-gacha.birdman-studio.com/ shinso-home.png
+```
+
 ## 変更前の観測
 
 - 2026-10-19 12:29 UTC、直接 HTTP 取得: `/` は 200。title は存在したが description、canonical、OG は見つからなかった。
 - 同時刻、`/robots.txt` と `/sitemap.xml` は 404。
 - 2026-10-19 12:48 UTC、Bing 通常検索（未ログイン相当の HTTP 取得、`site:shinso-gacha.birdman-studio.com`）: 返却された上位10 organic 結果ブロックに対象ドメインの一致を確認できなかった。これはインデックス未登録の確定判定ではなく、地域・時刻・検索側の応答に依存する観測値。
+- 2026-10-19 12:38 UTC、Chromium 390×844 で JavaScript 有効時の一般人編を撮影。2026-10-19 12:55 UTC、同じ viewport の JavaScript 無効コンテキストで静的紹介が可視であることを撮影・DOM の両方で確認。
 - ChatGPT、Gemini、Copilot への質問や外部 AI API 送信は実施していない。
