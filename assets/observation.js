@@ -162,7 +162,7 @@ function renderObservation(){
  viewpoint.title=document.getElementById('obs-source').textContent;
  document.getElementById('obs-name').textContent=alternate?.title||m.title;
  document.getElementById('obs-ready').hidden=!danger||o.mind.closed;
- document.getElementById('obs-ready').textContent=danger?'異変の場所を繰り返しタップ':'記録を受信';
+ document.getElementById('obs-ready').textContent=danger?'異変を探す':'記録を受信';
  const help=document.getElementById('obs-help');if(help)help.hidden=!danger||o.mind.closed;
  document.getElementById('obs-timer').textContent=p&&!danger&&!o.mind.closed?`記録の確認期限まで ${watchDuration(p.expiresAt-o.lastSeen)}`:'';
  const hint=document.getElementById('obs-first-hint');hint.hidden=true;hint.textContent=danger?'違和感のある場所に触れる':'映像に触れて観測する';
@@ -239,7 +239,7 @@ function observationCollect(event){
  const result=strike?WatchModel.suppress(o,Date.now(),point):WatchModel.tap(o,Date.now());
  if(result){watchMisses=0;observationReward(result);}else {
   if(strike){watchMisses=contact?0:watchMisses+1;
-   if(contact||watchMisses>=3){watchMessage=contact?'輪郭が揺らいだ。まだ、そこにいる。':'反応がない。「対処方法」から場所を選べます。';watchMessageUntil=Date.now()+(contact?2200:4200);}
+   if(contact||watchMisses>=3){watchMessage=contact?'輪郭が揺らいだ。まだ、そこにいる。':'反応がない。「場所選択」から場所を選べます。';watchMessageUntil=Date.now()+(contact?2200:4200);}
   }
   markDirty();renderObservation();
  }
@@ -515,7 +515,8 @@ function fitObservation(){
  // A short landscape viewport scrolls, rather than crushing the image.
  let top=0;for(let el=frame;el;el=el.offsetParent)top+=el.offsetTop;
  const rows=getComputedStyle(frame.closest('.thread-radar'));
- const reserved=['--obs-status-row','--obs-copy-row','--obs-control-row'].reduce((n,key)=>n+parseFloat(rows.getPropertyValue(key)),18);
+ const statusHeight=Math.max(parseFloat(rows.getPropertyValue('--obs-status-row')),frame.closest('.thread-radar').querySelector('.obs-status').getBoundingClientRect().height);
+ const reserved=statusHeight+['--obs-copy-row','--obs-control-row'].reduce((n,key)=>n+parseFloat(rows.getPropertyValue(key)),18);
  const minimum=innerHeight>=innerWidth?140:180;
  const height=Math.floor(Math.max(minimum,Math.min(560,innerHeight-navHeight-top-reserved)));
  if(Math.abs(height-f.height)>1){frame.style.setProperty('--obs-height',`${height}px`);if(watchZoom===2)requestAnimationFrame(watchZoomPaint);}
