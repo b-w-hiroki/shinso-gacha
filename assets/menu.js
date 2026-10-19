@@ -79,11 +79,13 @@ function renderMenuBadge(){
  if(delivered)markDirty();
  const news=GAME_NOTICES.filter(n=>!c.readNotices.includes(n.id)).length;
  const mail=GAME_MAIL.filter(m=>c.mail[m.id]&&(!c.mail[m.id].read||(m.reward&&!c.mail[m.id].claimed))).length;
- document.getElementById('menu-dot').hidden=!(news+mail);
+ // Keep notices in the optional menu without distracting from the first letters.
+ const quietIntro=!!introActive();
+ document.getElementById('menu-dot').hidden=quietIntro||!(news+mail);
  const pending=[];
  if(news)pending.push(`お知らせ未読${news}件`);
  if(mail)pending.push(`受信ボックスの未読または未受取${mail}件`);
- document.getElementById('game-menu').setAttribute('aria-label',`メニュー${pending.length?'、'+pending.join('、'):''}`);
+ document.getElementById('game-menu').setAttribute('aria-label',quietIntro?'メニュー':`メニュー${pending.length?'、'+pending.join('、'):''}`);
  return {news,mail};
 }
 let menuReturn=null,menuPageBack='return';
