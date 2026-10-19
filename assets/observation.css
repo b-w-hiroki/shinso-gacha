@@ -298,7 +298,7 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
 
 /* Observation controls belong to the source heading, not over the evidence.
    Keep the photograph entirely free of labels, guides and action buttons. */
-.agent-home .thread-radar{grid-template-rows:52px auto minmax(var(--obs-status-row),auto) var(--obs-copy-row) var(--obs-control-row)}
+.agent-home .thread-radar{grid-template-rows:minmax(52px,auto) auto minmax(var(--obs-status-row),auto) var(--obs-copy-row) var(--obs-control-row)}
 .agent-home .obs-topline{grid-area:1/1;align-self:start;min-height:48px;padding-right:192px;align-items:center}
 .agent-home .obs-zoom-tools{
  position:relative;grid-area:1/1;justify-self:end;align-self:center;
@@ -320,8 +320,8 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
    flex row. Avoid two independently overlapping CSS grid items (WebKit
    could display the enhance button while its clickable box was unstable). */
 .agent-home .obs-topline{
- padding-right:0;display:flex;align-items:center;
- justify-content:space-between;gap:6px;min-width:0;
+ padding-right:0;display:flex;flex-wrap:wrap;align-items:center;
+ justify-content:space-between;gap:4px 6px;min-width:0;
 }
 .agent-home .obs-topline #obs-name{
  flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;
@@ -330,7 +330,7 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
 .agent-home .obs-topline .obs-zoom-tools{
  position:static;display:flex;flex:0 0 auto;z-index:auto;
  align-self:center;justify-self:auto;grid-area:auto;
- min-height:44px;margin:0;
+ min-height:44px;margin:0 0 0 auto;
 }
 @media(max-width:350px){
  .agent-home .obs-topline{padding-right:0;gap:4px}
@@ -340,7 +340,7 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
 /* The live viewpoint is part of the evidence heading, never printed on top
    of the photo. Short semantic source + place remain visible at phone widths. */
 .agent-home .obs-topline .obs-viewpoint{
- display:flex;flex:1 1 auto;min-width:0;flex-direction:column;justify-content:center;
+ display:flex;flex:1 1 auto;min-width:9em;flex-direction:column;justify-content:center;
  gap:1px;overflow:hidden;
 }
 .agent-home .obs-topline #obs-viewpoint-label{
