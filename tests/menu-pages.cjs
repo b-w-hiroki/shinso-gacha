@@ -20,8 +20,16 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  for(const [width,height] of [[320,568],[390,680],[844,390]]){
   await p.setViewportSize({width,height});await p.locator('#game-menu').click();
   for(const route of ['news','inbox','settings']){await p.locator(`[data-menu="${route}"]`).click();assert(await p.locator('#sheet-bg').isHidden());assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await p.locator('.menu-page-heading [data-menu="home"]').click();}
+  const menuLayout=await p.evaluate(()=>({rows:[...document.querySelectorAll('.game-menu-list>button')].map(b=>b.getBoundingClientRect().height),settingsBottom:document.querySelector('[data-menu="settings"]').getBoundingClientRect().bottom,navTop:document.querySelector('.nav').getBoundingClientRect().top,overflows:document.documentElement.scrollWidth>innerWidth}));
+  assert(menuLayout.rows.every(h=>h>=44),'all menu targets retain at least 44px height');assert(!menuLayout.overflows,'menu does not overflow horizontally');
+  if(width===390)assert(menuLayout.settingsBottom<=menuLayout.navTop,'settings is visible above the bottom navigation at 390x680');
   if(width===390&&!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/menu-page-390.jpg',quality:85});await p.locator('.menu-page-heading [data-menu="return"]').click();
  }
+ await p.setViewportSize({width:320,height:568});await p.locator('#game-menu').click();
+ const enlarged=await p.addStyleTag({content:'.menu-scene .game-menu-list>button{font-size:20px}.menu-scene .game-menu-list small{font-size:16px}'});
+ assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'enlarged menu text does not overflow at 320px');
+ assert(await p.evaluate(()=>[...document.querySelectorAll('.game-menu-list>button')].every(b=>b.getBoundingClientRect().height>=44&&b.scrollWidth<=b.clientWidth)),'enlarged labels remain inside tappable rows');
+ await enlarged.evaluate(el=>el.remove());await p.locator('.menu-page-heading [data-menu="return"]').click();
  await p.evaluate(()=>{S.role=null;applyMode();go('lite');});await p.locator('#game-menu').click();assert(await p.locator('[data-view="menu"]').isVisible(),'civilian menu is a page too');await p.locator('[data-menu="settings"]').click();assert(await p.locator('#menu-page-content [data-intro="archive"]').isVisible());await p.keyboard.press('Escape');await p.locator('[data-menu="return"]').click();assert(await p.locator('[data-view="lite"]').isVisible());assert.equal(await p.evaluate(()=>document.activeElement.id),'game-menu','returning from civilian settings restores focus to its opener');
  assert.deepEqual(errors,[]);console.log('Menu pages, list/detail/back, task return, single mail reward, quiet setting, three viewports and civilian mode passed');
 }finally{await b.close();server.close();}})().catch(e=>{console.error(e);server.close();process.exitCode=1;});
