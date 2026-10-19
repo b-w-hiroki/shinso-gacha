@@ -75,7 +75,8 @@ function menuState(){
 }
 // Every current release notice describes agent-only observation or inbox features.
 // Do not present them as unread tasks before the player joins the department.
-function visibleGameNotices(){return isLite()?[]:GAME_NOTICES;}
+// A future civilian notice must opt in explicitly with audience:'civilian'.
+function visibleGameNotices(){return isLite()?GAME_NOTICES.filter(n=>n.audience==='civilian'):GAME_NOTICES;}
 function renderMenuBadge(){
  const c=menuState();let delivered=false;
  for(const m of GAME_MAIL)if(!c.mail[m.id]&&m.when()){c.mail[m.id]={receivedAt:Date.now(),read:false,claimed:false};delivered=true;}
