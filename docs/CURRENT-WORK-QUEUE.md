@@ -1,8 +1,8 @@
 # 真相ガチャ｜現在の作業キュー
 
-**結論：資料保管庫の上部整理と商店街の傘の異変を含む実装可能な改善はmain反映済み。残る検収は人の発見性・体験評価、本番実機QAと長期監視。**
+**結論：資料保管庫の上部整理、商店街の傘、観測案内の狭幅・文字拡大対応を含む実装可能な改善はmain反映済み。残る検収は人の発見性・体験評価、本番実機QAと長期監視。**
 
-最新の分類は [ブラッシュアップ現状一覧](POLISH-STATUS-2026-10-19.md)。観測時のmainは `3e4ccfb`。#225/#226はマージ済み。同じSHAの[main CI](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/39183824432)は8/8、[Pages](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/39183824912)と[実タップ](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/39183824501)も成功。初回の26項目は [過去の点検](POLISH-AUDIT-2026-10-19.md) に保持する。
+この文書の確認時点（2026-10-19）のmainは `ae6bbbd`。#228までマージ済み。同じSHAの[main CI](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/39193452388)は8/8、[Pages](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/39193452150)と[実タップ](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/39193452434)も成功。後続の変更は[再開入口](AI-RESUME.md)に従いGitHubで再取得する。改善の内訳は [ブラッシュアップ現状一覧](POLISH-STATUS-2026-10-19.md)、初回の26項目は [過去の点検](POLISH-AUDIT-2026-10-19.md) に保持する。
 
 | 順番 | Issue | 現状 | 次の一手 |
 | --- | --- | --- | --- |

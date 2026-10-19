@@ -1,6 +1,6 @@
 # ブラッシュアップ現状一覧（2026-10-19）
 
-観測したmainは `3e4ccfb1cccc45b12f8310095c0a4e9f730cacda`。今回の棚卸しは、既存の改善、UIの読みやすさ・操作状態、外部評価の全項目を28行へ整理したもの。すべてが今回の新規実装という意味ではない。過去の26項目・素材17項目・上部22項目は重複するため合算しない。
+確認時点のmainは `ae6bbbd`（2026-10-19）。この棚卸しは、既存の改善、UIの読みやすさ・操作状態、外部評価の全項目を29行へ整理したスナップショット。すべてが今回の新規実装という意味ではない。過去の26項目・素材17項目・上部22項目は重複するため合算しない。後続の状態はGitHubのmain・Issue・CIで確認する。
 
 | # | 項目 | 現在地・今回の処理 |
 | --- | --- | --- |
@@ -32,6 +32,7 @@
 | 26 | WebKit SSR長期安定性 | #141、監視継続。単発CI成功で完了にしない |
 | 27 | 資料保管庫の上部密度と補助文字 | #225でmain反映済み。解読率・分類・照合を整理し、文字拡大時の折り返しと進捗バーの読み上げ値を検証。実iPhoneの読みやすさは#75 |
 | 28 | 商店街Rの傘と空振り案内 | #226でmain反映済み。眼3点と持ち手の欠落を手掛かりにし、接触判定を眼へ合わせた。3回空振り後の案内は320×568でも収まる。人の初見評価は#89、実iPhoneは#75 |
+| 29 | 観測状態の狭幅・文字拡大時の読みやすさ | #228でmain反映済み。短い案内と「場所選択」の読み上げ名を整理し、状態行と映像高さを文字拡大に追従。320/390pxのChromium・WebKit検証を追加。実iPhoneは#75 |
 
 ## 検証と完了の範囲
 
@@ -41,7 +42,7 @@
 - `tests/screen-navigation.cjs`: 6サイズ・全タブ・メニュー・文字拡大・課内／一般人の導線を確認。
 - `tests/observation.cjs`: 商店街Rの眼・傘の縁・路面への実タップと、空振り後の案内が320×568・390×844で切れないことを確認。
 - `quieter-loop`の展開前提を「必要なら開く」へ更新。展開状態維持という仕様に合わせただけで、実クリック・自動化の条件・報酬・保存の検査は削除しない。
-- 通常UI・モデル・Firestore・SSR・実タップCIはすべて維持。最終結果は#223のChecksを正本とする。
+- 通常UI・モデル・Firestore・SSR・実タップCIはすべて維持。#228のPR CIは34/34成功。人による発見性や実機品質は自動テストで認定しない。
 - 手動ブラウザ／スクリーンショット検収は従来の範囲外。実機・人の評価・本番確認の未実施を、自動CIで埋め合わせたことにしない。
 
-関連: [上部と文字色の詳細](SCREEN-NAVIGATION-AUDIT-2026-10-19.md)、[素材点検](ASSET-NOISE-AUDIT-2026-10-19.md)、#218、#222。#225/#226もmainへマージ済み。main `3e4ccfb` の[CI](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/39183824432) 8/8、[Pages](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/39183824912)、[実タップ](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/39183824501)は成功。
+関連: [上部と文字色の詳細](SCREEN-NAVIGATION-AUDIT-2026-10-19.md)、[素材点検](ASSET-NOISE-AUDIT-2026-10-19.md)、#218、#222。#225/#226/#228はmainへマージ済み。main `ae6bbbd` の[CI](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/39193452388) 8/8、[Pages](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/39193452150)、[実タップ](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/39193452434)は成功。
