@@ -22,9 +22,9 @@ body.lite .lite-tabs button[aria-pressed='true'] { background:#d8c49e; color:#30
 .agent-home .mi .t { grid-column:1 / -1; }.agent-home .mi .r { white-space:normal; }
 .agent-home .mi.done { background:#c8baa280; }
 .agent-home #claim-all { width:100%; margin:10px 0; }
-.archive-scene .folder,body.lite .folder:not(.secret) { background:transparent url('ui/archive-folder.webp') center/100% 100% no-repeat; border:0; padding:26px 15px 18px; box-shadow:none; color:#30261c; }
+.archive-scene .folder,body.lite .folder:not(.secret) { background:url('ui/archive-folder.webp') center/100% 100% no-repeat border-box,linear-gradient(#d2c6ad,#d2c6ad) center/100% 100% no-repeat content-box; border:0; padding:26px 15px 18px; box-shadow:none; color:#30261c; }
 .archive-scene .folder::before,body.lite .folder:not(.secret)::before { display:none; }
-.archive-scene .folder.locked { background:transparent url('ui/archive-folder.webp') center/100% 100% no-repeat; box-shadow:none; }
+.archive-scene .folder.locked { box-shadow:none; }
 .sheet .doc,.stage .st-card { background:#eee1c5 url('ui/evidence-paper-clean.webp') center/100% 100% no-repeat; padding-left:28px; padding-right:25px; }
 body.lite .lite-last .doc { background:#eee1c5 url('ui/evidence-paper-clean.webp') center/100% 100%; padding:24px 28px; color:#30261c; }
 .sheet .testis { background:url('ui/evidence-paper-clean.webp') center/100% 100%; padding:20px 24px; color:#342819; }
