@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-7NA+zo2gVAM27dD3Q2HcXThj6VvmEvCAJpHDr4rJX74=' https://www.gstatic.com/firebasejs/ https://cdn.jsdelivr.net/npm/budoux@0.9.3/ https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://shinso-gacha.firebaseapp.com; frame-src https://shinso-gacha.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-/PizmpAJZxzLigbQI8J71XQ8JZ30Ss51psUdvnPF+lU=' https://www.gstatic.com/firebasejs/ https://cdn.jsdelivr.net/npm/budoux@0.9.3/ https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://shinso-gacha.firebaseapp.com; frame-src https://shinso-gacha.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>真相ガチャ</title>
@@ -2702,7 +2702,19 @@ async function refreshPursuerTotal(assignNo = false) {
     renderPursuerSignal(); renderReport();
   } catch (e) {}
 }
-function setSync(t) { $("sync").textContent = "記録：" + t; }
+function setSync(t) {
+  const status = "記録：" + t;
+  $("sync").textContent = status;
+  const menuStatus = $("menu-sync");
+  if (menuStatus) menuStatus.textContent = status;
+}
+function savedSyncLabel(savedCloud) {
+  const user = FB?.auth?.currentUser;
+  if (!user || user.uid !== savedCloud.uid) return "保存先を確認できません（この端末の記録は残っています）";
+  return user.isAnonymous
+    ? "ゲスト記録を保存済み（別端末への引き継ぎはGoogle連携が必要）"
+    : "アカウントに保存済み（別の端末でも続きから遊べます）";
+}
 function markDirty() {
   S.updatedAt = Date.now(); save();
   if (!cloud || !cloud.canWrite || accountDeleting) return;
@@ -2728,7 +2740,7 @@ async function flush() {
       await refreshPursuerTotal(!!S.pursuerPending);
       if (S.pursuerNo && S.pursuerPending) { delete S.pursuerPending; save(); }
     }
-    setSync("アカウントに保存済み（別の端末でも続きから遊べます）");
+    setSync(savedSyncLabel(activeCloud));
   } catch (e) {
     activeCloud.lastError=e;
     if(cloud!==activeCloud){again=true;}
