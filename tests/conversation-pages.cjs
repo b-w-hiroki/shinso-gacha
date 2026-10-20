@@ -10,6 +10,8 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  assert(await p.locator('[data-view="colleagues"]').isVisible());assert(await p.locator('#sheet-bg').isHidden());
  assert.equal(await p.locator('.watch-person').count(),3);
  assert.equal(await p.locator('.watch-person-description').count(),3);
+ assert.equal(await p.locator('.watch-colleagues [data-watch="leave"]').count(),0,'roster does not duplicate fixed observation navigation');
+ assert(await p.locator('.nav [data-nav="home"]').isVisible(),'observation remains available in fixed navigation');
  for(const selector of ['.watch-person small','.watch-person-description','.watch-person-action','.watch-room-note'])
   assert(await p.locator(selector).first().evaluate(e=>parseFloat(getComputedStyle(e).fontSize)>=14),`${selector} remains readable`);
  if(!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/colleague-roster-390.jpg',quality:85});
@@ -18,6 +20,10 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  if(!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/colleague-roster-320.jpg',quality:85});
  await p.locator('[data-watch-member="senior"]').evaluate(e=>e.scrollIntoView({block:'end',behavior:'instant'}));
  assert(await p.locator('[data-watch-member="senior"]').evaluate(e=>e.getBoundingClientRect().bottom<=document.querySelector('.nav').getBoundingClientRect().top),'last colleague remains clear of bottom navigation');
+ assert(await p.locator('.nav [data-nav="home"]').evaluate(e=>{const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.height>=44&&(hit===e||e.contains(hit));}),'fixed observation navigation stays tappable at 320px');
+ await p.locator('.nav [data-nav="home"]').click();
+ assert(await p.locator('[data-view="home"]').isVisible());assert(await p.evaluate(()=>S.observation.mind.closed));
+ await p.locator('#obs-colleagues').click();assert(await p.locator('.watch-colleagues').isVisible());
  await p.setViewportSize({width:390,height:844});
  const currency=await p.evaluate(()=>S.currency);
  for(const [id,name] of [['records','白瀬'],['equipment','榊'],['senior','三輪']]){
