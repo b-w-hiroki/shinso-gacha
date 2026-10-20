@@ -1,0 +1,45 @@
+# 検索公開範囲と測定手順
+
+## 公開範囲
+
+- canonical は `https://shinso-gacha.birdman-studio.com/` の1件とする。
+- sitemap はゲーム入口だけを掲載する。観察番号を含む共有 URL `?ref=` は sitemap に入れず、全 URL がルートを canonical として示す。共有リンクのプレビューと canonical の読取を妨げないよう `robots.txt` では遮断しない。
+- `robots.txt` はアクセス制御ではない。観察番号から個人情報や保存データを取得できる実装にはしない。
+- ゲーム進行、保存データ、アカウント画面は HTML に公開内容として埋め込まず、検索用メタ情報には現行仕様の概要だけを書く。
+
+## 比較可能な測定
+
+UTC 日時と実行環境を記録し、公開後に次を実行する。
+
+```sh
+curl -sS -D headers.txt -o index.html https://shinso-gacha.birdman-studio.com/
+curl -sS -D robots-headers.txt -o robots.txt https://shinso-gacha.birdman-studio.com/robots.txt
+curl -sS -D sitemap-headers.txt -o sitemap.xml https://shinso-gacha.birdman-studio.com/sitemap.xml
+node tests/search-discovery.cjs
+```
+
+title、description、canonical、OG、JSON-LD、HTTP status、最終 URL、`content-type`、取得時刻を保存する。検索結果を観測するときは検索エンジン名、検索語、UTC 日時、ログイン状態を併記する。順位や AI 検索での引用は変動するため保証値にしない。
+
+ブラウザ表示は Chromium の 390×844 CSS px で JavaScript 有効時と無効時を撮影する。無効時は静的紹介と「JavaScript が必要」の案内、有効時は一般人編の初期画面を確認する。
+
+```sh
+npx playwright screenshot --viewport-size="390,844" https://shinso-gacha.birdman-studio.com/ shinso-home.png
+```
+
+## 変更前の観測
+
+- 2026-10-19 12:29 UTC、直接 HTTP 取得: `/` は 200。title は存在したが description、canonical、OG は見つからなかった。
+- 同時刻、`/robots.txt` と `/sitemap.xml` は 404。
+- 2026-10-19 12:48 UTC、Bing 通常検索（未ログイン相当の HTTP 取得、`site:shinso-gacha.birdman-studio.com`）: 返却された上位10 organic 結果ブロックに対象ドメインの一致を確認できなかった。これはインデックス未登録の確定判定ではなく、地域・時刻・検索側の応答に依存する観測値。
+- 2026-10-19 12:38 UTC、Chromium 390×844 で JavaScript 有効時の一般人編を撮影。2026-10-19 12:55 UTC、同じ viewport の JavaScript 無効コンテキストで静的紹介が可視であることを撮影・DOM の両方で確認。
+- ChatGPT、Gemini、Copilot への質問や外部 AI API 送信は実施していない。
+
+## 自動契約検査とJSON記録
+
+- node tests/search-discovery.cjs は sitemap の canonical 一致、掲載HTMLから参照する同一オリジンの href/src 実在、OG画像の実ファイルと1200×630寸法を検査する。
+- 2026-10-19 14:24 UTC、1200×630の実画面を共有画像として確認し、封筒、調査開始CTA、意図された黒塗りタイトルが読め、端の見切れや別作品の混入がないことを確認した。
+- 公開前後は次の同一コマンドを実行し、標準出力のJSONを docs/qa/search-discovery/YYYY-MM-DD-http.json として保存する。
+
+    node scripts/measure-search-discovery.mjs https://shinso-gacha.birdman-studio.com/
+
+JSONはUTC時刻、要求URL、最終URL、status、content-type、バイト数、title、description、canonical、OG画像、sitemap URL数を同じキーで出力する。

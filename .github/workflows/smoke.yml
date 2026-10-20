@@ -17,6 +17,7 @@ jobs:
         with:
           node-version: 22
       - run: node tests/smoke.mjs
+      - run: node tests/search-discovery.cjs
       - run: node tests/documentation-contract.cjs
       - run: node tests/spec-design-sync.cjs
       - run: node --test tests/dev-resume.cjs
