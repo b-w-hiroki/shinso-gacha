@@ -1,7 +1,7 @@
-const {chromium}=require('playwright'),fs=require('fs'),path=require('path'),http=require('http'),assert=require('assert/strict');
+const {chromium,webkit}=require('playwright'),fs=require('fs'),path=require('path'),http=require('http'),assert=require('assert/strict');
 const out='docs/qa-intro';fs.mkdirSync(out,{recursive:true});
 const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localhost'),f=u.pathname==='/font.otf'?process.env.QA_FONT:path.join(process.cwd(),u.pathname==='/'?'index.html':u.pathname);r.setHeader('Content-Type',f.endsWith('.html')?'text/html; charset=utf-8':f.endsWith('.js')?'application/javascript':f.endsWith('.css')?'text/css':f.endsWith('.webp')?'image/webp':'application/octet-stream');r.end(fs.readFileSync(f));}catch{r.writeHead(404);r.end();}});
-(async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin='http://127.0.0.1:'+server.address().port;const browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_EXECUTABLE||undefined,args:['--no-sandbox','--disable-dev-shm-usage','--no-zygote','--single-process']});
+(async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin='http://127.0.0.1:'+server.address().port;const browser=await (process.env.QA_WEBKIT?webkit:chromium).launch(process.env.QA_WEBKIT?{headless:true}:{headless:true,executablePath:process.env.CHROMIUM_EXECUTABLE||undefined,args:['--no-sandbox','--disable-dev-shm-usage','--no-zygote','--single-process']});
 try{const p=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'}),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.route('https://**/*',r=>r.abort());
 async function assetLoaded(name){await p.waitForFunction(n=>performance.getEntriesByType('resource').some(x=>x.name.endsWith(n)),name);}
 async function font(){if(process.env.QA_FONT){await p.addStyleTag({content:"@font-face{font-family:QAJP;src:url('/font.otf')} :root{--f-body:QAJP;--f-display:QAJP;--f-mono:QAJP}body,button{font-family:QAJP}"});await p.evaluate(()=>document.fonts.load('16px QAJP'));}}
@@ -13,15 +13,18 @@ async function shot(name){
   const pos=await title.evaluate(el=>({heading:el.getBoundingClientRect().top,menu:document.querySelector('header.top #game-menu').getBoundingClientRect().bottom}));
   assert(pos.heading>=pos.menu-1,'introduction heading must not be covered by the menu: '+JSON.stringify(pos));
  }
- await p.screenshot({path:out+'/'+name+'.jpg',quality:85,animations:'disabled'});
+ if(!process.env.QA_WEBKIT)await p.screenshot({path:out+'/'+name+'.jpg',quality:85,animations:'disabled'});
 }
 async function assertOpeningStage(){
  const r=await p.evaluate(()=>{
   const box=e=>{const r=e.getBoundingClientRect();return {top:r.top,bottom:r.bottom,center:(r.top+r.bottom)/2};};
   const root=document.querySelector('#intro-case'),mast=root.querySelector('.intro-title-mast'),heading=root.querySelector('h1'),figure=root.querySelector('figure');
-  return {mast:box(mast),heading:box(heading),figure:box(figure),cta:box(document.querySelector('#lite-pull')),align:getComputedStyle(root).alignContent,height:innerHeight,landscape:innerWidth>innerHeight};
+  return {mast:box(mast),heading:box(heading),figure:box(figure),cta:box(document.querySelector('#lite-pull')),align:getComputedStyle(root).alignContent,width:innerWidth,height:innerHeight,landscape:innerWidth>innerHeight};
  });
  const hero={top:r.mast.top,bottom:r.figure.bottom,center:(r.mast.top+r.figure.bottom)/2};
+ const menu=await p.locator('header.top #game-menu').evaluate(e=>{const rect=e.getBoundingClientRect(),style=getComputedStyle(e);return {width:rect.width,height:rect.height,right:rect.right,bottom:rect.bottom,opacity:parseFloat(style.opacity)};});
+ assert(await p.locator('header.top #game-menu .menu-label').isVisible(),'opening menu text remains visible');
+ assert(menu.width>=88&&menu.width<=120&&menu.height>=44&&menu.right<=r.width&&menu.opacity===1&&menu.bottom<=hero.top,'opening menu stays clear of the title with a compact explicit touch target: '+JSON.stringify({menu,hero}));
  assert.equal(r.align,'center','the first title scene should use its available vertical stage');
  assert(hero.top>=0&&hero.bottom<r.cta.top,'title scene must remain above the fixed opening action: '+JSON.stringify({hero,cta:r.cta}));
  const centerRange=r.landscape?[.25,.62]:[.42,.72];
