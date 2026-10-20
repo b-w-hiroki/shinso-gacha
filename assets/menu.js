@@ -128,7 +128,12 @@ function openGameMenu(){
  openMenuPage('メニュー',`<div class="game-menu-list">${!isLite()?'<button data-trail="guide"><span>調査の進め方</span><small>›</small></button>':''}${introActive()?'<button data-intro="skip"><span>導入を飛ばす</span><small>›</small></button>':''}${!isLite()?`<button data-menu="news" aria-label="運営からのお知らせ${n.news?'、未読'+n.news+'件':''}"><span>運営からのお知らせ</span><small aria-hidden="true">${n.news?'未読 '+n.news+'件':'›'}</small></button>`:''}${showInbox?`<button data-menu="inbox" aria-label="受信ボックス${n.mail?'、未読または未受取'+n.mail+'件':''}"><span>受信ボックス</span><small aria-hidden="true">${n.mail?'要確認 '+n.mail+'件':'›'}</small></button>`:''}<button data-menu="catalog"><span>図鑑・収集記録</span><small>›</small></button>${!isLite()?'<button data-menu="investigations"><span>都市伝説の調査</span><small>›</small></button>':''}<button data-menu="account"><span>ログイン・アカウント</span><small>›</small></button><button data-menu="settings"><span>設定</span><small>›</small></button></div>`);
 }
 function menuBack(target='home'){return `<button class="menu-back" data-menu="${target}">‹ ${target==='home'?'メニュー':target==='news'?'お知らせ一覧':'受信ボックス'}</button>`;}
-function openGameNews(){const c=menuState();openMenuPage('運営からのお知らせ',menuBack()+`<div class="game-message-list">${visibleGameNotices().map(n=>`<button data-notice="${n.id}"><small>${n.date}${c.readNotices.includes(n.id)?'':' · 未読'}</small><b>${n.title}</b></button>`).join('')}</div>`);}
+function openGameNews(message=''){
+ const c=menuState(),notices=visibleGameNotices(),unread=notices.filter(n=>!c.readNotices.includes(n.id));
+ const status=message?`<p class="menu-news-status" role="status">${message}</p>`:'';
+ const action=unread.length?`<button class="menu-news-read-all" data-notices-read-all>未読${unread.length}件を既読にする</button>`:'';
+ openMenuPage('運営からのお知らせ',menuBack()+(status||action?`<div class="menu-news-toolbar">${status}${action}</div>`:'')+`<div class="game-message-list">${notices.map(n=>`<button data-notice="${n.id}"><small>${n.date}${c.readNotices.includes(n.id)?'':' · 未読'}</small><b>${n.title}</b></button>`).join('')}</div>`);
+}
 function mailReceivedTime(entry){
  const raw=entry?.receivedAt,time=typeof raw==='number'||typeof raw==='string'?Number(raw):0;
  return time>0&&Number.isFinite(new Date(time).getTime())?time:0;
@@ -157,9 +162,15 @@ function openMenuSettings(){
 }
 document.getElementById('game-menu').addEventListener('click',e=>{e.currentTarget.focus({preventScroll:true});openGameMenu();});
 document.addEventListener('click',e=>{
- const b=e.target.closest('[data-menu],[data-notice],[data-mail],[data-mail-claim]');if(!b||b.disabled)return;
+ const b=e.target.closest('[data-menu],[data-notice],[data-mail],[data-mail-claim],[data-notices-read-all]');if(!b||b.disabled)return;
  // WebKit does not focus pointer-clicked buttons; capture the actual navigation origin.
  b.focus({preventScroll:true});
+ if(b.hasAttribute('data-notices-read-all')){
+  const c=menuState(),unread=visibleGameNotices().filter(n=>!c.readNotices.includes(n.id));
+  if(!unread.length)return;
+  c.readNotices.push(...unread.map(n=>n.id));markDirty();renderMenuBadge();
+  return openGameNews(`${unread.length}件のお知らせを既読にしました。`);
+ }
  if(b.dataset.menu){const actions={return:returnFromMenu,home:openGameMenu,news:openGameNews,inbox:openGameInbox,settings:openMenuSettings,observation:observationSettings,target:observationTargetPicker,account:openAccount,catalog:()=>openEncyclopedia(),investigations:()=>{returnFromMenu();openLegendBoard();}};const open=actions[b.dataset.menu];if(!open)return;return b.classList.contains('menu-back')?returnToMenuPage(b.dataset.menu,open):open();}
  if(b.dataset.notice){const n=visibleGameNotices().find(n=>n.id===b.dataset.notice);if(!n)return;const c=menuState();if(!c.readNotices.includes(n.id))c.readNotices.push(n.id);markDirty();renderMenuBadge();return openMenuPage('運営からのお知らせ',menuBack('news')+`<article class="game-message"><small>${n.date} · 運営</small><h2>${n.title}</h2><p>${n.body}</p></article>`);}
  if(b.dataset.mail)return openGameMail(b.dataset.mail);
