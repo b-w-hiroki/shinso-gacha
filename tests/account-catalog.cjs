@@ -50,11 +50,22 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
   accountReady=true;accountStatus='ゲストの記録';bindCloud(user);cloud.canWrite=true;cloud.revision=0;openAccount();
  });
  await initializeMock();
+ await p.evaluate(()=>openMenuSettings());
+ await p.evaluate(()=>flush());
+ assert.equal(await p.locator('#sync').textContent(),'記録：ゲスト記録を保存済み（別端末への引き継ぎはGoogle連携が必要）','anonymous cloud storage must not promise cross-device recovery');
+ assert.equal(await p.locator('#menu-sync').textContent(),await p.locator('#sync').textContent(),'an open settings page updates when saving finishes');
+ await p.screenshot({path:'docs/qa-account-sync/03-guest-settings-390.jpg'});
+ await p.evaluate(()=>openAccount());
  // Canceled login preserves progress and cloud identity.
  await p.evaluate(()=>{accountFailure='popup';});const before=await p.evaluate(()=>S.currency);
  await p.locator('[data-account="login"]').click();await p.waitForFunction(()=>!accountBusy);assert.equal(await p.evaluate(()=>S.currency),before);assert.equal(await p.evaluate(()=>cloud.uid),'guest');
  await p.evaluate(()=>{accountFailure='';});await p.locator('[data-account="login"]').click();await p.waitForFunction(()=>!accountBusy);
  assert.equal(await p.locator('#account-identity').innerText(),'investigator@example.test');assert(await p.evaluate(()=>accountDocs['users/guest'].state.currency===S.currency));
+ assert.equal(await p.locator('#sync').textContent(),'記録：アカウントに保存済み（別の端末でも続きから遊べます）','Google-linked storage can promise cross-device recovery after a successful save');
+ await p.evaluate(()=>openMenuSettings());
+ assert.equal(await p.locator('#menu-sync').textContent(),await p.locator('#sync').textContent());
+ await p.screenshot({path:'docs/qa-account-sync/04-linked-settings-390.jpg'});
+ await p.evaluate(()=>openAccount());
  await p.screenshot({path:'docs/qa-incursions/account-390.jpg'});
  // A failed reauthentication cannot touch either saved document.
  await p.locator('[data-account="delete-offer"]').click();assert(await p.locator('[data-account="delete"]').isDisabled());
