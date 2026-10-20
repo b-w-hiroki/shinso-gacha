@@ -77,12 +77,14 @@ function menuState(){
 // Do not present them as unread tasks before the player joins the department.
 // A future civilian notice must opt in explicitly with audience:'civilian'.
 function visibleGameNotices(){return isLite()?GAME_NOTICES.filter(n=>n.audience==='civilian'):GAME_NOTICES;}
+// Current mail is agent-only; future civilian mail must opt in explicitly.
+function visibleGameMail(){return isLite()?GAME_MAIL.filter(m=>m.audience==='civilian'):GAME_MAIL;}
 function renderMenuBadge(){
  const c=menuState();let delivered=false;
  for(const m of GAME_MAIL)if(!c.mail[m.id]&&m.when()){c.mail[m.id]={receivedAt:Date.now(),read:false,claimed:false};delivered=true;}
  if(delivered)markDirty();
  const news=visibleGameNotices().filter(n=>!c.readNotices.includes(n.id)).length;
- const mail=GAME_MAIL.filter(m=>c.mail[m.id]&&(!c.mail[m.id].read||(m.reward&&!c.mail[m.id].claimed))).length;
+ const mail=visibleGameMail().filter(m=>c.mail[m.id]&&(!c.mail[m.id].read||(m.reward&&!c.mail[m.id].claimed))).length;
  // Keep notices in the optional menu without distracting from the first letters.
  const quietIntro=!!introActive();
  document.getElementById('menu-dot').hidden=quietIntro||!(news+mail);
@@ -122,7 +124,8 @@ function returnFromMenu(){
 }
 function openGameMenu(){
  const n=renderMenuBadge();
- openMenuPage('メニュー',`<div class="game-menu-list">${!isLite()?'<button data-trail="guide"><span>調査の進め方</span><small>›</small></button>':''}${introActive()?'<button data-intro="skip"><span>導入を飛ばす</span><small>›</small></button>':''}${!isLite()?`<button data-menu="news" aria-label="運営からのお知らせ${n.news?'、未読'+n.news+'件':''}"><span>運営からのお知らせ</span><small aria-hidden="true">${n.news?'未読 '+n.news+'件':'›'}</small></button>`:''}<button data-menu="inbox" aria-label="受信ボックス${n.mail?'、未読または未受取'+n.mail+'件':''}"><span>受信ボックス</span><small aria-hidden="true">${n.mail?'要確認 '+n.mail+'件':'›'}</small></button><button data-menu="catalog"><span>図鑑・収集記録</span><small>›</small></button>${!isLite()?'<button data-menu="investigations"><span>都市伝説の調査</span><small>›</small></button>':''}<button data-menu="account"><span>ログイン・アカウント</span><small>›</small></button><button data-menu="settings"><span>設定</span><small>›</small></button></div>`);
+ const showInbox=!isLite()||visibleGameMail().some(m=>menuState().mail[m.id]);
+ openMenuPage('メニュー',`<div class="game-menu-list">${!isLite()?'<button data-trail="guide"><span>調査の進め方</span><small>›</small></button>':''}${introActive()?'<button data-intro="skip"><span>導入を飛ばす</span><small>›</small></button>':''}${!isLite()?`<button data-menu="news" aria-label="運営からのお知らせ${n.news?'、未読'+n.news+'件':''}"><span>運営からのお知らせ</span><small aria-hidden="true">${n.news?'未読 '+n.news+'件':'›'}</small></button>`:''}${showInbox?`<button data-menu="inbox" aria-label="受信ボックス${n.mail?'、未読または未受取'+n.mail+'件':''}"><span>受信ボックス</span><small aria-hidden="true">${n.mail?'要確認 '+n.mail+'件':'›'}</small></button>`:''}<button data-menu="catalog"><span>図鑑・収集記録</span><small>›</small></button>${!isLite()?'<button data-menu="investigations"><span>都市伝説の調査</span><small>›</small></button>':''}<button data-menu="account"><span>ログイン・アカウント</span><small>›</small></button><button data-menu="settings"><span>設定</span><small>›</small></button></div>`);
 }
 function menuBack(target='home'){return `<button class="menu-back" data-menu="${target}">‹ ${target==='home'?'メニュー':target==='news'?'お知らせ一覧':'受信ボックス'}</button>`;}
 function openGameNews(){const c=menuState();openMenuPage('運営からのお知らせ',menuBack()+`<div class="game-message-list">${visibleGameNotices().map(n=>`<button data-notice="${n.id}"><small>${n.date}${c.readNotices.includes(n.id)?'':' · 未読'}</small><b>${n.title}</b></button>`).join('')}</div>`);}
@@ -133,11 +136,11 @@ function mailReceivedTime(entry){
 function openGameInbox(){
  const c=menuState();
  // Keep the existing definition order for same-batch deliveries and old undated mail.
- const mail=GAME_MAIL.filter(m=>c.mail[m.id]).reverse().sort((a,b)=>mailReceivedTime(c.mail[b.id])-mailReceivedTime(c.mail[a.id]));
+ const mail=visibleGameMail().filter(m=>c.mail[m.id]).reverse().sort((a,b)=>mailReceivedTime(c.mail[b.id])-mailReceivedTime(c.mail[a.id]));
  openMenuPage('受信ボックス',menuBack()+`<p class="menu-muted">ゲーム内メール</p><div class="game-message-list">${mail.map(m=>`<button data-mail="${m.id}"><small>${m.from}${!c.mail[m.id].read?' · 未読':''}${m.reward&&!c.mail[m.id].claimed?' · 添付あり':''}</small><b>${m.title}</b></button>`).join('')||'<p class="menu-empty">届いたメールはありません。</p>'}</div>`);
 }
 function openGameMail(id){
- const m=GAME_MAIL.find(m=>m.id===id),c=menuState();if(!m||!c.mail[id])return;
+ const m=visibleGameMail().find(m=>m.id===id),c=menuState();if(!m||!c.mail[id])return;
  c.mail[id].read=true;markDirty();renderMenuBadge();
  const receivedAt=mailReceivedTime(c.mail[id]),d=receivedAt?new Date(receivedAt).toLocaleDateString('ja-JP'):'受信日時不明';
  // A saved letter alone is not proof that its classified dossier is still
@@ -160,7 +163,7 @@ document.addEventListener('click',e=>{
  if(b.dataset.menu){const actions={return:returnFromMenu,home:openGameMenu,news:openGameNews,inbox:openGameInbox,settings:openMenuSettings,observation:observationSettings,target:observationTargetPicker,account:openAccount,catalog:()=>openEncyclopedia(),investigations:()=>{returnFromMenu();openLegendBoard();}};const open=actions[b.dataset.menu];if(!open)return;return b.classList.contains('menu-back')?returnToMenuPage(b.dataset.menu,open):open();}
  if(b.dataset.notice){const n=visibleGameNotices().find(n=>n.id===b.dataset.notice);if(!n)return;const c=menuState();if(!c.readNotices.includes(n.id))c.readNotices.push(n.id);markDirty();renderMenuBadge();return openMenuPage('運営からのお知らせ',menuBack('news')+`<article class="game-message"><small>${n.date} · 運営</small><h2>${n.title}</h2><p>${n.body}</p></article>`);}
  if(b.dataset.mail)return openGameMail(b.dataset.mail);
- const id=b.dataset.mailClaim,m=GAME_MAIL.find(m=>m.id===id),entry=menuState().mail[id];
+ const id=b.dataset.mailClaim,m=visibleGameMail().find(m=>m.id===id),entry=menuState().mail[id];
  if(!m||!entry||entry.claimed||!m.reward)return;
  entry.claimed=true;S.currency+=m.reward;markDirty();render();openGameMail(id);
 });
