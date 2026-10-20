@@ -12,6 +12,8 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  assert.equal(await p.locator('.watch-person-description').count(),3);
  assert.equal(await p.locator('.watch-colleagues [data-watch="leave"]').count(),0,'roster does not duplicate fixed observation navigation');
  assert(await p.locator('.nav [data-nav="home"]').isVisible(),'observation remains available in fixed navigation');
+ assert.equal(await p.locator('.nav [aria-current="page"]').count(),1,'one section is current on the roster');
+ assert.equal(await p.locator('.nav [data-nav="home"]').getAttribute('aria-current'),'page','colleague roster belongs to observation');
  for(const selector of ['.watch-person small','.watch-person-description','.watch-person-action','.watch-room-note'])
   assert(await p.locator(selector).first().evaluate(e=>parseFloat(getComputedStyle(e).fontSize)>=14),`${selector} remains readable`);
  if(!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/colleague-roster-390.jpg',quality:85});
@@ -28,6 +30,7 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  const currency=await p.evaluate(()=>S.currency);
  for(const [id,name] of [['records','白瀬'],['equipment','榊'],['senior','三輪']]){
   await p.locator(`[data-watch-member="${id}"]`).click();
+  assert.equal(await p.locator('.nav [data-nav="home"]').getAttribute('aria-current'),'page','conversation keeps its parent section selected');
   assert((await p.locator('.watch-speaker').innerText()).includes('初対面'));
   assert((await p.locator('.watch-conversation blockquote').innerText()).includes(name));
   assert.equal(await p.locator('[data-watch-talk]').count(),0);
