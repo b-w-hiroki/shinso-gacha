@@ -99,15 +99,22 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  assert(!(await p.locator('#sheet').innerText()).includes('未観測'),'no rarity capacity leaks inside an acquired place');assert(!(await p.locator('#sheet').innerText()).includes('砂場の整列'));await p.keyboard.press('Escape');
  assert.equal(await p.evaluate(()=>JSON.stringify({currency:S.currency,collection:S.observation.collection,discovered:S.incursion.discovered})),state);
  await p.locator('#toast').waitFor({state:'hidden'});
- for(const [width,height] of [[320,568],[390,844],[844,390]]){
+ for(const [width,height] of [[320,568],[390,844],[430,932],[844,390]]){
   await p.setViewportSize({width,height});
   for(const tab of ['anomalies','people','places']){
    await p.locator(`[data-catalog-tab="${tab}"]`).click();assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
    await search.fill('一致しない検索語');const searchLayout=await p.evaluate(()=>({width:innerWidth,document:document.documentElement.scrollWidth,overflow:[...document.querySelectorAll('.catalog *')].filter(e=>e.getBoundingClientRect().right>innerWidth).map(e=>({tag:e.tagName,class:e.className,right:e.getBoundingClientRect().right}))}));assert(searchLayout.document<=searchLayout.width,'search and clear controls fit narrow screens: '+JSON.stringify(searchLayout));assert(await search.evaluate(e=>e.getBoundingClientRect().height>=44));await p.getByRole('button',{name:'検索をクリア'}).click();
    assert(await p.locator('.catalog-entry:enabled').first().evaluate(e=>e.getBoundingClientRect().height>=44));
+   const cardLayout=await p.locator('.catalog-entry:enabled').first().evaluate(e=>({fonts:[e.querySelector(':scope>small'),e.querySelector('span small')].map(n=>parseFloat(getComputedStyle(n).fontSize)),number:e.querySelector(':scope>small').getBoundingClientRect(),title:e.querySelector('span b').getBoundingClientRect(),source:e.querySelector('span small').getBoundingClientRect(),card:e.getBoundingClientRect(),overflows:e.scrollWidth>e.clientWidth}));
+   assert(cardLayout.fonts.every(size=>size>=14),`catalog metadata remains legible at ${width}px`);
+   assert(cardLayout.number.bottom<=cardLayout.title.top&&cardLayout.title.bottom<=cardLayout.source.top&&!cardLayout.overflows,`catalog card reads top to bottom without overflow at ${width}px`);
    if(width===390)await p.screenshot({path:`docs/qa-incursions/catalog-${tab}-390.jpg`});
   }
  }
+ await p.setViewportSize({width:320,height:568});await p.locator('[data-catalog-tab="anomalies"]').click();
+ const enlargedCatalog=await p.addStyleTag({content:'.catalog-summary{font-size:18px}.catalog-entry>small,.catalog-entry span small{font-size:20px}.catalog-entry b{font-size:22px}'});
+ assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth&&[...document.querySelectorAll('.catalog-entry')].every(e=>e.scrollWidth<=e.clientWidth&&e.getBoundingClientRect().height>=44)),'enlarged catalog labels wrap inside tappable cards at 320px');
+ await enlargedCatalog.evaluate(el=>el.remove());
  // Classified category is not even rendered before evidence; acquired-only witnesses unlock it.
  await p.evaluate(()=>{S.levels.u1=3;S.legendLayers={};go('home');openEncyclopedia('anomalies');});
  assert.equal(await p.locator('[data-catalog-tab="confidential"]').count(),0);
