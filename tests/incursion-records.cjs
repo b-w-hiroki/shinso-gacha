@@ -13,10 +13,12 @@ const server=http.createServer((q,r)=>{try{if(q.url.startsWith('/assets/incursio
  await p.evaluate(()=>{S.incursion={version:1,level:40,resolved:2,discovered:{34:true,99:true},history:[],event:{kind:6,tier:1,step:0,seen:0,round:0}};openIncursionRecords();});
  const before=await p.evaluate(()=>JSON.stringify({a:incursionState(),pt:S.currency}));
  assert.equal(await p.locator('.inc-record-list button').count(),2);
+ assert(await p.locator('.inc-rarity').first().evaluate(e=>parseFloat(getComputedStyle(e).fontSize)>=14),'Record rarity is readable');
  assert.equal(requested.size,0,'List does not preload any photos');
  await p.evaluate(()=>openIncursionRecords(91));assert.equal(await p.locator('.inc-record-list button').count(),2,'Unowned records cannot be opened directly');
  await p.locator('[data-inc="record"][data-value="34"]').click();
  await p.locator('.inc-record-photo img').evaluate(im=>im.decode());
+ assert(await p.locator('.inc-record-photo figcaption').evaluate(e=>parseFloat(getComputedStyle(e).fontSize)>=14),'Photo caption is readable');
  assert.equal(await p.locator('[data-inc="record"]').first().isDisabled(),true);
  assert.equal(await p.locator('[data-inc="quarantine"]').count(),0,'Reading has no completion action');
  await p.locator('[data-inc="record"][data-value="99"]').click();await p.locator('.inc-record-photo img').evaluate(im=>im.decode());

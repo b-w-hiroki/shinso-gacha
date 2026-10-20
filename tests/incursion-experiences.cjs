@@ -36,8 +36,9 @@ for(const [width,height] of [[320,568],[390,680],[844,390]]){
  await p.setViewportSize({width,height});
  for(const kind of samples){
   await setup(kind);assert(await p.evaluate(()=>document.getElementById('incursion-dialog').scrollWidth<=document.getElementById('incursion-dialog').clientWidth+1));
+  assert(await p.locator('.inc-material').evaluate(e=>parseFloat(getComputedStyle(e).fontSize)>=14),'Evidence medium is readable');
   if(width===390){await p.locator('#incursion-title').scrollIntoViewIfNeeded();await p.screenshot({path:`docs/qa-incursions/experience-${kind}-390.jpg`,quality:85});shots.push(kind);}
-  await select(kind);await finishWork(p);const btn=p.locator('[data-inc="quarantine"]');await btn.scrollIntoViewIfNeeded();assert(await btn.evaluate(e=>{const r=e.getBoundingClientRect();return r.height>=44&&r.bottom<=innerHeight&&r.top>=0;}));await btn.click();
+  await select(kind);assert(await p.locator('.inc-selected>span').evaluate(e=>parseFloat(getComputedStyle(e).fontSize)>=14),'Selected evidence label is readable');await finishWork(p);const btn=p.locator('[data-inc="quarantine"]');await btn.scrollIntoViewIfNeeded();assert(await btn.evaluate(e=>{const r=e.getBoundingClientRect();return r.height>=44&&r.bottom<=innerHeight&&r.top>=0;}));await btn.click();
  }
 }
 // Repeat tier 3 rounds with fresh work, preserving single final payout.
