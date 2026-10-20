@@ -1,6 +1,6 @@
-const {chromium}=require('playwright'),fs=require('fs'),path=require('path'),http=require('http'),assert=require('assert/strict');
+const {chromium,webkit}=require('playwright'),fs=require('fs'),path=require('path'),http=require('http'),assert=require('assert/strict');
 const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.env.QA_FONT:path.join(process.cwd(),q.url==='/'?'index.html':q.url);r.setHeader('Content-Type',f.endsWith('.html')?'text/html; charset=utf-8':f.endsWith('.js')?'application/javascript':f.endsWith('.css')?'text/css':'application/octet-stream');r.end(fs.readFileSync(f));}catch{r.writeHead(404);r.end();}});
-(async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));const b=await chromium.launch({executablePath:process.env.CHROMIUM_EXECUTABLE||undefined,args:['--no-sandbox','--disable-dev-shm-usage','--no-zygote','--single-process']});try{
+(async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));const b=await (process.env.QA_WEBKIT?webkit:chromium).launch(process.env.QA_WEBKIT?{}:{executablePath:process.env.CHROMIUM_EXECUTABLE||undefined,args:['--no-sandbox','--disable-dev-shm-usage','--no-zygote','--single-process']});try{
  const p=await b.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'}),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.route('https://**/*',r=>r.abort());await p.goto('http://127.0.0.1:'+server.address().port);
  if(process.env.QA_FONT){await p.addStyleTag({content:"@font-face{font-family:QAJP;src:url('/font.otf')} :root{--f-body:QAJP;--f-display:QAJP;--f-mono:QAJP;--f-hand:QAJP}"});await p.evaluate(()=>document.fonts.load('16px QAJP'));}
  await p.evaluate(()=>{S.role='agent';S.onboarded=true;S.lite={intro:{done:true}};S.lastTick=Date.now()+600000;S.incursion={version:1,level:0,resolved:0,history:[]};S.streak={last:dayKey(),n:1};S.observation=WatchModel.create(Date.now(),42);S.currency=5000;applyMode();go('home');setHomeTab('desk');render();});
@@ -10,6 +10,15 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  assert(await p.locator('[data-view="colleagues"]').isVisible());assert(await p.locator('#sheet-bg').isHidden());
  assert.equal(await p.locator('.watch-person').count(),3);
  assert.equal(await p.locator('.watch-person-description').count(),3);
+ for(const selector of ['.watch-person small','.watch-person-description','.watch-person-action','.watch-room-note'])
+  assert(await p.locator(selector).first().evaluate(e=>parseFloat(getComputedStyle(e).fontSize)>=14),`${selector} remains readable`);
+ if(!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/colleague-roster-390.jpg',quality:85});
+ await p.setViewportSize({width:320,height:568});
+ assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'narrow roster does not overflow');
+ if(!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/colleague-roster-320.jpg',quality:85});
+ await p.locator('[data-watch-member="senior"]').evaluate(e=>e.scrollIntoView({block:'end',behavior:'instant'}));
+ assert(await p.locator('[data-watch-member="senior"]').evaluate(e=>e.getBoundingClientRect().bottom<=document.querySelector('.nav').getBoundingClientRect().top),'last colleague remains clear of bottom navigation');
+ await p.setViewportSize({width:390,height:844});
  const currency=await p.evaluate(()=>S.currency);
  for(const [id,name] of [['records','白瀬'],['equipment','榊'],['senior','三輪']]){
   await p.locator(`[data-watch-member="${id}"]`).click();
@@ -18,7 +27,7 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
   assert.equal(await p.locator('[data-watch-talk]').count(),0);
   assert.equal(await p.evaluate(id=>S.observation.mind.talks[id]||0,id),0);
   assert(await p.evaluate(id=>S.observation.contacts[id],id));
-  if(id==='records')await p.screenshot({path:'docs/qa-incursions/conversation-introduction-390.jpg',quality:85});
+  if(id==='records'&&!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/conversation-introduction-390.jpg',quality:85});
   await p.locator('[data-watch-next]').click();assert.equal(await p.locator('[data-watch-talk]').count(),4);
   await p.locator('[data-watch="colleagues"]').click();
  }
@@ -28,6 +37,8 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  assert.equal(await p.locator('[data-watch-talk]').count(),0,'reply has no topic button clutter');
  const reply=await p.locator('blockquote').innerText(),talks=await p.evaluate(()=>S.observation.mind.talks.records);
  assert((await p.locator('.watch-selected-topic').innerText()).includes('見たもの'));
+ for(const selector of ['.watch-speaker small','.watch-speaker p','.watch-conversation-cue','.watch-selected-topic'])
+  assert(await p.locator(selector).first().evaluate(e=>parseFloat(getComputedStyle(e).fontSize)>=14),`${selector} remains readable`);
  await p.locator('[data-watch-next]').click();assert.equal(await p.locator('blockquote').innerText(),reply);
  assert.equal(await p.evaluate(()=>S.observation.mind.talks.records),talks,'choosing does not trigger recovery');
  for(const [width,height] of [[320,568],[390,680],[844,390]]){
@@ -37,7 +48,7 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
   }
   assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
   await p.locator('[data-watch-talk="records"][data-topic="rest"]').click();
-  if(width===390)await p.screenshot({path:'docs/qa-incursions/conversation-reply-390.jpg',quality:85});
+  if(width===390&&!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-incursions/conversation-reply-390.jpg',quality:85});
   await p.locator('[data-watch-next]').click();
  }
  await p.locator('[data-watch="leave"]').click();assert(await p.locator('[data-view="home"]').isVisible());assert(await p.evaluate(()=>S.observation.mind.closed));
