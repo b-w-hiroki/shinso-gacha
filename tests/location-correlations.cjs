@@ -50,9 +50,20 @@ const server=http.createServer((q,r)=>{try{const u=new URL(q.url,'http://localho
   for(const [width,height] of [[320,568],[390,844],[844,390]]){
    await p.setViewportSize({width,height});
    assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no horizontal overflow');
+   const photoLayout=await p.locator('.site-correlation-images').evaluate(grid=>{
+    const pictures=[...grid.querySelectorAll('img')],captions=[...grid.querySelectorAll('figcaption')];
+    return {columns:getComputedStyle(grid).gridTemplateColumns.split(' ').length,
+      pictureWidth:pictures[0].getBoundingClientRect().width,
+      gridWidth:grid.getBoundingClientRect().width,
+      captionSizes:captions.map(el=>parseFloat(getComputedStyle(el).fontSize)),
+      noteSize:parseFloat(getComputedStyle(document.querySelector('.site-correlation-note')).fontSize)};
+   });
+   assert(photoLayout.captionSizes.every(size=>size>=14)&&photoLayout.noteSize>=14,'photo context remains readable');
+   if(width<600)assert(photoLayout.columns===1&&photoLayout.pictureWidth>=photoLayout.gridWidth*.95,'original photos fill the phone width');
+   else assert.equal(photoLayout.columns,2,'wide layout keeps side-by-side comparison');
    const button=p.locator('.site-correlation [data-catalog-entry="alt:photo"]');await button.scrollIntoViewIfNeeded();
    assert(await button.evaluate(e=>e.getBoundingClientRect().height>=44),'comparison navigation reachable');
-   if(width===390&&!process.env.QA_WEBKIT){await p.evaluate(()=>{document.getElementById('sheet').scrollTop=0;});await p.screenshot({path:'docs/qa-incursions/cross-location-evidence-390.jpg',quality:85});}
+   if(width<600&&!process.env.QA_WEBKIT){await p.evaluate(()=>{document.getElementById('sheet').scrollTop=0;});await p.screenshot({path:`docs/qa-incursions/cross-location-evidence-${width}.jpg`,quality:85});}
   }
   await p.locator('.site-correlation [data-catalog-entry="alt:photo"]').click();
   assert((await p.locator('.catalog-detail h2').first().innerText()).includes('夜の教室'));
