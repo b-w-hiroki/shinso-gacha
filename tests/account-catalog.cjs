@@ -92,9 +92,14 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
  await p.evaluate(()=>{cloud=null;FB=null;S.role='agent';S.lastTick=Date.now()+600000;S.observation=WatchModel.create(Date.now(),42);S.incursion={version:1,discovered:{},history:[]};applyMode();openEncyclopedia();});
  assert.equal(await p.locator('.catalog-entry:enabled').count(),0);assert(!(await p.locator('.catalog').innerText()).includes('影だけの来園者'));assert.equal(await p.locator('.catalog img').count(),0);
  assert(!(await p.locator('.catalog-summary').innerText()).includes('/'),'catalog must not show total capacity');
- const search=p.getByRole('searchbox',{name:'取得済みの記録を検索'});
- await search.fill('影だけの来園者');assert.equal(await p.locator('.catalog-entry').count(),0,'search cannot reveal an unacquired record');assert(await p.locator('[data-catalog-no-results]').isVisible());await p.getByRole('button',{name:'検索をクリア'}).click();assert(await p.locator('[data-catalog-empty]').isVisible());
+ assert.equal(await p.locator('#catalog-search').count(),0,'an empty category must not offer a search with no results');
+ await p.locator('#toast').waitFor({state:'hidden'});await p.screenshot({path:'docs/qa-catalog-empty/empty-390.jpg'});
+ for(const tab of ['people','places']){await p.locator(`[data-catalog-tab="${tab}"]`).click();assert.equal(await p.locator('#catalog-search').count(),0);assert(await p.locator('[data-catalog-empty]').isVisible());}
+ await p.locator('[data-catalog-tab="anomalies"]').click();
  await p.evaluate(()=>{S.observation.collection={'cctv:0':1,'cctv:2':1};S.observation.contacts={records:true};S.incursion.discovered={0:true};save();openEncyclopedia();});
+ const search=p.getByRole('searchbox',{name:'取得済みの記録を検索'});
+ assert(await search.isVisible(),'search returns when the category has acquired records');
+ await search.fill('未取得の異変');assert.equal(await p.locator('.catalog-entry:visible').count(),0,'search cannot reveal an unacquired record');assert(await p.locator('[data-catalog-no-results]').isVisible());await p.getByRole('button',{name:'検索をクリア'}).click();
  const state=await p.evaluate(()=>JSON.stringify({currency:S.currency,collection:S.observation.collection,discovered:S.incursion.discovered}));
  await search.fill('来園者');assert.equal(await p.locator('.catalog-entry:visible').count(),1);assert(await p.locator('[data-catalog-entry="cctv:2"]').isVisible());assert.equal(await search.evaluate(e=>document.activeElement===e),true,'typing keeps focus in the search box');assert.equal(await p.locator('[data-catalog-status]').innerText(),'1件が一致');
  await search.fill('封筒調査');assert(await p.locator('[data-catalog-entry="inc:0"]').isVisible());assert.equal(await p.locator('.catalog-entry:visible').count(),1,'source labels are searchable');
