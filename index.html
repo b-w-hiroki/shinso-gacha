@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-fo68Op0iOkdundmHqzKe9qQA4/zKK46ApWWTHYAW+ZM=' https://www.gstatic.com/firebasejs/ https://cdn.jsdelivr.net/npm/budoux@0.9.3/ https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://shinso-gacha.firebaseapp.com; frame-src https://shinso-gacha.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-7NA+zo2gVAM27dD3Q2HcXThj6VvmEvCAJpHDr4rJX74=' https://www.gstatic.com/firebasejs/ https://cdn.jsdelivr.net/npm/budoux@0.9.3/ https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://shinso-gacha.firebaseapp.com; frame-src https://shinso-gacha.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>真相ガチャ</title>
@@ -2509,7 +2509,8 @@ function go(view) {
   if (view === "home" && !isLite()) setHomeTab("desk");
   if (!isLite()) defaultSectionTab(view);
   document.querySelectorAll("[data-view]").forEach(v => v.hidden = v.dataset.view !== view);
-  document.querySelectorAll("[data-nav]").forEach(b => { if (b.dataset.nav === view) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
+  const activeNav = view === "colleagues" ? "home" : view;
+  document.querySelectorAll("[data-nav]").forEach(b => { if (b.dataset.nav === activeNav) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
   const menuButton=document.getElementById("game-menu");
   if(view==="menu")menuButton.setAttribute("aria-current","page");else menuButton.removeAttribute("aria-current");
   window.scrollTo(0, 0);
