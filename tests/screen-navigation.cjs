@@ -77,7 +77,8 @@ const server=http.createServer((req,res)=>{try{const u=new URL(req.url,'http://l
    for(const [width,height] of [[320,568],[390,844],[844,390]]){
     await p.setViewportSize({width,height});await p.evaluate(()=>observationColleagues());
     assert(await p.locator('.watch-colleagues h1').isVisible());assert.equal(await p.locator('.watch-person').count(),3);assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
-    const leave=p.locator('.watch-colleagues [data-watch="leave"]');await leave.scrollIntoViewIfNeeded();await leave.click();assert(await p.locator('#obs-frame').isVisible());
+    assert.equal(await p.locator('.watch-colleagues [data-watch="leave"]').count(),0);
+    const home=p.locator('.nav [data-nav="home"]');await home.click();assert(await p.locator('#obs-frame').isVisible());assert(await p.evaluate(()=>S.observation.mind.closed));
    }
    // Long headings and larger text must grow naturally, without clipping/overlap.
    await p.addStyleTag({content:'.dossier-view h1,.menu-page-heading h1{font-size:40px!important}.section-tabs button,.home-tabs button,.seg button,.menu-back{font-size:28px!important}'});
