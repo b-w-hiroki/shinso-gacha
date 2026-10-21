@@ -3,6 +3,7 @@
  * This validates pixel provenance and 1440x720 dimensions, not human fear. */
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),assert=require('node:assert/strict');
 const root=path.resolve(__dirname,'..'),dir=path.join(root,'assets/observation');
+assert.match(fs.readFileSync(path.join(root,'.gitattributes'),'utf8'),/^assets\/observation\/alt-overlays\/\*\.svg -text$/m,'SVG masters must retain byte-identical line endings on every checkout');
 const json=JSON.parse(fs.readFileSync(path.join(root,'docs/qa-incursions/ssr-composite-build.json'),'utf8'));
 const Location=require('../assets/observation-location-model');
 const expected=['cctv','photo','vision','dash'];
