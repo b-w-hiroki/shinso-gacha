@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "generator": "built-in image generation",
+  "conversion": "Pillow WebP quality 90 method 6; originals preserved",
+  "entries": [
+    {
+      "screen": "archive",
+      "source": "assets/ui/sources/archive-cabinet-v1.png",
+      "sourceBytes": 1900890,
+      "sourceSha256": "d9538a77779f9c91f68cb51713590ae116f7cad4e896e5857217de96974bb74b",
+      "output": "assets/ui/archive-cabinet-v1.webp",
+      "outputBytes": 136336,
+      "outputSha256": "e821d637cf557c34647cd6e460bbe924d7ffd31d3faf8587a93996070ee67cf7",
+      "size": [1024, 1536]
+    },
+    {
+      "screen": "lab",
+      "source": "assets/ui/sources/lab-workbench-v1.png",
+      "sourceBytes": 2416317,
+      "sourceSha256": "9dda333d1266742d46f88f284fa550997f085a159c0f0cc17e42036197187be1",
+      "output": "assets/ui/lab-workbench-v1.webp",
+      "outputBytes": 213656,
+      "outputSha256": "3a1f529533a8c4051c9ed777740694ae3301bae23ffb15e36547307c97f50386",
+      "size": [1024, 1536]
+    }
+  ]
+}
