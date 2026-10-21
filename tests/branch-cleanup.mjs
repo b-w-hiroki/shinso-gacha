@@ -1,7 +1,14 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-const yaml=fs.readFileSync('.github/workflows/cleanup-merged-branches.yml','utf8');
-const script=yaml.split('          script: |\n')[1].split('\n').map(l=>l.replace(/^            /,'')).join('\n');
+const yaml=fs.readFileSync('.github/workflows/cleanup-merged-branches.yml','utf8').replace(/\r\n?/g,'\n');
+function extractScript(source){
+ const normalized=source.replace(/\r\n?/g,'\n');
+ const marker='          script: |\n';
+ assert(normalized.includes(marker),'cleanup workflow script block is missing');
+ return normalized.split(marker)[1].split('\n').map(l=>l.replace(/^            /,'')).join('\n');
+}
+const script=extractScript(yaml);
+assert.equal(extractScript(yaml.replace(/\n/g,'\r\n')),script,'LF and CRLF workflows must exercise the same cleanup script');
 const run=new (Object.getPrototypeOf(async function(){}).constructor)('github','context','core',script);
 const repo={full_name:'test/game',default_branch:'main'};
 const pr=(name,extra={})=>({number:1,merged_at:'2026-10-09',head:{ref:name,sha:'merged',repo},base:{ref:'main'},...extra});
