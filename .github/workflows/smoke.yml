@@ -24,6 +24,7 @@ jobs:
       - run: node --test tests/autodev-dry-run.cjs
       - run: node tests/github-workflow-pilot.cjs
       - run: node tests/colleague-asset-contract.cjs
+      - run: node tests/ui-atmosphere-assets.cjs
       - run: node tests/clearance-risk.cjs
       - run: node tests/personnel-discrepancies-model.cjs
       - run: node tests/incursion-rarity.cjs
