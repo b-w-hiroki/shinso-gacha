@@ -24,8 +24,11 @@ function catalogEntries(tab){
 function openEncyclopedia(tab=encyclopediaTab){
  const tabs=catalogTabs();if(!Object.hasOwn(tabs,tab))tab='anomalies';if(tab!==encyclopediaTab)encyclopediaQuery='';encyclopediaTab=tab;
  const shown=catalogEntries(tab).filter(e=>e.known);
- openMenuPage('図鑑',menuBack()+`<section class="catalog"><p class="catalog-intro">あなたが持ち帰ったものだけが、ここに残る。</p><div class="catalog-tabs" role="group" aria-label="図鑑の分類">${Object.entries(tabs).map(([id,label])=>`<button data-catalog-tab="${id}" aria-pressed="${id===tab}">${label}</button>`).join('')}</div><div class="catalog-summary"><p>${tabs[tab]} <b>${shown.length}</b>件 発見</p><p data-catalog-status role="status"></p></div><label class="catalog-search" for="catalog-search">取得済みの記録を検索</label><div class="catalog-search-fields"><input id="catalog-search" type="search" placeholder="名前・場所・出典" autocomplete="off" aria-controls="catalog-results"><button data-catalog-clear aria-label="検索をクリア" hidden>クリア</button></div><div id="catalog-results" class="catalog-list">${shown.map(e=>`<button class="catalog-entry" data-catalog-entry="${e.id}"><small>No.${String(e.number).padStart(3,'0')}</small><span><b>${escapeHTML(e.title)}</b><small>${escapeHTML(e.sub)}</small></span><span aria-hidden="true">›</span></button>`).join('')||'<p class="menu-empty" data-catalog-empty>ここには発見済みの記録だけが残ります。観測や課内での会話を進めてください。</p>'}<p class="menu-empty" data-catalog-no-results hidden>一致する取得済みの記録はありません。検索語を変えるか、クリアしてください。</p></div></section>`);
- const search=document.getElementById('catalog-search');search.value=encyclopediaQuery;
+ if(!shown.length)encyclopediaQuery='';
+ const searchFields=shown.length?'<label class="catalog-search" for="catalog-search">取得済みの記録を検索</label><div class="catalog-search-fields"><input id="catalog-search" type="search" placeholder="名前・場所・出典" autocomplete="off" aria-controls="catalog-results"><button data-catalog-clear aria-label="検索をクリア" hidden>クリア</button></div>':'';
+ openMenuPage('図鑑',menuBack()+`<section class="catalog"><p class="catalog-intro">あなたが持ち帰ったものだけが、ここに残る。</p><div class="catalog-tabs" role="group" aria-label="図鑑の分類">${Object.entries(tabs).map(([id,label])=>`<button data-catalog-tab="${id}" aria-pressed="${id===tab}">${label}</button>`).join('')}</div><div class="catalog-summary"><p>${tabs[tab]} <b>${shown.length}</b>件 発見</p><p data-catalog-status role="status"></p></div>${searchFields}<div id="catalog-results" class="catalog-list">${shown.map(e=>`<button class="catalog-entry" data-catalog-entry="${e.id}"><small>No.${String(e.number).padStart(3,'0')}</small><span><b>${escapeHTML(e.title)}</b><small>${escapeHTML(e.sub)}</small></span><span aria-hidden="true">›</span></button>`).join('')||'<p class="menu-empty" data-catalog-empty>ここには発見済みの記録だけが残ります。観測や課内での会話を進めてください。</p>'}${shown.length?'<p class="menu-empty" data-catalog-no-results hidden>一致する取得済みの記録はありません。検索語を変えるか、クリアしてください。</p>':''}</div></section>`);
+ const search=document.getElementById('catalog-search');if(!search)return;
+ search.value=encyclopediaQuery;
  search.addEventListener('keydown',e=>{
   if(e.key!=='Escape')return;
   if(e.isComposing){e.stopPropagation();return;}
@@ -43,9 +46,9 @@ function filterCatalog(query){
   if(!entry.hidden)matches++;
  });
  catalog.querySelector('[data-catalog-status]').textContent=term?`${matches}件が一致`:'';
- catalog.querySelector('[data-catalog-no-results]').hidden=!term||matches>0;
+ const noResults=catalog.querySelector('[data-catalog-no-results]');if(noResults)noResults.hidden=!term||matches>0;
  const empty=catalog.querySelector('[data-catalog-empty]');if(empty)empty.hidden=!!term;
- catalog.querySelector('[data-catalog-clear]').hidden=!query;
+ const clear=catalog.querySelector('[data-catalog-clear]');if(clear)clear.hidden=!query;
 }
 function clearCatalogSearch(){
  const search=document.getElementById('catalog-search');search.value='';filterCatalog('');search.focus();
