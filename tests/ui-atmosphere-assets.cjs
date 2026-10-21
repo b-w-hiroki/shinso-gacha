@@ -2,7 +2,7 @@ const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypt
 const root=path.resolve(__dirname,'..');
 const rows=JSON.parse(fs.readFileSync(path.join(root,'assets/ui/atmosphere-manifest.json'),'utf8')).entries;
 const css=fs.readFileSync(path.join(root,'assets/physical-ui.css'),'utf8');
-assert.deepEqual(rows.map(row=>row.screen),['archive','lab']);
+assert.deepEqual(rows.map(row=>row.screen).sort(),['archive','lab','menu','report']);
 const sha=buffer=>crypto.createHash('sha256').update(buffer).digest('hex');
 function webpSize(buffer){
  assert.equal(buffer.toString('ascii',0,4),'RIFF');
@@ -27,5 +27,5 @@ for(const row of rows){
  assert.equal(sha(webp),row.outputSha256);
  assert.match(css,new RegExp(`\\.${row.screen}-scene::before\\s*\\{[^}]*${path.basename(row.output).replaceAll('.','\\.')}`));
 }
-assert(!/\.(?:agent-home|report-scene)::before\s*\{[^}]*-v1\.webp/.test(css),'screen atmosphere must not leak into other views');
-console.log('Archive and laboratory atmosphere: original/output dimensions, hashes and scoped CSS verified');
+assert(!/\.agent-home::before\s*\{[^}]*-v1\.webp/.test(css),'screen atmosphere must not leak into observation');
+console.log('Archive, laboratory, report and menu atmosphere: original/output dimensions, hashes and scoped CSS verified');

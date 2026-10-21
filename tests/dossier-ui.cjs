@@ -37,6 +37,13 @@ const server=http.createServer((req,res)=>{
     }
    }
   }
+  for(const [w,h] of [[320,568],[390,844],[1280,900]]){
+   await p.setViewportSize({width:w,height:h});
+   await p.locator('#game-menu').click();await widthCheck('menu '+w);
+   assert((await p.locator('.menu-scene').evaluate(e=>getComputedStyle(e,'::before').backgroundImage)).includes('menu-lockers-v1.webp'),'agent menu uses a screen-specific backdrop');
+   if(w!==1280)await shot('menu-'+w);
+   await p.locator('.menu-page-heading .menu-back').click();
+  }
   await p.setViewportSize({width:390,height:844});
   await p.locator('.nav [data-nav="archive"]').click();
   await p.locator('[data-chip="conspiracy"]').click();assert.equal(await p.locator('[data-chip="conspiracy"]').getAttribute('aria-pressed'),'true');
@@ -60,8 +67,9 @@ const server=http.createServer((req,res)=>{
   // New-user mode must still initialize after shared shell changes.
   await p.evaluate(()=>localStorage.removeItem('shinso_gacha_state_v1'));await p.context().clearCookies();
   await p.evaluate(()=>localStorage.setItem('shinso_gacha_state_v1',JSON.stringify({currency:30,pulls:0,lastTick:Date.now(),levels:{}})));await p.reload();await font();assert(await p.locator('[data-view="lite"]').isVisible());assert(await p.locator('#lite-pull').isVisible());await widthCheck('new user');
+  assert(!(await p.locator('.menu-scene').evaluate(e=>getComputedStyle(e,'::before').backgroundImage)).includes('menu-lockers-v1.webp'),'civilian menu does not reveal the agent office');
   // All new raster files decode; cutout center must remain transparent.
-  const assets=['civilian-desk','civilian-envelope','radar-bezel','mission-clipboard','archive-folder','evidence-paper','photo-frame','audio-analyzer','report-paper','appointment-paper','rank-insignia','danger-overlay','archive-cabinet-v1','lab-workbench-v1'];
+  const assets=['civilian-desk','civilian-envelope','radar-bezel','mission-clipboard','archive-folder','evidence-paper','photo-frame','audio-analyzer','report-paper','appointment-paper','rank-insignia','danger-overlay','archive-cabinet-v1','lab-workbench-v1','report-desk-v1','menu-lockers-v1'];
   for(const name of assets){const result=await p.evaluate(async name=>{const im=new Image();im.src='/assets/ui/'+name+'.webp';await im.decode();const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const x=c.getContext('2d');x.drawImage(im,0,0);return {width:im.width,alpha:x.getImageData(im.width/2,im.height/2,1,1).data[3]};},name);assert(result.width>=1000);if(['radar-bezel','photo-frame','danger-overlay'].includes(name))assert.equal(result.alpha,0,name+' has transparent center');}
   for(const width of [320,390]){await p.setViewportSize({width,height:844});await widthCheck('lite '+width);const rect=await p.locator('#lite-pull').boundingBox();assert(rect.height>=44&&rect.y+rect.height<844);await shot('lite-'+width);}
   await p.locator('#lite-pull').click();assert.equal(await p.evaluate(()=>S.lite.pulls),1);await p.keyboard.press('Escape');
@@ -83,6 +91,6 @@ const server=http.createServer((req,res)=>{
   assert.equal(folderFallback.clip,'border-box, content-box','the fallback stays inside the folder content, without a rectangular outer edge');
   assert.equal(folderFallback.color,'rgb(48, 38, 28)');
   await p.screenshot({path:path.join(out,'folder-art-unavailable-390.jpg'),quality:83,animations:'disabled'});
-  assert(contrastChecks.length>10);fs.writeFileSync(path.join(out,'contrast.json'),JSON.stringify(contrastChecks,null,2)+'\n');assert.deepEqual(errors,[]);const report={passed:true,checks:['home navigation + task-specific CTA','320/390/1280 width and navigation','archive filter + dossier + testimony','44px modal close control','equipment upgrade and evidence deduction','re-investigation and persistence','report share draft + achievements + settings','wallet rank','photoreal opening and reveal','new-user initialization','14 image decodes + transparent centers','civilian opening + tabs','folder cards remain legible while artwork is unavailable','danger overlay does not intercept controls','appointment document','all four rank emblem tiers + promotion notification'],errors};fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report,null,2));
+  assert(contrastChecks.length>10);fs.writeFileSync(path.join(out,'contrast.json'),JSON.stringify(contrastChecks,null,2)+'\n');assert.deepEqual(errors,[]);const report={passed:true,checks:['home navigation + task-specific CTA','320/390/1280 width and navigation','archive filter + dossier + testimony','44px modal close control','equipment upgrade and evidence deduction','re-investigation and persistence','report share draft + achievements + settings','wallet rank','photoreal opening and reveal','new-user initialization','16 image decodes + transparent centers','civilian opening + tabs','folder cards remain legible while artwork is unavailable','danger overlay does not intercept controls','appointment document','all four rank emblem tiers + promotion notification'],errors};fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report,null,2));
  }finally{await b.close();server.close()}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1});

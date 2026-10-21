@@ -14,6 +14,26 @@
       "size": [1024, 1536]
     },
     {
+      "screen": "report",
+      "source": "assets/ui/sources/report-desk-v1.png",
+      "sourceBytes": 2278532,
+      "sourceSha256": "f7a343a88d654af68aff5d7a53d5a1ed488224a942db47fa58cae39c56d6d35e",
+      "output": "assets/ui/report-desk-v1.webp",
+      "outputBytes": 156482,
+      "outputSha256": "498f31289475a946411fcc67122c657dd7a99bfa96cba3fab9e13b4791b20b98",
+      "size": [1024, 1536]
+    },
+    {
+      "screen": "menu",
+      "source": "assets/ui/sources/menu-lockers-v1.png",
+      "sourceBytes": 1999051,
+      "sourceSha256": "014107fe5edcfb0bcb2d8e84f938166b23850601c39c315ad5199c49423f3867",
+      "output": "assets/ui/menu-lockers-v1.webp",
+      "outputBytes": 119900,
+      "outputSha256": "2a077daa36421185e2f12c1d9131a453d00c9989d349f68594a299dd8b428229",
+      "size": [1024, 1536]
+    },
+    {
       "screen": "lab",
       "source": "assets/ui/sources/lab-workbench-v1.png",
       "sourceBytes": 2416317,

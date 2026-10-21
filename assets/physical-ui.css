@@ -1,4 +1,4 @@
-/* Twelve independent photographic assets. All labels and interactions remain HTML. */
+/* Physical UI assets and screen-specific decorative backdrops. All labels and interactions remain HTML. */
 body.lite { background:linear-gradient(#09080680,#090806b8),url('ui/civilian-desk.webp') center/cover fixed; }
 body.lite .top,body.lite .lite-footer { background:#17130ff2; border-color:#786246; }
 body.lite .lite-event { background:#eee0c3 url('ui/evidence-paper-clean.webp') center/100% 100%; color:#30261c; padding:26px 26px 30px; border:0; }
@@ -38,6 +38,8 @@ body.lite .lite-last .doc { background:#eee1c5 url('ui/evidence-paper-clean.webp
 .ev-audio { background:#100e0b url('ui/audio-analyzer-clean.webp') center/contain no-repeat; min-height:180px; }
 .ev-audio .wave { background:#07100dcc; border:1px solid #87977a; width:88%; height:50px; padding:6px; }
 .report-scene .diag { background:#e9dcc0 url('ui/report-paper-clean.webp') center/100% 100% no-repeat; border:0; padding:28px; transform:none; }
+.report-scene::before { background:linear-gradient(180deg,rgba(8,7,6,.44),rgba(8,7,6,.64)),url('ui/report-desk-v1.webp') center/cover no-repeat,#0d0b09; }
+body:not(.lite) .menu-scene::before { background:linear-gradient(180deg,rgba(8,7,6,.35),rgba(8,7,6,.59)),url('ui/menu-lockers-v1.webp') center/cover no-repeat,#0b0b0a; }
 .report-scene .scene-heading::after { background-image:url('ui/report-paper-clean.webp'); width:75px; right:12px; }
 .sheet .appointment-paper { background-image:url('ui/appointment-paper-clean.webp'); padding:32px 25px 94px; }
 .rank-emblem { display:inline-block; width:64px; height:64px; flex:none; background-image:url('ui/rank-insignia.webp'); background-size:200% 200%; background-position:0 0; vertical-align:middle; }
