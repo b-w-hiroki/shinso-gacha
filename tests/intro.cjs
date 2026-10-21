@@ -46,6 +46,11 @@ await next();assert.equal(await p.evaluate(()=>S.lite.pulls),2);await assetLoade
 await next();assert.equal(await p.locator('.intro-redaction').getAttribute('aria-expanded'),'true');await shot('note-revealed');await next();assert(!(await p.locator('#intro-case').isVisible()));assert.equal(await p.evaluate(()=>liteTotal()),3);assert.equal(await p.evaluate(()=>S.lite.intro.completed),true);assert.equal(await p.locator('#game-menu').getAttribute('aria-label'),'メニュー','agent notices stay hidden throughout civilian mode');assert.equal(await p.locator('#menu-dot').isVisible(),false);
 await p.reload();await font();assert(!(await p.locator('#intro-case').isVisible()));
 assert(await p.locator('[data-ltab="files"]').isVisible(),'archive unlocks after initial documents');
+await p.locator('[data-ltab="files"]').click();
+const totalLabel=p.locator('#lite-sum');assert.equal(await totalLabel.innerText(),'全資料 2 / 12','the count is identified as the total across both categories');
+for(const filter of ['urban','conspiracy']){await p.locator(`[data-lfilter="${filter}"]`).click();assert.equal(await totalLabel.innerText(),'全資料 2 / 12','changing category does not change the explicitly global count');}
+for(const width of [320,390]){await p.setViewportSize({width,height:844});assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'the label fits narrow phones');assert(await totalLabel.evaluate(e=>parseFloat(getComputedStyle(e).fontSize)>=14));if(width===390&&!process.env.QA_WEBKIT)await p.screenshot({path:'docs/qa-lite-total/files-390.jpg',quality:85,animations:'disabled'});}
+await p.locator('[data-ltab="open"]').click();
 assert.equal(await p.locator('[data-ltab="notes"]').isVisible(),false,'record archive remains locked until six fragments');assert.equal(await p.locator('.lite-tabs #game-menu').count(),0,'menu stays out of footer until ten fragments');
 const count=await p.evaluate(()=>S.lite.pulls);
 await p.evaluate(()=>{for(const id of LITE_IDS.slice(0,6))S.lite.lv[id]=Math.max(S.lite.lv[id]||0,1);renderLite();});
