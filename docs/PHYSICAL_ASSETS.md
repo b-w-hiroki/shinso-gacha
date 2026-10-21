@@ -8,8 +8,10 @@
 | --- | --- | --- | --- |
 | 資料保管庫 | `assets/ui/archive-cabinet-v1.webp` | `assets/ui/sources/archive-cabinet-v1.png` | 暗い木製の索引棚、古紙と黒い金属、周縁だけの弱い琥珀色照明、中央70%を低ディテールの暗色面、文字・記号・人物なし。 |
 | 調査室 | `assets/ui/lab-workbench-v1.webp` | `assets/ui/sources/lab-workbench-v1.png` | 検査台・録音機・拡大鏡・写真片を画面端に配し、中央70%を暗い無地に近い面、物理的な古い機材、文字・記号・人物なし。 |
+| 報告 | `assets/ui/report-desk-v1.webp` | `assets/ui/sources/report-desk-v1.png` | 夜の書類整理台、白紙の報告用紙とクリップを周縁に配置、中央75%を低ディテールの暗色面、文字・記号・人物なし。 |
+| メニュー | `assets/ui/menu-lockers-v1.webp` | `assets/ui/sources/menu-lockers-v1.png` | 課内の金属ロッカーと閉じた保管箱、中央75%を暗く静かな壁面、文字・記号・人物なし。 |
 
-生成モードは組み込み画像生成（stylized-concept）。出力PNGを保存し、Pillow WebP品質90・method 6で配信用に変換。CSSでは各画面の `::before` にのみ指定し、暗色グラデーションを重ねて本文の判読を優先する。画像が読めない場合も暗い単色が残る。320/390/1280幅の画面回帰は `tests/dossier-ui.cjs` で実施する。実機Safariの主観的な見え方は別途確認が必要。
+生成モードは組み込み画像生成（stylized-concept）。出力PNGを保存し、Pillow WebP品質90・method 6で配信用に変換。CSSでは各画面の `::before` にのみ指定し、暗色グラデーションを重ねて本文の判読を優先する。画像が読めない場合も暗い単色が残る。ロッカー背景は調査員編のメニューだけに適用し、一般人編には課内を見せない。320/390/1280幅の画面回帰は `tests/dossier-ui.cjs` で実施する。実機Safariの主観的な見え方は別途確認が必要。
 
 既存ガチャの古紙・黒い金属・赤い局所照明に合わせ、12種類を生成して実装。生成は組み込み画像生成ツールを使用。透過PNG出力を、寸法・アルファを維持してWebP品質90へ変換した。背景は非透過。原画の文字はなく、文字・数値・操作・波形・レーダー走査はHTML/CSSで管理する。
 
