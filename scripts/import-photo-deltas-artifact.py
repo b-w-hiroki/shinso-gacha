@@ -19,7 +19,9 @@ def import_deltas(source: Path, target: Path) -> None:
         if entry.is_symlink() or not entry.is_file() or entry.resolve().parent != source.resolve():
             raise ValueError(f"artifact entry is not a regular direct child: {entry.name}")
         data = entry.read_bytes()
-        if len(data) < 12 or len(data) > 20_000_000 or data[:4] != b"RIFF" or data[8:12] != b"WEBP":
+        if (len(data) < 20 or len(data) > 20_000_000 or data[:4] != b"RIFF"
+                or int.from_bytes(data[4:8], "little") != len(data) - 8
+                or data[8:12] != b"WEBP" or data[12:16] not in (b"VP8 ", b"VP8L", b"VP8X")):
             raise ValueError(f"invalid WebP artifact: {entry.name}")
         payloads[entry.name] = data
     if target.is_symlink() or any(parent.is_symlink() for parent in target.parents):
