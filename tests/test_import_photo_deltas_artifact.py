@@ -8,7 +8,8 @@ ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location("photo_delta_import", ROOT / "scripts/import-photo-deltas-artifact.py")
 MODULE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MODULE)
-WEBP = b"RIFF" + (4).to_bytes(4, "little") + b"WEBP"
+CHUNK = b"VP8 " + (2).to_bytes(4, "little") + b"\x00\x00"
+WEBP = b"RIFF" + (4 + len(CHUNK)).to_bytes(4, "little") + b"WEBP" + CHUNK
 
 
 class ArtifactBoundaryTests(unittest.TestCase):
