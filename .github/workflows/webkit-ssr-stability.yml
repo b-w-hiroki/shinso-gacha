@@ -12,6 +12,8 @@ on:
       - 'tests/observation-lowlight-isolated.cjs'
       - 'tests/observation-location-variants.cjs'
       - 'scripts/webkit-ssr-stability.mjs'
+      - 'scripts/webkit-stability-summary.mjs'
+      - 'tests/webkit-stability-summary.mjs'
       - 'tests/webkit-ssr-stability-runner.cjs'
       - 'assets/observation.js'
       - 'assets/observation.css'
@@ -90,4 +92,28 @@ jobs:
         with:
           name: isolated-${{ matrix.mode }}-${{ matrix.trial }}
           path: docs/qa-webkit-stability/
+          retention-days: 30
+
+  coverage-summary:
+    name: Account for every expected WebKit trial
+    needs: [webkit-ssr-replay, webkit-ssr-independent]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          path: webkit-evidence
+      - name: Keep failed and missing evidence separate
+        run: node scripts/webkit-stability-summary.mjs webkit-evidence "$GITHUB_SHA" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: webkit-coverage-summary
+          path: webkit-stability-summary.json
           retention-days: 30

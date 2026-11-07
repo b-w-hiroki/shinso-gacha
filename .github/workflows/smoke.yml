@@ -64,6 +64,7 @@ jobs:
       - run: node tests/runtime-safety.cjs
       - run: node tests/cloud-save.cjs
       - run: node tests/webkit-ssr-stability-runner.cjs
+      - run: node tests/webkit-stability-summary.mjs
       - run: node tests/branch-cleanup.mjs
 
   spec-design-sync:
