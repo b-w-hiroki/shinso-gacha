@@ -217,6 +217,7 @@ jobs:
       - run: node tests/evidence-variants.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
+      - run: node tests/archive-truth-legibility.cjs
       - run: node tests/layout.cjs
         env:
           QA_FONT: ${{ runner.temp }}/noto.otf
