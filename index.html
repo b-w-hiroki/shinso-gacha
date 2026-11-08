@@ -397,8 +397,8 @@ pre.st { margin: 0; white-space: pre-wrap; word-break: break-all; background: va
 .note:empty { display: none; }
 .urban .lyr p, .urban.today p { font-family: var(--f-hand); font-size: 16px; color: #26314a; }
 .con .lyr p { font-family: var(--f-body); letter-spacing: .02em; text-shadow: 0 0 .6px rgba(0,0,0,.35); }
-.stamp-sm, .verdict, .truth, .seal, .folder.truth::after { -webkit-mask-image: var(--inkmask); mask-image: var(--inkmask); }
-.stamp-sm, .verdict, .truth { mix-blend-mode: multiply; }
+.stamp-sm, .verdict, .truth:not(.folder), .seal, .folder.truth::after { -webkit-mask-image: var(--inkmask); mask-image: var(--inkmask); }
+.stamp-sm, .verdict, .truth:not(.folder) { mix-blend-mode: multiply; }
 .sealed p i { border-radius: 2px 7px 3px 6px; }
 .sealed p i:nth-child(2) { transform: rotate(-.7deg) translateX(4px); }
 .rd i { border-radius: 1px 3px 2px 3px; }
