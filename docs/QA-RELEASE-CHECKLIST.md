@@ -72,6 +72,13 @@
 - `scripts/build-ssr-composites.py --check` で生成物が入力原本と一致するか再確認できる。ソース変更時は4画像を再生成し、ハッシュ・レビューを同時更新する。
 - SVG原本はバイト単位のSHAを照合するため、`.gitattributes` で改行変換を無効化する。Windowsでも原本のLFを保持し、`tests/ssr-composite-asset-audit.cjs` のハッシュと生成済み画像を一致させる。改行だけを変えて生成物を更新しない。
 
+## 2026-11-10 暗部補正の押下中再描画（#141）
+
+- 日次 [run 42622175086](https://github.com/b-w-hiroki/shinso-gacha/actions/runs/42622175086/job/129176828093)、main `2b0deed` は60試行中59成功・1失敗。photo低照度のDOM clickが0/1で、ブラウザは正常終了。元artifactに押下イベントやDOM変化の記録はなく、その1件の直接原因は未確定。
+- 同じmainの `renderObservation()` を本物のmousedownとmouseupの間に実行すると、WebKit 27.2で同じボタンへのdown/upは届いてもclickが消えることを再現。`watchEnhancePaint()` が変わっていない `textContent` を置き換える処理だけを抑止し、同じ回帰テストが成功することを確認する。
+- `observation-lowlight-isolated.cjs` は従来の通常操作4回に加え、描画割込み中の補正ON/OFF・拡大/復帰を検査する。実DOM click=1・isTrusted、44px・ナビ非重複・表示状態・pt/取得済み記録不変を維持し、force・合成click・リトライで失敗を隠さない。
+- 失敗時は直近24件以内のpointer/mouseイベント対象ID・座標・trustedをログへ残す。集計は `pointer-click-not-delivered` と段階名を記録し、レンダラ終了とは分ける。成功runでも過去の失敗を消さず、#141の長期監視と#75の実機確認を継続する。
+
 ## 2026-10-16 低照度ボタンの間欠的なクリック誤差（#141）
 
 - main CI #38822592573 の車載 WebKit QA は、SSR描画前の実クリック試験で aria-pressed が期待値と一致せず失敗（tests/observation-lowlight-isolated.cjs:79）。以前のmain CI #38748041515 でも同じ暗部補正トグル試験で失敗した。これは WebKit renderer page crash とは異なる失敗である。

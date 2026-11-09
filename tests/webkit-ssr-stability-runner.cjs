@@ -43,6 +43,10 @@ const assert=require('node:assert/strict');
   {lastStage:'after-native-photo-fetch:photo:3',failureKind:'webkit-page-closed'});
  assert.equal(classifyTrial('WEBKIT_PAGE_CRASH',1,null,1).failureKind,'cgroup-oom');
  assert.equal(classifyTrial('TimeoutError: timed out',1,null,0).failureKind,'timeout');
+ assert.deepEqual(classifyTrial('WEBKIT_STRESS_STAGE before-enhance-toggle:photo:0\nWEBKIT_LOWLIGHT_CLICK_FAILURE',1,null,0),
+  {lastStage:'before-enhance-toggle:photo:0',failureKind:'pointer-click-not-delivered'});
+ assert.equal(classifyTrial('WEBKIT_LOWLIGHT_CLICK_FAILURE',0,null,0).failureKind,'passed');
+ assert.equal(classifyTrial('WEBKIT_LOWLIGHT_CLICK_FAILURE WEBKIT_PAGE_CRASH',1,null,0).failureKind,'webkit-page-closed');
  assert.equal(classifyTrial('',0,null,null).failureKind,'passed');
  assert.equal(classifyTrial('WEBKIT_BROWSER_DISCONNECTED last_stage=after-save:photo:3',0,null,0).failureKind,'passed',
   'orderly browser shutdown must not be reported as a crash');
