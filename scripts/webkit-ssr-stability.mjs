@@ -41,7 +41,8 @@ export function classifyTrial(output,exitCode,signal,oomKillsDelta){
  // An exit-zero trial must remain passed regardless of incidental shutdown logs.
  const reason=exitCode===0&&!signal?'passed':
   oomKillsDelta!==null&&oomKillsDelta>0?'cgroup-oom':
-  crashed?'webkit-page-closed':timedOut?'timeout':signal?'process-signal':'other-failure';
+  crashed?'webkit-page-closed':timedOut?'timeout':signal?'process-signal':
+  /WEBKIT_LOWLIGHT_CLICK_FAILURE/.test(output)?'pointer-click-not-delivered':'other-failure';
  return {lastStage:stage,failureKind:reason};
 }
 // Performance warning only: prior failing SSR trials often took 18–30s,
