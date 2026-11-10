@@ -24,6 +24,17 @@ const server=http.createServer((req,res)=>{
  try{
   const page=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  page.on('crash',()=>console.error('WEBKIT_PAGE_CRASH'));
+  await page.addInitScript(()=>{
+   window.__qaLowlightEvents=[];
+   for(const type of ['pointerdown','pointerup','mousedown','mouseup','click']){
+    document.addEventListener(type,event=>{
+     window.__qaLowlightEvents.push({type,target:event.target.id,
+      x:event.clientX,y:event.clientY,trusted:event.isTrusted});
+     if(window.__qaLowlightEvents.length>24)window.__qaLowlightEvents.shift();
+    },true);
+   }
+  });
   await page.route('https://**/*',route=>route.abort());
   await page.goto('http://127.0.0.1:'+server.address().port);
   if(process.env.QA_FONT){
@@ -61,7 +72,8 @@ const server=http.createServer((req,res)=>{
    filter:getComputedStyle(document.querySelector('#obs-site-overlay')).filter,
   }));
   assert.equal(baseline.filter,'none','high-resolution native composite should not need a GPU filter');
-  const pressReal=async selector=>{
+  const pressReal=async (selector,refreshDuringPress=false)=>{
+   console.log('WEBKIT_STRESS_STAGE before-'+selector.slice(5)+':'+mode+':0');
    const loc=page.locator(selector);
    await loc.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));
    const box=await loc.evaluate(e=>{
@@ -86,31 +98,50 @@ const server=http.createServer((req,res)=>{
     }
     return Number(e.dataset.qaClickCount||0);
    });
+   await page.evaluate(()=>{window.__qaLowlightEvents=[];});
+   if(refreshDuringPress)await loc.evaluate(e=>{
+    e.dataset.qaRefreshDuringPress='0';
+    // Deterministically put the ordinary one-second repaint between the
+    // genuine down/up events. No synthetic click, force, delay or retry.
+    e.addEventListener('mousedown',()=>{
+     renderObservation();
+     e.dataset.qaRefreshDuringPress='1';
+    },{once:true});
+   });
    await loc.click({position:{x:box.width/2,y:box.height/2}});
    const click=await loc.evaluate(e=>({
     count:Number(e.dataset.qaClickCount||0),trusted:e.dataset.qaLastTrusted
    }));
+   if(click.count!==countBefore+1){
+    console.error('WEBKIT_LOWLIGHT_CLICK_FAILURE '+JSON.stringify({mode,selector,
+     refreshDuringPress,box,click,countBefore,events:await page.evaluate(()=>window.__qaLowlightEvents)}));
+   }
    assert.equal(click.count,countBefore+1,selector+': must deliver exactly one click');
    assert.equal(click.trusted,'true',selector+': WebKit must receive a genuine pointer click');
+   if(refreshDuringPress)assert.equal(await loc.getAttribute('data-qa-refresh-during-press'),'1',
+    selector+': regression must repaint between genuine down/up events');
+   console.log('WEBKIT_STRESS_STAGE after-'+selector.slice(5)+':'+mode+':0');
   };
-  await pressReal('#obs-enhance-toggle');
-  assert.equal(await light.getAttribute('aria-pressed'),'true');
-  assert.equal(await page.locator('#obs-frame').getAttribute('data-enhance'),'true');
-  const brighter=await page.locator('#obs-site-overlay').evaluate(e=>({
-   filter:getComputedStyle(e).filter,
-   overlay:getComputedStyle(e,'::after').backgroundColor,
-  }));
-  assert.equal(brighter.filter,'none','brightness must not force GPU filter: '+mode);
-  assert(brighter.overlay!==''&&brighter.overlay!=='rgba(0, 0, 0, 0)',
-   'visible compensation layer missing '+mode);
-  await pressReal('#obs-zoom-toggle');
-  assert.equal(await page.locator('#obs-frame').getAttribute('data-zoom'),'2');
-  assert.equal(await page.locator('#obs-frame').getAttribute('data-enhance'),'true');
-  await pressReal('#obs-zoom-toggle');
-  assert.equal(await page.locator('#obs-frame').getAttribute('data-zoom'),'1');
-  await pressReal('#obs-enhance-toggle');
-  assert.equal(await light.getAttribute('aria-pressed'),'false');
-  assert.equal(await page.locator('#obs-frame').getAttribute('data-enhance'),'false');
+  for(const refreshDuringPress of [false,true]){
+   await pressReal('#obs-enhance-toggle',refreshDuringPress);
+   assert.equal(await light.getAttribute('aria-pressed'),'true');
+   assert.equal(await page.locator('#obs-frame').getAttribute('data-enhance'),'true');
+   const brighter=await page.locator('#obs-site-overlay').evaluate(e=>({
+    filter:getComputedStyle(e).filter,
+    overlay:getComputedStyle(e,'::after').backgroundColor,
+   }));
+   assert.equal(brighter.filter,'none','brightness must not force GPU filter: '+mode);
+   assert(brighter.overlay!==''&&brighter.overlay!=='rgba(0, 0, 0, 0)',
+    'visible compensation layer missing '+mode);
+   await pressReal('#obs-zoom-toggle',refreshDuringPress);
+   assert.equal(await page.locator('#obs-frame').getAttribute('data-zoom'),'2');
+   assert.equal(await page.locator('#obs-frame').getAttribute('data-enhance'),'true');
+   await pressReal('#obs-zoom-toggle',refreshDuringPress);
+   assert.equal(await page.locator('#obs-frame').getAttribute('data-zoom'),'1');
+   await pressReal('#obs-enhance-toggle',refreshDuringPress);
+   assert.equal(await light.getAttribute('aria-pressed'),'false');
+   assert.equal(await page.locator('#obs-frame').getAttribute('data-enhance'),'false');
+  }
   const after=await page.evaluate(()=>({
    currency:S.currency,
    suppression:observationState().pending?.suppression,
@@ -119,7 +150,7 @@ const server=http.createServer((req,res)=>{
   }));
   assert.deepEqual(after,baseline,'visual toggles cannot change observation rewards or image filters '+mode);
   assert.deepEqual(errors,[],'page console errors after actual WebKit viewer interaction');
-  console.log('Real WebKit enhancement, 2x zoom, safe hit area and no economy changes passed: '+mode);
+  console.log('Real WebKit enhancement/zoom through repaint, safe hit area and no economy changes passed: '+mode);
   await page.close();
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>server.close());

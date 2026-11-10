@@ -42,7 +42,11 @@ function watchEnhancePaint(){
  button.hidden=frame.dataset.sceneAlt!=='true';
  button.setAttribute('aria-pressed',String(enabled));
  button.setAttribute('aria-label',enabled?'観測映像の暗部補正を解除':'暗い観測映像の暗部を補正');
- button.textContent=enabled?'補正解除':'暗部補正';
+ // Preserve the label node during the one-second observation refresh.
+ // WebKit cancels a real click when its pressed text node is replaced
+ // between mousedown and mouseup, even if the button/label look unchanged.
+ const label=enabled?'補正解除':'暗部補正';
+ if(button.textContent!==label)button.textContent=label;
 }
 document.getElementById('obs-enhance-toggle')?.addEventListener('click',()=>{
  const frame=document.getElementById('obs-frame');
