@@ -28,6 +28,42 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
   await p.mouse.click(target.x,target.y);assert.equal(await p.evaluate(()=>S.observation.pending.suppression),1);
   assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal overflow');
  }
+
+ // PR #283: actual keyboard operation and rendered region picker at phone sizes.
+ // Keep the existing anomaly tests, then exercise all nine equal controls.
+ for(const [width,height] of [[320,568],[390,844],[844,390]]){
+  await p.setViewportSize({width,height});await setup(2);
+  await p.locator('#obs-help').focus();await p.keyboard.press('Enter');
+  assert.equal(await p.locator('.watch-target-regions button').count(),9);
+  for(let region=0;region<9;region++){
+   await p.keyboard.press('Tab');
+   const button=p.locator('[data-watch-region="'+region+'"]');
+   assert.equal(await button.evaluate(e=>e===document.activeElement),true);
+   const box=await button.boundingBox();
+   assert(box.width>=44&&box.height>=44,'44px region control');
+   assert(box.x>=0&&box.x+box.width<=width,'region within viewport');
+   const style=await button.evaluate(e=>{const s=getComputedStyle(e);return {outline:s.outlineWidth,line:s.textDecorationLine};});
+   assert.equal(style.outline,'3px');assert(style.line.includes('underline'));
+   if(region===0)await p.screenshot({path:'docs/qa-incursions/region-picker-focus-'+width+'.jpg'});
+  }
+  assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'picker horizontal overflow');
+  await p.keyboard.press('Escape');
+  assert.equal(await p.locator('#sheet-bg').isVisible(),false);
+  assert.equal(await p.locator('#obs-help').evaluate(e=>e===document.activeElement),true,'Escape restores opener');
+  // Open again, then activate a real focused button with the keyboard.
+  await p.keyboard.press('Enter');await p.keyboard.press('Tab');
+  const before=await p.evaluate(()=>{const o=observationState(),copy=structuredClone(o);WatchModel.suppressRegion(copy,Date.now(),0);return {currency:S.currency,suppression:o.pending.suppression,expected:copy.pending.suppression};});
+  await p.keyboard.press('Enter');
+  assert.equal(await p.evaluate(()=>S.currency),before.currency+1,'one input, one pt');
+  assert.equal(await p.locator('[data-watch-region="0"]').evaluate(e=>e===document.activeElement),true,'selection keeps focus');
+  assert.equal(await p.evaluate(()=>observationState().pending.suppression),before.expected,'selected region uses the model hit/miss result');
+  assert.equal(await p.locator('.watch-target-copy').innerText(),before.expected>before.suppression?'指先に抵抗がある。まだ、そこにいる。':'そこには、手応えがない。');
+  await p.locator('#sheet button[data-act="close"]').last().click();
+  assert.equal(await p.locator('#sheet-bg').isVisible(),false);
+  assert.equal(await p.locator('#obs-help').evaluate(e=>e===document.activeElement),true,'return restores opener');
+ }
+ console.log('Region picker: 320/390/844, nine keyboard focus states, Enter selection, one-point input, Escape/return focus passed');
+
  await p.setViewportSize({width:390,height:680});await p.clock.runFor(200);
  await p.emulateMedia({reducedMotion:'reduce'});assert.equal(await p.locator('#obs-image').evaluate(e=>getComputedStyle(e).animationName),'none');
  await p.emulateMedia({reducedMotion:'no-preference'});

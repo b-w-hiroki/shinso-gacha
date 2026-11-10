@@ -351,3 +351,19 @@ body.watch-mind-quiet .obs-frame[data-condition] #obs-image{filter:none}
  display:block;flex:none;min-width:0;overflow:hidden;text-overflow:ellipsis;
  white-space:nowrap;color:#e8e1d0;font:500 14px/1.35 var(--f-body);
 }
+
+/* The accessible region grid is a spatial map, not an answer hint.
+   Keep all nine regions visually equal; keyboard focus must remain visible. */
+.watch-target-regions button{
+ min-width:0;padding:10px 6px;border-radius:4px;
+ line-height:1.5;overflow-wrap:anywhere;
+}
+.watch-target-regions button:hover{background:#30382b;border-color:#d6c7a3}
+.watch-target-regions button:focus-visible{
+ outline:3px solid #e6d1a8;outline-offset:3px;
+ background:#30382b;text-decoration:underline;text-underline-offset:4px;
+}
+.watch-target-regions button:active{background:#414a37;border-color:#eee5cd}
+@media(forced-colors:active){
+ .watch-target-regions button:focus-visible{outline-color:Highlight}
+}
