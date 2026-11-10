@@ -52,11 +52,12 @@ const server=http.createServer((q,r)=>{try{const f=q.url==='/font.otf'?process.e
   assert.equal(await p.locator('#obs-help').evaluate(e=>e===document.activeElement),true,'Escape restores opener');
   // Open again, then activate a real focused button with the keyboard.
   await p.keyboard.press('Enter');await p.keyboard.press('Tab');
-  const before=await p.evaluate(()=>({currency:S.currency,suppression:observationState().pending.suppression}));
+  const before=await p.evaluate(()=>{const o=observationState(),copy=structuredClone(o);WatchModel.suppressRegion(copy,Date.now(),0);return {currency:S.currency,suppression:o.pending.suppression,expected:copy.pending.suppression};});
   await p.keyboard.press('Enter');
   assert.equal(await p.evaluate(()=>S.currency),before.currency+1,'one input, one pt');
   assert.equal(await p.locator('[data-watch-region="0"]').evaluate(e=>e===document.activeElement),true,'selection keeps focus');
-  assert((await p.locator('.watch-target-copy').innerText()).length>0);
+  assert.equal(await p.evaluate(()=>observationState().pending.suppression),before.expected,'selected region uses the model hit/miss result');
+  assert.equal(await p.locator('.watch-target-copy').innerText(),before.expected>before.suppression?'指先に抵抗がある。まだ、そこにいる。':'そこには、手応えがない。');
   await p.locator('#sheet button[data-act="close"]').last().click();
   assert.equal(await p.locator('#sheet-bg').isVisible(),false);
   assert.equal(await p.locator('#obs-help').evaluate(e=>e===document.activeElement),true,'return restores opener');
